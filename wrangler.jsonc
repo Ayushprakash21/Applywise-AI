@@ -17,6 +17,9 @@
   "observability": {
     "enabled": true
   },
+  "triggers": {
+    "crons": ["*/10 * * * *"]
+  },
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",

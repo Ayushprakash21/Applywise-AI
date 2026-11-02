@@ -133,9 +133,9 @@ export const AICopilot: React.FC<AICopilotProps> = ({
     switch (currentPageContext) {
       case 'jobs':
         return [
-          'What skills are trending for remote roles?',
-          'How should I evaluate compensation compatibility?',
-          'Tips for applying to multi-country vacancies',
+          'Analyze key requirements for live vacancies',
+          'How does Assisted Apply work vs Auto-Apply?',
+          'What skills are trending for remote tech roles?',
         ];
       case 'applications':
         return [

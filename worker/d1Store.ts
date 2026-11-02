@@ -588,4 +588,273 @@ export class D1Store {
         updated_at = excluded.updated_at
     `).bind(conversationId, userId, title, JSON.stringify(messages), now, now).run();
   }
+
+  // ============================================================================
+  // TEMPORARY LIVE JOBS CACHE & SOURCE HEALTH
+  // ============================================================================
+
+  async cleanupExpiredLiveJobs(): Promise<number> {
+    const now = new Date().toISOString();
+    const res = await this.db.prepare(
+      'DELETE FROM live_jobs_cache WHERE expires_at < ?'
+    ).bind(now).run();
+    return res.meta?.changes || 0;
+  }
+
+  async saveLiveJobs(jobs: any[]): Promise<void> {
+    if (!jobs || jobs.length === 0) return;
+    // Chunk into batches of 20 to stay well within D1 statement limits
+    for (let i = 0; i < jobs.length; i += 20) {
+      const slice = jobs.slice(i, i + 20);
+      const statements = slice.map(j =>
+        this.db.prepare(`
+          INSERT INTO live_jobs_cache (
+            id, source, source_job_id, title, company, company_logo, location, country,
+            work_arrangement, employment_type, experience_level, salary_raw, salary_min, salary_max,
+            salary_currency, url, description, requirements, tags, published_at, retrieved_at,
+            expires_at, is_active, last_checked_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+          ON CONFLICT(id) DO UPDATE SET
+            title = excluded.title,
+            location = excluded.location,
+            salary_raw = excluded.salary_raw,
+            salary_min = excluded.salary_min,
+            salary_max = excluded.salary_max,
+            expires_at = excluded.expires_at,
+            last_checked_at = excluded.last_checked_at
+        `).bind(
+          j.id,
+          j.source,
+          j.sourceJobId,
+          j.title,
+          j.company,
+          j.companyLogo || null,
+          j.location,
+          j.country,
+          j.workArrangement || 'remote',
+          j.employmentType || 'full-time',
+          j.experienceLevel || 'mid',
+          j.salaryRaw || null,
+          j.salaryMin || null,
+          j.salaryMax || null,
+          j.salaryCurrency || '$',
+          j.url,
+          j.description,
+          JSON.stringify(j.requirements || []),
+          JSON.stringify(j.tags || []),
+          j.publishedAt,
+          j.retrievedAt,
+          j.expiresAt,
+          j.lastCheckedAt
+        )
+      );
+      await this.db.batch(statements);
+    }
+  }
+
+  async searchLiveJobs(params: {
+    query?: string;
+    company?: string;
+    location?: string;
+    workArrangement?: string;
+    employmentType?: string;
+    experienceLevel?: string;
+    salaryMin?: number;
+    salaryMax?: number;
+    source?: string;
+    sort?: 'recent' | 'salary' | 'title';
+    page?: number;
+    limit?: number;
+  }): Promise<{ jobs: any[]; total: number; page: number; limit: number; totalPages: number }> {
+    // 1. Clean up expired temporary records first
+    await this.cleanupExpiredLiveJobs();
+
+    const conditions: string[] = ['is_active = 1'];
+    const bindings: any[] = [];
+
+    if (params.query?.trim()) {
+      const q = `%${params.query.trim().toLowerCase()}%`;
+      conditions.push('(LOWER(title) LIKE ? OR LOWER(description) LIKE ? OR LOWER(company) LIKE ?)');
+      bindings.push(q, q, q);
+    }
+
+    if (params.company?.trim()) {
+      conditions.push('LOWER(company) LIKE ?');
+      bindings.push(`%${params.company.trim().toLowerCase()}%`);
+    }
+
+    if (params.location?.trim() && params.location !== 'All Locations') {
+      conditions.push('(LOWER(location) LIKE ? OR LOWER(country) LIKE ?)');
+      bindings.push(`%${params.location.trim().toLowerCase()}%`, `%${params.location.trim().toLowerCase()}%`);
+    }
+
+    if (params.workArrangement && params.workArrangement !== 'all') {
+      conditions.push('work_arrangement = ?');
+      bindings.push(params.workArrangement);
+    }
+
+    if (params.employmentType && params.employmentType !== 'all') {
+      conditions.push('employment_type = ?');
+      bindings.push(params.employmentType);
+    }
+
+    if (params.experienceLevel && params.experienceLevel !== 'all') {
+      conditions.push('experience_level = ?');
+      bindings.push(params.experienceLevel);
+    }
+
+    if (params.source && params.source !== 'all') {
+      conditions.push('source LIKE ?');
+      bindings.push(`%${params.source}%`);
+    }
+
+    if (params.salaryMin && params.salaryMin > 0) {
+      conditions.push('(salary_min >= ? OR salary_max >= ?)');
+      bindings.push(params.salaryMin, params.salaryMin);
+    }
+
+    const whereClause = conditions.join(' AND ');
+
+    // Count query
+    const countSql = `SELECT COUNT(*) as total FROM live_jobs_cache WHERE ${whereClause}`;
+    const countRes = await this.db.prepare(countSql).bind(...bindings).first<{ total: number }>();
+    const total = countRes?.total || 0;
+
+    // Sorting
+    let orderClause = 'published_at DESC';
+    if (params.sort === 'salary') {
+      orderClause = 'salary_max DESC NULLS LAST, published_at DESC';
+    } else if (params.sort === 'title') {
+      orderClause = 'title ASC';
+    }
+
+    const page = Math.max(1, params.page || 1);
+    const limit = Math.min(Math.max(1, params.limit || 15), 50);
+    const offset = (page - 1) * limit;
+
+    const querySql = `
+      SELECT * FROM live_jobs_cache
+      WHERE ${whereClause}
+      ORDER BY ${orderClause}
+      LIMIT ? OFFSET ?
+    `;
+
+    const { results } = await this.db.prepare(querySql).bind(...bindings, limit, offset).all();
+
+    const jobs = (results || []).map((row: any) => ({
+      id: row.id,
+      source: row.source,
+      sourceJobId: row.source_job_id,
+      title: row.title,
+      company: row.company,
+      companyLogo: row.company_logo,
+      location: row.location,
+      country: row.country,
+      workArrangement: row.work_arrangement,
+      employmentType: row.employment_type,
+      experienceLevel: row.experience_level,
+      salaryRaw: row.salary_raw,
+      salaryMin: row.salary_min,
+      salaryMax: row.salary_max,
+      salaryCurrency: row.salary_currency,
+      url: row.url,
+      description: row.description,
+      requirements: JSON.parse(row.requirements || '[]'),
+      tags: JSON.parse(row.tags || '[]'),
+      publishedAt: row.published_at,
+      retrievedAt: row.retrieved_at,
+      expiresAt: row.expires_at,
+      isActive: !!row.is_active,
+      lastCheckedAt: row.last_checked_at,
+    }));
+
+    return {
+      jobs,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
+  }
+
+  async getLiveJobById(id: string): Promise<any | null> {
+    const row = await this.db.prepare(
+      'SELECT * FROM live_jobs_cache WHERE id = ?'
+    ).bind(id).first<any>();
+
+    if (!row) return null;
+    return {
+      id: row.id,
+      source: row.source,
+      sourceJobId: row.source_job_id,
+      title: row.title,
+      company: row.company,
+      companyLogo: row.company_logo,
+      location: row.location,
+      country: row.country,
+      workArrangement: row.work_arrangement,
+      employmentType: row.employment_type,
+      experienceLevel: row.experience_level,
+      salaryRaw: row.salary_raw,
+      salaryMin: row.salary_min,
+      salaryMax: row.salary_max,
+      salaryCurrency: row.salary_currency,
+      url: row.url,
+      description: row.description,
+      requirements: JSON.parse(row.requirements || '[]'),
+      tags: JSON.parse(row.tags || '[]'),
+      publishedAt: row.published_at,
+      retrievedAt: row.retrieved_at,
+      expiresAt: row.expires_at,
+      isActive: !!row.is_active,
+      lastCheckedAt: row.last_checked_at,
+    };
+  }
+
+  async getLiveSourcesHealth(): Promise<any[]> {
+    const { results } = await this.db.prepare(
+      'SELECT * FROM source_health_registry ORDER BY last_refreshed_at DESC'
+    ).all();
+    return results || [];
+  }
+
+  async updateSourceHealth(health: {
+    sourceId: string;
+    sourceName: string;
+    connectorType: string;
+    endpoint: string;
+    status: string;
+    totalJobs: number;
+    latencyMs: number;
+    lastError?: string;
+  }): Promise<void> {
+    const now = new Date().toISOString();
+    await this.db.prepare(`
+      INSERT INTO source_health_registry (
+        source_id, source_name, connector_type, endpoint, status, total_jobs,
+        latency_ms, last_refreshed_at, last_error
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(source_id) DO UPDATE SET
+        status = excluded.status,
+        total_jobs = excluded.total_jobs,
+        latency_ms = excluded.latency_ms,
+        last_refreshed_at = excluded.last_refreshed_at,
+        last_error = excluded.last_error
+    `).bind(
+      health.sourceId,
+      health.sourceName,
+      health.connectorType,
+      health.endpoint,
+      health.status,
+      health.totalJobs,
+      health.latencyMs,
+      now,
+      health.lastError || null
+    ).run();
+  }
+
+  async countLiveJobs(): Promise<number> {
+    const row = await this.db.prepare('SELECT COUNT(*) as count FROM live_jobs_cache').first<{ count: number }>();
+    return row?.count || 0;
+  }
 }

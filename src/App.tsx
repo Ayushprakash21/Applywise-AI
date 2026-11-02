@@ -201,9 +201,13 @@ export default function App() {
   const handleSearchJobs = async (query: string, country?: string, remoteOnly?: boolean) => {
     try {
       setIsSearching(true);
-      const res = await api.searchJobs(query, country, remoteOnly);
-      setVacancies(res.vacancies);
-      showToast(`Discovered ${res.totalDiscovered} verified vacancies.`);
+      const res = await api.searchLiveJobs({
+        q: query,
+        location: country,
+        workArrangement: remoteOnly ? 'remote' : undefined,
+      });
+      setVacancies(res.jobs);
+      showToast(`Discovered ${res.total} live opportunities.`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       showToast(`Search error: ${msg}`);
@@ -330,6 +334,11 @@ export default function App() {
                 isSearching={isSearching}
                 hasProfile={!!profile?.fullName}
                 onOpenOnboarding={() => setOnboardingOpen(true)}
+                onRefreshLiveJobs={async () => {
+                  const res = await api.refreshLiveJobs();
+                  showToast(res.message);
+                  await loadUserData();
+                }}
               />
             )}
 
@@ -436,6 +445,8 @@ export default function App() {
         onPrepareApplication={handlePrepareApplication}
         isPreparing={isPreparingApp}
         hasApplied={applications.some(a => a.vacancyId === selectedVacancy?.id)}
+        onApplicationCreated={newApp => setApplications(prev => [newApp, ...prev])}
+        onShowToast={showToast}
       />
 
       <ResumePreviewModal

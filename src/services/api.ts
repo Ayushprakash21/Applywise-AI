@@ -123,11 +123,142 @@ export const api = {
       success: boolean;
       totalDiscovered: number;
       vacancies: JobVacancy[];
+      jobs?: JobVacancy[];
       errors: string[];
     }>('/api/jobs/search', {
       method: 'POST',
       body: JSON.stringify({ query, country, remoteOnly }),
     }),
+  searchLiveJobs: (params: {
+    q?: string;
+    company?: string;
+    location?: string;
+    workArrangement?: string;
+    employmentType?: string;
+    experienceLevel?: string;
+    salaryMin?: number;
+    salaryMax?: number;
+    source?: string;
+    sort?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const sp = new URLSearchParams();
+    if (params.q) sp.set('q', params.q);
+    if (params.company) sp.set('company', params.company);
+    if (params.location && params.location !== 'All Locations' && params.location !== 'All Countries') sp.set('location', params.location);
+    if (params.workArrangement && params.workArrangement !== 'all') sp.set('workArrangement', params.workArrangement);
+    if (params.employmentType && params.employmentType !== 'all') sp.set('employmentType', params.employmentType);
+    if (params.experienceLevel && params.experienceLevel !== 'all') sp.set('experienceLevel', params.experienceLevel);
+    if (params.salaryMin) sp.set('salaryMin', String(params.salaryMin));
+    if (params.salaryMax) sp.set('salaryMax', String(params.salaryMax));
+    if (params.source && params.source !== 'all') sp.set('source', params.source);
+    if (params.sort) sp.set('sort', params.sort);
+    if (params.page) sp.set('page', String(params.page));
+    if (params.limit) sp.set('limit', String(params.limit));
+
+    return fetchJson<{
+      success: boolean;
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+      jobs: JobVacancy[];
+    }>(`/api/jobs/search?${sp.toString()}`);
+  },
+  getLiveJobsStatus: () =>
+    fetchJson<{
+      success: boolean;
+      totalCachedJobs: number;
+      refreshCadence: string;
+      sources: Array<{
+        source_id: string;
+        source_name: string;
+        connector_type: string;
+        endpoint: string;
+        status: string;
+        total_jobs: number;
+        latency_ms: number;
+        last_refreshed_at: string;
+        last_error?: string;
+      }>;
+      lastChecked: string;
+    }>('/api/jobs/status'),
+  getLiveJobsSources: () =>
+    fetchJson<{
+      success: boolean;
+      sources: Array<{
+        id: string;
+        name: string;
+        company: string;
+        type: string;
+        endpoint: string;
+        rateLimitSeconds: number;
+        status: string;
+        totalJobs: number;
+        lastRefreshedAt: string | null;
+      }>;
+    }>('/api/jobs/sources'),
+  getLiveJob: (source: string, jobId: string) =>
+    fetchJson<{ success: boolean; job: JobVacancy }>(`/api/jobs/${encodeURIComponent(source)}/${encodeURIComponent(jobId)}`),
+  refreshLiveJobs: () =>
+    fetchJson<{
+      success: boolean;
+      syncResult: any;
+      message: string;
+    }>('/api/jobs/refresh', { method: 'POST' }),
+  analyzeJob: (id: string) =>
+    fetchJson<{
+      success: boolean;
+      analysis: {
+        jobId: string;
+        title: string;
+        company: string;
+        extractedRequirements: {
+          coreSkills: string[];
+          workArrangement: string;
+          experienceLevel: string;
+          salaryPublished: boolean;
+          salaryRange: string;
+        };
+        aiInsights: {
+          keyResponsibilities: string[];
+          recommendedFocusAreas: string[];
+          sponsorshipInsight: string;
+        };
+        analyzedAt: string;
+      };
+    }>(`/api/jobs/${id}/analyze`, { method: 'POST' }),
+  matchJob: (id: string) =>
+    fetchJson<{
+      success: boolean;
+      match: {
+        matchScore: number;
+        heuristicDisclaimer: string;
+        breakdown: Record<string, number>;
+        matchedSkills: string[];
+        missingSkills: string[];
+        recommendation: string;
+        evaluatedAt: string;
+      };
+    }>(`/api/jobs/${id}/match`, { method: 'POST' }),
+  applyAssisted: (id: string) =>
+    fetchJson<{
+      success: boolean;
+      application: ApplicationRecord;
+      officialApplicationUrl: string;
+      message: string;
+    }>(`/api/jobs/${id}/apply-assisted`, { method: 'POST' }),
+  applyAuto: (id: string) =>
+    fetchJson<{
+      success: boolean;
+      application: ApplicationRecord;
+      status: ApplicationStatus;
+      message: string;
+      error?: string;
+      requiresConsent?: boolean;
+      quotaExceeded?: boolean;
+    }>(`/api/jobs/${id}/apply-auto`, { method: 'POST' }),
   recheckVacancy: (id: string) =>
     fetchJson<{ success: boolean; vacancy: JobVacancy }>(`/api/vacancies/${id}/recheck`, {
       method: 'POST',

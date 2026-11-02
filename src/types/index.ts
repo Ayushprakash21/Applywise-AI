@@ -12,9 +12,13 @@ export type ApplicationStatus =
   | 'RESUME_GENERATED'
   | 'APPLICATION_PREPARED'
   | 'AWAITING_APPROVAL'
+  | 'AWAITING_USER_REVIEW'
+  | 'REDIRECTED_TO_EMPLOYER'
   | 'AUTHORIZED_TO_SUBMIT'
   | 'SUBMISSION_IN_PROGRESS'
   | 'SUBMITTING'
+  | 'SUBMISSION_ATTEMPTED'
+  | 'SUBMISSION_CONFIRMED'
   | 'SUBMITTED'
   | 'SUBMITTED_VERIFIED'
   | 'GUIDED_COMPLETION_REQUIRED'
@@ -255,6 +259,12 @@ export interface AutomationSettings {
   emergencyStop: boolean;
   autoApplyThreshold: number;
   dailyApplicationLimit: number;
+  weeklyApplicationLimit?: number;
+  autoApplyConsentConfirmed?: boolean;
+  autoApplyConsentDate?: string;
+  excludedCompanies?: string[];
+  minMatchScoreThreshold?: number;
+  assistedApplyOnly?: boolean;
   autoTailor?: boolean;
   autoApplyPreapproved?: boolean;
   applicationsSubmittedToday?: number;

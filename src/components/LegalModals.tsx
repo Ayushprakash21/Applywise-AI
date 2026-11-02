@@ -221,31 +221,69 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
             </div>
           </div>
 
-          {/* Daily Limits */}
+          {/* Daily & Weekly Limits */}
           <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
             <div>
-              <label className="font-semibold text-slate-800 block mb-1">Daily Application Limit</label>
+              <label className="font-semibold text-slate-800 block mb-1">Daily Limit (Max 25)</label>
               <input
                 type="number"
                 min={1}
                 max={25}
-                value={localSettings.dailyApplicationLimit}
+                value={localSettings.dailyApplicationLimit || 5}
                 onChange={e => setLocalSettings({ ...localSettings, dailyApplicationLimit: parseInt(e.target.value, 10) || 5 })}
                 className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500"
               />
             </div>
 
             <div>
-              <label className="font-semibold text-slate-800 block mb-1">Min Match Score (%)</label>
+              <label className="font-semibold text-slate-800 block mb-1">Weekly Limit (Max 100)</label>
               <input
                 type="number"
-                min={50}
-                max={95}
-                value={localSettings.autoApplyThreshold || 80}
-                onChange={e => setLocalSettings({ ...localSettings, autoApplyThreshold: parseInt(e.target.value, 10) || 80 })}
+                min={5}
+                max={100}
+                value={localSettings.weeklyApplicationLimit || 25}
+                onChange={e => setLocalSettings({ ...localSettings, weeklyApplicationLimit: parseInt(e.target.value, 10) || 25 })}
                 className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500"
               />
             </div>
+          </div>
+
+          {/* Excluded Companies */}
+          <div className="space-y-1">
+            <label className="font-semibold text-slate-800 block">Excluded Companies</label>
+            <input
+              type="text"
+              placeholder="e.g. Current Employer, Competitor Inc (comma separated)"
+              value={(localSettings.excludedCompanies || []).join(', ')}
+              onChange={e => {
+                const arr = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                setLocalSettings({ ...localSettings, excludedCompanies: arr });
+              }}
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500"
+            />
+            <p className="text-[10px] text-slate-400">ApplyWise AI will never prepare or submit applications to these employers.</p>
+          </div>
+
+          {/* Auto-Apply Explicit Consent Gate */}
+          <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/40 space-y-2">
+            <label className="flex items-start space-x-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!!localSettings.autoApplyConsentConfirmed}
+                onChange={e => setLocalSettings({
+                  ...localSettings,
+                  autoApplyConsentConfirmed: e.target.checked,
+                  autoApplyConsentDate: e.target.checked ? new Date().toISOString() : undefined,
+                })}
+                className="mt-0.5 rounded text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-xs font-semibold text-slate-900">
+                Acknowledge Auto-Apply Consent & Data Usage
+              </span>
+            </label>
+            <p className="text-[11px] text-slate-600 leading-relaxed pl-6">
+              I authorize ApplyWise AI to generate ATS-tailored materials strictly from my verified profile and submit applications to employers matching my criteria. Legal declarations, salary commitments, and sensitive disclosures will always pause for manual review.
+            </p>
           </div>
 
           {/* Emergency Safety Halt */}

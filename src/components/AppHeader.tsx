@@ -91,7 +91,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               }`}
             >
               <Briefcase className="h-4 w-4" />
-              <span>Find Jobs</span>
+              <span>Live Jobs</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             </button>
 
             <button
@@ -297,7 +298,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           }`}
         >
           <Briefcase className="h-4 w-4 mb-0.5" />
-          <span>Find Jobs</span>
+          <span>Live Jobs</span>
         </button>
         <button
           onClick={() => onSelectTab('applications')}
