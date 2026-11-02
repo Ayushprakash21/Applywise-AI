@@ -40,8 +40,8 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   if (!res.ok) {
     let errMsg = `Request failed: ${res.status} ${res.statusText}`;
     try {
-      const errData = await res.json();
-      if (errData.error) errMsg = errData.error;
+      const errData = await res.json() as any;
+      if (errData?.error) errMsg = errData.error;
     } catch {
       // ignore
     }
@@ -62,6 +62,12 @@ export const api = {
     fetchJson<{ success: boolean; user: AuthUser; token: string }>('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+
+  loginWithGoogle: (credential: string) =>
+    fetchJson<{ success: boolean; user: AuthUser; token: string }>('/api/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ credential }),
     }),
 
   logout: async () => {
@@ -166,8 +172,8 @@ export const api = {
     if (!res.ok) {
       let errMsg = `Upload failed: ${res.status}`;
       try {
-        const data = await res.json();
-        if (data.error) errMsg = data.error;
+        const data = await res.json() as any;
+        if (data?.error) errMsg = data.error;
       } catch {
         // ignore
       }

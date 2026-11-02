@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { ApplicationRecord, UserProfile } from '../types/index.ts';
 import { api } from '../services/api.ts';
+import { BrandLogo } from './BrandLogo.tsx';
 
 interface ResumePreviewModalProps {
   application: ApplicationRecord | null;
@@ -65,17 +66,20 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
       >
         {/* Header Toolbar */}
         <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/70">
-          <div>
-            <div className="flex items-center space-x-2">
-              <h2 className="text-base font-bold text-slate-900">Tailored ATS Document Studio</h2>
-              <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                <span>Truthfulness: {resume.truthfulnessScore}/100</span>
-              </span>
+          <div className="flex items-center space-x-3">
+            <BrandLogo size="sm" showWordmark={false} />
+            <div>
+              <div className="flex items-center space-x-2">
+                <h2 className="text-base font-bold text-slate-900">Tailored ATS Document Studio</h2>
+                <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>Truthfulness: {resume.truthfulnessScore}/100</span>
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Custom-tailored for <span className="font-semibold text-slate-700">{application.role}</span> at <span className="font-semibold text-slate-700">{application.company}</span>
+              </p>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Custom-tailored for <span className="font-semibold text-slate-700">{application.role}</span> at <span className="font-semibold text-slate-700">{application.company}</span>
-            </p>
           </div>
 
           <div className="flex items-center space-x-2">

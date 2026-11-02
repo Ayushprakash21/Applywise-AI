@@ -70,7 +70,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Left: Brand Logo */}
         <div className="flex items-center space-x-8">
-          <BrandLogo size="md" />
+          <BrandLogo size="md" onClick={() => onSelectTab('jobs')} />
 
           {/* Minimal 3-Tab Signed-In Navigation */}
           <nav className="hidden md:flex items-center space-x-1">

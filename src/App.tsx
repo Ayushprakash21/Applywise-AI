@@ -8,6 +8,7 @@ import {
   ApplicationRecord,
   NotificationItem,
 } from './types/index.ts';
+import { BrandLogo } from './components/BrandLogo.tsx';
 import { AppHeader } from './components/AppHeader.tsx';
 import { LandingPage } from './components/LandingPage.tsx';
 import { AuthModals } from './components/AuthModals.tsx';
@@ -24,11 +25,9 @@ import {
 } from './components/LegalModals.tsx';
 
 export default function App() {
-  // Current user state
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
-    const saved = localStorage.getItem('applywise_user');
-    return saved ? JSON.parse(saved) : null;
-  });
+  // Current user state (validated against server)
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
 
   // Navigation: minimal 3 tabs for signed-in user
   const [activeTab, setActiveTab] = useState<'jobs' | 'applications' | 'profile'>('jobs');
@@ -52,7 +51,6 @@ export default function App() {
   const [termsModalOpen, setTermsModalOpen] = useState(false);
 
   // Loading States
-  const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
   const [isPreparingApp, setIsPreparingApp] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -62,7 +60,34 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Initial Data Fetch
+  // Safe server-validated session boot
+  useEffect(() => {
+    const initSession = async () => {
+      const token = localStorage.getItem('applywise_token');
+      if (token) {
+        try {
+          const meData = await api.getMe();
+          if (meData.success && meData.user) {
+            setCurrentUser(meData.user);
+            localStorage.setItem('applywise_user', JSON.stringify(meData.user));
+          } else {
+            localStorage.removeItem('applywise_token');
+            localStorage.removeItem('applywise_user');
+            setCurrentUser(null);
+          }
+        } catch {
+          localStorage.removeItem('applywise_token');
+          localStorage.removeItem('applywise_user');
+          setCurrentUser(null);
+        }
+      }
+      setIsCheckingSession(false);
+    };
+
+    initSession();
+  }, []);
+
+  // Load User / Public Data
   const loadUserData = async () => {
     try {
       if (currentUser) {
@@ -81,24 +106,22 @@ export default function App() {
         setApplications(appData.applications);
         setNotifications(notifData.notifications);
       } else {
-        // Public vacancies preview for guest landing page
         const vacData = await api.getVacancies();
         setVacancies(vacData.vacancies);
       }
     } catch (err) {
       console.error('Error loading data:', err);
-      // If token expired, clear user
       if (currentUser) {
         handleLogout();
       }
-    } finally {
-      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadUserData();
-  }, [currentUser?.id]);
+    if (!isCheckingSession) {
+      loadUserData();
+    }
+  }, [currentUser?.id, isCheckingSession]);
 
   const handleLoginSuccess = (user: AuthUser) => {
     setCurrentUser(user);
@@ -161,6 +184,23 @@ export default function App() {
     }
   };
 
+  // Branded Loading State with official AV minimal logo
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4">
+        <div className="flex flex-col items-center space-y-5 animate-in fade-in duration-300">
+          <div className="animate-pulse">
+            <BrandLogo size="xl" showWordmark={true} />
+          </div>
+          <div className="flex items-center space-x-2 text-xs text-slate-400 font-medium">
+            <div className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-ping" />
+            <span>Initializing ApplyWise AI...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-800 antialiased flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
       {/* Toast Notification */}
@@ -178,25 +218,31 @@ export default function App() {
             activeTab={activeTab}
             onSelectTab={setActiveTab}
             notifications={notifications}
-            onMarkNotificationRead={id => api.markNotificationRead(id).then(r => setNotifications(r.notifications))}
-            onMarkAllNotificationsRead={() => api.markAllNotificationsRead().then(r => setNotifications(r.notifications))}
             settings={settings}
             onToggleEmergencyStop={handleToggleEmergencyStop}
             onOpenSettingsModal={() => setSettingsModalOpen(true)}
             onOpenPrivacy={() => setPrivacyModalOpen(true)}
             onOpenTerms={() => setTermsModalOpen(true)}
             onLogout={handleLogout}
+            onMarkNotificationRead={async id => {
+              const res = await api.markNotificationRead(id);
+              setNotifications(res.notifications);
+            }}
+            onMarkAllNotificationsRead={async () => {
+              const res = await api.markAllNotificationsRead();
+              setNotifications(res.notifications);
+            }}
           />
 
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full">
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
             {activeTab === 'jobs' && (
               <JobSearchPage
                 vacancies={vacancies}
-                onSelectVacancy={setSelectedVacancy}
+                onSelectVacancy={v => setSelectedVacancy(v)}
                 onSearch={handleSearchJobs}
                 isSearching={isSearching}
+                hasProfile={!!profile?.fullName}
                 onOpenOnboarding={() => setOnboardingOpen(true)}
-                hasProfile={!!profile && profile.skills.length > 0}
               />
             )}
 
@@ -224,7 +270,10 @@ export default function App() {
           {/* Minimal Clean Footer */}
           <footer className="border-t border-slate-200/80 bg-white py-6 text-xs text-slate-500 mt-auto">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <span>ApplyWise AI — Intelligent Job Discovery & Application Preparation</span>
+              <div className="flex items-center space-x-2">
+                <BrandLogo size="xs" showWordmark={false} />
+                <span>ApplyWise AI — Intelligent Job Discovery & Application Preparation</span>
+              </div>
               <div className="flex items-center space-x-4">
                 <button onClick={() => setPrivacyModalOpen(true)} className="hover:text-blue-600 transition">Privacy Policy</button>
                 <button onClick={() => setTermsModalOpen(true)} className="hover:text-blue-600 transition">Terms of Use</button>

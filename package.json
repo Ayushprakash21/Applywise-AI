@@ -1,5 +1,5 @@
 {
-  "name": "react-example",
+  "name": "applywise-ai",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,6 +9,12 @@
     "start": "NODE_ENV=production tsx server.ts",
     "preview": "vite preview",
     "test": "tsx --test --test-concurrency=1 src/utils/rules.test.ts tests/*.test.ts",
+    "cf:dev": "wrangler dev",
+    "cf:deploy": "npm run build && wrangler deploy",
+    "cf:types": "wrangler types",
+    "db:migrate": "wrangler d1 execute applywise-db --remote --file=./migrations/0001_initial_schema.sql -y",
+    "db:migrate:local": "wrangler d1 execute applywise-db --local --file=./migrations/0001_initial_schema.sql -y",
+    "deploy": "npm run cf:deploy",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
   },
@@ -27,6 +33,7 @@
     "docx": "^9.15.1",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
+    "hono": "^4.13.16",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.546.0",
     "mammoth": "^1.13.0",

@@ -48,7 +48,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Top Navigation */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <BrandLogo size="md" />
+          <BrandLogo size="md" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
 
           <div className="hidden md:flex items-center space-x-6 text-xs font-semibold text-slate-600">
             <a href="#features" className="hover:text-blue-600 transition">Features</a>
@@ -298,7 +298,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Footer */}
       <footer className="mt-auto bg-slate-900 text-slate-400 py-12 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <BrandLogo variant="dark" size="sm" />
+          <BrandLogo variant="dark" size="sm" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
 
           <div className="flex items-center space-x-6">
             <button onClick={onOpenPrivacy} className="hover:text-white transition">Privacy Policy</button>

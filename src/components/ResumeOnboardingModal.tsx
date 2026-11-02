@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, FileText, CheckCircle2, AlertCircle, Sparkles, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
 import { api } from '../services/api.ts';
 import { UserProfile } from '../types/index.ts';
+import { BrandLogo } from './BrandLogo.tsx';
 
 interface ResumeOnboardingModalProps {
   isOpen: boolean;
@@ -112,10 +113,8 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
       >
         {/* Header */}
         <div className="p-6 pb-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
-          <div className="flex items-center space-x-2.5">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-              <FileText className="h-5 w-5" />
-            </div>
+          <div className="flex items-center space-x-3">
+            <BrandLogo size="sm" showWordmark={false} />
             <div>
               <h2 className="text-base font-bold text-slate-900">Resume Intelligence Onboarding</h2>
               <p className="text-xs text-slate-500">Zero-hallucination factual extraction for truthful matching</p>
