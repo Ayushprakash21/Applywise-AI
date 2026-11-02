@@ -11,14 +11,32 @@ import {
   TailoredResumeContent
 } from '../types/index.ts';
 
+export interface AuthUser {
+  id: string;
+  email: string;
+  fullName: string;
+  role: string;
+  isVerified: boolean;
+  createdAt: string;
+}
+
+function getAuthHeader(): Record<string, string> {
+  const token = localStorage.getItem('applywise_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...getAuthHeader(),
+    ...options?.headers,
+  };
+
   const res = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
+    headers,
   });
+
   if (!res.ok) {
     let errMsg = `Request failed: ${res.status} ${res.statusText}`;
     try {
@@ -33,7 +51,37 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  // Profile
+  // --- AUTHENTICATION ---
+  signup: (data: { fullName: string; email: string; password: string; confirmPassword?: string }) =>
+    fetchJson<{ success: boolean; user: AuthUser; token: string; message: string }>('/api/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  login: (data: { email: string; password: string }) =>
+    fetchJson<{ success: boolean; user: AuthUser; token: string }>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  logout: async () => {
+    try {
+      await fetchJson<{ success: boolean }>('/api/auth/logout', { method: 'POST' });
+    } finally {
+      localStorage.removeItem('applywise_token');
+      localStorage.removeItem('applywise_user');
+    }
+  },
+
+  getMe: () => fetchJson<{ success: boolean; user: AuthUser }>('/api/auth/me'),
+
+  recoverPassword: (email: string) =>
+    fetchJson<{ success: boolean; message: string }>('/api/auth/recover-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  // --- PROFILE ---
   getProfile: () => fetchJson<{ success: boolean; profile: UserProfile }>('/api/profile'),
   updateProfile: (profile: Partial<UserProfile>) =>
     fetchJson<{ success: boolean; profile: UserProfile }>('/api/profile', {
@@ -41,7 +89,7 @@ export const api = {
       body: JSON.stringify(profile),
     }),
 
-  // Preferences
+  // --- PREFERENCES ---
   getPreferences: () => fetchJson<{ success: boolean; preferences: CareerPreferences }>('/api/preferences'),
   updatePreferences: (preferences: Partial<CareerPreferences>) =>
     fetchJson<{ success: boolean; preferences: CareerPreferences }>('/api/preferences', {
@@ -49,7 +97,7 @@ export const api = {
       body: JSON.stringify(preferences),
     }),
 
-  // Settings & Emergency Stop
+  // --- SETTINGS & SAFETY ---
   getSettings: () => fetchJson<{ success: boolean; settings: AutomationSettings }>('/api/settings'),
   updateSettings: (settings: Partial<AutomationSettings>) =>
     fetchJson<{ success: boolean; settings: AutomationSettings }>('/api/settings', {
@@ -62,31 +110,24 @@ export const api = {
       body: JSON.stringify({ enabled }),
     }),
 
-  // Vacancies
+  // --- VACANCIES & SEARCH ---
   getVacancies: () => fetchJson<{ success: boolean; vacancies: JobVacancy[] }>('/api/vacancies'),
-  searchJobs: (query?: string, source?: string) =>
+  searchJobs: (query?: string, country?: string, remoteOnly?: boolean) =>
     fetchJson<{
       success: boolean;
       totalDiscovered: number;
-      newAdded: number;
-      totalStored: number;
       vacancies: JobVacancy[];
       errors: string[];
     }>('/api/jobs/search', {
       method: 'POST',
-      body: JSON.stringify({ query, source }),
-    }),
-  manualIngestJob: (jobData: Partial<JobVacancy> & { salaryRaw?: string }) =>
-    fetchJson<{ success: boolean; vacancy: JobVacancy }>('/api/jobs/manual', {
-      method: 'POST',
-      body: JSON.stringify(jobData),
+      body: JSON.stringify({ query, country, remoteOnly }),
     }),
   recheckVacancy: (id: string) =>
     fetchJson<{ success: boolean; vacancy: JobVacancy }>(`/api/vacancies/${id}/recheck`, {
       method: 'POST',
     }),
 
-  // Applications
+  // --- APPLICATIONS ---
   getApplications: () => fetchJson<{ success: boolean; applications: ApplicationRecord[] }>('/api/applications'),
   createFromVacancy: (vacancyId: string) =>
     fetchJson<{ success: boolean; application: ApplicationRecord }>('/api/applications/create-from-vacancy', {
@@ -102,35 +143,72 @@ export const api = {
     fetchJson<{ success: boolean; application: ApplicationRecord }>(`/api/applications/${id}/approve`, {
       method: 'POST',
     }),
-  submitApplication: (id: string) =>
-    fetchJson<{ success: boolean; application: ApplicationRecord }>(`/api/applications/${id}/submit`, {
+  submitApplication: (id: string, userEvidence?: { confirmationCode?: string; employerConfirmationUrl?: string; notes?: string }) =>
+    fetchJson<{ success: boolean; application: ApplicationRecord; guidedApplication?: any; message: string }>(`/api/applications/${id}/submit`, {
       method: 'POST',
+      body: JSON.stringify({ userEvidence }),
     }),
 
-  // AI Resume & Tailoring
-  parseResume: (resumeText: string) =>
+  // --- RESUME UPLOAD & PARSING (CRITICAL BUG FIX) ---
+  uploadResumeFile: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('applywise_token');
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
+    const res = await fetch('/api/resumes/upload', {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!res.ok) {
+      let errMsg = `Upload failed: ${res.status}`;
+      try {
+        const data = await res.json();
+        if (data.error) errMsg = data.error;
+      } catch {
+        // ignore
+      }
+      throw new Error(errMsg);
+    }
+
+    return res.json() as Promise<{
+      success: boolean;
+      profile: UserProfile;
+      extractedTextSummary: string;
+      warning?: string;
+    }>;
+  },
+
+  parseResumeText: (resumeText: string) =>
     fetchJson<{ success: boolean; profile: UserProfile }>('/api/ai/parse-resume', {
       method: 'POST',
       body: JSON.stringify({ resumeText }),
     }),
-  tailorResume: (opts: { applicationId?: string; vacancyId?: string }) =>
-    fetchJson<{
-      success: boolean;
-      tailoredResume: TailoredResumeContent;
-      coverLetter: string;
-      audit: { passed: boolean; score: number; issues: string[] };
-    }>('/api/ai/tailor-resume', {
-      method: 'POST',
-      body: JSON.stringify(opts),
-    }),
 
-  // Scheduler
-  triggerScheduler: () =>
-    fetchJson<{ success: boolean; message: string; lastRun: string; newAdded?: number }>('/api/scheduler/trigger', {
-      method: 'POST',
-    }),
+  downloadDocxResume: async (applicationId: string, companyName: string) => {
+    const token = localStorage.getItem('applywise_token');
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
-  // Notifications & Audit Logs
+    const res = await fetch(`/api/resumes/${applicationId}/export/docx`, {
+      headers,
+    });
+
+    if (!res.ok) throw new Error('Failed to download resume document');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${companyName.replace(/[^a-zA-Z0-9]/g, '_')}_Resume.docx`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  },
+
+  // --- NOTIFICATIONS & AUDIT ---
   getAuditLogs: () => fetchJson<{ success: boolean; logs: AuditLogEntry[] }>('/api/audit-logs'),
   getNotifications: () => fetchJson<{ success: boolean; notifications: NotificationItem[] }>('/api/notifications'),
   markNotificationRead: (id: string) =>
@@ -142,23 +220,6 @@ export const api = {
       method: 'POST',
     }),
 
-  // Integrations & Analytics
+  // --- INTEGRATIONS ---
   getIntegrations: () => fetchJson<{ success: boolean; integrations: SourceIntegrationStatus[] }>('/api/integrations'),
-  getAnalytics: () =>
-    fetchJson<{
-      success: boolean;
-      analytics: {
-        totalDiscovered: number;
-        highMatchCount: number;
-        applicationsCount: number;
-        statusCounts: Record<string, number>;
-        sourceCounts: Record<string, number>;
-        truthfulnessAuditRate: number;
-        emergencyStop: boolean;
-        mode: string;
-      };
-    }>('/api/reports/analytics'),
-
-  // System
-  resetDemoDatabase: () => fetchJson<{ success: boolean; message: string }>('/api/system/reset-demo', { method: 'POST' }),
 };

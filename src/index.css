@@ -1,1 +1,74 @@
 @import "tailwindcss";
+
+@layer utilities {
+  /* Glassmorphism surfaces: light, translucent, refined */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  }
+
+  .glass-card-hover {
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glass-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
+    border-color: rgba(191, 219, 254, 0.8);
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(241, 245, 249, 0.9);
+  }
+
+  .glass-input {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #CBD5E1;
+    box-shadow: inset 0 2px 4px 0 rgba(15, 23, 42, 0.03);
+    transition: all 0.15s ease-in-out;
+  }
+  .glass-input:focus {
+    border-color: #3B82F6;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), inset 0 1px 2px 0 rgba(15, 23, 42, 0.02);
+  }
+
+  /* Neumorphic subtle depth */
+  .neu-raised {
+    box-shadow: 3px 3px 6px #e2e8f0, -3px -3px 6px #ffffff;
+  }
+
+  .neu-inset {
+    box-shadow: inset 2px 2px 5px #e2e8f0, inset -2px -2px 5px #ffffff;
+  }
+
+  .neu-button {
+    background: #ffffff;
+    box-shadow: 2px 2px 5px #e2e8f0, -2px -2px 5px #ffffff;
+    transition: all 0.15s ease;
+  }
+  .neu-button:active {
+    box-shadow: inset 2px 2px 4px #e2e8f0, inset -2px -2px 4px #ffffff;
+  }
+}
+
+/* Subtle modern scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

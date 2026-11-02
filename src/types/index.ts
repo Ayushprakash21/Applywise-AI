@@ -8,19 +8,25 @@ export type ApplicationStatus =
   | 'DISCOVERED'
   | 'VALIDATED'
   | 'MATCHED'
+  | 'PREPARED'
   | 'RESUME_GENERATED'
   | 'APPLICATION_PREPARED'
   | 'AWAITING_APPROVAL'
   | 'AUTHORIZED_TO_SUBMIT'
+  | 'SUBMISSION_IN_PROGRESS'
   | 'SUBMITTING'
   | 'SUBMITTED'
+  | 'SUBMITTED_VERIFIED'
+  | 'GUIDED_COMPLETION_REQUIRED'
   | 'CONFIRMATION_VERIFIED'
   | 'TRACKED'
+  | 'INTERVIEW'
   | 'INTERVIEWING'
   | 'OFFER_RECEIVED'
   | 'REJECTED'
   | 'WITHDRAWN'
-  | 'FAILED';
+  | 'FAILED'
+  | 'SUBMISSION_FAILED';
 
 export interface EducationItem {
   id: string;
@@ -66,38 +72,47 @@ export interface UserProfile {
   email: string;
   phone: string;
   location: string;
-  workAuthorizationCountry: string;
-  workAuthorizationStatus: string; // e.g. "US Citizen", "Permanent Resident / Green Card", "H-1B (Requires Transfer)", "EU Citizen", "Need Sponsorship"
-  linkedinUrl: string;
-  githubUrl: string;
-  portfolioUrl: string;
+  workAuthorizationCountry?: string;
+  workAuthorizationStatus?: string;
+  workAuthorization?: string[];
+  requiresVisaSponsorship?: boolean;
+  linkedinUrl?: string;
+  githubUrl?: string;
+  portfolioUrl?: string;
   totalExperienceYears: number;
   currentEmployer: string;
   currentTitle: string;
-  noticePeriodDays: number;
-  earliestJoinDate: string;
+  noticePeriodDays?: number;
+  earliestJoinDate?: string;
   professionalSummary: string;
   education: EducationItem[];
   certifications: CertificationItem[];
   skills: VerifiedSkill[];
   experiences: ExperienceItem[];
+  languages?: string[];
   masterResumeFileName?: string;
   masterResumeLastUpdated?: string;
 }
 
 export interface CareerPreferences {
+  targetRoles?: string[];
   targetCountries: string[];
   targetCities: string[];
   preferredTitles: string[];
   preferredIndustries: string[];
   workArrangement: WorkArrangement[];
-  minSalaryByCurrency: Record<string, number>; // e.g. { "USD": 140000, "EUR": 95000, "GBP": 90000 }
+  workArrangements?: WorkArrangement[];
+  minSalaryUSD?: number;
+  minSalaryByCurrency: Record<string, number>;
   preferredEmploymentType: EmploymentType[];
   willingnessToRelocate: 'yes' | 'no' | 'negotiable';
   visaSponsorshipRequired: boolean;
+  requiresVisaSponsorship?: boolean;
   preferredCompanies: string[];
   excludedCompanies: string[];
   excludedKeywords: string[];
+  minMatchThreshold?: number;
+  maxDailyApplications?: number;
 }
 
 export interface ScoringWeights {
@@ -110,7 +125,7 @@ export interface ScoringWeights {
 }
 
 export interface JobMatchEvaluation {
-  matchScore: number; // 0 - 100
+  matchScore: number;
   breakdown: {
     skills: number;
     experience: number;
@@ -123,6 +138,9 @@ export interface JobMatchEvaluation {
   missingSkills: string[];
   reasons: string[];
   eligibilityIssues: string[];
+  missingRequirements?: string[];
+  eligibilityConcerns?: string[];
+  reasonsToConsider?: string[];
   salaryCompatibility: 'compatible' | 'below_threshold' | 'unspecified' | 'negotiable';
   sponsorshipStatus: 'supported' | 'unsupported' | 'unspecified';
   recommendation: 'STRONG_APPLY' | 'CONSIDER' | 'MARGINAL' | 'DO_NOT_APPLY';
@@ -151,7 +169,7 @@ export interface JobVacancy {
     currency?: string;
     raw?: string;
   };
-  visaSponsorship?: 'supported' | 'not_supported' | 'unknown';
+  visaSponsorship?: 'supported' | 'not_supported' | 'unsupported' | 'unknown';
   retrievedAt: string;
   isActive: boolean;
   lastCheckedAt?: string;
@@ -159,10 +177,10 @@ export interface JobVacancy {
 }
 
 export interface TailoredResumeContent {
-  versionId: string;
-  generatedAt: string;
-  targetJobTitle: string;
-  targetCompany: string;
+  versionId?: string;
+  generatedAt?: string;
+  targetJobTitle?: string;
+  targetCompany?: string;
   headline: string;
   professionalSummary: string;
   targetedSkills: string[];
@@ -174,47 +192,55 @@ export interface TailoredResumeContent {
   }>;
   education: string[];
   certifications: string[];
-  truthfulnessAuditPassed: boolean;
-  truthfulnessScore: number; // 100 = 100% facts derived from master profile
-  auditNotes: string[];
+  truthfulnessAuditPassed?: boolean;
+  truthfulnessScore: number;
+  auditNotes?: string[];
 }
 
 export interface ApplicationTimelineEvent {
   timestamp: string;
   stage: ApplicationStatus;
   note: string;
-  actor: 'Agent autonomous' | 'User approved' | 'System scheduler' | 'User manual';
+  actor: 'Agent autonomous' | 'User approved' | 'System scheduler' | 'User manual' | 'Security guard' | (string & {});
 }
 
 export interface SubmissionEvidence {
   confirmationNumber?: string;
   timestamp: string;
-  channel: 'api' | 'assisted_browser' | 'direct_portal';
-  receiptText: string;
+  channel: 'api' | 'assisted_browser' | 'direct_portal' | 'official_api' | 'guided_portal' | 'manual_verification';
+  receiptText?: string;
+  receiptDetails?: string;
+  confirmationUrl?: string;
   verified: boolean;
   httpStatus?: number;
 }
 
 export interface ApplicationRecord {
   id: string;
-  duplicateKey: string; // company::title_or_url::userId
+  duplicateKey: string;
   vacancyId: string;
   company: string;
   role: string;
   country: string;
   location: string;
   jobUrl: string;
+  url?: string;
   salaryRange?: string;
   matchScore: number;
   status: ApplicationStatus;
-  resumeVersionId: string;
+  resumeVersionId?: string;
   tailoredResume: TailoredResumeContent;
   coverLetter?: string;
   submissionEvidence?: SubmissionEvidence;
+  guidedApplication?: {
+    portalUrl: string;
+    instructions: string[];
+    prefilledFields: Record<string, string>;
+  };
   requiresApprovalReason?: string;
   timeline: ApplicationTimelineEvent[];
   followUpDate?: string;
-  notes: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -222,10 +248,15 @@ export interface ApplicationRecord {
 export interface AutomationSettings {
   mode: OperatingMode;
   emergencyStop: boolean;
-  autoApplyThreshold: number; // e.g. 80
-  dailyApplicationLimit: number; // e.g. 10
+  autoApplyThreshold: number;
+  dailyApplicationLimit: number;
+  autoTailor?: boolean;
+  autoApplyPreapproved?: boolean;
+  applicationsSubmittedToday?: number;
+  retryFailedSubmissions?: boolean;
+  maxRetries?: number;
   scheduledSearchEnabled: boolean;
-  scheduledSearchIntervalMinutes: number; // e.g. 360 (6 hours)
+  scheduledSearchIntervalMinutes: number;
   scoringWeights: ScoringWeights;
   requireApprovalForLegalDeclarations: boolean;
   requireApprovalForRelocation: boolean;
@@ -237,7 +268,7 @@ export interface AutomationSettings {
 export interface AuditLogEntry {
   id: string;
   timestamp: string;
-  actor: 'Agent autonomous' | 'User approved' | 'System scheduler' | 'User manual' | 'Security guard';
+  actor: 'Agent autonomous' | 'User approved' | 'System scheduler' | 'User manual' | 'Security guard' | (string & {});
   action: string;
   target: string;
   details: string;
@@ -248,11 +279,12 @@ export interface NotificationItem {
   id: string;
   title: string;
   message: string;
-  type: 'match' | 'approval_needed' | 'submission_success' | 'submission_failed' | 'reminder';
+  type: 'match' | 'approval_needed' | 'submission_success' | 'submission_failed' | 'reminder' | 'system';
   read: boolean;
   timestamp: string;
   applicationId?: string;
   vacancyId?: string;
+  meta?: Record<string, unknown>;
 }
 
 export interface SourceIntegrationStatus {
