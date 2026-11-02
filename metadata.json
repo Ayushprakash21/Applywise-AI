@@ -1,0 +1,6 @@
+{
+  "name": "Orion Career Agent",
+  "description": "Autonomous AI job search, truthful resume optimization, and end-to-end application tracking platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
