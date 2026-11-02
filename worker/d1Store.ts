@@ -486,6 +486,87 @@ export class D1Store {
     }));
   }
 
+  async getAllAuditLogs(limit = 100, severity?: string): Promise<AuditLogEntry[]> {
+    let query = 'SELECT id, timestamp, actor, action, target, details, severity FROM audit_logs';
+    const params: any[] = [];
+    if (severity && severity !== 'all') {
+      query += ' WHERE severity = ?';
+      params.push(severity);
+    }
+    query += ' ORDER BY timestamp DESC LIMIT ?';
+    params.push(limit);
+
+    const stmt = this.db.prepare(query);
+    const { results } = await (params.length === 2 ? stmt.bind(params[0], params[1]) : stmt.bind(params[0])).all<any>();
+    return (results || []).map(r => ({
+      ...r,
+      actor: r.actor as any,
+    }));
+  }
+
+  // --- ADMINISTRATOR MANAGEMENT ---
+  async getAllUsers(limit = 100, offset = 0, search = ''): Promise<{ users: Array<{ id: string; email: string; fullName: string; role: string; isVerified: boolean; createdAt: string; planId?: string }>; total: number }> {
+    let countQuery = 'SELECT COUNT(*) as count FROM users';
+    let query = 'SELECT u.id, u.email, u.full_name, u.role, u.is_verified, u.created_at, s.plan_id FROM users u LEFT JOIN user_subscriptions s ON s.user_id = u.id';
+    const params: any[] = [];
+    const countParams: any[] = [];
+
+    if (search && search.trim()) {
+      const term = `%${search.toLowerCase().trim()}%`;
+      countQuery += ' WHERE LOWER(email) LIKE ? OR LOWER(full_name) LIKE ?';
+      countParams.push(term, term);
+      query += ' WHERE LOWER(u.email) LIKE ? OR LOWER(u.full_name) LIKE ?';
+      params.push(term, term);
+    }
+
+    query += ' ORDER BY u.created_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+
+    const countStmt = this.db.prepare(countQuery);
+    const countRow = await (countParams.length ? countStmt.bind(...countParams) : countStmt).first<{ count: number }>();
+    const total = countRow?.count || 0;
+
+    const stmt = this.db.prepare(query);
+    const { results } = await (params.length ? stmt.bind(...params) : stmt).all<any>();
+
+    const users = (results || []).map(r => ({
+      id: r.id,
+      email: r.email,
+      fullName: r.full_name,
+      role: r.role || 'user',
+      isVerified: !!r.is_verified,
+      createdAt: r.created_at,
+      planId: r.plan_id || 'free',
+    }));
+
+    return { users, total };
+  }
+
+  async updateUserRole(userId: string, newRole: 'admin' | 'user'): Promise<void> {
+    const now = new Date().toISOString();
+    await this.db.prepare('UPDATE users SET role = ?, updated_at = ? WHERE id = ?').bind(newRole, now, userId).run();
+  }
+
+  async getAdminOverviewStats(): Promise<{ totalUsers: number; totalAdmins: number; totalApplications: number; totalResumes: number; totalVacancies: number; activeSubscriptions: number }> {
+    const [uRow, aRow, appRow, resRow, vacRow, subRow] = await Promise.all([
+      this.db.prepare('SELECT COUNT(*) as count FROM users').first<{ count: number }>(),
+      this.db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").first<{ count: number }>(),
+      this.db.prepare('SELECT COUNT(*) as count FROM applications').first<{ count: number }>(),
+      this.db.prepare('SELECT COUNT(*) as count FROM resume_documents').first<{ count: number }>(),
+      this.db.prepare('SELECT COUNT(*) as count FROM vacancies').first<{ count: number }>(),
+      this.db.prepare("SELECT COUNT(*) as count FROM user_subscriptions WHERE plan_id = 'pro' AND status = 'active'").first<{ count: number }>(),
+    ]);
+
+    return {
+      totalUsers: uRow?.count || 0,
+      totalAdmins: aRow?.count || 0,
+      totalApplications: appRow?.count || 0,
+      totalResumes: resRow?.count || 0,
+      totalVacancies: vacRow?.count || 0,
+      activeSubscriptions: subRow?.count || 0,
+    };
+  }
+
   async addNotification(userId: string, title: string, message: string, type: string, meta?: Record<string, unknown>): Promise<void> {
     const id = crypto.randomUUID();
     const now = new Date().toISOString();

@@ -2,6 +2,15 @@
 // PDF/DOCX Parsing, Gemini Structured Extraction & ATS DOCX Generation for Cloudflare Workers
 
 import './polyfills.ts';
+// @ts-ignore - Legacy worker build provides WorkerMessageHandler
+import * as pdfWorkerModule from 'pdfjs-dist/legacy/build/pdf.worker.mjs';
+
+// Setup fake worker in-memory on globalThis so pdf-parse / pdfjs-dist uses it synchronously
+// in Cloudflare Workers V8 isolates without attempting dynamic import of './pdf.worker.mjs'
+if (typeof (globalThis as any).pdfjsWorker === 'undefined') {
+  (globalThis as any).pdfjsWorker = pdfWorkerModule;
+}
+
 import { PDFParse } from 'pdf-parse';
 import mammoth from 'mammoth';
 import { Document, Paragraph, TextRun, HeadingLevel, Packer, AlignmentType } from 'docx';
@@ -268,6 +277,45 @@ Return ONLY a valid JSON object matching this structure:
       new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text)
     );
 
+    // Heuristic experience extraction from text if available
+    const parsedExperiences = existingProfile?.experiences ? [...existingProfile.experiences] : [];
+    if (parsedExperiences.length === 0) {
+      const expSectionMatch = text.match(/(?:EXPERIENCE|WORK HISTORY|EMPLOYMENT)[\s\S]*?(?=(?:EDUCATION|SKILLS|CERTIFICATIONS|$))/i);
+      const expBlock = expSectionMatch ? expSectionMatch[0] : text;
+      const expLines = expBlock.split('\n').map(l => l.trim()).filter(Boolean);
+
+      for (const line of expLines) {
+        if (/^(?:experience|work history|employment|education|skills|certifications)/i.test(line)) continue;
+        const atMatch = line.match(/^([^—–\n]+?)\s+(?:at|@)\s+([^(\n]+?)(?:\s*\((.*?)\))?$/i);
+        const dashMatch = line.match(/^([^—–\n]+?)\s*[—–-]\s*([^(\n]+?)(?:\s*\((.*?)\))?$/i);
+        const match = atMatch || dashMatch;
+
+        if (match) {
+          const part1 = match[1].trim();
+          const part2 = match[2].trim();
+          const dates = match[3] ? match[3].trim() : '';
+          const isAt = Boolean(atMatch);
+          const role = isAt ? part1 : part2;
+          const company = isAt ? part2 : part1;
+
+          if (company.length > 1 && role.length > 1 && company.length < 50 && role.length < 60) {
+            parsedExperiences.push({
+              id: crypto.randomUUID(),
+              company,
+              role,
+              startDate: dates.split(/[-–—]/)[0]?.trim() || '2022',
+              endDate: dates.split(/[-–—]/)[1]?.trim() || 'Present',
+              current: dates.toLowerCase().includes('present'),
+              location: '',
+              description: '',
+              achievements: [],
+              verifiedSkillsUsed: [],
+            });
+          }
+        }
+      }
+    }
+
     return {
       id: existingProfile?.id || crypto.randomUUID(),
       fullName: existingProfile?.fullName || (firstLine.length < 40 ? firstLine : 'Verified Candidate'),
@@ -279,8 +327,8 @@ Return ONLY a valid JSON object matching this structure:
       workAuthorization: existingProfile?.workAuthorization || [],
       requiresVisaSponsorship: existingProfile?.requiresVisaSponsorship || false,
       currentTitle: existingProfile?.currentTitle || 'Professional',
-      currentEmployer: existingProfile?.currentEmployer || '',
-      totalExperienceYears: existingProfile?.totalExperienceYears || 3,
+      currentEmployer: existingProfile?.currentEmployer || (parsedExperiences[0]?.company || ''),
+      totalExperienceYears: existingProfile?.totalExperienceYears || (parsedExperiences.length > 0 ? parsedExperiences.length * 2 : 3),
       professionalSummary: lines.slice(1, 4).join(' ').slice(0, 350) || 'Experienced professional with demonstrated background.',
       education: existingProfile?.education || [
         { id: crypto.randomUUID(), degree: 'Bachelor Degree', institution: 'University', fieldOfStudy: 'General Studies', graduationYear: '2020' }
@@ -293,7 +341,7 @@ Return ONLY a valid JSON object matching this structure:
         yearsExperience: 2,
         verified: true,
       })),
-      experiences: existingProfile?.experiences || [],
+      experiences: parsedExperiences,
       languages: existingProfile?.languages || ['English'],
       masterResumeLastUpdated: new Date().toISOString(),
     };

@@ -1,3 +1,11 @@
+// @ts-ignore - Legacy worker build provides WorkerMessageHandler
+import * as pdfWorkerModule from 'pdfjs-dist/legacy/build/pdf.worker.mjs';
+
+// Setup fake worker in-memory on globalThis so pdf-parse / pdfjs-dist uses it synchronously
+if (typeof (globalThis as any).pdfjsWorker === 'undefined') {
+  (globalThis as any).pdfjsWorker = pdfWorkerModule;
+}
+
 import { PDFParse } from 'pdf-parse';
 import mammoth from 'mammoth';
 import crypto from 'crypto';

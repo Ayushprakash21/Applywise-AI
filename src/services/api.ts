@@ -136,6 +136,60 @@ export const api = {
   getUserUsage: () =>
     fetchJson<{ success: boolean; stats: AccountUsageStats }>('/api/user/usage'),
 
+  // --- ADMINISTRATOR APIS ---
+  getAdminMe: () =>
+    fetchJson<{ success: boolean; user: AuthUser }>('/api/admin/me'),
+
+  getAdminOverview: () =>
+    fetchJson<{
+      success: boolean;
+      stats: {
+        totalUsers: number;
+        totalAdmins: number;
+        totalApplications: number;
+        totalResumes: number;
+        totalVacancies: number;
+        activeSubscriptions: number;
+      };
+    }>('/api/admin/overview'),
+
+  getAdminUsers: (params?: { limit?: number; offset?: number; search?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.offset) q.set('offset', String(params.offset));
+    if (params?.search) q.set('search', params.search);
+    const queryString = q.toString() ? `?${q.toString()}` : '';
+    return fetchJson<{
+      users: Array<{
+        id: string;
+        email: string;
+        fullName: string;
+        role: string;
+        isVerified: boolean;
+        createdAt: string;
+        planId?: string;
+      }>;
+      total: number;
+    }>(`/api/admin/users${queryString}`);
+  },
+
+  updateAdminUserRole: (id: string, newRole: 'admin' | 'user') =>
+    fetchJson<{ success: boolean; message: string }>(`/api/admin/users/${id}/role`, {
+      method: 'POST',
+      body: JSON.stringify({ newRole }),
+    }),
+
+  getAdminAuditLogs: (params?: { limit?: number; severity?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.severity) q.set('severity', params.severity);
+    const queryString = q.toString() ? `?${q.toString()}` : '';
+    return fetchJson<{ success: boolean; logs: AuditLogEntry[] }>(`/api/admin/audit-logs${queryString}`);
+  },
+
+  getAdminSystemHealth: () =>
+    fetchJson<{ success: boolean; system: any }>('/api/admin/system-health'),
+
   // --- PROFILE ---
   getProfile: () => fetchJson<{ success: boolean; profile: UserProfile }>('/api/profile'),
   updateProfile: (profile: Partial<UserProfile>) =>

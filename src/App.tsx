@@ -28,6 +28,8 @@ import { AboutPage } from './components/AboutPage.tsx';
 import { PricingPage } from './components/PricingPage.tsx';
 import { AICopilot } from './components/AICopilot.tsx';
 import { CareerTwinPage } from './components/CareerTwinPage.tsx';
+import { AdminConsole } from './components/AdminConsole.tsx';
+import { AdminLoginPage } from './components/AdminLoginPage.tsx';
 import { UserSubscription } from './config/plans.ts';
 import { isPermanentFreeAccessAccount } from './config/freeAccess.ts';
 
@@ -140,6 +142,12 @@ export default function App() {
         if (usageData?.stats) {
           setUsage(usageData.stats);
         }
+
+        // Check if newly created account without profile and not previously dismissed
+        const dismissed = localStorage.getItem(`applywise_onboarding_dismissed_${currentUser.id}`);
+        if (!dismissed && (!profData.profile?.fullName || !profData.profile?.experiences || profData.profile.experiences.length === 0)) {
+          setOnboardingOpen(true);
+        }
       } else {
         const vacData = await api.getVacancies();
         setVacancies(vacData.vacancies);
@@ -192,9 +200,21 @@ export default function App() {
     }
   }, [currentUser?.id, isCheckingSession]);
 
-  const handleLoginSuccess = (user: AuthUser) => {
+  const handleLoginSuccess = (user: AuthUser, _token?: string, isNewRegistration = false) => {
     setCurrentUser(user);
-    showToast(`Welcome back, ${user.fullName}!`);
+    if (isNewRegistration) {
+      showToast(`Welcome to ApplyWise AI, ${user.fullName}! Let's set up your master resume.`);
+      setOnboardingOpen(true);
+    } else {
+      showToast(`Welcome back, ${user.fullName}!`);
+    }
+  };
+
+  const handleOnboardingClose = () => {
+    if (currentUser) {
+      localStorage.setItem(`applywise_onboarding_dismissed_${currentUser.id}`, 'true');
+    }
+    setOnboardingOpen(false);
   };
 
   const handleLogout = async () => {
@@ -308,6 +328,33 @@ export default function App() {
           onNavigateHome={() => navigateTo('/')}
           onSubscriptionUpdated={loadUserData}
         />
+      ) : currentRoute === '/admin' ? (
+        currentUser && currentUser.role === 'admin' ? (
+          <AdminConsole
+            currentUser={currentUser}
+            onNavigateHome={() => navigateTo('/')}
+            onLogout={async () => {
+              await handleLogout();
+              navigateTo('/admin/login');
+            }}
+          />
+        ) : (
+          <AdminLoginPage
+            onSuccess={adminUser => {
+              setCurrentUser(adminUser);
+              navigateTo('/admin');
+            }}
+            onNavigateHome={() => navigateTo('/')}
+          />
+        )
+      ) : currentRoute === '/admin/login' ? (
+        <AdminLoginPage
+          onSuccess={adminUser => {
+            setCurrentUser(adminUser);
+            navigateTo('/admin');
+          }}
+          onNavigateHome={() => navigateTo('/')}
+        />
       ) : currentUser ? (
         <>
           <AppHeader
@@ -333,9 +380,10 @@ export default function App() {
             usage={usage}
             onOpenPricing={() => navigateTo('/pricing')}
             onOpenAbout={() => navigateTo('/about')}
+            onOpenAdmin={() => navigateTo('/admin')}
           />
 
-          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-8">
             {activeTab === 'jobs' && (
               <JobSearchPage
                 vacancies={vacancies}
@@ -389,6 +437,7 @@ export default function App() {
               <div className="flex items-center space-x-4">
                 <button onClick={() => navigateTo('/about')} className="hover:text-blue-600 transition">About Us</button>
                 <button onClick={() => navigateTo('/pricing')} className="hover:text-blue-600 transition">Pricing & Plans</button>
+                <button onClick={() => navigateTo('/admin')} className="hover:text-blue-600 transition">Admin Portal</button>
                 <button onClick={() => setPrivacyModalOpen(true)} className="hover:text-blue-600 transition">Privacy Policy</button>
                 <button onClick={() => setTermsModalOpen(true)} className="hover:text-blue-600 transition">Terms of Use</button>
                 <span>Zero Hallucination Guarantee</span>
@@ -403,6 +452,7 @@ export default function App() {
           onOpenTerms={() => setTermsModalOpen(true)}
           onOpenAbout={() => navigateTo('/about')}
           onOpenPricing={() => navigateTo('/pricing')}
+          onOpenAdmin={() => navigateTo('/admin')}
           featuredVacancies={vacancies}
           onSelectVacancy={v => { setSelectedVacancy(v); }}
           onSearch={q => {
@@ -448,9 +498,12 @@ export default function App() {
 
       <ResumeOnboardingModal
         isOpen={onboardingOpen}
-        onClose={() => setOnboardingOpen(false)}
+        onClose={handleOnboardingClose}
         onProfileUpdated={newProf => {
           setProfile(newProf);
+          if (currentUser) {
+            localStorage.setItem(`applywise_onboarding_dismissed_${currentUser.id}`, 'true');
+          }
           showToast('Master profile verified and updated!');
         }}
       />

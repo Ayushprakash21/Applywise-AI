@@ -16,7 +16,8 @@
     "db:migrate:local": "wrangler d1 execute applywise-db --local --file=./migrations/0001_initial_schema.sql -y",
     "deploy": "npm run cf:deploy",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "admin:promote": "tsx scripts/promote-admin.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

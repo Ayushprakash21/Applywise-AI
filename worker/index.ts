@@ -88,6 +88,24 @@ async function requireAuth(c: any, next: any) {
   await next();
 }
 
+// Auth Middleware: Administrator (Role-Based Server-Side Authorization)
+async function requireAdmin(c: any, next: any) {
+  const token = getRequestToken(c);
+  if (!token) {
+    return c.json({ success: false, error: 'Authentication required. Please sign in.' }, 401);
+  }
+  const store: D1Store = c.get('store');
+  const user = await store.getUserByToken(token);
+  if (!user) {
+    return c.json({ success: false, error: 'Session expired or invalid. Please sign in again.' }, 401);
+  }
+  if (user.role !== 'admin') {
+    return c.json({ success: false, error: 'Access denied: Administrator privileges required.' }, 403);
+  }
+  c.set('user', user);
+  await next();
+}
+
 // Auth Middleware: Optional (for guest vacancy browsing)
 async function optionalAuth(c: any, next: any) {
   const token = getRequestToken(c);
@@ -142,6 +160,7 @@ app.post('/api/auth/signup', async (c) => {
       success: true,
       user,
       token,
+      isNewUser: true,
       message: 'Account created successfully! Welcome to ApplyWise AI.',
     });
   } catch (err: unknown) {
@@ -318,6 +337,7 @@ app.post('/api/auth/google', async (c) => {
       success: true,
       user: authUser,
       token,
+      isNewUser: !userRow,
       message: 'Signed in with Google successfully.',
     });
   } catch (err: unknown) {
@@ -1903,6 +1923,106 @@ app.get('/api/career-twin/insights', requireAuth, async (c) => {
   } catch (err: any) {
     return c.json({ success: false, error: err.message || 'Failed to fetch career insights' }, 500);
   }
+});
+
+// ============================================================================
+// ADMINISTRATOR API ROUTES (PROTECTED BY requireAdmin)
+// ============================================================================
+
+app.get('/api/admin/me', requireAdmin, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  return c.json({ success: true, user });
+});
+
+app.get('/api/admin/overview', requireAdmin, async (c) => {
+  const store: D1Store = c.get('store');
+  const stats = await store.getAdminOverviewStats();
+  return c.json({ success: true, stats });
+});
+
+app.get('/api/admin/users', requireAdmin, async (c) => {
+  const store: D1Store = c.get('store');
+  const limit = Math.min(200, parseInt(c.req.query('limit') || '100', 10));
+  const offset = parseInt(c.req.query('offset') || '0', 10);
+  const search = c.req.query('search') || '';
+
+  const { users, total } = await store.getAllUsers(limit, offset, search);
+  return c.json({ success: true, users, total });
+});
+
+app.post('/api/admin/users/:id/role', requireAdmin, async (c) => {
+  const adminUser: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const targetUserId = c.req.param('id');
+  const { newRole } = await c.req.json();
+
+  if (newRole !== 'admin' && newRole !== 'user') {
+    return c.json({ success: false, error: 'Invalid role specified. Role must be either "admin" or "user".' }, 400);
+  }
+
+  // Prevent self-demotion
+  if (targetUserId === adminUser.id && newRole !== 'admin') {
+    return c.json({ success: false, error: 'Cannot demote your own administrator account. Another admin must perform this action.' }, 400);
+  }
+
+  await store.updateUserRole(targetUserId, newRole);
+  await store.addAuditLog(
+    adminUser.id,
+    'Admin',
+    'USER_ROLE_CHANGED',
+    targetUserId,
+    `Admin ${adminUser.email} changed role of user ${targetUserId} to ${newRole}`,
+    'security'
+  );
+
+  return c.json({ success: true, message: `User role successfully updated to ${newRole}.` });
+});
+
+app.get('/api/admin/audit-logs', requireAdmin, async (c) => {
+  const store: D1Store = c.get('store');
+  const limit = Math.min(200, parseInt(c.req.query('limit') || '100', 10));
+  const severity = c.req.query('severity');
+  const logs = await store.getAllAuditLogs(limit, severity);
+  return c.json({ success: true, logs });
+});
+
+app.get('/api/admin/system-health', requireAdmin, async (c) => {
+  const store: D1Store = c.get('store');
+  const stats = await store.getAdminOverviewStats();
+
+  return c.json({
+    success: true,
+    system: {
+      status: 'operational',
+      environment: 'Cloudflare Workers Edge (Production)',
+      database: {
+        engine: 'Cloudflare D1 Relational SQLite',
+        status: 'healthy',
+        userCount: stats.totalUsers,
+        adminCount: stats.totalAdmins,
+        applicationsCount: stats.totalApplications,
+      },
+      integrations: {
+        googleAuth: {
+          configured: Boolean(c.env.GOOGLE_CLIENT_ID),
+          clientId: c.env.GOOGLE_CLIENT_ID ? `${c.env.GOOGLE_CLIENT_ID.slice(0, 12)}...` : null,
+          status: c.env.GOOGLE_CLIENT_ID ? 'active' : 'disabled',
+        },
+        geminiAI: {
+          configured: Boolean(c.env.GEMINI_API_KEY),
+          model: 'gemini-2.5-flash',
+          status: c.env.GEMINI_API_KEY ? 'active' : 'disabled',
+        },
+        jobDiscovery: {
+          connectors: ['Greenhouse', 'Lever', 'Remotive', 'Jobicy'],
+          cronSchedule: '*/10 * * * *',
+          cachedVacancies: stats.totalVacancies,
+          status: 'healthy',
+        },
+      },
+      serverTime: new Date().toISOString(),
+    },
+  });
 });
 
 // Cloudflare Worker Fetch & Scheduled Entrypoint

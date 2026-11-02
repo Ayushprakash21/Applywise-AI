@@ -24,6 +24,7 @@ interface LandingPageProps {
   onOpenTerms: () => void;
   onOpenAbout?: () => void;
   onOpenPricing?: () => void;
+  onOpenAdmin?: () => void;
   featuredVacancies: JobVacancy[];
   onSelectVacancy: (vacancy: JobVacancy) => void;
   onSearch: (query: string) => void;
@@ -35,6 +36,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onOpenTerms,
   onOpenAbout,
   onOpenPricing,
+  onOpenAdmin,
   featuredVacancies,
   onSelectVacancy,
   onSearch,
@@ -324,6 +326,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             )}
             {onOpenPricing && (
               <button onClick={onOpenPricing} className="hover:text-white transition">Pricing & Plans</button>
+            )}
+            {onOpenAdmin && (
+              <button onClick={onOpenAdmin} className="hover:text-white transition">Admin Portal</button>
             )}
             <button onClick={onOpenPrivacy} className="hover:text-white transition">Privacy Policy</button>
             <button onClick={onOpenTerms} className="hover:text-white transition">Terms of Use</button>

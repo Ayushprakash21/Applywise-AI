@@ -7,7 +7,7 @@ interface AuthModalsProps {
   isOpen: boolean;
   initialMode?: 'login' | 'signup' | 'recovery';
   onClose: () => void;
-  onSuccess: (user: AuthUser, token: string) => void;
+  onSuccess: (user: AuthUser, token?: string, isNewRegistration?: boolean) => void;
 }
 
 export const AuthModals: React.FC<AuthModalsProps> = ({
@@ -59,7 +59,7 @@ export const AuthModals: React.FC<AuthModalsProps> = ({
                   const res = await api.loginWithGoogle(response.credential);
                   localStorage.setItem('applywise_token', res.token);
                   localStorage.setItem('applywise_user', JSON.stringify(res.user));
-                  onSuccess(res.user, res.token);
+                  onSuccess(res.user, res.token, (res as any).isNewUser || false);
                   onClose();
                 } catch (err: unknown) {
                   const msg = err instanceof Error ? err.message : String(err);
@@ -171,7 +171,7 @@ export const AuthModals: React.FC<AuthModalsProps> = ({
 
         localStorage.setItem('applywise_token', res.token);
         localStorage.setItem('applywise_user', JSON.stringify(res.user));
-        onSuccess(res.user, res.token);
+        onSuccess(res.user, res.token, true);
         onClose();
       } else if (mode === 'login') {
         if (!email.trim() || !password) throw new Error('Email and password are required.');
@@ -179,7 +179,7 @@ export const AuthModals: React.FC<AuthModalsProps> = ({
         const res = await api.login({ email, password });
         localStorage.setItem('applywise_token', res.token);
         localStorage.setItem('applywise_user', JSON.stringify(res.user));
-        onSuccess(res.user, res.token);
+        onSuccess(res.user, res.token, false);
         onClose();
       } else if (mode === 'recovery') {
         if (!email.trim() || !email.includes('@')) throw new Error('Please enter a valid email address.');
