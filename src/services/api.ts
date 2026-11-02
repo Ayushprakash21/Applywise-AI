@@ -13,7 +13,8 @@ import {
   ApplicationIntegrityReport,
   ApplicationReceipt,
   CareerOutcomeItem,
-  TransferableSkillBridge
+  TransferableSkillBridge,
+  AccountUsageStats
 } from '../types/index.ts';
 
 export interface AuthUser {
@@ -55,6 +56,38 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+let cachedAuthConfig: { googleClientId: string | null; googleAuthEnabled: boolean } | null = null;
+let authConfigPromise: Promise<{ googleClientId: string | null; googleAuthEnabled: boolean }> | null = null;
+
+export const getCachedOrFetchAuthConfig = async (): Promise<{ googleClientId: string | null; googleAuthEnabled: boolean }> => {
+  const envClientId = (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID || null;
+  if (cachedAuthConfig) return cachedAuthConfig;
+  if (!authConfigPromise) {
+    authConfigPromise = fetchJson<{ googleClientId: string | null; googleAuthEnabled: boolean }>('/api/auth/config')
+      .then(res => {
+        const id = res.googleClientId || envClientId;
+        cachedAuthConfig = {
+          googleClientId: id,
+          googleAuthEnabled: Boolean(id),
+        };
+        return cachedAuthConfig;
+      })
+      .catch(() => {
+        cachedAuthConfig = {
+          googleClientId: envClientId,
+          googleAuthEnabled: Boolean(envClientId),
+        };
+        return cachedAuthConfig;
+      });
+  }
+  return authConfigPromise;
+};
+
+// Start eager fetching auth config in the browser
+if (typeof window !== 'undefined') {
+  getCachedOrFetchAuthConfig().catch(() => {});
+}
+
 export const api = {
   // --- AUTHENTICATION ---
   signup: (data: { fullName: string; email: string; password: string; confirmPassword?: string }) =>
@@ -91,6 +124,17 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email }),
     }),
+
+  getAuthConfig: () => getCachedOrFetchAuthConfig(),
+
+  changeEmail: (data: { currentPassword?: string; newEmail: string }) =>
+    fetchJson<{ success: boolean; user: AuthUser; message: string }>('/api/auth/change-email', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getUserUsage: () =>
+    fetchJson<{ success: boolean; stats: AccountUsageStats }>('/api/user/usage'),
 
   // --- PROFILE ---
   getProfile: () => fetchJson<{ success: boolean; profile: UserProfile }>('/api/profile'),
@@ -292,9 +336,12 @@ export const api = {
     }),
 
   // --- RESUME UPLOAD & PARSING (CRITICAL BUG FIX) ---
-  uploadResumeFile: async (file: File) => {
+  uploadResumeFile: async (file: File, replace = false) => {
     const formData = new FormData();
     formData.append('file', file);
+    if (replace) {
+      formData.append('replace', 'true');
+    }
 
     const token = localStorage.getItem('applywise_token');
     const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
@@ -321,6 +368,7 @@ export const api = {
       profile: UserProfile;
       extractedTextSummary: string;
       warning?: string;
+      identityMismatch?: boolean;
     }>;
   },
 

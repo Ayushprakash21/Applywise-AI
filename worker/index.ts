@@ -25,11 +25,19 @@ import {
   checkFeatureEntitlement,
   checkAIUsageAllowance
 } from '../src/config/freeAccess.ts';
+import {
+  getAccountUsageStats,
+  assertCanUploadResume,
+  assertCanCreateApplication,
+  inspectResumeIdentity,
+  UsageLimitError,
+} from './usageEnforcement.ts';
 
 type Bindings = {
   DB: D1Database;
   ASSETS: Fetcher;
   GEMINI_API_KEY?: string;
+  GOOGLE_CLIENT_ID?: string;
   APP_URL?: string;
 };
 
@@ -217,6 +225,14 @@ app.post('/api/auth/recover-password', async (c) => {
   });
 });
 
+app.get('/api/auth/config', (c) => {
+  const googleClientId = c.env.GOOGLE_CLIENT_ID || null;
+  return c.json({
+    googleClientId,
+    googleAuthEnabled: Boolean(googleClientId),
+  });
+});
+
 app.post('/api/auth/google', async (c) => {
   try {
     const { credential } = await c.req.json();
@@ -246,6 +262,20 @@ app.post('/api/auth/google', async (c) => {
     const validIssuers = ['accounts.google.com', 'https://accounts.google.com'];
     if (!payload.iss || !validIssuers.includes(payload.iss)) {
       return c.json({ success: false, error: 'Untrusted Google token issuer.' }, 401);
+    }
+
+    const configuredAud = c.env.GOOGLE_CLIENT_ID ? c.env.GOOGLE_CLIENT_ID.trim() : null;
+    if (configuredAud && payload.aud?.trim() !== configuredAud) {
+      return c.json({ success: false, error: 'Google authentication audience mismatch.' }, 401);
+    }
+
+    const isVerified = payload.email_verified === true || payload.email_verified === 'true';
+    if (!isVerified) {
+      return c.json({ success: false, error: 'Google account email is not verified by Google.' }, 401);
+    }
+
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      return c.json({ success: false, error: 'Google authentication token has expired.' }, 401);
     }
 
     if (!payload.email) {
@@ -294,6 +324,58 @@ app.post('/api/auth/google', async (c) => {
     const msg = err instanceof Error ? err.message : String(err);
     return c.json({ success: false, error: `Google authentication failed: ${msg}` }, 400);
   }
+});
+
+app.post('/api/auth/change-email', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const { currentPassword, newEmail } = await c.req.json();
+
+    if (!newEmail || !validateEmail(newEmail)) {
+      return c.json({ success: false, error: 'A valid new email address is required.' }, 400);
+    }
+
+    const cleanNewEmail = newEmail.toLowerCase().trim();
+    if (cleanNewEmail === user.email.toLowerCase().trim()) {
+      return c.json({ success: false, error: 'The new email must be different from your current email.' }, 400);
+    }
+
+    const passHash = await store.getUserPasswordHash(user.id);
+    if (passHash && !passHash.startsWith('google_oauth_')) {
+      if (!currentPassword) {
+        return c.json({ success: false, error: 'Current password is required to change your account email.' }, 400);
+      }
+      const isMatch = await verifyPassword(currentPassword, passHash);
+      if (!isMatch) {
+        return c.json({ success: false, error: 'Incorrect current password.' }, 401);
+      }
+    }
+
+    await store.updateUserEmail(user.id, cleanNewEmail);
+    await store.addAuditLog(user.id, 'User manual', 'EMAIL_CHANGED', cleanNewEmail, `Email updated from ${user.email} to ${cleanNewEmail}`);
+
+    const updatedUser: AuthUser = {
+      ...user,
+      email: cleanNewEmail,
+    };
+
+    return c.json({
+      success: true,
+      user: updatedUser,
+      message: 'Account email successfully updated. Your applications, resumes, and subscription remain intact.',
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 400);
+  }
+});
+
+app.get('/api/user/usage', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const stats = await getAccountUsageStats(user.id, store, user.email);
+  return c.json({ success: true, stats });
 });
 
 // ============================================================================
@@ -556,6 +638,19 @@ app.post('/api/resumes/upload', requireAuth, async (c) => {
       return c.json({ success: false, error: 'Please attach a PDF or DOCX resume document.' }, 400);
     }
 
+    const replace = formData.get('replace') === 'true' || formData.get('replace') === '1';
+
+    // Authoritative quota enforcement
+    try {
+      await assertCanUploadResume(user.id, store, user.email, replace);
+    } catch (limitErr: any) {
+      return c.json({
+        success: false,
+        error: limitErr.message,
+        code: limitErr.code || 'RESUME_LIMIT_REACHED'
+      }, limitErr.statusCode || 403);
+    }
+
     const buffer = await file.arrayBuffer();
     const extraction = await workerResumeEngine.extractText(buffer, file.name, file.type);
 
@@ -567,13 +662,19 @@ app.post('/api/resumes/upload', requireAuth, async (c) => {
       }, 422);
     }
 
+    // Inspect contact identity against authenticated account owner
+    const identityCheck = inspectResumeIdentity(extraction.text, user.email);
+    if (identityCheck.isMismatch) {
+      await store.addAuditLog(user.id, 'Integrity Engine', 'RESUME_IDENTITY_MISMATCH', user.email, identityCheck.warning || 'Contact email in resume differs from account', 'warning');
+    }
+
     await store.saveResumeDocument(user.id, {
       fileName: file.name,
       fileType: extraction.format,
       fileSizeBytes: file.size,
       extractedText: extraction.text.slice(0, 50000),
       isScanned: false,
-    });
+    }, replace);
 
     const existingProfile = await store.getProfile(user.id);
     const parsedProfile = await workerResumeEngine.structureProfileWithAI(extraction.text, existingProfile, c.env.GEMINI_API_KEY);
@@ -586,7 +687,8 @@ app.post('/api/resumes/upload', requireAuth, async (c) => {
       success: true,
       profile: parsedProfile,
       extractedTextSummary: extraction.text.slice(0, 300) + '...',
-      warning: extraction.warning,
+      warning: extraction.warning || (identityCheck.isMismatch ? identityCheck.warning : undefined),
+      identityMismatch: identityCheck.isMismatch,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -1118,6 +1220,17 @@ app.post('/api/jobs/:id/apply-assisted', requireAuth, async (c) => {
     return c.json({ success: false, error: 'Job not found.' }, 404);
   }
 
+  // Authoritative Quota Check for Applications
+  try {
+    await assertCanCreateApplication(user.id, store, user.email, job.id);
+  } catch (limitErr: any) {
+    return c.json({
+      success: false,
+      error: limitErr.message,
+      code: limitErr.code || 'APPLICATION_LIMIT_REACHED'
+    }, limitErr.statusCode || 403);
+  }
+
   const profile = await store.getProfile(user.id);
   if (!profile) {
     return c.json({ success: false, error: 'Please upload or complete your career profile first.' }, 400);
@@ -1208,6 +1321,17 @@ app.post('/api/jobs/:id/apply-auto', requireAuth, async (c) => {
 
   if (!job) {
     return c.json({ success: false, error: 'Job not found.' }, 404);
+  }
+
+  // Authoritative Quota Check for Applications
+  try {
+    await assertCanCreateApplication(user.id, store, user.email, job.id);
+  } catch (limitErr: any) {
+    return c.json({
+      success: false,
+      error: limitErr.message,
+      code: limitErr.code || 'APPLICATION_LIMIT_REACHED'
+    }, limitErr.statusCode || 403);
   }
 
   // 1. Check automation settings
@@ -1355,6 +1479,17 @@ app.post('/api/applications/create-from-vacancy', requireAuth, async (c) => {
   const vacancy = await store.getVacancyById(vacancyId);
   if (!vacancy) {
     return c.json({ success: false, error: 'Vacancy not found.' }, 404);
+  }
+
+  // Authoritative Quota Check for Applications
+  try {
+    await assertCanCreateApplication(user.id, store, user.email, vacancyId);
+  } catch (limitErr: any) {
+    return c.json({
+      success: false,
+      error: limitErr.message,
+      code: limitErr.code || 'APPLICATION_LIMIT_REACHED'
+    }, limitErr.statusCode || 403);
   }
 
   const profile = await store.getProfile(user.id);

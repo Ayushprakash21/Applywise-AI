@@ -22,6 +22,8 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
   const [extractedProfile, setExtractedProfile] = useState<UserProfile | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [warningMsg, setWarningMsg] = useState<string | null>(null);
+  const [replaceExisting, setReplaceExisting] = useState(false);
+  const [showReplaceOption, setShowReplaceOption] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -59,7 +61,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
 
       // 3. Analyzing & Validating with Server
       setStep('analyzing');
-      const res = await api.uploadResumeFile(selectedFile);
+      const res = await api.uploadResumeFile(selectedFile, replaceExisting);
 
       setStep('validating');
       await new Promise(r => setTimeout(r, 400));
@@ -72,6 +74,9 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setErrorMsg(msg);
+      if (msg.toLowerCase().includes('limit reached') || msg.toLowerCase().includes('replace')) {
+        setShowReplaceOption(true);
+      }
       setStep('idle');
     }
   };
@@ -214,6 +219,20 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                   Your resume document is processed strictly for profile extraction and tailored applications. ApplyWise AI guarantees zero fabrication of work history, employers, or credentials.
                 </p>
               </div>
+
+              {(showReplaceOption || replaceExisting) && (
+                <label className="flex items-start space-x-2.5 p-3 rounded-xl bg-blue-50/70 border border-blue-200 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={replaceExisting}
+                    onChange={e => setReplaceExisting(e.target.checked)}
+                    className="mt-0.5 rounded text-blue-600 focus:ring-blue-500 h-4 w-4 shrink-0"
+                  />
+                  <div className="text-xs text-blue-900">
+                    <span className="font-semibold">Replace active master resume:</span> Overwrite previous master resume to stay within your Free tier 1-resume limit.
+                  </div>
+                </label>
+              )}
 
               <div className="flex items-center justify-end space-x-3 pt-2">
                 <button

@@ -7,6 +7,7 @@ import {
   JobVacancy,
   ApplicationRecord,
   NotificationItem,
+  AccountUsageStats,
 } from './types/index.ts';
 import { BrandLogo } from './components/BrandLogo.tsx';
 import { AppHeader } from './components/AppHeader.tsx';
@@ -49,6 +50,7 @@ export default function App() {
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [subscription, setSubscription] = useState<UserSubscription | null>(null);
+  const [usage, setUsage] = useState<AccountUsageStats | null>(null);
 
   // Modals & Drawers
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -116,7 +118,7 @@ export default function App() {
   const loadUserData = async () => {
     try {
       if (currentUser) {
-        const [profData, prefData, settData, vacData, appData, notifData, subData] = await Promise.all([
+        const [profData, prefData, settData, vacData, appData, notifData, subData, usageData] = await Promise.all([
           api.getProfile(),
           api.getPreferences(),
           api.getSettings(),
@@ -124,6 +126,7 @@ export default function App() {
           api.getApplications(),
           api.getNotifications(),
           api.getSubscription().catch(() => ({ success: false, subscription: null })),
+          api.getUserUsage().catch(() => ({ success: false, stats: null })),
         ]);
         setProfile(profData.profile);
         setPreferences(prefData.preferences);
@@ -134,10 +137,14 @@ export default function App() {
         if (subData?.subscription) {
           setSubscription(subData.subscription);
         }
+        if (usageData?.stats) {
+          setUsage(usageData.stats);
+        }
       } else {
         const vacData = await api.getVacancies();
         setVacancies(vacData.vacancies);
         setSubscription(null);
+        setUsage(null);
       }
     } catch (err) {
       console.error('Error loading data:', err);
@@ -323,6 +330,7 @@ export default function App() {
               setNotifications(res.notifications);
             }}
             plan={isPermanentFreeAccessAccount(currentUser) ? 'pro' : (subscription?.planId || subscription?.plan || 'free')}
+            usage={usage}
             onOpenPricing={() => navigateTo('/pricing')}
             onOpenAbout={() => navigateTo('/about')}
           />

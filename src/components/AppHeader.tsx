@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
 import { AuthUser } from '../services/api.ts';
-import { NotificationItem, AutomationSettings } from '../types/index.ts';
+import { NotificationItem, AutomationSettings, AccountUsageStats } from '../types/index.ts';
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 
 interface AppHeaderProps {
@@ -33,6 +33,7 @@ interface AppHeaderProps {
   onOpenTerms: () => void;
   onLogout: () => void;
   plan?: 'free' | 'pro';
+  usage?: AccountUsageStats | null;
   onOpenPricing?: () => void;
   onOpenAbout?: () => void;
 }
@@ -51,6 +52,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenTerms,
   onLogout,
   plan = 'free',
+  usage,
   onOpenPricing,
   onOpenAbout,
 }) => {
@@ -139,6 +141,23 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* Right: Safety Stop, Notifications, User Avatar Dropdown */}
         <div className="flex items-center space-x-3">
+          {/* Authoritative Usage Indicator */}
+          {usage && (
+            <div className="hidden lg:flex items-center space-x-2 px-2.5 py-1 rounded-xl bg-slate-100/90 text-slate-600 text-[11px] font-medium border border-slate-200/80">
+              {usage.planId === 'free' ? (
+                <>
+                  <span>Resume: <strong className="text-slate-900">{usage.resumes.active}/1</strong></span>
+                  <span className="text-slate-300">·</span>
+                  <span>Apps: <strong className="text-slate-900">{usage.applications.distinctCount}/5</strong></span>
+                </>
+              ) : (
+                <>
+                  <span className="text-blue-700 font-semibold">Unlimited Resumes & Apps</span>
+                </>
+              )}
+            </div>
+          )}
+
           {/* Subscription Status / Upgrade CTA */}
           {isPermanentFreeAccessAccount(user) ? (
             <button

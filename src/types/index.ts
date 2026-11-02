@@ -464,3 +464,24 @@ export interface CareerOutcomeItem {
   notes?: string;
   recordedAt: string;
 }
+
+export interface AccountUsageStats {
+  planId: 'free' | 'pro';
+  isPermanentAccess: boolean;
+  resumes: {
+    active: number;
+    max: number | null;
+    canUploadNew: boolean;
+    canReplace: boolean;
+  };
+  applications: {
+    distinctCount: number;
+    max: number | null;
+    canCreateNew: boolean;
+    remaining: number | null;
+  };
+  aiCopilot: {
+    tier: 'standard' | 'unlimited';
+    isUnlimited: boolean;
+  };
+}

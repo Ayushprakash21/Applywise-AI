@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import { api, AuthUser } from '../services/api.ts';
 import { BrandLogo } from './BrandLogo.tsx';
@@ -26,6 +26,94 @@ export const AuthModals: React.FC<AuthModalsProps> = ({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleAuthConfig, setGoogleAuthConfig] = useState<{ googleClientId: string | null; googleAuthEnabled: boolean } | null>(null);
+  const [googleButtonRendered, setGoogleButtonRendered] = useState(false);
+  const googleBtnRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen || mode === 'recovery') return;
+    let isMounted = true;
+
+    const setupGoogle = async () => {
+      try {
+        const cfg = await api.getAuthConfig();
+        if (!isMounted) return;
+        setGoogleAuthConfig(cfg);
+
+        if (!cfg.googleClientId || !cfg.googleAuthEnabled) {
+          setGoogleButtonRendered(false);
+          return;
+        }
+
+        const attachGsi = () => {
+          if (!isMounted) return;
+          const google = (window as any).google;
+          if (google?.accounts?.id) {
+            google.accounts.id.initialize({
+              client_id: cfg.googleClientId,
+              callback: async (response: any) => {
+                if (!response?.credential) return;
+                setGoogleLoading(true);
+                setError(null);
+                try {
+                  const res = await api.loginWithGoogle(response.credential);
+                  localStorage.setItem('applywise_token', res.token);
+                  localStorage.setItem('applywise_user', JSON.stringify(res.user));
+                  onSuccess(res.user, res.token);
+                  onClose();
+                } catch (err: unknown) {
+                  const msg = err instanceof Error ? err.message : String(err);
+                  setError(`Google Sign-In failed: ${msg}`);
+                } finally {
+                  setGoogleLoading(false);
+                }
+              },
+              auto_select: false,
+              cancel_on_tap_outside: true,
+            });
+
+            if (googleBtnRef.current) {
+              googleBtnRef.current.innerHTML = '';
+              google.accounts.id.renderButton(googleBtnRef.current, {
+                type: 'standard',
+                theme: 'outline',
+                size: 'large',
+                text: mode === 'signup' ? 'signup_with' : 'signin_with',
+                shape: 'rectangular',
+                logo_alignment: 'left',
+                width: 320,
+              });
+              setGoogleButtonRendered(true);
+            }
+          }
+        };
+
+        if ((window as any).google?.accounts?.id) {
+          attachGsi();
+        } else {
+          // If script is loading, poll for up to 3 seconds
+          let attempts = 0;
+          const timer = setInterval(() => {
+            attempts++;
+            if ((window as any).google?.accounts?.id) {
+              clearInterval(timer);
+              attachGsi();
+            } else if (attempts >= 20) {
+              clearInterval(timer);
+            }
+          }, 150);
+        }
+      } catch (err) {
+        console.warn('Google auth configuration lookup error:', err);
+      }
+    };
+
+    setupGoogle();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, mode, onSuccess, onClose]);
 
   if (!isOpen) return null;
 
@@ -35,19 +123,23 @@ export const AuthModals: React.FC<AuthModalsProps> = ({
     setGoogleLoading(true);
 
     try {
-      // Check if Google Identity Services is available in window
+      const cfg = googleAuthConfig || await api.getAuthConfig();
+      if (!cfg.googleClientId || !cfg.googleAuthEnabled) {
+        setError('Google Sign-In is not enabled on this deployment. Please sign in or register with email and password.');
+        setGoogleLoading(false);
+        return;
+      }
+
       const google = (window as any).google;
-      if (google && google.accounts && google.accounts.id) {
-        // Trigger Google GIS OneTap / Prompt
-        google.accounts.id.prompt(async (notification: any) => {
+      if (google?.accounts?.id) {
+        google.accounts.id.prompt((notification: any) => {
           if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            setError('Google sign-in prompt was closed. Please try again.');
+            setError('Google sign-in prompt was closed or suppressed by the browser. Please use the rendered Google button above.');
             setGoogleLoading(false);
           }
         });
       } else {
-        // Safe, honest guidance for Google Cloud Console configuration
-        setError('Google Sign-In backend is verified. To enable Google One-Tap/OAuth popup for this domain, please configure GOOGLE_CLIENT_ID in your Cloudflare environment variables.');
+        setError('Google authentication script is still loading. If you are using an adblocker, please allow accounts.google.com, or sign in with email and password.');
         setGoogleLoading(false);
       }
     } catch (err: unknown) {
@@ -154,26 +246,40 @@ export const AuthModals: React.FC<AuthModalsProps> = ({
           {/* Google Sign-in / Sign-up Button */}
           {mode !== 'recovery' && (
             <div className="space-y-4">
-              <button
-                type="button"
-                onClick={handleGoogleAuth}
-                disabled={googleLoading}
-                className="w-full flex items-center justify-center space-x-3 py-2.5 px-4 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs hover:shadow-sm transition disabled:opacity-50"
-              >
-                {googleLoading ? (
-                  <div className="h-4 w-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                    </svg>
-                    <span>Continue with Google</span>
-                  </>
-                )}
-              </button>
+              {/* Official Google Identity Services Rendered Button */}
+              <div
+                ref={googleBtnRef}
+                id="google-signin-btn-container"
+                className={`w-full flex justify-center min-h-[44px] ${googleButtonRendered ? 'block' : 'hidden'}`}
+              />
+
+              {/* Fallback button when official button is still rendering or when GIS is unavailable */}
+              {!googleButtonRendered && (
+                <button
+                  type="button"
+                  onClick={handleGoogleAuth}
+                  disabled={googleLoading || (googleAuthConfig !== null && !googleAuthConfig.googleAuthEnabled)}
+                  className="w-full flex items-center justify-center space-x-3 py-2.5 px-4 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs hover:shadow-sm transition disabled:opacity-50"
+                >
+                  {googleLoading ? (
+                    <div className="h-4 w-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                      </svg>
+                      <span>
+                        {googleAuthConfig && !googleAuthConfig.googleAuthEnabled
+                          ? 'Continue with Google (Disabled)'
+                          : 'Continue with Google'}
+                      </span>
+                    </>
+                  )}
+                </button>
+              )}
 
               <div className="relative flex items-center justify-center">
                 <div className="border-t border-slate-200 w-full" />

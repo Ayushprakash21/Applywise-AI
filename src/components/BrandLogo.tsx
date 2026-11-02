@@ -4,6 +4,7 @@ export interface BrandLogoProps {
   variant?: 'light' | 'dark' | 'auto';
   showWordmark?: boolean;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  badge?: string;
   className?: string;
   href?: string;
   onClick?: () => void;
@@ -13,6 +14,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   variant = 'light',
   showWordmark = true,
   size = 'md',
+  badge,
   className = '',
   href,
   onClick,
@@ -57,15 +59,17 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
             ApplyWise
           </span>
           <span className="font-semibold text-blue-600">AI</span>
-          <span
-            className={`font-mono uppercase font-semibold tracking-wider rounded-md ${dim.badge} ${
-              isDarkBg
-                ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
-                : 'bg-blue-50 text-blue-700 border border-blue-200/80 shadow-xs'
-            }`}
-          >
-            PRO
-          </span>
+          {badge && (
+            <span
+              className={`font-mono uppercase font-semibold tracking-wider rounded-md ${dim.badge} ${
+                isDarkBg
+                  ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
+                  : 'bg-blue-50 text-blue-700 border border-blue-200/80 shadow-xs'
+              }`}
+            >
+              {badge}
+            </span>
+          )}
         </div>
       )}
     </div>

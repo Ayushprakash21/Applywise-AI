@@ -42,6 +42,28 @@ export class D1Store {
     return row || null;
   }
 
+  async getUserPasswordHash(userId: string): Promise<string | null> {
+    const row = await this.db.prepare(
+      'SELECT password_hash FROM users WHERE id = ?'
+    ).bind(userId).first<{ password_hash: string }>();
+    return row?.password_hash || null;
+  }
+
+  async updateUserEmail(userId: string, newEmail: string): Promise<void> {
+    const cleanEmail = newEmail.toLowerCase().trim();
+    const existing = await this.getUserByEmail(cleanEmail);
+    if (existing && existing.id !== userId) {
+      throw new Error('An account with this email address already exists');
+    }
+    const now = new Date().toISOString();
+    await this.db.prepare('UPDATE users SET email = ?, updated_at = ? WHERE id = ?').bind(cleanEmail, now, userId).run();
+    const profile = await this.getProfile(userId);
+    if (profile) {
+      profile.email = cleanEmail;
+      await this.saveProfile(userId, profile);
+    }
+  }
+
   async createUser(fullName: string, email: string, passwordHash: string): Promise<AuthUser> {
     const cleanEmail = email.toLowerCase().trim();
     const existing = await this.getUserByEmail(cleanEmail);
@@ -295,7 +317,14 @@ export class D1Store {
   }
 
   // --- RESUME DOCUMENTS & VERSIONS ---
-  async saveResumeDocument(userId: string, doc: { fileName: string; fileType: string; fileSizeBytes: number; extractedText: string; isScanned: boolean }): Promise<string> {
+  async saveResumeDocument(
+    userId: string,
+    doc: { fileName: string; fileType: string; fileSizeBytes: number; extractedText: string; isScanned: boolean },
+    replaceExisting: boolean = false
+  ): Promise<string> {
+    if (replaceExisting) {
+      await this.db.prepare('DELETE FROM resume_documents WHERE user_id = ?').bind(userId).run();
+    }
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
     await this.db.prepare(`
@@ -303,6 +332,11 @@ export class D1Store {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(id, userId, doc.fileName, doc.fileType, doc.fileSizeBytes, doc.extractedText, doc.isScanned ? 1 : 0, now).run();
     return id;
+  }
+
+  async countResumeDocuments(userId: string): Promise<number> {
+    const row = await this.db.prepare('SELECT COUNT(*) as count FROM resume_documents WHERE user_id = ?').bind(userId).first<{ count: number }>();
+    return row?.count || 0;
   }
 
   async saveResumeVersion(userId: string, ver: { applicationId?: string; vacancyId?: string; content: TailoredResumeContent; coverLetter?: string; truthfulnessScore: number; auditIssues?: string[] }): Promise<string> {
@@ -390,6 +424,26 @@ export class D1Store {
     const row = await this.db.prepare(
       'SELECT data FROM applications WHERE id = ? AND user_id = ?'
     ).bind(id, userId).first<{ data: string }>();
+
+    if (!row) return null;
+    try {
+      return JSON.parse(row.data) as ApplicationRecord;
+    } catch {
+      return null;
+    }
+  }
+
+  async countApplications(userId: string): Promise<number> {
+    const row = await this.db.prepare(
+      'SELECT COUNT(*) as count FROM applications WHERE user_id = ?'
+    ).bind(userId).first<{ count: number }>();
+    return row?.count || 0;
+  }
+
+  async getApplicationByVacancy(userId: string, vacancyId: string): Promise<ApplicationRecord | null> {
+    const row = await this.db.prepare(
+      'SELECT data FROM applications WHERE user_id = ? AND vacancy_id = ?'
+    ).bind(userId, vacancyId).first<{ data: string }>();
 
     if (!row) return null;
     try {
