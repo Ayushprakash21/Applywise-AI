@@ -26,6 +26,7 @@ import {
 import { AboutPage } from './components/AboutPage.tsx';
 import { PricingPage } from './components/PricingPage.tsx';
 import { AICopilot } from './components/AICopilot.tsx';
+import { CareerTwinPage } from './components/CareerTwinPage.tsx';
 import { UserSubscription } from './config/plans.ts';
 
 export default function App() {
@@ -36,8 +37,8 @@ export default function App() {
   // Client-side URL routing state ('/' | '/about' | '/pricing')
   const [currentRoute, setCurrentRoute] = useState<string>(() => window.location.pathname || '/');
 
-  // Navigation: minimal 3 tabs for signed-in user
-  const [activeTab, setActiveTab] = useState<'jobs' | 'applications' | 'profile'>('jobs');
+  // Navigation: signed-in tabs
+  const [activeTab, setActiveTab] = useState<'jobs' | 'applications' | 'profile' | 'twin'>('jobs');
 
   // Core Data State
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -359,6 +360,12 @@ export default function App() {
                 onUpdateProfile={p => { setProfile(p); showToast('Profile updated!'); }}
                 onUpdatePreferences={pref => { setPreferences(pref); showToast('Preferences updated!'); }}
                 onOpenOnboarding={() => setOnboardingOpen(true)}
+              />
+            )}
+
+            {activeTab === 'twin' && (
+              <CareerTwinPage
+                onShowToast={showToast}
               />
             )}
           </main>

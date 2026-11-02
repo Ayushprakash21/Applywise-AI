@@ -8,6 +8,9 @@ export type ApplicationStatus =
   | 'DISCOVERED'
   | 'VALIDATED'
   | 'MATCHED'
+  | 'PREPARING'
+  | 'NEEDS_REVIEW'
+  | 'READY_TO_APPLY'
   | 'PREPARED'
   | 'RESUME_GENERATED'
   | 'APPLICATION_PREPARED'
@@ -20,12 +23,15 @@ export type ApplicationStatus =
   | 'SUBMISSION_ATTEMPTED'
   | 'SUBMISSION_CONFIRMED'
   | 'SUBMITTED'
+  | 'SUBMITTED_CONFIRMED'
   | 'SUBMITTED_VERIFIED'
   | 'GUIDED_COMPLETION_REQUIRED'
   | 'CONFIRMATION_VERIFIED'
+  | 'STATUS_UNKNOWN'
   | 'TRACKED'
   | 'INTERVIEW'
   | 'INTERVIEWING'
+  | 'OFFER'
   | 'OFFER_RECEIVED'
   | 'REJECTED'
   | 'WITHDRAWN'
@@ -311,4 +317,150 @@ export interface SourceIntegrationStatus {
   lastSyncAt: string;
   totalJobsFetched: number;
   rateLimitLimit: string;
+}
+
+// ============================================================================
+// CAREER DIGITAL TWIN & APPLICATION INTEGRITY ENGINE
+// ============================================================================
+
+export type ProvenanceSource = 'user_confirmed' | 'resume_extracted' | 'ai_inferred' | 'external_verified';
+export type VerificationConfidence = 'confirmed' | 'inferred' | 'unverified';
+
+export interface ProvenanceMetadata {
+  source: ProvenanceSource;
+  confidence: VerificationConfidence;
+  documentId?: string;
+  extractedSection?: string;
+  confirmedAt?: string;
+  notes?: string;
+}
+
+export interface DigitalTwinSkill {
+  id?: string;
+  name: string;
+  category: 'frontend' | 'backend' | 'cloud' | 'ai' | 'database' | 'architecture' | 'leadership' | 'devops' | 'business_ops' | 'supply_chain' | 'project_management' | 'general';
+  proficiency: 'expert' | 'proficient' | 'familiar';
+  yearsExperience: number;
+  provenance: ProvenanceMetadata;
+  transferableCategories?: string[];
+}
+
+export interface DigitalTwinExperience {
+  id: string;
+  company: string;
+  role: string;
+  startDate: string;
+  endDate: string;
+  current: boolean;
+  location: string;
+  description: string;
+  achievements: string[];
+  skillsUsed: string[];
+  provenance: ProvenanceMetadata;
+}
+
+export interface DigitalTwinProject {
+  id: string;
+  name: string;
+  role: string;
+  description: string;
+  outcomes: string[];
+  technologies: string[];
+  url?: string;
+  provenance: ProvenanceMetadata;
+}
+
+export interface TransferableSkillBridge {
+  targetRoleCategory: string;
+  relevanceScore: number;
+  directSkills: string[];
+  transferableSkills: string[];
+  missingSkills: string[];
+  rationale: string;
+  recommendedAction: string;
+}
+
+export interface CareerDigitalTwin {
+  userId: string;
+  professionalSummary: string;
+  summaryProvenance: ProvenanceMetadata;
+  workExperiences: DigitalTwinExperience[];
+  skillsInventory: DigitalTwinSkill[];
+  education: Array<EducationItem & { provenance: ProvenanceMetadata }>;
+  certifications: Array<CertificationItem & { provenance: ProvenanceMetadata }>;
+  projects: DigitalTwinProject[];
+  careerGoals: string[];
+  learningObjectives: string[];
+  transferableBridges: TransferableSkillBridge[];
+  completenessScore: number;
+  inferredPendingCount: number;
+  unverifiedCount: number;
+  updatedAt: string;
+}
+
+export interface ApplicationIntegrityReport {
+  overallStatus: 'VERIFIED' | 'NEEDS_REVIEW' | 'BLOCKED' | 'UNKNOWN' | 'STALE';
+  jobAvailabilityStatus: 'VERIFIED_ACTIVE' | 'CLOSED_OR_STALE' | 'UNKNOWN';
+  jobSource: string;
+  jobSourceVerifiedAt: string;
+  destination: string;
+  destinationTrustStatus: 'TRUSTED_OFFICIAL_ATS' | 'DIRECT_EMPLOYER_PORTAL' | 'UNVERIFIED_THIRD_PARTY';
+  resumeIntegrity: {
+    status: 'VERIFIED' | 'NEEDS_REVIEW' | 'BLOCKED';
+    unsupportedClaims: Array<{ claim: string; context: string; reason: string; severity: 'critical' | 'warning' }>;
+    metricsAudit: Array<{ metric: string; context: string; supportedInTwin: boolean }>;
+    inventedSkills: string[];
+    inventedCompanies: string[];
+    truthfulnessScore: number;
+  };
+  coverLetterIntegrity: {
+    status: 'VERIFIED' | 'NEEDS_REVIEW' | 'BLOCKED';
+    unsupportedClaims: string[];
+  };
+  screeningAnswersIntegrity: {
+    status: 'VERIFIED' | 'NEEDS_REVIEW' | 'BLOCKED';
+    sensitiveQuestionsFlagged: string[];
+    unansweredRequired: string[];
+  };
+  duplicateCheck: {
+    isDuplicate: boolean;
+    duplicateApplicationId?: string;
+    reason?: string;
+  };
+  warnings: string[];
+  requiredUserActions: string[];
+  verifiedAt: string;
+}
+
+export interface ApplicationReceipt {
+  id: string;
+  userId: string;
+  applicationId: string;
+  vacancyId: string;
+  company: string;
+  role: string;
+  jobSource: string;
+  destinationUrl: string;
+  submissionStatus: ApplicationStatus;
+  confirmationReference?: string;
+  resumeVersionId?: string;
+  coverLetterVersionId?: string;
+  tailoredResumeSnapshot?: TailoredResumeContent;
+  coverLetterSnapshot?: string;
+  userConfirmedAnswers?: Record<string, string>;
+  integrityReport: ApplicationIntegrityReport;
+  timeline: ApplicationTimelineEvent[];
+  createdAt: string;
+}
+
+export interface CareerOutcomeItem {
+  id: string;
+  userId: string;
+  applicationId?: string;
+  company: string;
+  role: string;
+  outcomeType: 'APPLICATION_SUBMITTED' | 'RECRUITER_CONTACTED' | 'INTERVIEW_INVITATION' | 'INTERVIEW_COMPLETED' | 'REJECTION_RECEIVED' | 'OFFER_RECEIVED' | 'WITHDRAWN';
+  outcomeSource: 'user_reported' | 'system_verified';
+  notes?: string;
+  recordedAt: string;
 }

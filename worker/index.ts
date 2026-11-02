@@ -17,6 +17,8 @@ import { ApplicationRecord, ApplicationStatus } from '../src/types/index.ts';
 
 import { SOURCE_REGISTRY, isSafePublicUrl, LiveJobItem } from './jobConnectors.ts';
 import { runIncrementalJobSync } from './jobSyncManager.ts';
+import { runCentralIntegrityAudit, evaluateTransferableSkills } from './integrityEngine.ts';
+import { ApplicationReceipt, CareerOutcomeItem } from '../src/types/index.ts';
 
 type Bindings = {
   DB: D1Database;
@@ -1437,6 +1439,62 @@ app.post('/api/applications/:id/submit', requireAuth, async (c) => {
   await store.saveApplication(user.id, appRecord);
   await store.addAuditLog(user.id, userEvidence ? 'User manual' : 'Agent autonomous', 'SUBMISSION_PROCESSED', `${appRecord.company} - ${appRecord.role}`, subResult.message);
 
+  // Persist Application Receipt & Record Outcome
+  try {
+    const twin = await store.getCareerDigitalTwin(user.id);
+    const existingApps = await store.getApplications(user.id);
+    const auditReport = runCentralIntegrityAudit({
+      job: {
+        id: appRecord.vacancyId,
+        company: appRecord.company,
+        title: appRecord.role,
+        source: 'direct',
+        url: appRecord.jobUrl || '',
+      },
+      tailoredResume: appRecord.tailoredResume,
+      coverLetter: appRecord.coverLetter,
+      screeningAnswers: appRecord.guidedApplication?.prefilledFields || {},
+      twin,
+      existingApplications: existingApps,
+    });
+
+    const receipt: ApplicationReceipt = {
+      id: crypto.randomUUID(),
+      userId: user.id,
+      applicationId: appRecord.id,
+      vacancyId: appRecord.vacancyId,
+      company: appRecord.company,
+      role: appRecord.role,
+      jobSource: 'Company Direct ATS',
+      destinationUrl: appRecord.jobUrl || 'https://applywise-ai.ayushprakash0021.workers.dev',
+      submissionStatus: appRecord.status,
+      confirmationReference: (subResult.evidence as any)?.confirmationCode || `CONF-${Date.now().toString(36).toUpperCase()}`,
+      resumeVersionId: appRecord.tailoredResume?.versionId,
+      tailoredResumeSnapshot: appRecord.tailoredResume,
+      coverLetterSnapshot: appRecord.coverLetter,
+      userConfirmedAnswers: appRecord.guidedApplication?.prefilledFields,
+      integrityReport: auditReport,
+      timeline: appRecord.timeline,
+      createdAt: new Date().toISOString(),
+    };
+
+    await store.saveApplicationReceipt(receipt);
+
+    await store.recordCareerOutcome({
+      id: crypto.randomUUID(),
+      userId: user.id,
+      applicationId: appRecord.id,
+      company: appRecord.company,
+      role: appRecord.role,
+      outcomeType: 'APPLICATION_SUBMITTED',
+      outcomeSource: 'system_verified',
+      notes: `Automated receipt generated: ${receipt.confirmationReference}`,
+      recordedAt: new Date().toISOString(),
+    });
+  } catch (receiptErr) {
+    console.error('Error generating receipt on submission:', receiptErr);
+  }
+
   return c.json({
     success: true,
     application: appRecord,
@@ -1491,6 +1549,156 @@ app.get('/api/health', async (c) => {
     product: 'ApplyWise AI',
     timestamp: new Date().toISOString(),
   });
+});
+
+// ============================================================================
+// 7. CAREER DIGITAL TWIN & APPLICATION INTEGRITY ENGINE
+// ============================================================================
+
+app.get('/api/career-twin', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const twin = await store.getCareerDigitalTwin(user.id);
+    return c.json({ success: true, twin });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message || 'Failed to fetch career digital twin' }, 500);
+  }
+});
+
+app.put('/api/career-twin', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const body = await c.req.json();
+    const updatedTwin = await store.updateCareerDigitalTwin(user.id, body);
+    await store.addAuditLog(user.id, 'User manual', 'TWIN_UPDATED', 'Career Digital Twin', 'Updated evidence-backed career model');
+    return c.json({ success: true, twin: updatedTwin });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message || 'Failed to update career digital twin' }, 500);
+  }
+});
+
+app.post('/api/career-twin/transferable-skills', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const { jobTitle, jobDescription } = await c.req.json();
+    const twin = await store.getCareerDigitalTwin(user.id);
+    const bridges = evaluateTransferableSkills(twin, jobTitle || '', jobDescription || '');
+    return c.json({ success: true, bridges });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message || 'Failed to evaluate transferable skills' }, 500);
+  }
+});
+
+app.post('/api/integrity/verify', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const body = await c.req.json();
+    const { vacancyId, destinationUrl, jobSource, tailoredResume, coverLetter, screeningAnswers } = body;
+
+    const twin = await store.getCareerDigitalTwin(user.id);
+    const existingApplications = await store.getApplications(user.id);
+
+    // Look for vacancy in live jobs cache or seed vacancies
+    let vacancy = await store.getLiveJobById(vacancyId);
+    if (!vacancy) {
+      vacancy = initialVacancies.find(v => v.id === vacancyId) || null;
+    }
+
+    const report = runCentralIntegrityAudit({
+      job: {
+        id: vacancy?.id || vacancyId || 'unknown',
+        company: vacancy?.company || 'Target Company',
+        title: vacancy?.title || 'Target Role',
+        source: vacancy?.source || jobSource || 'direct',
+        url: vacancy?.url || destinationUrl || '',
+        retrievedAt: vacancy?.retrievedAt,
+        isActive: vacancy?.isActive !== false,
+      },
+      tailoredResume,
+      coverLetter,
+      screeningAnswers,
+      twin,
+      existingApplications,
+    });
+
+    return c.json({ success: true, report });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message || 'Integrity audit failed' }, 500);
+  }
+});
+
+app.get('/api/receipts', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const receipts = await store.getApplicationReceipts(user.id);
+    return c.json({ success: true, receipts });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message || 'Failed to fetch receipts' }, 500);
+  }
+});
+
+app.get('/api/receipts/:id', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const receipt = await store.getApplicationReceiptById(user.id, c.req.param('id'));
+    if (!receipt) {
+      return c.json({ success: false, error: 'Receipt not found' }, 404);
+    }
+    return c.json({ success: true, receipt });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message || 'Failed to fetch receipt' }, 500);
+  }
+});
+
+app.post('/api/career-twin/outcomes', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const body = await c.req.json();
+    const outcome: CareerOutcomeItem = {
+      id: crypto.randomUUID(),
+      userId: user.id,
+      applicationId: body.applicationId,
+      company: body.company,
+      role: body.role,
+      outcomeType: body.outcomeType,
+      outcomeSource: body.outcomeSource || 'user_reported',
+      notes: body.notes,
+      recordedAt: new Date().toISOString(),
+    };
+    await store.recordCareerOutcome(outcome);
+    return c.json({ success: true, outcome });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message || 'Failed to record career outcome' }, 500);
+  }
+});
+
+app.get('/api/career-twin/outcomes', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const outcomes = await store.getCareerOutcomes(user.id);
+    return c.json({ success: true, outcomes });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message || 'Failed to fetch outcomes' }, 500);
+  }
+});
+
+app.get('/api/career-twin/insights', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const insights = await store.getCareerTwinInsights(user.id);
+    return c.json({ success: true, insights });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message || 'Failed to fetch career insights' }, 500);
+  }
 });
 
 // Cloudflare Worker Fetch & Scheduled Entrypoint

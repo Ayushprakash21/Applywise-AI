@@ -8,7 +8,12 @@ import {
   NotificationItem,
   SourceIntegrationStatus,
   ApplicationStatus,
-  TailoredResumeContent
+  TailoredResumeContent,
+  CareerDigitalTwin,
+  ApplicationIntegrityReport,
+  ApplicationReceipt,
+  CareerOutcomeItem,
+  TransferableSkillBridge
 } from '../types/index.ts';
 
 export interface AuthUser {
@@ -425,4 +430,65 @@ export const api = {
         messages: Array<{ role: 'user' | 'assistant'; content: string; timestamp: string }>;
       };
     }>('/api/ai/copilot/history'),
+
+  // --- CAREER DIGITAL TWIN & APPLICATION INTEGRITY ---
+  getCareerTwin: () =>
+    fetchJson<{ success: boolean; twin: CareerDigitalTwin }>('/api/career-twin'),
+
+  updateCareerTwin: (twin: Partial<CareerDigitalTwin>) =>
+    fetchJson<{ success: boolean; twin: CareerDigitalTwin }>('/api/career-twin', {
+      method: 'PUT',
+      body: JSON.stringify(twin),
+    }),
+
+  getTransferableSkills: (jobTitle: string, jobDescription: string) =>
+    fetchJson<{ success: boolean; bridges: TransferableSkillBridge[] }>('/api/career-twin/transferable-skills', {
+      method: 'POST',
+      body: JSON.stringify({ jobTitle, jobDescription }),
+    }),
+
+  verifyApplicationIntegrity: (params: {
+    vacancyId: string;
+    destinationUrl?: string;
+    jobSource?: string;
+    tailoredResume?: TailoredResumeContent;
+    coverLetter?: string;
+    screeningAnswers?: Record<string, string>;
+  }) =>
+    fetchJson<{ success: boolean; report: ApplicationIntegrityReport }>('/api/integrity/verify', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    }),
+
+  getApplicationReceipts: () =>
+    fetchJson<{ success: boolean; receipts: ApplicationReceipt[] }>('/api/receipts'),
+
+  getApplicationReceiptById: (id: string) =>
+    fetchJson<{ success: boolean; receipt: ApplicationReceipt }>(`/api/receipts/${id}`),
+
+  recordCareerOutcome: (outcome: {
+    applicationId?: string;
+    company: string;
+    role: string;
+    outcomeType: string;
+    outcomeSource?: string;
+    notes?: string;
+  }) =>
+    fetchJson<{ success: boolean; outcome: CareerOutcomeItem }>('/api/career-twin/outcomes', {
+      method: 'POST',
+      body: JSON.stringify(outcome),
+    }),
+
+  getCareerOutcomes: () =>
+    fetchJson<{ success: boolean; outcomes: CareerOutcomeItem[] }>('/api/career-twin/outcomes'),
+
+  getCareerTwinInsights: () =>
+    fetchJson<{
+      success: boolean;
+      insights: {
+        recurringSkillGaps: Array<{ skill: string; frequency: number }>;
+        conversionStats: { applied: number; interview: number; offer: number; rejected: number };
+        recommendations: string[];
+      };
+    }>('/api/career-twin/insights'),
 };

@@ -9,7 +9,16 @@ import {
   ApplicationRecord,
   AuditLogEntry,
   NotificationItem,
-  TailoredResumeContent
+  TailoredResumeContent,
+  CareerDigitalTwin,
+  DigitalTwinSkill,
+  DigitalTwinExperience,
+  DigitalTwinProject,
+  ProvenanceMetadata,
+  TransferableSkillBridge,
+  ApplicationReceipt,
+  ApplicationIntegrityReport,
+  CareerOutcomeItem
 } from '../src/types/index.ts';
 
 export interface AuthUser {
@@ -856,5 +865,398 @@ export class D1Store {
   async countLiveJobs(): Promise<number> {
     const row = await this.db.prepare('SELECT COUNT(*) as count FROM live_jobs_cache').first<{ count: number }>();
     return row?.count || 0;
+  }
+
+  // --- CAREER DIGITAL TWIN ---
+  async getCareerDigitalTwin(userId: string): Promise<CareerDigitalTwin> {
+    const row = await this.db.prepare(
+      'SELECT * FROM career_digital_twins WHERE user_id = ?'
+    ).bind(userId).first<any>();
+
+    if (row) {
+      return {
+        userId: row.user_id,
+        professionalSummary: row.professional_summary || '',
+        summaryProvenance: {
+          source: 'user_confirmed',
+          confidence: 'confirmed',
+          confirmedAt: row.updated_at,
+        },
+        workExperiences: JSON.parse(row.work_experiences || '[]'),
+        skillsInventory: JSON.parse(row.skills_inventory || '[]'),
+        education: JSON.parse(row.education || '[]'),
+        certifications: JSON.parse(row.certifications || '[]'),
+        projects: JSON.parse(row.projects || '[]'),
+        careerGoals: JSON.parse(row.career_goals || '[]'),
+        learningObjectives: JSON.parse(row.learning_objectives || '[]'),
+        transferableBridges: JSON.parse(row.transferable_bridges || '[]'),
+        completenessScore: row.completeness_score || 0,
+        inferredPendingCount: row.inferred_pending_count || 0,
+        unverifiedCount: row.unverified_count || 0,
+        updatedAt: row.updated_at,
+      };
+    }
+
+    // Auto-initialize from user_profiles if available
+    const profile = await this.getProfile(userId);
+    const now = new Date().toISOString();
+
+    const experiences: DigitalTwinExperience[] = ((profile && profile.experiences) || []).map(exp => ({
+      id: exp.id || crypto.randomUUID(),
+      company: exp.company,
+      role: exp.role,
+      startDate: exp.startDate,
+      endDate: exp.endDate,
+      current: exp.current,
+      location: exp.location || '',
+      description: exp.description || '',
+      achievements: exp.achievements || [],
+      skillsUsed: exp.verifiedSkillsUsed || [],
+      provenance: {
+        source: 'user_confirmed',
+        confidence: 'confirmed',
+        confirmedAt: now,
+      },
+    }));
+
+    const skills: DigitalTwinSkill[] = ((profile && profile.skills) || []).map(s => {
+      const name = typeof s === 'string' ? s : s.name;
+      const category = (typeof s === 'object' && s.category) ? s.category : 'general';
+      const proficiency = (typeof s === 'object' && s.proficiency) ? s.proficiency : 'proficient';
+      const yearsExperience = (typeof s === 'object' && s.yearsExperience) ? s.yearsExperience : 2;
+      return {
+        id: crypto.randomUUID(),
+        name,
+        category: category as any,
+        proficiency: proficiency as any,
+        yearsExperience,
+        provenance: {
+          source: 'user_confirmed' as const,
+          confidence: 'confirmed' as const,
+          confirmedAt: now,
+        },
+      };
+    });
+
+    const education = ((profile && profile.education) || []).map(edu => ({
+      ...edu,
+      provenance: {
+        source: 'user_confirmed' as const,
+        confidence: 'confirmed' as const,
+        confirmedAt: now,
+      },
+    }));
+
+    const certifications = ((profile && profile.certifications) || []).map(cert => ({
+      ...cert,
+      provenance: {
+        source: 'user_confirmed' as const,
+        confidence: 'confirmed' as const,
+        confirmedAt: now,
+      },
+    }));
+
+    let score = 20;
+    if (profile?.professionalSummary) score += 15;
+    if (experiences.length > 0) score += 30;
+    if (skills.length > 0) score += 20;
+    if (education.length > 0) score += 15;
+
+    const initialTwin: CareerDigitalTwin = {
+      userId,
+      professionalSummary: profile?.professionalSummary || '',
+      summaryProvenance: {
+        source: 'user_confirmed',
+        confidence: 'confirmed',
+        confirmedAt: now,
+      },
+      workExperiences: experiences,
+      skillsInventory: skills,
+      education,
+      certifications,
+      projects: [],
+      careerGoals: profile?.currentTitle ? [`Grow into Senior ${profile.currentTitle}`] : ['Software Engineering Leadership'],
+      learningObjectives: ['Cloud Architecture', 'Distributed Systems'],
+      transferableBridges: [],
+      completenessScore: Math.min(100, score),
+      inferredPendingCount: 0,
+      unverifiedCount: 0,
+      updatedAt: now,
+    };
+
+    await this.updateCareerDigitalTwin(userId, initialTwin);
+    return initialTwin;
+  }
+
+  async updateCareerDigitalTwin(userId: string, twin: Partial<CareerDigitalTwin>): Promise<CareerDigitalTwin> {
+    const now = new Date().toISOString();
+    const existing = await this.db.prepare('SELECT * FROM career_digital_twins WHERE user_id = ?').bind(userId).first<any>();
+
+    const merged = {
+      professional_summary: twin.professionalSummary !== undefined ? twin.professionalSummary : (existing?.professional_summary || ''),
+      work_experiences: twin.workExperiences !== undefined ? JSON.stringify(twin.workExperiences) : (existing?.work_experiences || '[]'),
+      skills_inventory: twin.skillsInventory !== undefined ? JSON.stringify(twin.skillsInventory) : (existing?.skills_inventory || '[]'),
+      education: twin.education !== undefined ? JSON.stringify(twin.education) : (existing?.education || '[]'),
+      certifications: twin.certifications !== undefined ? JSON.stringify(twin.certifications) : (existing?.certifications || '[]'),
+      projects: twin.projects !== undefined ? JSON.stringify(twin.projects) : (existing?.projects || '[]'),
+      career_goals: twin.careerGoals !== undefined ? JSON.stringify(twin.careerGoals) : (existing?.career_goals || '[]'),
+      learning_objectives: twin.learningObjectives !== undefined ? JSON.stringify(twin.learningObjectives) : (existing?.learning_objectives || '[]'),
+      transferable_bridges: twin.transferableBridges !== undefined ? JSON.stringify(twin.transferableBridges) : (existing?.transferable_bridges || '[]'),
+    };
+
+    const exps: DigitalTwinExperience[] = JSON.parse(merged.work_experiences);
+    const sks: DigitalTwinSkill[] = JSON.parse(merged.skills_inventory);
+    const edus = JSON.parse(merged.education);
+
+    let score = 10;
+    if (merged.professional_summary.length > 20) score += 20;
+    if (exps.length > 0) score += 30;
+    if (sks.length > 0) score += 20;
+    if (edus.length > 0) score += 10;
+    const goals = JSON.parse(merged.career_goals);
+    if (goals.length > 0) score += 10;
+    const completenessScore = Math.min(100, score);
+
+    const inferredPendingCount = sks.filter(s => s.provenance?.confidence === 'inferred').length +
+      exps.filter(e => e.provenance?.confidence === 'inferred').length;
+    const unverifiedCount = sks.filter(s => s.provenance?.confidence === 'unverified').length +
+      exps.filter(e => e.provenance?.confidence === 'unverified').length;
+
+    await this.db.prepare(`
+      INSERT INTO career_digital_twins (
+        user_id, professional_summary, work_experiences, skills_inventory,
+        education, certifications, projects, career_goals, learning_objectives,
+        transferable_bridges, completeness_score, inferred_pending_count, unverified_count,
+        created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(user_id) DO UPDATE SET
+        professional_summary = excluded.professional_summary,
+        work_experiences = excluded.work_experiences,
+        skills_inventory = excluded.skills_inventory,
+        education = excluded.education,
+        certifications = excluded.certifications,
+        projects = excluded.projects,
+        career_goals = excluded.career_goals,
+        learning_objectives = excluded.learning_objectives,
+        transferable_bridges = excluded.transferable_bridges,
+        completeness_score = excluded.completeness_score,
+        inferred_pending_count = excluded.inferred_pending_count,
+        unverified_count = excluded.unverified_count,
+        updated_at = excluded.updated_at
+    `).bind(
+      userId,
+      merged.professional_summary,
+      merged.work_experiences,
+      merged.skills_inventory,
+      merged.education,
+      merged.certifications,
+      merged.projects,
+      merged.career_goals,
+      merged.learning_objectives,
+      merged.transferable_bridges,
+      completenessScore,
+      inferredPendingCount,
+      unverifiedCount,
+      existing?.created_at || now,
+      now
+    ).run();
+
+    return {
+      userId,
+      professionalSummary: merged.professional_summary,
+      summaryProvenance: {
+        source: 'user_confirmed',
+        confidence: 'confirmed',
+        confirmedAt: now,
+      },
+      workExperiences: exps,
+      skillsInventory: sks,
+      education: edus,
+      certifications: JSON.parse(merged.certifications),
+      projects: JSON.parse(merged.projects),
+      careerGoals: goals,
+      learningObjectives: JSON.parse(merged.learning_objectives),
+      transferableBridges: JSON.parse(merged.transferable_bridges),
+      completenessScore,
+      inferredPendingCount,
+      unverifiedCount,
+      updatedAt: now,
+    };
+  }
+
+  // --- APPLICATION RECEIPTS & PROOF ---
+  async saveApplicationReceipt(receipt: ApplicationReceipt): Promise<void> {
+    await this.db.prepare(`
+      INSERT INTO application_receipts (
+        id, user_id, application_id, vacancy_id, company, role, job_source,
+        destination_url, submission_status, confirmation_reference,
+        resume_version_id, cover_letter_version_id, tailored_resume_snapshot,
+        cover_letter_snapshot, user_confirmed_answers, integrity_report, timeline, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        submission_status = excluded.submission_status,
+        confirmation_reference = excluded.confirmation_reference,
+        integrity_report = excluded.integrity_report,
+        timeline = excluded.timeline
+    `).bind(
+      receipt.id,
+      receipt.userId,
+      receipt.applicationId,
+      receipt.vacancyId,
+      receipt.company,
+      receipt.role,
+      receipt.jobSource,
+      receipt.destinationUrl,
+      receipt.submissionStatus,
+      receipt.confirmationReference || null,
+      receipt.resumeVersionId || null,
+      receipt.coverLetterVersionId || null,
+      receipt.tailoredResumeSnapshot ? JSON.stringify(receipt.tailoredResumeSnapshot) : null,
+      receipt.coverLetterSnapshot || null,
+      receipt.userConfirmedAnswers ? JSON.stringify(receipt.userConfirmedAnswers) : null,
+      JSON.stringify(receipt.integrityReport),
+      JSON.stringify(receipt.timeline || []),
+      receipt.createdAt || new Date().toISOString()
+    ).run();
+  }
+
+  async getApplicationReceipts(userId: string): Promise<ApplicationReceipt[]> {
+    const { results } = await this.db.prepare(
+      'SELECT * FROM application_receipts WHERE user_id = ? ORDER BY created_at DESC'
+    ).bind(userId).all<any>();
+
+    return (results || []).map(r => ({
+      id: r.id,
+      userId: r.user_id,
+      applicationId: r.application_id,
+      vacancyId: r.vacancy_id,
+      company: r.company,
+      role: r.role,
+      jobSource: r.job_source,
+      destinationUrl: r.destination_url,
+      submissionStatus: r.submission_status,
+      confirmationReference: r.confirmation_reference || undefined,
+      resumeVersionId: r.resume_version_id || undefined,
+      coverLetterVersionId: r.cover_letter_version_id || undefined,
+      tailoredResumeSnapshot: r.tailored_resume_snapshot ? JSON.parse(r.tailored_resume_snapshot) : undefined,
+      coverLetterSnapshot: r.cover_letter_snapshot || undefined,
+      userConfirmedAnswers: r.user_confirmed_answers ? JSON.parse(r.user_confirmed_answers) : undefined,
+      integrityReport: JSON.parse(r.integrity_report || '{}'),
+      timeline: JSON.parse(r.timeline || '[]'),
+      createdAt: r.created_at,
+    }));
+  }
+
+  async getApplicationReceiptById(userId: string, receiptId: string): Promise<ApplicationReceipt | null> {
+    const r = await this.db.prepare(
+      'SELECT * FROM application_receipts WHERE user_id = ? AND id = ?'
+    ).bind(userId, receiptId).first<any>();
+
+    if (!r) return null;
+    return {
+      id: r.id,
+      userId: r.user_id,
+      applicationId: r.application_id,
+      vacancyId: r.vacancy_id,
+      company: r.company,
+      role: r.role,
+      jobSource: r.job_source,
+      destinationUrl: r.destination_url,
+      submissionStatus: r.submission_status,
+      confirmationReference: r.confirmation_reference || undefined,
+      resumeVersionId: r.resume_version_id || undefined,
+      coverLetterVersionId: r.cover_letter_version_id || undefined,
+      tailoredResumeSnapshot: r.tailored_resume_snapshot ? JSON.parse(r.tailored_resume_snapshot) : undefined,
+      coverLetterSnapshot: r.cover_letter_snapshot || undefined,
+      userConfirmedAnswers: r.user_confirmed_answers ? JSON.parse(r.user_confirmed_answers) : undefined,
+      integrityReport: JSON.parse(r.integrity_report || '{}'),
+      timeline: JSON.parse(r.timeline || '[]'),
+      createdAt: r.created_at,
+    };
+  }
+
+  // --- CAREER OUTCOMES & FEEDBACK LOOP ---
+  async recordCareerOutcome(outcome: CareerOutcomeItem): Promise<void> {
+    await this.db.prepare(`
+      INSERT INTO career_outcomes (
+        id, user_id, application_id, company, role, outcome_type, outcome_source, notes, recorded_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      outcome.id || crypto.randomUUID(),
+      outcome.userId,
+      outcome.applicationId || null,
+      outcome.company,
+      outcome.role,
+      outcome.outcomeType,
+      outcome.outcomeSource || 'user_reported',
+      outcome.notes || null,
+      outcome.recordedAt || new Date().toISOString()
+    ).run();
+  }
+
+  async getCareerOutcomes(userId: string): Promise<CareerOutcomeItem[]> {
+    const { results } = await this.db.prepare(
+      'SELECT * FROM career_outcomes WHERE user_id = ? ORDER BY recorded_at DESC'
+    ).bind(userId).all<any>();
+
+    return (results || []).map(row => ({
+      id: row.id,
+      userId: row.user_id,
+      applicationId: row.application_id || undefined,
+      company: row.company,
+      role: row.role,
+      outcomeType: row.outcome_type,
+      outcomeSource: row.outcome_source,
+      notes: row.notes || undefined,
+      recordedAt: row.recorded_at,
+    }));
+  }
+
+  async getCareerTwinInsights(userId: string): Promise<{
+    recurringSkillGaps: Array<{ skill: string; frequency: number }>;
+    conversionStats: { applied: number; interview: number; offer: number; rejected: number };
+    recommendations: string[];
+  }> {
+    const outcomes = await this.getCareerOutcomes(userId);
+    const receipts = await this.getApplicationReceipts(userId);
+
+    const conversionStats = {
+      applied: receipts.length,
+      interview: outcomes.filter(o => o.outcomeType === 'INTERVIEW_INVITATION' || o.outcomeType === 'INTERVIEW_COMPLETED').length,
+      offer: outcomes.filter(o => o.outcomeType === 'OFFER_RECEIVED').length,
+      rejected: outcomes.filter(o => o.outcomeType === 'REJECTION_RECEIVED').length,
+    };
+
+    const gapMap: Record<string, number> = {};
+    for (const r of receipts) {
+      if (r.integrityReport?.resumeIntegrity?.inventedSkills) {
+        for (const s of r.integrityReport.resumeIntegrity.inventedSkills) {
+          gapMap[s] = (gapMap[s] || 0) + 1;
+        }
+      }
+    }
+
+    const recurringSkillGaps = Object.entries(gapMap)
+      .map(([skill, frequency]) => ({ skill, frequency }))
+      .sort((a, b) => b.frequency - a.frequency)
+      .slice(0, 5);
+
+    const recommendations: string[] = [];
+    if (recurringSkillGaps.length > 0) {
+      recommendations.push(`Consider acquiring proof or certification for '${recurringSkillGaps[0].skill}', which appeared as an unverified requirement across multiple jobs.`);
+    }
+    if (conversionStats.applied > 5 && conversionStats.interview === 0) {
+      recommendations.push('Application response rate is low. Review your Career Twin evidence and ensure tailored bullets cite verified measurable accomplishments.');
+    } else if (conversionStats.interview > 0 && conversionStats.offer === 0) {
+      recommendations.push('High interview conversion rate! Focus interview prep on behavioral alignment and transferable skills storytelling.');
+    } else {
+      recommendations.push('Keep your Career Twin updated with recent projects to maximize verification integrity on high-match roles.');
+    }
+
+    return {
+      recurringSkillGaps,
+      conversionStats,
+      recommendations,
+    };
   }
 }

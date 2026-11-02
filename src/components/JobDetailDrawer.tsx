@@ -19,7 +19,7 @@ import {
   Zap,
   Info
 } from 'lucide-react';
-import { JobVacancy, ApplicationRecord } from '../types/index.ts';
+import { JobVacancy, ApplicationRecord, ApplicationIntegrityReport } from '../types/index.ts';
 import { api } from '../services/api.ts';
 
 interface JobDetailDrawerProps {
@@ -41,7 +41,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
   onApplicationCreated,
   onShowToast,
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'match' | 'assisted'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'match' | 'assisted' | 'integrity'>('overview');
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
   const [analysisData, setAnalysisData] = useState<any | null>(null);
   const [isLoadingMatch, setIsLoadingMatch] = useState(false);
@@ -50,6 +50,8 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
   const [assistedAppResult, setAssistedAppResult] = useState<any | null>(null);
   const [isApplyingAuto, setIsApplyingAuto] = useState(false);
   const [autoApplyError, setAutoApplyError] = useState<string | null>(null);
+  const [integrityReport, setIntegrityReport] = useState<ApplicationIntegrityReport | null>(null);
+  const [isAuditingIntegrity, setIsAuditingIntegrity] = useState(false);
 
   if (!vacancy) return null;
 
@@ -84,6 +86,26 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
       if (onShowToast) onShowToast(`Match error: ${err.message}`);
     } finally {
       setIsLoadingMatch(false);
+    }
+  };
+
+  const handleAuditIntegrity = async () => {
+    setActiveTab('integrity');
+    if (integrityReport) return;
+    try {
+      setIsAuditingIntegrity(true);
+      const res = await api.verifyApplicationIntegrity({
+        vacancyId: vacancy.id,
+        destinationUrl: vacancy.url,
+        jobSource: vacancy.source,
+      });
+      if (res.success) {
+        setIntegrityReport(res.report);
+      }
+    } catch (err: any) {
+      if (onShowToast) onShowToast(`Integrity check failed: ${err.message}`);
+    } finally {
+      setIsAuditingIntegrity(false);
     }
   };
 
@@ -193,6 +215,17 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
           >
             <Sparkles className="h-3.5 w-3.5" />
             <span>Match Assessment</span>
+          </button>
+          <button
+            onClick={handleAuditIntegrity}
+            className={`py-3 px-3 border-b-2 transition flex items-center space-x-1.5 whitespace-nowrap ${
+              activeTab === 'integrity'
+                ? 'border-blue-600 text-blue-600 font-bold'
+                : 'border-transparent hover:text-slate-900'
+            }`}
+          >
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+            <span>Integrity & Readiness</span>
           </button>
           {assistedAppResult && (
             <button
@@ -462,6 +495,143 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </div>
+            </div>
+          )}
+
+          {/* TAB 5: APPLICATION READINESS CENTER */}
+          {activeTab === 'integrity' && (
+            <div className="space-y-5 animate-in fade-in duration-200">
+              {isAuditingIntegrity ? (
+                <div className="p-12 text-center text-xs text-slate-500">
+                  <div className="h-8 w-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                  <p className="font-semibold text-slate-800">Running Pre-Application Integrity Verification...</p>
+                  <p className="text-slate-400 mt-1">Cross-checking vacancy freshness, employer portal authenticity, and resume truthfulness against your Career Digital Twin.</p>
+                </div>
+              ) : integrityReport ? (
+                <div className="space-y-4">
+                  {/* Overall Readiness Card */}
+                  <div className={`p-4 rounded-xl border flex items-center justify-between ${
+                    integrityReport.overallStatus === 'VERIFIED'
+                      ? 'bg-emerald-50/80 border-emerald-200 text-emerald-950'
+                      : integrityReport.overallStatus === 'NEEDS_REVIEW'
+                      ? 'bg-amber-50/80 border-amber-200 text-amber-950'
+                      : 'bg-rose-50/80 border-rose-200 text-rose-950'
+                  }`}>
+                    <div className="flex items-center space-x-2.5">
+                      <ShieldCheck className={`h-6 w-6 ${
+                        integrityReport.overallStatus === 'VERIFIED'
+                          ? 'text-emerald-600'
+                          : integrityReport.overallStatus === 'NEEDS_REVIEW'
+                          ? 'text-amber-600'
+                          : 'text-rose-600'
+                      }`} />
+                      <div>
+                        <h4 className="text-sm font-bold">
+                          Application Readiness Status: {integrityReport.overallStatus}
+                        </h4>
+                        <p className="text-xs opacity-90 mt-0.5">
+                          {integrityReport.overallStatus === 'VERIFIED'
+                            ? 'All integrity gates passed. Ground truth is verified with zero unevidenced claims.'
+                            : integrityReport.overallStatus === 'NEEDS_REVIEW'
+                            ? 'Verification warning detected. Please review required actions before submitting.'
+                            : 'Submission blocked. Posting is closed or contains unevidenced credentials.'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-mono font-extrabold px-2.5 py-1 rounded-full bg-white/80 shadow-xs">
+                      {integrityReport.resumeIntegrity.truthfulnessScore}% Truthfulness
+                    </span>
+                  </div>
+
+                  {/* Verification Gates Breakdown */}
+                  <div className="space-y-2.5 text-xs">
+                    {/* Gate 1: Job Freshness */}
+                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        <div>
+                          <strong className="text-slate-900">Job Availability & Freshness: </strong>
+                          <span className="text-slate-600">{integrityReport.jobAvailabilityStatus}</span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono">Source: {vacancy.source}</span>
+                    </div>
+
+                    {/* Gate 2: Portal Trust */}
+                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        <div>
+                          <strong className="text-slate-900">Destination Trust Level: </strong>
+                          <span className="text-slate-600">{integrityReport.destinationTrustStatus}</span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-emerald-700 bg-emerald-100 font-bold px-1.5 py-0.5 rounded">Verified Safe</span>
+                    </div>
+
+                    {/* Gate 3: Resume Truthfulness */}
+                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                          <strong className="text-slate-900">Resume Truthfulness Audit</strong>
+                        </div>
+                        <span className="text-emerald-700 font-bold text-[11px]">
+                          {integrityReport.resumeIntegrity.status}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 pl-6">
+                        No invented employers or fabricated certifications. All metrics audited against Career Digital Twin.
+                      </p>
+                    </div>
+
+                    {/* Gate 4: Duplicate Check */}
+                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        <div>
+                          <strong className="text-slate-900">Duplicate Submission Check: </strong>
+                          <span className="text-slate-600">
+                            {integrityReport.duplicateCheck.isDuplicate ? 'Duplicate Found' : 'No Prior Duplicate'}
+                          </span>
+                        </div>
+                      </div>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                        integrityReport.duplicateCheck.isDuplicate ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'
+                      }`}>
+                        {integrityReport.duplicateCheck.isDuplicate ? 'Review Needed' : 'Unique Opportunity'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Warnings or Required Actions */}
+                  {integrityReport.requiredUserActions.length > 0 && (
+                    <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs space-y-1.5">
+                      <h5 className="font-bold text-amber-900 flex items-center space-x-1.5">
+                        <AlertCircle className="h-4 w-4 text-amber-600" />
+                        <span>Recommended Candidate Action</span>
+                      </h5>
+                      <ul className="list-disc list-inside text-amber-800 space-y-1 pl-1">
+                        {integrityReport.requiredUserActions.map((act, aIdx) => (
+                          <li key={aIdx}>{act}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  <ShieldCheck className="h-8 w-8 text-slate-400 mx-auto mb-2" />
+                  <p className="text-xs text-slate-600 font-semibold">Integrity Verification Ready</p>
+                  <p className="text-[11px] text-slate-400 mt-1 mb-3">Click below to audit application readiness and generate a truthfulness report.</p>
+                  <button
+                    onClick={handleAuditIntegrity}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition"
+                  >
+                    Run Pre-Apply Audit
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
