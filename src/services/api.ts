@@ -228,4 +228,70 @@ export const api = {
 
   // --- INTEGRATIONS ---
   getIntegrations: () => fetchJson<{ success: boolean; integrations: SourceIntegrationStatus[] }>('/api/integrations'),
+
+  // --- SUBSCRIPTIONS & ENTITLEMENTS ---
+  getSubscription: () =>
+    fetchJson<{
+      success: boolean;
+      subscription: {
+        planId: 'free' | 'pro';
+        status: 'active' | 'cancelled' | 'past_due';
+        billingInterval: 'monthly' | 'annual';
+        currentPeriodStart: string;
+        currentPeriodEnd: string;
+        cancelAtPeriodEnd: boolean;
+      };
+      usage: {
+        used: number;
+        limit: number;
+        remaining: number;
+        periodStart: string;
+        periodEnd: string;
+      };
+    }>('/api/subscription/current'),
+
+  upgradeSubscription: (planId = 'pro', billingInterval = 'monthly') =>
+    fetchJson<{
+      success: boolean;
+      subscription: any;
+      message: string;
+    }>('/api/subscription/upgrade', {
+      method: 'POST',
+      body: JSON.stringify({ planId, billingInterval }),
+    }),
+
+  cancelSubscription: () =>
+    fetchJson<{
+      success: boolean;
+      subscription: any;
+      message: string;
+    }>('/api/subscription/cancel', {
+      method: 'POST',
+    }),
+
+  // --- UNIFIED AI COPILOT ---
+  askCopilot: (message: string, context?: Record<string, unknown>) =>
+    fetchJson<{
+      success: boolean;
+      reply: string;
+      conversationId?: string;
+      usage: {
+        used: number;
+        limit: number;
+        remaining: number;
+      };
+    }>('/api/ai/copilot', {
+      method: 'POST',
+      body: JSON.stringify({ message, context }),
+    }),
+
+  getCopilotHistory: () =>
+    fetchJson<{
+      success: boolean;
+      conversation?: {
+        id: string;
+        title: string;
+        messages: Array<{ role: 'user' | 'assistant'; content: string; timestamp: string }>;
+      };
+    }>('/api/ai/copilot/history'),
 };

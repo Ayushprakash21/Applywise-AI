@@ -461,4 +461,131 @@ export class D1Store {
       await this.saveVacancies(vacancies);
     }
   }
+
+  // --- SUBSCRIPTIONS & ENTITLEMENTS ---
+  async getUserSubscription(userId: string): Promise<{
+    planId: 'free' | 'pro';
+    status: 'active' | 'cancelled' | 'past_due';
+    billingInterval: 'monthly' | 'annual';
+    currentPeriodStart: string;
+    currentPeriodEnd: string;
+    cancelAtPeriodEnd: boolean;
+  }> {
+    const row = await this.db.prepare(
+      'SELECT plan_id, status, billing_interval, current_period_start, current_period_end, cancel_at_period_end FROM user_subscriptions WHERE user_id = ?'
+    ).bind(userId).first<{
+      plan_id: string;
+      status: string;
+      billing_interval: string;
+      current_period_start: string;
+      current_period_end: string;
+      cancel_at_period_end: number;
+    }>();
+
+    if (!row) {
+      const now = new Date();
+      const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      return {
+        planId: 'free',
+        status: 'active',
+        billingInterval: 'monthly',
+        currentPeriodStart: now.toISOString(),
+        currentPeriodEnd: nextMonth.toISOString(),
+        cancelAtPeriodEnd: false,
+      };
+    }
+
+    return {
+      planId: row.plan_id === 'pro' ? 'pro' : 'free',
+      status: (row.status as any) || 'active',
+      billingInterval: (row.billing_interval as any) || 'monthly',
+      currentPeriodStart: row.current_period_start,
+      currentPeriodEnd: row.current_period_end,
+      cancelAtPeriodEnd: !!row.cancel_at_period_end,
+    };
+  }
+
+  async updateUserSubscription(
+    userId: string,
+    planId: 'free' | 'pro',
+    billingInterval: 'monthly' | 'annual' = 'monthly'
+  ): Promise<void> {
+    const now = new Date();
+    const periodDays = billingInterval === 'annual' ? 365 : 30;
+    const periodEnd = new Date(now.getTime() + periodDays * 24 * 60 * 60 * 1000).toISOString();
+    const id = crypto.randomUUID();
+
+    await this.db.prepare(`
+      INSERT INTO user_subscriptions (id, user_id, plan_id, status, billing_interval, current_period_start, current_period_end, cancel_at_period_end, created_at, updated_at)
+      VALUES (?, ?, ?, 'active', ?, ?, ?, 0, ?, ?)
+      ON CONFLICT(user_id) DO UPDATE SET
+        plan_id = excluded.plan_id,
+        status = excluded.status,
+        billing_interval = excluded.billing_interval,
+        current_period_start = excluded.current_period_start,
+        current_period_end = excluded.current_period_end,
+        updated_at = excluded.updated_at
+    `).bind(
+      id,
+      userId,
+      planId,
+      billingInterval,
+      now.toISOString(),
+      periodEnd,
+      now.toISOString(),
+      now.toISOString()
+    ).run();
+  }
+
+  async cancelSubscription(userId: string): Promise<void> {
+    const now = new Date().toISOString();
+    await this.db.prepare(
+      'UPDATE user_subscriptions SET cancel_at_period_end = 1, updated_at = ? WHERE user_id = ?'
+    ).bind(now, userId).run();
+  }
+
+  // --- AI USAGE & COPILOT CONVERSATIONS ---
+  async recordAIUsage(userId: string, featureKey: string, promptLength: number, responseLength: number): Promise<void> {
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+    await this.db.prepare(`
+      INSERT INTO ai_usage_logs (id, user_id, feature_key, prompt_length, response_length, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(id, userId, featureKey, promptLength, responseLength, now).run();
+  }
+
+  async getAIUsageCount(userId: string, sinceDate: string): Promise<number> {
+    const row = await this.db.prepare(
+      'SELECT COUNT(*) as count FROM ai_usage_logs WHERE user_id = ? AND created_at >= ?'
+    ).bind(userId, sinceDate).first<{ count: number }>();
+    return row?.count || 0;
+  }
+
+  async getLatestConversation(userId: string): Promise<{ id: string; title: string; messages: any[] } | null> {
+    const row = await this.db.prepare(
+      'SELECT id, title, messages FROM ai_conversations WHERE user_id = ? ORDER BY updated_at DESC LIMIT 1'
+    ).bind(userId).first<{ id: string; title: string; messages: string }>();
+
+    if (!row) return null;
+    try {
+      return {
+        id: row.id,
+        title: row.title,
+        messages: JSON.parse(row.messages),
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async saveAIConversation(userId: string, conversationId: string, title: string, messages: any[]): Promise<void> {
+    const now = new Date().toISOString();
+    await this.db.prepare(`
+      INSERT INTO ai_conversations (id, user_id, title, messages, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        messages = excluded.messages,
+        updated_at = excluded.updated_at
+    `).bind(conversationId, userId, title, JSON.stringify(messages), now, now).run();
+  }
 }

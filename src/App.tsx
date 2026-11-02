@@ -23,11 +23,18 @@ import {
   TermsOfUseModal,
   AccountSettingsModal
 } from './components/LegalModals.tsx';
+import { AboutPage } from './components/AboutPage.tsx';
+import { PricingPage } from './components/PricingPage.tsx';
+import { AICopilot } from './components/AICopilot.tsx';
+import { UserSubscription } from './config/plans.ts';
 
 export default function App() {
   // Current user state (validated against server)
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+  // Client-side URL routing state ('/' | '/about' | '/pricing')
+  const [currentRoute, setCurrentRoute] = useState<string>(() => window.location.pathname || '/');
 
   // Navigation: minimal 3 tabs for signed-in user
   const [activeTab, setActiveTab] = useState<'jobs' | 'applications' | 'profile'>('jobs');
@@ -39,6 +46,7 @@ export default function App() {
   const [vacancies, setVacancies] = useState<JobVacancy[]>([]);
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
 
   // Modals & Drawers
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -58,6 +66,21 @@ export default function App() {
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Client-side URL history synchronization
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentRoute(window.location.pathname || '/');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateTo = (path: string) => {
+    window.history.pushState({}, '', path);
+    setCurrentRoute(path);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Safe server-validated session boot
@@ -91,13 +114,14 @@ export default function App() {
   const loadUserData = async () => {
     try {
       if (currentUser) {
-        const [profData, prefData, settData, vacData, appData, notifData] = await Promise.all([
+        const [profData, prefData, settData, vacData, appData, notifData, subData] = await Promise.all([
           api.getProfile(),
           api.getPreferences(),
           api.getSettings(),
           api.getVacancies(),
           api.getApplications(),
           api.getNotifications(),
+          api.getSubscription().catch(() => ({ success: false, subscription: null })),
         ]);
         setProfile(profData.profile);
         setPreferences(prefData.preferences);
@@ -105,15 +129,51 @@ export default function App() {
         setVacancies(vacData.vacancies);
         setApplications(appData.applications);
         setNotifications(notifData.notifications);
+        if (subData?.subscription) {
+          setSubscription(subData.subscription);
+        }
       } else {
         const vacData = await api.getVacancies();
         setVacancies(vacData.vacancies);
+        setSubscription(null);
       }
     } catch (err) {
       console.error('Error loading data:', err);
       if (currentUser) {
         handleLogout();
       }
+    }
+  };
+
+  const handleUpgradePlan = async (plan: 'free' | 'pro', billingCycle: 'monthly' | 'annual') => {
+    if (!currentUser) {
+      setAuthModalMode('signup');
+      setAuthModalOpen(true);
+      return;
+    }
+    try {
+      const res = await api.upgradeSubscription(plan, billingCycle);
+      if (res.success && res.subscription) {
+        setSubscription(res.subscription);
+        showToast(res.message || 'Subscription successfully updated!');
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showToast(`Upgrade error: ${msg}`);
+    }
+  };
+
+  const handleCancelPlan = async () => {
+    if (!currentUser) return;
+    try {
+      const res = await api.cancelSubscription();
+      if (res.success && res.subscription) {
+        setSubscription(res.subscription);
+        showToast('Subscription scheduled to cancel at end of current period.');
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showToast(`Cancel error: ${msg}`);
     }
   };
 
@@ -210,8 +270,32 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Signed-In Header OR Landing Page */}
-      {currentUser ? (
+      {/* Main Signed-In Header OR Landing Page OR Dedicated Pages */}
+      {currentRoute === '/about' ? (
+        <AboutPage
+          onGetStarted={() => {
+            if (!currentUser) {
+              setAuthModalMode('signup');
+              setAuthModalOpen(true);
+            } else {
+              navigateTo('/');
+            }
+          }}
+          onExplorePro={() => navigateTo('/pricing')}
+          onNavigateHome={() => navigateTo('/')}
+        />
+      ) : currentRoute === '/pricing' ? (
+        <PricingPage
+          currentUser={currentUser}
+          currentPlanId={subscription?.planId || subscription?.plan || 'free'}
+          onOpenAuth={mode => {
+            setAuthModalMode(mode);
+            setAuthModalOpen(true);
+          }}
+          onNavigateHome={() => navigateTo('/')}
+          onSubscriptionUpdated={loadUserData}
+        />
+      ) : currentUser ? (
         <>
           <AppHeader
             user={currentUser}
@@ -232,6 +316,9 @@ export default function App() {
               const res = await api.markAllNotificationsRead();
               setNotifications(res.notifications);
             }}
+            plan={subscription?.planId || subscription?.plan || 'free'}
+            onOpenPricing={() => navigateTo('/pricing')}
+            onOpenAbout={() => navigateTo('/about')}
           />
 
           <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
@@ -275,6 +362,8 @@ export default function App() {
                 <span>ApplyWise AI — Intelligent Job Discovery & Application Preparation</span>
               </div>
               <div className="flex items-center space-x-4">
+                <button onClick={() => navigateTo('/about')} className="hover:text-blue-600 transition">About Us</button>
+                <button onClick={() => navigateTo('/pricing')} className="hover:text-blue-600 transition">Pricing & Plans</button>
                 <button onClick={() => setPrivacyModalOpen(true)} className="hover:text-blue-600 transition">Privacy Policy</button>
                 <button onClick={() => setTermsModalOpen(true)} className="hover:text-blue-600 transition">Terms of Use</button>
                 <span>Zero Hallucination Guarantee</span>
@@ -287,6 +376,8 @@ export default function App() {
           onOpenAuth={mode => { setAuthModalMode(mode); setAuthModalOpen(true); }}
           onOpenPrivacy={() => setPrivacyModalOpen(true)}
           onOpenTerms={() => setTermsModalOpen(true)}
+          onOpenAbout={() => navigateTo('/about')}
+          onOpenPricing={() => navigateTo('/pricing')}
           featuredVacancies={vacancies}
           onSelectVacancy={v => { setSelectedVacancy(v); }}
           onSearch={q => {
@@ -296,6 +387,31 @@ export default function App() {
           }}
         />
       )}
+
+      {/* Global AI Career Copilot */}
+      <AICopilot
+        currentUser={currentUser}
+        currentPageContext={currentRoute === '/' ? (currentUser ? activeTab : 'landing') : currentRoute.replace('/', '')}
+        contextDetails={{
+          selectedJob: selectedVacancy ? {
+            title: selectedVacancy.title,
+            company: selectedVacancy.company,
+            description: selectedVacancy.description,
+          } : undefined,
+          profileSummary: profile ? {
+            title: profile.fullName || 'User Profile',
+            skills: profile.skills || [],
+            experienceYears: profile.experiences?.length || 0,
+          } : undefined,
+          activeApplicationsCount: applications.length,
+          userPlan: subscription?.planId || subscription?.plan || 'free',
+        }}
+        onOpenPricing={() => navigateTo('/pricing')}
+        onOpenAuth={mode => {
+          setAuthModalMode(mode);
+          setAuthModalOpen(true);
+        }}
+      />
 
       {/* Global Modals */}
       <AuthModals

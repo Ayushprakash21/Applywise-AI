@@ -16,11 +16,14 @@ import {
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
 import { JobVacancy } from '../types/index.ts';
+import { FounderSection } from './FounderSection.tsx';
 
 interface LandingPageProps {
   onOpenAuth: (mode: 'login' | 'signup') => void;
   onOpenPrivacy: () => void;
   onOpenTerms: () => void;
+  onOpenAbout?: () => void;
+  onOpenPricing?: () => void;
   featuredVacancies: JobVacancy[];
   onSelectVacancy: (vacancy: JobVacancy) => void;
   onSearch: (query: string) => void;
@@ -30,6 +33,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onOpenAuth,
   onOpenPrivacy,
   onOpenTerms,
+  onOpenAbout,
+  onOpenPricing,
   featuredVacancies,
   onSelectVacancy,
   onSearch,
@@ -54,6 +59,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <a href="#features" className="hover:text-blue-600 transition">Features</a>
             <a href="#how-it-works" className="hover:text-blue-600 transition">How It Works</a>
             <a href="#real-jobs" className="hover:text-blue-600 transition">Live Discovery</a>
+            {onOpenPricing && (
+              <button onClick={onOpenPricing} className="hover:text-blue-600 transition">
+                Pricing
+              </button>
+            )}
+            {onOpenAbout && (
+              <button onClick={onOpenAbout} className="hover:text-blue-600 transition">
+                About Us
+              </button>
+            )}
             <button onClick={onOpenPrivacy} className="hover:text-blue-600 transition">Privacy</button>
           </div>
 
@@ -269,6 +284,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
+      {/* Meet the Founder Section */}
+      <FounderSection onReadStory={onOpenAbout} />
+
       {/* CTA Footer Banner */}
       <section className="py-16 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
@@ -300,7 +318,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <BrandLogo variant="dark" size="sm" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
 
-          <div className="flex items-center space-x-6">
+          <div className="flex flex-wrap items-center justify-center gap-6">
+            {onOpenAbout && (
+              <button onClick={onOpenAbout} className="hover:text-white transition">About Us</button>
+            )}
+            {onOpenPricing && (
+              <button onClick={onOpenPricing} className="hover:text-white transition">Pricing & Plans</button>
+            )}
             <button onClick={onOpenPrivacy} className="hover:text-white transition">Privacy Policy</button>
             <button onClick={onOpenTerms} className="hover:text-white transition">Terms of Use</button>
             <span>Free Public Service</span>

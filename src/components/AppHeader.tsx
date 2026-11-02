@@ -10,7 +10,9 @@ import {
   ChevronDown,
   Check,
   AlertTriangle,
-  FileCheck
+  FileCheck,
+  Sparkles,
+  Info
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
 import { AuthUser } from '../services/api.ts';
@@ -29,6 +31,9 @@ interface AppHeaderProps {
   onOpenPrivacy: () => void;
   onOpenTerms: () => void;
   onLogout: () => void;
+  plan?: 'free' | 'pro';
+  onOpenPricing?: () => void;
+  onOpenAbout?: () => void;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -44,6 +49,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenPrivacy,
   onOpenTerms,
   onLogout,
+  plan = 'free',
+  onOpenPricing,
+  onOpenAbout,
 }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -114,6 +122,27 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* Right: Safety Stop, Notifications, User Avatar Dropdown */}
         <div className="flex items-center space-x-3">
+          {/* Subscription Status / Upgrade CTA */}
+          {plan === 'pro' ? (
+            <button
+              onClick={onOpenPricing}
+              className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs tracking-wider uppercase flex items-center space-x-1"
+            >
+              <Sparkles className="h-3 w-3" />
+              <span>PRO</span>
+            </button>
+          ) : (
+            onOpenPricing && (
+              <button
+                onClick={onOpenPricing}
+                className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs hover:shadow hover:opacity-95 transition"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Upgrade to Pro</span>
+              </button>
+            )
+          )}
+
           {/* Emergency Safety Pill */}
           {settings && (
             <button
@@ -199,6 +228,26 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 </div>
 
                 <div className="py-1">
+                  {onOpenPricing && (
+                    <button
+                      onClick={() => { setShowUserMenu(false); onOpenPricing(); }}
+                      className="w-full px-3.5 py-2 text-left text-blue-600 hover:bg-blue-50 flex items-center space-x-2 font-semibold transition"
+                    >
+                      <Sparkles className="h-4 w-4 text-blue-500" />
+                      <span>{plan === 'pro' ? 'Subscription & Billing' : 'Upgrade to Pro'}</span>
+                    </button>
+                  )}
+
+                  {onOpenAbout && (
+                    <button
+                      onClick={() => { setShowUserMenu(false); onOpenAbout(); }}
+                      className="w-full px-3.5 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-2 transition"
+                    >
+                      <Info className="h-4 w-4 text-slate-400" />
+                      <span>About ApplyWise</span>
+                    </button>
+                  )}
+
                   <button
                     onClick={() => { setShowUserMenu(false); onOpenSettingsModal(); }}
                     className="w-full px-3.5 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-2 transition"
