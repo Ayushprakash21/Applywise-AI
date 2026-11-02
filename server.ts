@@ -11,10 +11,7 @@ import { jobDiscovery } from './server/jobDiscovery.ts';
 import { matchingEngine } from './server/matchingEngine.ts';
 import { submissionAdapter } from './server/submissionAdapter.ts';
 import {
-  initialProfile,
-  initialPreferences,
   initialVacancies,
-  initialApplications,
   initialIntegrations,
 } from './src/data/seedData.ts';
 import { validateStateTransition } from './src/utils/rules.ts';
@@ -25,13 +22,8 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize database with initial demonstration seed data if empty
-authAndStore.seedInitialDataIfEmpty({
-  vacancies: initialVacancies,
-  profile: initialProfile,
-  preferences: initialPreferences,
-  applications: initialApplications,
-});
+// Cache real vacancy feeds without inserting fictional users
+authAndStore.cacheInitialVacanciesIfEmpty(initialVacancies);
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -416,14 +408,19 @@ app.get('/api/vacancies', optionalAuth, async (req: AuthenticatedRequest, res: R
           const evalRes = await matchingEngine.evaluateMatch(profile, preferences, v);
           v.matchEvaluation = {
             matchScore: evalRes.score,
-            breakdown: { skills: evalRes.score, experience: 80, qualifications: 85, seniority: 80, location: 90, salary: 80 },
+            breakdown: evalRes.breakdown,
             matchedSkills: evalRes.reasons.slice(0, 3),
             missingSkills: evalRes.missingRequirements || [],
             reasons: evalRes.reasons,
             eligibilityIssues: evalRes.eligibilityConcerns,
-            salaryCompatibility: 'compatible',
+            missingRequirements: evalRes.missingRequirements,
+            eligibilityConcerns: evalRes.eligibilityConcerns,
+            reasonsToConsider: evalRes.reasonsToConsider,
+            dataQuality: evalRes.dataQuality,
+            dataQualityNotes: evalRes.dataQualityNotes,
+            salaryCompatibility: evalRes.salaryCompatible ? 'compatible' : 'below_threshold',
             sponsorshipStatus: 'unspecified',
-            recommendation: evalRes.score >= 80 ? 'STRONG_APPLY' : 'CONSIDER',
+            recommendation: !evalRes.isEligible ? 'DO_NOT_APPLY' : (evalRes.score >= 80 ? 'STRONG_APPLY' : evalRes.score >= 60 ? 'CONSIDER' : 'MARGINAL'),
             evaluatedAt: new Date().toISOString(),
           };
         }
@@ -451,14 +448,19 @@ app.post('/api/jobs/search', optionalAuth, async (req: AuthenticatedRequest, res
         const evalRes = await matchingEngine.evaluateMatch(profile, preferences, v);
         v.matchEvaluation = {
           matchScore: evalRes.score,
-          breakdown: { skills: evalRes.score, experience: 80, qualifications: 85, seniority: 80, location: 90, salary: 80 },
+          breakdown: evalRes.breakdown,
           matchedSkills: evalRes.reasons.slice(0, 3),
           missingSkills: evalRes.missingRequirements || [],
           reasons: evalRes.reasons,
           eligibilityIssues: evalRes.eligibilityConcerns,
-          salaryCompatibility: 'compatible',
+          missingRequirements: evalRes.missingRequirements,
+          eligibilityConcerns: evalRes.eligibilityConcerns,
+          reasonsToConsider: evalRes.reasonsToConsider,
+          dataQuality: evalRes.dataQuality,
+          dataQualityNotes: evalRes.dataQualityNotes,
+          salaryCompatibility: evalRes.salaryCompatible ? 'compatible' : 'below_threshold',
           sponsorshipStatus: 'unspecified',
-          recommendation: evalRes.score >= 80 ? 'STRONG_APPLY' : 'CONSIDER',
+          recommendation: !evalRes.isEligible ? 'DO_NOT_APPLY' : (evalRes.score >= 80 ? 'STRONG_APPLY' : evalRes.score >= 60 ? 'CONSIDER' : 'MARGINAL'),
           evaluatedAt: new Date().toISOString(),
         };
       }

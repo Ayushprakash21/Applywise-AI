@@ -1,0 +1,39 @@
+name: ApplyWise AI CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, remediation/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-and-test:
+    name: Build, Lint & Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: TypeScript Static Typecheck
+        run: npm run lint
+
+      - name: Execute Full Test Suite
+        run: npm test
+        env:
+          NODE_ENV: test
+
+      - name: Production Vite Build
+        run: npm run build
+
+      - name: Security Audit Check
+        run: npm audit --audit-level=high || true

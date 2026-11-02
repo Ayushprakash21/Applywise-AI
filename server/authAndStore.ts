@@ -185,16 +185,16 @@ export const authAndStore = {
     `);
     insertStmt.run(id, cleanEmail, passwordHash, fullName.trim(), now, now);
 
-    // Initialize default profile
+    // Initialize blank profile for the new user (never fictional)
     const defaultProfile: UserProfile = {
       id: crypto.randomUUID(),
       fullName: fullName.trim(),
       email: cleanEmail,
       phone: '',
       location: '',
-      workAuthorizationCountry: 'United States',
-      workAuthorizationStatus: 'Citizen / Permanent Resident',
-      workAuthorization: ['Citizen / Permanent Resident'],
+      workAuthorizationCountry: '',
+      workAuthorizationStatus: '',
+      workAuthorization: [],
       requiresVisaSponsorship: false,
       currentTitle: '',
       currentEmployer: '',
@@ -204,29 +204,29 @@ export const authAndStore = {
       certifications: [],
       skills: [],
       experiences: [],
-      languages: ['English'],
-      masterResumeLastUpdated: now,
+      languages: [],
+      masterResumeLastUpdated: '',
     };
     authAndStore.saveProfile(id, defaultProfile);
 
-    // Default career preferences
+    // Initial blank career preferences (user configured)
     const defaultPrefs: CareerPreferences = {
-      targetRoles: ['Software Engineer', 'Product Manager', 'Project Manager'],
-      targetCountries: ['United States', 'Canada', 'United Kingdom', 'Germany', 'Remote'],
+      targetRoles: [],
+      targetCountries: [],
       targetCities: [],
-      preferredTitles: ['Software Engineer', 'Product Manager', 'Project Manager'],
-      preferredIndustries: ['Technology', 'Finance', 'Healthcare'],
+      preferredTitles: [],
+      preferredIndustries: [],
       workArrangement: ['remote', 'hybrid'],
       workArrangements: ['remote', 'hybrid'],
-      minSalaryUSD: 85000,
-      minSalaryByCurrency: { USD: 85000, EUR: 75000, GBP: 70000, CAD: 100000 },
+      minSalaryUSD: 0,
+      minSalaryByCurrency: { USD: 0 },
       preferredEmploymentType: ['full-time'],
       willingnessToRelocate: 'negotiable',
       visaSponsorshipRequired: false,
       requiresVisaSponsorship: false,
       preferredCompanies: [],
       excludedCompanies: [],
-      excludedKeywords: ['internship', 'unpaid', 'entry level'],
+      excludedKeywords: [],
       minMatchThreshold: 60,
       maxDailyApplications: 10,
     };
@@ -625,26 +625,10 @@ export const authAndStore = {
     }
   },
 
-  // --- SEED / DEMO INITIALIZATION ---
-  seedInitialDataIfEmpty(initialData: { vacancies?: JobVacancy[]; profile?: UserProfile; preferences?: CareerPreferences; applications?: ApplicationRecord[] }) {
-    const countRow = sqlite.prepare('SELECT count(*) as count FROM users').get() as { count: number };
-    if (countRow.count === 0) {
-      const demoUser = authAndStore.createUser('Alex Mercer', 'alex.mercer@applywise.ai', 'ApplyWise2026!');
-      if (initialData.profile) {
-        authAndStore.saveProfile(demoUser.id, { ...initialData.profile, id: demoUser.id, email: demoUser.email });
-      }
-      if (initialData.preferences) {
-        authAndStore.savePreferences(demoUser.id, initialData.preferences);
-      }
-      if (initialData.applications) {
-        for (const app of initialData.applications) {
-          authAndStore.saveApplication(demoUser.id, app);
-        }
-      }
-    }
-
-    if (initialData.vacancies && initialData.vacancies.length > 0) {
-      authAndStore.saveVacancies(initialData.vacancies);
+  // --- VACANCY CACHING (Real listings only, never seeds fictional users) ---
+  cacheInitialVacanciesIfEmpty(vacancies?: JobVacancy[]) {
+    if (vacancies && vacancies.length > 0) {
+      authAndStore.saveVacancies(vacancies);
     }
   }
 };

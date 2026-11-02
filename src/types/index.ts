@@ -130,9 +130,12 @@ export interface JobMatchEvaluation {
     skills: number;
     experience: number;
     qualifications: number;
-    seniority: number;
-    location: number;
-    salary: number;
+    seniority?: number;
+    location?: number;
+    salary?: number;
+    titleAlignment?: number;
+    locationWorkAuth?: number;
+    salaryPreferences?: number;
   };
   matchedSkills: string[];
   missingSkills: string[];
@@ -141,6 +144,8 @@ export interface JobMatchEvaluation {
   missingRequirements?: string[];
   eligibilityConcerns?: string[];
   reasonsToConsider?: string[];
+  dataQuality?: 'high' | 'moderate' | 'limited';
+  dataQualityNotes?: string[];
   salaryCompatibility: 'compatible' | 'below_threshold' | 'unspecified' | 'negotiable';
   sponsorshipStatus: 'supported' | 'unsupported' | 'unspecified';
   recommendation: 'STRONG_APPLY' | 'CONSIDER' | 'MARGINAL' | 'DO_NOT_APPLY';

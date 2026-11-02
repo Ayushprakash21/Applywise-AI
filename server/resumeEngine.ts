@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { GoogleGenAI } from '@google/genai';
 import { Document, Paragraph, TextRun, HeadingLevel, Packer, AlignmentType } from 'docx';
 import { UserProfile, TailoredResumeContent } from '../src/types/index.ts';
+import { detectJobFamily } from './matchingEngine.ts';
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY || '',
@@ -15,6 +16,12 @@ export interface ExtractionResult {
   pageCount?: number;
   format: 'pdf' | 'docx';
   warning?: string;
+}
+
+export interface TruthfulnessValidationResult {
+  passed: boolean;
+  score: number;
+  issues: string[];
 }
 
 export const resumeEngine = {
@@ -173,9 +180,10 @@ Analyze the following resume text and extract candidate profile details into STR
 
 CRITICAL RULES:
 1. DO NOT fabricate, hallucinate, or extrapolate facts. Extract ONLY facts present in the text.
-2. Preserve all distinct employment records in chronologic order. Do not collapse multiple jobs.
+2. Preserve all distinct employment records in chronological order. Do not collapse multiple jobs.
 3. If an item is unknown, use empty string, 0, or empty array.
-4. Return ONLY valid JSON.`;
+4. Support all career fields (Supply Chain, Finance, Marketing, Operations, Project Management, Tech, etc.).
+5. Return ONLY valid JSON.`;
 
     try {
       const response = await ai.models.generateContent({
@@ -197,9 +205,9 @@ CRITICAL RULES:
         email: parsed.email || existingProfile?.email || '',
         phone: parsed.phone || existingProfile?.phone || '',
         location: parsed.location || existingProfile?.location || '',
-        workAuthorizationCountry: existingProfile?.workAuthorizationCountry || 'United States',
-        workAuthorizationStatus: existingProfile?.workAuthorizationStatus || 'Authorized',
-        workAuthorization: existingProfile?.workAuthorization || ['Authorized to work'],
+        workAuthorizationCountry: existingProfile?.workAuthorizationCountry || '',
+        workAuthorizationStatus: existingProfile?.workAuthorizationStatus || '',
+        workAuthorization: existingProfile?.workAuthorization || [],
         requiresVisaSponsorship: existingProfile?.requiresVisaSponsorship || false,
         currentTitle: parsed.currentTitle || '',
         currentEmployer: parsed.currentEmployer || '',
@@ -247,7 +255,7 @@ CRITICAL RULES:
   },
 
   /**
-   * Fast, reliable heuristic parser as backup when offline or without Gemini API key.
+   * Fast, reliable heuristic parser across business, operations, supply chain, management, finance, data, and technology.
    */
   heuristicParse(text: string, existingProfile?: UserProfile | null): UserProfile {
     const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
@@ -256,10 +264,26 @@ CRITICAL RULES:
     const emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w+/);
     const phoneMatch = text.match(/(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
 
-    const skillsFound = [
-      'JavaScript', 'TypeScript', 'React', 'Node.js', 'Python', 'Java', 'SQL',
-      'AWS', 'Docker', 'Kubernetes', 'Git', 'Agile', 'Project Management'
-    ].filter(skill => new RegExp(`\\b${skill}\\b`, 'i').test(text));
+    // Cross-industry skill keywords
+    const crossIndustrySkills = [
+      // Supply Chain & Operations
+      'Procurement', 'Supply Chain', 'Logistics', 'Inventory Management', 'Vendor Management', 'Sourcing',
+      'Contract Negotiation', 'Warehouse Management', 'Demand Planning', 'ERP', 'SAP',
+      // Project Management & Business
+      'Project Management', 'Agile', 'Scrum', 'Stakeholder Management', 'Risk Management', 'Process Improvement',
+      'Business Analysis', 'Roadmapping', 'Budgeting', 'KPI Tracking', 'Cross-functional Leadership',
+      // Finance & Data
+      'Financial Modeling', 'Forecasting', 'Auditing', 'Accounting', 'Excel', 'Power BI', 'SQL',
+      'Data Analysis', 'Tableau', 'Reporting',
+      // Marketing & Customer
+      'Digital Marketing', 'SEO', 'Content Strategy', 'CRM', 'Salesforce', 'Customer Retention',
+      // Technology
+      'Python', 'JavaScript', 'TypeScript', 'React', 'Node.js', 'AWS', 'Docker', 'Git', 'Cloud Architecture'
+    ];
+
+    const skillsFound = crossIndustrySkills.filter(skill =>
+      new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text)
+    );
 
     return {
       id: existingProfile?.id || crypto.randomUUID(),
@@ -267,16 +291,16 @@ CRITICAL RULES:
       email: emailMatch ? emailMatch[0] : (existingProfile?.email || ''),
       phone: phoneMatch ? phoneMatch[0] : (existingProfile?.phone || ''),
       location: existingProfile?.location || '',
-      workAuthorizationCountry: 'United States',
-      workAuthorizationStatus: 'Authorized',
-      workAuthorization: existingProfile?.workAuthorization || ['Authorized to work'],
+      workAuthorizationCountry: existingProfile?.workAuthorizationCountry || '',
+      workAuthorizationStatus: existingProfile?.workAuthorizationStatus || '',
+      workAuthorization: existingProfile?.workAuthorization || [],
       requiresVisaSponsorship: existingProfile?.requiresVisaSponsorship || false,
       currentTitle: existingProfile?.currentTitle || 'Professional',
       currentEmployer: existingProfile?.currentEmployer || '',
       totalExperienceYears: existingProfile?.totalExperienceYears || 3,
-      professionalSummary: lines.slice(1, 4).join(' ').slice(0, 350) || 'Experienced professional with demonstrated expertise.',
+      professionalSummary: lines.slice(1, 4).join(' ').slice(0, 350) || 'Experienced professional with demonstrated background.',
       education: existingProfile?.education || [
-        { id: crypto.randomUUID(), degree: 'Bachelor of Science', institution: 'University', fieldOfStudy: 'General Studies', graduationYear: '2020' }
+        { id: crypto.randomUUID(), degree: 'Bachelor Degree', institution: 'University', fieldOfStudy: 'General Studies', graduationYear: '2020' }
       ],
       certifications: existingProfile?.certifications || [],
       skills: skillsFound.map(s => ({
@@ -293,7 +317,47 @@ CRITICAL RULES:
   },
 
   /**
+   * Deterministically validates tailored resume against the master verified profile facts.
+   * Runs BEFORE marking audit passed.
+   */
+  validateTruthfulness(tailored: TailoredResumeContent, profile: UserProfile): TruthfulnessValidationResult {
+    const issues: string[] = [];
+    const masterCompanies = profile.experiences.map(e => e.company.toLowerCase().trim());
+    const masterSkills = new Set(profile.skills.map(s => s.name.toLowerCase().trim()));
+
+    // 1. Verify every company in tailored experience exists in master profile
+    for (const exp of tailored.tailoredExperiences) {
+      const cLower = exp.company.toLowerCase().trim();
+      if (!cLower) continue;
+      const found = masterCompanies.some(mc => mc.includes(cLower) || cLower.includes(mc));
+      if (!found) {
+        issues.push(`Unverified employer in tailored experience: "${exp.company}".`);
+      }
+    }
+
+    // 2. Verify skills are present in verified profile
+    for (const sk of tailored.targetedSkills) {
+      const sLower = sk.toLowerCase().trim();
+      const hasSkill = Array.from(masterSkills).some(ms => ms.includes(sLower) || sLower.includes(ms));
+      if (!hasSkill) {
+        issues.push(`Targeted skill "${sk}" not present in candidate's verified profile.`);
+      }
+    }
+
+    // 3. Score calculation
+    const deductions = issues.length * 20;
+    const score = Math.max(0, 100 - deductions);
+
+    return {
+      passed: issues.length === 0,
+      score,
+      issues,
+    };
+  },
+
+  /**
    * Generates a tailored ATS resume strictly adhering to verified master profile facts.
+   * Adapts document strategy to the job family (e.g. Supply Chain vs PM vs Engineering vs Marketing).
    */
   async tailorResume(profile: UserProfile, jobTitle: string, jobCompany: string, jobDescription: string): Promise<{
     tailoredResume: TailoredResumeContent;
@@ -301,6 +365,7 @@ CRITICAL RULES:
     truthfulnessScore: number;
     auditIssues: string[];
   }> {
+    const jobFamily = detectJobFamily(jobTitle, jobDescription);
     const profileFacts = {
       name: profile.fullName,
       title: profile.currentTitle,
@@ -316,20 +381,21 @@ CRITICAL RULES:
     if (process.env.GEMINI_API_KEY) {
       try {
         const prompt = `You are ApplyWise AI's Zero-Hallucination ATS Resume Tailoring Engine.
-Task: Align the candidate's verified profile to the job vacancy WITHOUT INVENTING ANY FACTS.
+Task: Align the candidate's verified profile to this vacancy WITHOUT INVENTING ANY FACTS.
 
-JOB VACANCY:
+TARGET JOB VACANCY:
 Title: ${jobTitle}
 Company: ${jobCompany}
+Job Family: ${jobFamily}
 Description: ${jobDescription.slice(0, 3000)}
 
 CANDIDATE VERIFIED FACTS (Source of Truth):
 ${JSON.stringify(profileFacts, null, 2)}
 
-STRICT REQUIREMENTS:
-1. ONLY use skills and companies listed in the candidate's verified facts.
-2. Reword bullet points to emphasize relevant skills from the facts, but DO NOT invent metrics, dates, or employers.
-3. Generate a professional ATS headline, professional summary, targeted skills list, reworded experience bullets, and a tailored cover letter.
+STRICT RULES:
+1. ONLY use employers, job titles, and skills listed in the candidate's verified facts.
+2. Adapt document wording to the ${jobFamily} career domain. DO NOT insert software engineering jargon if this is a business, supply chain, or operations role.
+3. Reword bullet points to emphasize relevant skills from the facts, but DO NOT invent metrics, dates, or employers.
 4. Output strict JSON matching:
 {
   "headline": string,
@@ -349,25 +415,35 @@ STRICT REQUIREMENTS:
 
         const parsed = JSON.parse(response.text || '{}');
         if (parsed.headline && parsed.professionalSummary) {
+          const rawResume: TailoredResumeContent = {
+            headline: parsed.headline,
+            professionalSummary: parsed.professionalSummary,
+            targetedSkills: Array.isArray(parsed.targetedSkills) ? parsed.targetedSkills : profile.skills.map(s => s.name),
+            tailoredExperiences: Array.isArray(parsed.tailoredExperiences) ? parsed.tailoredExperiences : profile.experiences.map(e => ({
+              company: e.company,
+              role: e.role,
+              period: `${e.startDate} - ${e.endDate || 'Present'}`,
+              bulletPoints: e.achievements && e.achievements.length > 0 ? e.achievements : [e.description],
+            })),
+            education: eduStrings,
+            certifications: certStrings,
+            truthfulnessScore: 0, // Computed by audit
+            auditNotes: [],
+          };
+
+          // Deterministic Truthfulness Audit BEFORE setting audit score
+          const audit = resumeEngine.validateTruthfulness(rawResume, profile);
+          rawResume.truthfulnessScore = audit.score;
+          rawResume.truthfulnessAuditPassed = audit.passed;
+          rawResume.auditNotes = audit.passed
+            ? ['All facts verified against master profile.', 'Zero hallucinated companies, degrees, or unverified skills.']
+            : audit.issues;
+
           return {
-            tailoredResume: {
-              headline: parsed.headline,
-              professionalSummary: parsed.professionalSummary,
-              targetedSkills: Array.isArray(parsed.targetedSkills) ? parsed.targetedSkills : profile.skills.map(s => s.name),
-              tailoredExperiences: Array.isArray(parsed.tailoredExperiences) ? parsed.tailoredExperiences : profile.experiences.map(e => ({
-                company: e.company,
-                role: e.role,
-                period: `${e.startDate} - ${e.endDate || 'Present'}`,
-                bulletPoints: e.achievements && e.achievements.length > 0 ? e.achievements : [e.description],
-              })),
-              education: eduStrings,
-              certifications: certStrings,
-              truthfulnessScore: 100,
-              auditNotes: ['All experiences cross-referenced against verified master profile.', 'Zero hallucinated companies or degrees.'],
-            },
+            tailoredResume: rawResume,
             coverLetter: parsed.coverLetter || `Dear Hiring Team at ${jobCompany},\n\nI am writing to express my strong interest in the ${jobTitle} position...`,
-            truthfulnessScore: 100,
-            auditIssues: [],
+            truthfulnessScore: audit.score,
+            auditIssues: audit.issues,
           };
         }
       } catch (err) {
@@ -375,27 +451,38 @@ STRICT REQUIREMENTS:
       }
     }
 
-    // Heuristic truthful tailoring fallback
+    // Domain-Adaptive Heuristic Tailoring Fallback (handles Supply Chain, Management, Finance, Tech)
     const matchedSkills = profile.skills.map(s => s.name).slice(0, 10);
+    const domainHeadline = `${profile.currentTitle || 'Professional'} | ${jobTitle} Candidate`;
+
+    const rawResume: TailoredResumeContent = {
+      headline: domainHeadline,
+      professionalSummary: `Dedicated ${profile.currentTitle || 'professional'} with ${profile.totalExperienceYears}+ years of experience, bringing proven competencies in ${matchedSkills.slice(0, 4).join(', ')}. Eager to contribute directly to ${jobCompany} in the ${jobTitle} role.`,
+      targetedSkills: matchedSkills,
+      tailoredExperiences: profile.experiences.map(e => ({
+        company: e.company,
+        role: e.role,
+        period: `${e.startDate} - ${e.endDate || 'Present'}`,
+        bulletPoints: e.achievements && e.achievements.length > 0 ? e.achievements : [e.description],
+      })),
+      education: eduStrings,
+      certifications: certStrings,
+      truthfulnessScore: 0,
+      auditNotes: [],
+    };
+
+    const audit = resumeEngine.validateTruthfulness(rawResume, profile);
+    rawResume.truthfulnessScore = audit.score;
+    rawResume.truthfulnessAuditPassed = audit.passed;
+    rawResume.auditNotes = audit.passed
+      ? ['All experiences cross-referenced against verified master profile.']
+      : audit.issues;
+
     return {
-      tailoredResume: {
-        headline: `${profile.currentTitle || 'Professional'} | ${jobTitle} Candidate`,
-        professionalSummary: `Dedicated ${profile.currentTitle || 'candidate'} with ${profile.totalExperienceYears}+ years of experience, bringing proven expertise in ${matchedSkills.slice(0, 4).join(', ')}. Eager to contribute to ${jobCompany} in the ${jobTitle} role.`,
-        targetedSkills: matchedSkills,
-        tailoredExperiences: profile.experiences.map(e => ({
-          company: e.company,
-          role: e.role,
-          period: `${e.startDate} - ${e.endDate || 'Present'}`,
-          bulletPoints: e.achievements && e.achievements.length > 0 ? e.achievements : [e.description],
-        })),
-        education: eduStrings,
-        certifications: certStrings,
-        truthfulnessScore: 100,
-        auditNotes: ['Verified against master profile records.'],
-      },
-      coverLetter: `Dear Hiring Team at ${jobCompany},\n\nI am excited to apply for the ${jobTitle} position at ${jobCompany}. With over ${profile.totalExperienceYears} years of experience and core strengths in ${matchedSkills.slice(0, 3).join(', ')}, I am confident in my ability to deliver immediate value to your organization.\n\nThank you for considering my application.\n\nSincerely,\n${profile.fullName}`,
-      truthfulnessScore: 100,
-      auditIssues: [],
+      tailoredResume: rawResume,
+      coverLetter: `Dear Hiring Team at ${jobCompany},\n\nI am excited to apply for the ${jobTitle} position at ${jobCompany}. With over ${profile.totalExperienceYears} years of experience and core strengths in ${matchedSkills.slice(0, 3).join(', ')}, I look forward to bringing immediate value to your team.\n\nThank you for considering my application.\n\nSincerely,\n${profile.fullName}`,
+      truthfulnessScore: audit.score,
+      auditIssues: audit.issues,
     };
   },
 
