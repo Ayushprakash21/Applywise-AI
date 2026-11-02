@@ -207,7 +207,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               </button>
 
               {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-[#090d1a] border border-slate-200 dark:border-white/10 shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-sm rounded-2xl bg-white dark:bg-[#090d1a] border border-slate-200 dark:border-white/10 shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/10">
                     <span className="font-bold text-xs uppercase tracking-wider font-mono">Notifications</span>
                     {unreadCount > 0 && (
@@ -262,7 +262,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-[#090d1a] border border-slate-200 dark:border-white/10 shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 text-xs">
+                <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-2xl bg-white dark:bg-[#090d1a] border border-slate-200 dark:border-white/10 shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 text-xs">
                   <div className="px-3 py-2 border-b border-slate-100 dark:border-white/10 mb-1">
                     <div className="font-bold text-slate-900 dark:text-white truncate">{user.fullName}</div>
                     <div className="text-[11px] text-slate-400 truncate">{user.email}</div>
@@ -441,40 +441,45 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       </div>
 
       {/* Mobile Bottom Navigation Bar (Quick 1-touch navigation) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-[#030712]/90 backdrop-blur-lg border-t border-slate-200 dark:border-white/10 px-2 py-2 flex items-center justify-around text-[10px] font-mono text-slate-500 dark:text-slate-400">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#030712]/95 backdrop-blur-lg border-t border-slate-200 dark:border-white/10 px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-around text-[10px] font-mono text-slate-500 dark:text-slate-400">
         <button
           onClick={() => onSelectTab('overview')}
-          className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'overview' ? 'text-cyan-500 font-bold' : ''}`}
+          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 px-2 rounded-xl transition ${activeTab === 'overview' ? 'text-cyan-500 font-bold bg-cyan-500/10' : 'hover:text-slate-900 dark:hover:text-white'}`}
+          aria-label="Overview Command Center"
         >
-          <LayoutDashboard className="h-4 w-4" />
+          <LayoutDashboard className="h-4 w-4 mb-0.5" />
           <span>Overview</span>
         </button>
         <button
           onClick={() => onSelectTab('jobs')}
-          className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'jobs' ? 'text-cyan-500 font-bold' : ''}`}
+          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 px-2 rounded-xl transition ${activeTab === 'jobs' ? 'text-cyan-500 font-bold bg-cyan-500/10' : 'hover:text-slate-900 dark:hover:text-white'}`}
+          aria-label="Discover Jobs"
         >
-          <Search className="h-4 w-4" />
+          <Search className="h-4 w-4 mb-0.5" />
           <span>Jobs</span>
         </button>
         <button
           onClick={() => onSelectTab('applications')}
-          className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'applications' ? 'text-cyan-500 font-bold' : ''}`}
+          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 px-2 rounded-xl transition ${activeTab === 'applications' ? 'text-cyan-500 font-bold bg-cyan-500/10' : 'hover:text-slate-900 dark:hover:text-white'}`}
+          aria-label="Application Tracker"
         >
-          <Briefcase className="h-4 w-4" />
+          <Briefcase className="h-4 w-4 mb-0.5" />
           <span>Tracker</span>
         </button>
         <button
           onClick={() => onSelectTab('profile')}
-          className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'profile' ? 'text-cyan-500 font-bold' : ''}`}
+          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 px-2 rounded-xl transition ${activeTab === 'profile' ? 'text-cyan-500 font-bold bg-cyan-500/10' : 'hover:text-slate-900 dark:hover:text-white'}`}
+          aria-label="Career Profile"
         >
-          <User className="h-4 w-4" />
+          <User className="h-4 w-4 mb-0.5" />
           <span>Profile</span>
         </button>
         <button
           onClick={() => onSelectTab('copilot')}
-          className={`flex flex-col items-center py-1 px-2 rounded-lg ${activeTab === 'copilot' ? 'text-cyan-500 font-bold' : ''}`}
+          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 px-2 rounded-xl transition ${activeTab === 'copilot' ? 'text-cyan-500 font-bold bg-cyan-500/10' : 'hover:text-slate-900 dark:hover:text-white'}`}
+          aria-label="AI Copilot"
         >
-          <Bot className="h-4 w-4" />
+          <Bot className="h-4 w-4 mb-0.5" />
           <span>Copilot</span>
         </button>
       </nav>

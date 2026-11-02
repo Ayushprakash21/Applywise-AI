@@ -135,12 +135,12 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* View Switcher */}
-          <div className="bg-slate-100 p-1 rounded-xl flex items-center space-x-1">
+          <div className="bg-slate-100 p-1 rounded-xl flex items-center space-x-1 max-w-full overflow-x-auto">
             <button
               onClick={() => setActiveView('pipeline')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap min-h-[36px] ${
                 activeView === 'pipeline' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -148,7 +148,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
             </button>
             <button
               onClick={() => setActiveView('receipts')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5 whitespace-nowrap min-h-[36px] ${
                 activeView === 'receipts' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -159,7 +159,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
 
           <button
             onClick={onNavigateToJobs}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-blue-500/20 transition flex items-center space-x-1.5 shrink-0"
+            className="px-4 py-2 min-h-[40px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-blue-500/20 transition flex items-center space-x-1.5 shrink-0"
           >
             <span>Find Jobs</span>
             <ArrowRight className="h-3.5 w-3.5" />
@@ -244,19 +244,19 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
 
           {/* Receipt Snapshot Details Modal */}
           {selectedReceipt && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-              <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl border border-slate-200">
-                <div className="flex items-start justify-between border-b border-slate-100 pb-4 mb-4">
-                  <div>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
+              <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-slate-200 my-auto">
+                <div className="flex items-start justify-between border-b border-slate-100 pb-4 mb-4 gap-2">
+                  <div className="min-w-0 flex-1">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
                       Application Receipt & Truthfulness Certificate
                     </span>
-                    <h3 className="text-base font-bold text-slate-900 mt-1">{selectedReceipt.company} — {selectedReceipt.role}</h3>
-                    <p className="text-xs text-slate-500">
+                    <h3 className="text-base font-bold text-slate-900 mt-1 truncate">{selectedReceipt.company} — {selectedReceipt.role}</h3>
+                    <p className="text-xs text-slate-500 break-all">
                       Timestamp: {new Date(selectedReceipt.createdAt).toLocaleString()} • Ref: {selectedReceipt.confirmationReference || selectedReceipt.id}
                     </p>
                   </div>
-                  <button onClick={() => setSelectedReceipt(null)} className="text-slate-400 hover:text-slate-600">
+                  <button onClick={() => setSelectedReceipt(null)} className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-lg">
                     <X className="h-5 w-5" />
                   </button>
                 </div>
@@ -268,7 +268,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                       <ShieldCheck className="h-4 w-4 text-emerald-600" />
                       <span>Integrity Audit Result: {selectedReceipt.integrityReport?.overallStatus || 'VERIFIED'}</span>
                     </h4>
-                    <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600">
                       <div>Destination ATS: <strong className="text-slate-800">{selectedReceipt.integrityReport?.destinationTrustStatus || 'DIRECT_EMPLOYER_PORTAL'}</strong></div>
                       <div>Job Availability: <strong className="text-slate-800">{selectedReceipt.integrityReport?.jobAvailabilityStatus || 'VERIFIED_ACTIVE'}</strong></div>
                       <div>Invented Skills Detected: <strong className="text-emerald-700">{selectedReceipt.integrityReport?.resumeIntegrity?.inventedSkills?.length || 0} (Zero)</strong></div>
@@ -402,10 +402,10 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                 </div>
 
                 {/* Right: Actions */}
-                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
                   <button
                     onClick={() => onViewResume(app)}
-                    className="px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center space-x-1.5"
+                    className="flex-1 sm:flex-initial justify-center px-3.5 py-2 min-h-[40px] rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center space-x-1.5 touch-target"
                   >
                     <FileText className="h-3.5 w-3.5 text-slate-500" />
                     <span>View ATS Resume</span>
@@ -413,7 +413,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
 
                   <button
                     onClick={() => api.downloadDocxResume(app.id, app.company)}
-                    className="p-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 transition"
+                    className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 transition"
                     title="Download DOCX"
                   >
                     <Download className="h-4 w-4 text-slate-500" />
@@ -423,7 +423,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                   {(app.status === 'PREPARED' || app.status === 'AWAITING_APPROVAL' || app.status === 'AUTHORIZED_TO_SUBMIT') && (
                     <button
                       onClick={() => handleLaunchSubmit(app)}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs transition flex items-center space-x-1.5"
+                      className="flex-1 sm:flex-initial justify-center px-4 py-2 min-h-[40px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs transition flex items-center space-x-1.5 touch-target"
                     >
                       <span>Proceed to Apply</span>
                       <ArrowRight className="h-3.5 w-3.5" />
@@ -433,7 +433,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                   {app.status === 'GUIDED_COMPLETION_REQUIRED' && (
                     <button
                       onClick={() => setGuidedModalApp(app)}
-                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold shadow-xs transition flex items-center space-x-1.5"
+                      className="flex-1 sm:flex-initial justify-center px-4 py-2 min-h-[40px] bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold shadow-xs transition flex items-center space-x-1.5 touch-target"
                     >
                       <Sparkles className="h-3.5 w-3.5" />
                       <span>Complete Guided Submission</span>
@@ -443,7 +443,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                   {(app.status === 'SUBMITTED_VERIFIED' || app.status === 'CONFIRMATION_VERIFIED') && (
                     <button
                       onClick={() => api.transitionStatus(app.id, 'INTERVIEWING', 'Invited to interview stage')}
-                      className="px-3.5 py-2 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 rounded-xl text-xs font-semibold transition"
+                      className="flex-1 sm:flex-initial justify-center px-3.5 py-2 min-h-[40px] bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 rounded-xl text-xs font-semibold transition touch-target"
                     >
                       Mark Interviewing
                     </button>
@@ -457,35 +457,35 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
 
       {/* Guided Submission Modal */}
       {guidedModalApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
           <div
-            className="w-full max-w-xl bg-white rounded-2xl border border-slate-200/80 shadow-2xl overflow-hidden"
+            className="w-full max-w-xl max-h-[90vh] flex flex-col bg-white rounded-2xl border border-slate-200/80 shadow-2xl overflow-hidden my-auto"
             onClick={e => e.stopPropagation()}
           >
-            <div className="p-6 pb-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
-              <div className="flex items-center space-x-2.5">
-                <div className="p-2 bg-purple-50 text-purple-700 rounded-xl">
+            <div className="p-4 sm:p-6 pb-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
+              <div className="flex items-center space-x-2.5 min-w-0">
+                <div className="p-2 bg-purple-50 text-purple-700 rounded-xl shrink-0">
                   <Sparkles className="h-5 w-5" />
                 </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900">Guided Portal Submission</h2>
-                  <p className="text-xs text-slate-500">
+                <div className="min-w-0">
+                  <h2 className="text-base font-bold text-slate-900 truncate">Guided Portal Submission</h2>
+                  <p className="text-xs text-slate-500 truncate">
                     Applying to {guidedModalApp.company} — {guidedModalApp.role}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setGuidedModalApp(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition"
+                className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition shrink-0"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-6 space-y-5 text-xs">
+            <div className="p-4 sm:p-6 space-y-5 text-xs overflow-y-auto flex-1">
               <div className="p-3.5 bg-blue-50 rounded-xl border border-blue-200 text-blue-900 space-y-2">
                 <p className="font-semibold flex items-center space-x-1.5">
-                  <HelpCircle className="h-4 w-4 text-blue-600" />
+                  <HelpCircle className="h-4 w-4 text-blue-600 shrink-0" />
                   <span>Submission Steps (Zero Faked Confirmation)</span>
                 </p>
                 <ol className="list-decimal list-inside space-y-1 text-slate-700 pl-1">
@@ -497,11 +497,11 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
               </div>
 
               {/* Action Buttons for Documents and Portal */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => api.downloadDocxResume(guidedModalApp.id, guidedModalApp.company)}
-                  className="p-3 rounded-xl border border-slate-200 hover:border-blue-400 bg-slate-50 hover:bg-blue-50/40 text-left transition flex items-center justify-between"
+                  className="p-3 rounded-xl border border-slate-200 hover:border-blue-400 bg-slate-50 hover:bg-blue-50/40 text-left transition flex items-center justify-between min-h-[48px]"
                 >
                   <div>
                     <p className="font-bold text-slate-800">Tailored Resume</p>
@@ -514,7 +514,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                   href={guidedModalApp.url || guidedModalApp.jobUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-3 rounded-xl border border-blue-300 bg-blue-600 hover:bg-blue-700 text-white text-left transition flex items-center justify-between shadow-xs"
+                  className="p-3 rounded-xl border border-blue-300 bg-blue-600 hover:bg-blue-700 text-white text-left transition flex items-center justify-between shadow-xs min-h-[48px]"
                 >
                   <div>
                     <p className="font-bold">Employer Portal</p>
@@ -530,9 +530,9 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                   <p className="font-bold text-slate-700 uppercase tracking-wider text-[11px]">
                     Pre-filled Form Data (1-Click Copy)
                   </p>
-                  <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
                     {Object.entries(guidedModalApp.guidedApplication.prefilledFields).map(([k, v]) => (
-                      <div key={k} className="flex items-center justify-between p-1.5 bg-white rounded-lg border border-slate-200">
+                      <div key={k} className="flex items-center justify-between p-2 bg-white rounded-lg border border-slate-200 min-h-[44px]">
                         <div className="truncate mr-2">
                           <span className="text-[10px] text-slate-400 block">{k}</span>
                           <span className="font-semibold text-slate-800 truncate block">{v}</span>
@@ -540,7 +540,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                         <button
                           type="button"
                           onClick={() => handleCopyText(k, v)}
-                          className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-700"
+                          className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-700 min-h-[32px] min-w-[32px] flex items-center justify-center shrink-0"
                         >
                           {copiedField === k ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                         </button>
@@ -575,11 +575,11 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                   />
                 </div>
 
-                <div className="flex items-center justify-end space-x-3 pt-2">
+                <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
                   <button
                     type="button"
                     onClick={() => setGuidedModalApp(null)}
-                    className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl"
+                    className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl min-h-[44px]"
                   >
                     Save for Later
                   </button>
@@ -587,7 +587,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                     type="button"
                     disabled={isVerifying}
                     onClick={handleVerifySubmission}
-                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-xs flex items-center space-x-1.5"
+                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-xs flex items-center space-x-1.5 min-h-[44px] touch-target"
                   >
                     <CheckCircle2 className="h-4 w-4" />
                     <span>Verify & Track Application</span>

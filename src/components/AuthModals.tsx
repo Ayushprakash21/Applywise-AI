@@ -31,6 +31,24 @@ export const AuthModals: React.FC<AuthModalsProps> = ({
   const googleBtnRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
     if (!isOpen || mode === 'recovery') return;
     let isMounted = true;
 
@@ -74,6 +92,7 @@ export const AuthModals: React.FC<AuthModalsProps> = ({
 
             if (googleBtnRef.current) {
               googleBtnRef.current.innerHTML = '';
+              const btnWidth = Math.min(320, Math.max(220, window.innerWidth - 64));
               google.accounts.id.renderButton(googleBtnRef.current, {
                 type: 'standard',
                 theme: 'outline',
@@ -81,7 +100,7 @@ export const AuthModals: React.FC<AuthModalsProps> = ({
                 text: mode === 'signup' ? 'signup_with' : 'signin_with',
                 shape: 'rectangular',
                 logo_alignment: 'left',
-                width: 320,
+                width: btnWidth,
               });
               setGoogleButtonRendered(true);
             }
@@ -195,19 +214,19 @@ export const AuthModals: React.FC<AuthModalsProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
       <div
-        className="w-full max-w-md bg-white rounded-3xl border border-slate-200/80 shadow-2xl overflow-hidden"
+        className="w-full max-w-md max-h-[92vh] overflow-y-auto bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xl my-auto"
         onClick={e => e.stopPropagation()}
       >
         {/* Modal Header with Close Button */}
-        <div className="pt-6 px-6 pb-2 flex items-center justify-between">
+        <div className="pt-5 px-5 pb-2 flex items-center justify-between">
           <div className="flex-1 flex justify-center pl-6">
             <BrandLogo size="lg" />
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition"
+            className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition"
             aria-label="Close"
           >
             ✕
@@ -215,7 +234,7 @@ export const AuthModals: React.FC<AuthModalsProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 pt-2 space-y-5">
+        <div className="p-5 sm:p-6 pt-2 space-y-4">
           <div className="text-center">
             <h2 className="text-xl font-bold text-slate-900 tracking-tight">
               {mode === 'signup' && 'Create your free account'}
@@ -376,7 +395,7 @@ export const AuthModals: React.FC<AuthModalsProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 disabled:opacity-50 transition flex items-center justify-center space-x-1.5"
+              className="w-full py-3 px-4 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 disabled:opacity-50 transition flex items-center justify-center space-x-1.5 touch-target"
             >
               {loading ? (
                 <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

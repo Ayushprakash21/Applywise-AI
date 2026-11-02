@@ -8,23 +8,39 @@ interface PrivacyPolicyModalProps {
 }
 
 export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({ isOpen, onClose }) => {
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
       <div
-        className="w-full max-w-2xl bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-h-[85vh] flex flex-col"
+        className="w-full max-w-2xl bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-h-[85vh] flex flex-col my-auto"
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-6 pb-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+        <div className="p-4 sm:p-6 pb-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
           <div className="flex items-center space-x-2">
             <Shield className="h-5 w-5 text-blue-600" />
             <h2 className="text-base font-bold text-slate-900">Privacy Policy</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">✕</button>
+          <button onClick={onClose} className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-lg">✕</button>
         </div>
 
-        <div className="p-6 overflow-y-auto space-y-4 text-xs text-slate-600 leading-relaxed">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs text-slate-600 leading-relaxed flex-1">
           <p className="font-semibold text-slate-800 text-sm">
             ApplyWise AI Privacy & Data Protection Commitment
           </p>
@@ -62,8 +78,8 @@ export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({ isOpen, 
           </div>
         </div>
 
-        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
-          <button onClick={onClose} className="px-5 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold">
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end shrink-0">
+          <button onClick={onClose} className="px-5 py-2.5 min-h-[40px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold touch-target">
             Understood
           </button>
         </div>
@@ -78,23 +94,39 @@ interface TermsOfUseModalProps {
 }
 
 export const TermsOfUseModal: React.FC<TermsOfUseModalProps> = ({ isOpen, onClose }) => {
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
       <div
-        className="w-full max-w-2xl bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-h-[85vh] flex flex-col"
+        className="w-full max-w-2xl bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-h-[85vh] flex flex-col my-auto"
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-6 pb-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+        <div className="p-4 sm:p-6 pb-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
           <div className="flex items-center space-x-2">
             <FileText className="h-5 w-5 text-blue-600" />
             <h2 className="text-base font-bold text-slate-900">Terms of Use</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">✕</button>
+          <button onClick={onClose} className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-lg">✕</button>
         </div>
 
-        <div className="p-6 overflow-y-auto space-y-4 text-xs text-slate-600 leading-relaxed">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs text-slate-600 leading-relaxed flex-1">
           <p className="font-semibold text-slate-800 text-sm">
             ApplyWise AI Terms of Service
           </p>
@@ -128,8 +160,8 @@ export const TermsOfUseModal: React.FC<TermsOfUseModalProps> = ({ isOpen, onClos
           </div>
         </div>
 
-        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
-          <button onClick={onClose} className="px-5 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold">
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end shrink-0">
+          <button onClick={onClose} className="px-5 py-2.5 min-h-[40px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold touch-target">
             Accept & Close
           </button>
         </div>
@@ -157,6 +189,22 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  React.useEffect(() => {
     if (settings) setLocalSettings(settings);
   }, [settings]);
 
@@ -173,20 +221,20 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
       <div
-        className="w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-h-[85vh] flex flex-col"
+        className="w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-h-[85vh] flex flex-col my-auto"
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-6 pb-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+        <div className="p-4 sm:p-6 pb-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
           <div className="flex items-center space-x-2">
             <Sliders className="h-5 w-5 text-blue-600" />
             <h2 className="text-base font-bold text-slate-900">Automation & Account Settings</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">✕</button>
+          <button onClick={onClose} className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-lg">✕</button>
         </div>
 
-        <div className="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 text-xs text-slate-700 flex-1">
           {/* Operating Mode */}
           <div className="space-y-2">
             <label className="font-bold text-slate-800 block">Operating Mode</label>
@@ -222,7 +270,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
           </div>
 
           {/* Daily & Weekly Limits */}
-          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
             <div>
               <label className="font-semibold text-slate-800 block mb-1">Daily Limit (Max 25)</label>
               <input
@@ -231,7 +279,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                 max={25}
                 value={localSettings.dailyApplicationLimit || 5}
                 onChange={e => setLocalSettings({ ...localSettings, dailyApplicationLimit: parseInt(e.target.value, 10) || 5 })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500 min-h-[40px]"
               />
             </div>
 
@@ -243,7 +291,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                 max={100}
                 value={localSettings.weeklyApplicationLimit || 25}
                 onChange={e => setLocalSettings({ ...localSettings, weeklyApplicationLimit: parseInt(e.target.value, 10) || 25 })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500 min-h-[40px]"
               />
             </div>
           </div>
@@ -259,7 +307,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
                 const arr = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
                 setLocalSettings({ ...localSettings, excludedCompanies: arr });
               }}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500 min-h-[40px]"
             />
             <p className="text-[10px] text-slate-400">ApplyWise AI will never prepare or submit applications to these employers.</p>
           </div>
@@ -288,15 +336,15 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
 
           {/* Emergency Safety Halt */}
           <div className="p-4 rounded-xl bg-red-50 border border-red-200 space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center space-x-2 text-red-800 font-bold">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
+                <AlertTriangle className="h-4 w-4 text-red-600 shrink-0" />
                 <span>Emergency Safety Stop</span>
               </div>
               <button
                 type="button"
                 onClick={onToggleEmergencyStop}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition ${
+                className={`px-3 py-2 rounded-lg text-xs font-semibold shadow-xs transition min-h-[38px] ${
                   localSettings.emergencyStop
                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
                     : 'bg-red-600 hover:bg-red-700 text-white'
@@ -311,14 +359,14 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
           </div>
         </div>
 
-        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end space-x-2">
-          <button onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl">
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end space-x-2 shrink-0">
+          <button onClick={onClose} className="px-4 py-2 min-h-[40px] text-slate-600 hover:bg-slate-100 rounded-xl">
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs"
+            className="px-5 py-2 min-h-[40px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs touch-target"
           >
             {saving ? 'Saving...' : 'Save Settings'}
           </button>

@@ -184,10 +184,10 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center space-x-2 text-xs">
+      <div className="flex flex-wrap items-center gap-2 text-xs">
         <button
           onClick={() => setActiveSubTab('profile')}
-          className={`px-4 py-2 rounded-xl font-semibold transition ${
+          className={`px-4 py-2.5 rounded-xl font-semibold transition min-h-[40px] touch-target ${
             activeSubTab === 'profile'
               ? 'bg-blue-600 text-white shadow-xs'
               : 'glass-card text-slate-600 hover:text-slate-900'
@@ -197,7 +197,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
         </button>
         <button
           onClick={() => setActiveSubTab('preferences')}
-          className={`px-4 py-2 rounded-xl font-semibold transition ${
+          className={`px-4 py-2.5 rounded-xl font-semibold transition min-h-[40px] touch-target ${
             activeSubTab === 'preferences'
               ? 'bg-blue-600 text-white shadow-xs'
               : 'glass-card text-slate-600 hover:text-slate-900'
@@ -299,12 +299,12 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                 onChange={e => setNewSkill(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSkill())}
                 placeholder="Add verified skill (e.g. TypeScript, Docker, SQL)..."
-                className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
+                className="min-w-0 flex-1 px-3 py-2 min-h-[44px] rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
               />
               <button
                 type="button"
                 onClick={addSkill}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold transition"
+                className="shrink-0 px-4 py-2 min-h-[44px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold transition touch-target"
               >
                 Add Skill
               </button>
@@ -314,13 +314,13 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
               {profileData.skills.map((s, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center space-x-1.5 px-3 py-1 bg-white border border-slate-200 text-slate-800 rounded-lg text-xs font-medium shadow-2xs"
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-800 rounded-lg text-xs font-medium shadow-2xs"
                 >
                   <span>{s.name}</span>
                   <button
                     type="button"
                     onClick={() => removeSkill(idx)}
-                    className="text-slate-400 hover:text-red-500 transition"
+                    className="p-1 min-h-[28px] min-w-[28px] flex items-center justify-center text-slate-400 hover:text-red-500 transition"
                   >
                     ✕
                   </button>
@@ -330,9 +330,9 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
           </div>
 
           {/* Save Profile Button */}
-          <div className="flex items-center justify-end space-x-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
             {saveSuccess && (
-              <span className="text-xs text-emerald-600 font-semibold flex items-center space-x-1">
+              <span className="text-xs text-emerald-600 font-semibold flex items-center justify-center space-x-1">
                 <CheckCircle2 className="h-4 w-4" />
                 <span>Profile updated successfully!</span>
               </span>
@@ -340,7 +340,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
             <button
               onClick={handleSaveProfile}
               disabled={isSaving}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs disabled:opacity-50 transition flex items-center space-x-1.5"
+              className="px-6 py-3 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs disabled:opacity-50 transition flex items-center justify-center space-x-1.5 touch-target"
             >
               <Save className="h-4 w-4" />
               <span>{isSaving ? 'Saving...' : 'Save Profile Changes'}</span>
@@ -366,12 +366,12 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   onChange={e => setNewRole(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTargetRole())}
                   placeholder="e.g. Senior Software Engineer, Technical Lead..."
-                  className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
+                  className="min-w-0 flex-1 px-3 py-2 min-h-[44px] rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
                 />
                 <button
                   type="button"
                   onClick={addTargetRole}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold transition"
+                  className="shrink-0 px-4 py-2 min-h-[44px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold transition touch-target"
                 >
                   Add Role
                 </button>
@@ -494,9 +494,9 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
           </div>
 
           {/* Save Preferences Button */}
-          <div className="flex items-center justify-end space-x-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
             {saveSuccess && (
-              <span className="text-xs text-emerald-600 font-semibold flex items-center space-x-1">
+              <span className="text-xs text-emerald-600 font-semibold flex items-center justify-center space-x-1">
                 <CheckCircle2 className="h-4 w-4" />
                 <span>Preferences saved successfully!</span>
               </span>
@@ -504,7 +504,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
             <button
               onClick={handleSavePreferences}
               disabled={isSaving}
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs disabled:opacity-50 transition flex items-center space-x-1.5"
+              className="px-6 py-3 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs disabled:opacity-50 transition flex items-center justify-center space-x-1.5 touch-target"
             >
               <Save className="h-4 w-4" />
               <span>{isSaving ? 'Saving...' : 'Save Preferences'}</span>

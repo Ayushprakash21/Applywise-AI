@@ -205,7 +205,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
       <section className="pb-20 max-w-5xl mx-auto px-4 sm:px-6 w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
           {/* Free Plan Card */}
-          <div className={`p-8 rounded-3xl bg-white border ${currentPlanId === 'free' ? 'border-blue-400 ring-2 ring-blue-100' : 'border-slate-200/80'} shadow-sm flex flex-col justify-between space-y-6`}>
+          <div className={`p-6 sm:p-8 rounded-3xl bg-white border ${currentPlanId === 'free' ? 'border-blue-400 ring-2 ring-blue-100' : 'border-slate-200/80'} shadow-sm flex flex-col justify-between space-y-6`}>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -246,7 +246,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             <button
               onClick={() => handleSelectPlan('free')}
               disabled={currentPlanId === 'free' && !!currentUser}
-              className={`w-full py-3 rounded-xl text-xs font-semibold transition ${
+              className={`w-full py-3 min-h-[44px] rounded-xl text-xs font-semibold transition touch-target ${
                 currentPlanId === 'free' && currentUser
                   ? 'bg-slate-100 text-slate-400 cursor-default'
                   : 'border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs'
@@ -257,7 +257,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           </div>
 
           {/* Pro Plan Card */}
-          <div className={`p-8 rounded-3xl bg-gradient-to-b from-white to-blue-50/40 border-2 ${currentPlanId === 'pro' ? 'border-blue-600 ring-4 ring-blue-100' : 'border-blue-500 shadow-xl shadow-blue-500/10'} flex flex-col justify-between space-y-6 relative overflow-hidden`}>
+          <div className={`p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-white to-blue-50/40 border-2 ${currentPlanId === 'pro' ? 'border-blue-600 ring-4 ring-blue-100' : 'border-blue-500 shadow-xl shadow-blue-500/10'} flex flex-col justify-between space-y-6 relative overflow-hidden`}>
             {/* Badge */}
             <div className="absolute top-0 right-0 bg-gradient-to-r from-emerald-600 to-blue-600 text-white text-[10px] font-mono uppercase font-bold px-4 py-1 rounded-bl-xl shadow-xs">
               {isFreeAccess ? 'FOUNDER ACCESS — ACTIVE' : currentPlanId === 'pro' ? 'YOUR ACTIVE PLAN' : 'RECOMMENDED'}
@@ -303,7 +303,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             <button
               onClick={() => handleSelectPlan('pro')}
               disabled={isFreeAccess || loadingPlan === 'pro' || (currentPlanId === 'pro' && !!currentUser)}
-              className={`w-full py-3 rounded-xl text-xs font-semibold shadow-md transition flex items-center justify-center space-x-1.5 ${
+              className={`w-full py-3 min-h-[44px] rounded-xl text-xs font-semibold shadow-md transition flex items-center justify-center space-x-1.5 touch-target ${
                 isFreeAccess
                   ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white cursor-default'
                   : currentPlanId === 'pro' && currentUser
@@ -335,7 +335,8 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           </div>
 
           <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
-            <table className="w-full text-left text-xs">
+            <div className="overflow-x-auto overflow-touch">
+              <table className="w-full text-left text-xs min-w-[500px]">
               <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold">
                 <tr>
                   <th className="py-3.5 px-6">Feature</th>
@@ -368,6 +369,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
 

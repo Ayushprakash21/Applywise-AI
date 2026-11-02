@@ -82,6 +82,35 @@
   .bg-radial-ambient {
     background: radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.12) 0%, transparent 65%);
   }
+
+  /* Responsive Touch & Mobile Utilities */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .overflow-touch {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent text selection during rapid touch events on navigation pills */
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+html, body {
+  overflow-x: clip;
+  width: 100%;
+  position: relative;
 }
 
 /* Subtle modern scrollbar */

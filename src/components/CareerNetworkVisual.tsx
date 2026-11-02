@@ -57,8 +57,18 @@ export const CareerNetworkVisual: React.FC<{
 
     const handleResize = () => {
       if (!canvas || !canvas.parentElement) return;
+      const oldWidth = width;
+      const oldHeight = height;
       width = canvas.width = canvas.parentElement.clientWidth;
       height = canvas.height = canvas.parentElement.clientHeight;
+      if (oldWidth > 0 && oldHeight > 0) {
+        const scaleX = width / oldWidth;
+        const scaleY = height / oldHeight;
+        for (const node of nodes) {
+          node.x *= scaleX;
+          node.y *= scaleY;
+        }
+      }
     };
     window.addEventListener('resize', handleResize);
 
@@ -324,7 +334,7 @@ export const CareerNetworkVisual: React.FC<{
   }, [prefersReducedMotion, onSelectNode]);
 
   return (
-    <div ref={containerRef} className={`relative w-full h-[520px] md:h-[600px] select-none ${className}`}>
+    <div ref={containerRef} className={`relative w-full h-[400px] sm:h-[480px] md:h-[580px] select-none ${className}`}>
       {/* Background ambient lighting layers */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-cyan-500/10 rounded-full blur-[100px]" />
@@ -338,21 +348,21 @@ export const CareerNetworkVisual: React.FC<{
       />
 
       {/* Interactive Legend & Coordinates */}
-      <div className="absolute bottom-4 left-6 z-20 flex flex-wrap items-center gap-4 text-[10px] font-mono tracking-wider text-slate-400 bg-slate-950/60 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/5">
+      <div className="absolute bottom-3 left-3 right-3 sm:right-auto sm:left-6 z-20 flex flex-wrap items-center gap-2 sm:gap-4 text-[9px] sm:text-[10px] font-mono tracking-wider text-slate-400 bg-slate-950/75 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/5">
         <div className="flex items-center space-x-1.5">
           <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#06b6d4]" />
-          <span>VERIFIED SKILL</span>
+          <span>SKILL</span>
         </div>
         <div className="flex items-center space-x-1.5">
           <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
-          <span>EVIDENCE ANCHOR</span>
+          <span>EVIDENCE</span>
         </div>
         <div className="flex items-center space-x-1.5">
           <span className="h-2 w-2 rounded-full bg-blue-400 shadow-[0_0_6px_#38bdf8]" />
-          <span>LIVE VACANCY MATCH</span>
+          <span>MATCH</span>
         </div>
-        <span className="text-slate-600">|</span>
-        <span className="text-slate-500">INTERACTIVE GRAPH: HOVER NODES</span>
+        <span className="hidden sm:inline text-slate-600">|</span>
+        <span className="hidden sm:inline text-slate-500">INTERACTIVE GRAPH</span>
       </div>
     </div>
   );

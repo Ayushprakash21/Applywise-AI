@@ -265,22 +265,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Interactive Search Capsule */}
-          <div className="max-w-2xl mx-auto pt-6">
+          <div className="max-w-2xl mx-auto pt-6 px-2 sm:px-0">
             <form
               onSubmit={handleSearchSubmit}
-              className="relative flex items-center p-2 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl shadow-2xl focus-within:border-cyan-500/60 transition-all"
+              className="relative flex flex-col sm:flex-row items-stretch sm:items-center p-1.5 sm:p-2 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl shadow-2xl focus-within:border-cyan-500/60 transition-all gap-2"
             >
-              <Search className="h-5 w-5 text-cyan-400 ml-3 shrink-0" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search by title, skill, or tech stack (e.g. Distributed Systems, React, Staff Engineer)..."
-                className="w-full px-3 py-2.5 text-xs sm:text-sm text-white placeholder:text-slate-500 outline-none bg-transparent"
-              />
+              <div className="flex items-center min-w-0 flex-1">
+                <Search className="h-5 w-5 text-cyan-400 ml-2.5 sm:ml-3 shrink-0" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search by title, skill, or tech stack..."
+                  className="w-full min-w-0 px-2.5 sm:px-3 py-2 text-xs sm:text-sm text-white placeholder:text-slate-500 outline-none bg-transparent"
+                />
+              </div>
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-black rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-cyan-500/20 shrink-0 transition"
+                className="w-full sm:w-auto px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-black rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-cyan-500/20 shrink-0 transition"
               >
                 Find Jobs
               </button>
@@ -511,10 +513,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
 
               {/* Tabs */}
-              <div className="flex items-center space-x-1 p-1 bg-white/5 rounded-xl border border-white/10 text-xs font-mono">
+              <div className="flex items-center space-x-1 p-1 bg-white/5 rounded-xl border border-white/10 text-xs font-mono overflow-x-auto max-w-full">
                 <button
                   onClick={() => setActiveTab('fit')}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                  className={`px-3 py-1.5 rounded-lg transition-all shrink-0 ${
                     activeTab === 'fit'
                       ? 'bg-cyan-500 text-black font-bold shadow'
                       : 'text-slate-400 hover:text-white'
@@ -524,7 +526,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </button>
                 <button
                   onClick={() => setActiveTab('audit')}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                  className={`px-3 py-1.5 rounded-lg transition-all shrink-0 ${
                     activeTab === 'audit'
                       ? 'bg-cyan-500 text-black font-bold shadow'
                       : 'text-slate-400 hover:text-white'
@@ -534,7 +536,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </button>
                 <button
                   onClick={() => setActiveTab('tailor')}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                  className={`px-3 py-1.5 rounded-lg transition-all shrink-0 ${
                     activeTab === 'tailor'
                       ? 'bg-cyan-500 text-black font-bold shadow'
                       : 'text-slate-400 hover:text-white'
@@ -703,12 +705,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Comparison Matrix */}
           <div className="max-w-4xl mx-auto rounded-2xl bg-[#090d1a] border border-white/10 overflow-hidden">
-            <div className="grid grid-cols-2 text-xs font-mono uppercase tracking-wider border-b border-white/10">
-              <div className="p-4 sm:p-5 text-rose-400 bg-rose-950/20 flex items-center space-x-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 text-xs font-mono uppercase tracking-wider border-b border-white/10">
+              <div className="p-3.5 sm:p-5 text-rose-400 bg-rose-950/20 flex items-center space-x-2">
                 <X className="h-4 w-4 shrink-0" />
                 <span>Generic Generative AI</span>
               </div>
-              <div className="p-4 sm:p-5 text-cyan-300 bg-cyan-950/20 flex items-center space-x-2 border-l border-white/10">
+              <div className="p-3.5 sm:p-5 text-cyan-300 bg-cyan-950/20 flex items-center space-x-2 border-t sm:border-t-0 sm:border-l border-white/10">
                 <Check className="h-4 w-4 shrink-0" />
                 <span>ApplyWise AI Engine</span>
               </div>
@@ -737,12 +739,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   good: 'Transparent tracking, authentic external portal links, and verifiable audit records.',
                 },
               ].map((row, idx) => (
-                <div key={idx} className="grid grid-cols-2">
-                  <div className="p-5 text-slate-400 bg-white/[0.01] border-r border-white/5 space-y-1">
+                <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-white/5">
+                  <div className="p-3.5 sm:p-5 text-slate-400 bg-white/[0.01] space-y-1">
                     <div className="font-mono text-[10px] text-slate-500 uppercase">{row.issue}</div>
                     <p className="text-xs text-rose-300/80 leading-relaxed">{row.bad}</p>
                   </div>
-                  <div className="p-5 text-slate-200 bg-cyan-950/10 space-y-1">
+                  <div className="p-3.5 sm:p-5 text-slate-200 bg-cyan-950/10 space-y-1">
                     <div className="font-mono text-[10px] text-cyan-400 uppercase">{row.issue}</div>
                     <p className="text-xs text-cyan-200 leading-relaxed font-medium">{row.good}</p>
                   </div>

@@ -43,6 +43,24 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const validateAndSetFile = (file: File) => {
@@ -194,24 +212,24 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
       <div
-        className="w-full max-w-2xl bg-white rounded-3xl border border-slate-200/80 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.18)] overflow-hidden max-h-[90vh] flex flex-col"
+        className="w-full max-w-2xl bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.18)] overflow-hidden max-h-[90vh] flex flex-col my-auto"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-6 pb-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
-          <div className="flex items-center space-x-3">
+        <div className="p-4 sm:p-6 pb-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
+          <div className="flex items-center space-x-3 min-w-0">
             <BrandLogo size="sm" showWordmark={false} />
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Resume Intelligence Onboarding</h2>
-              <p className="text-xs text-slate-500">Zero-hallucination factual extraction for truthful matching</p>
+            <div className="min-w-0">
+              <h2 className="text-base font-bold text-slate-900 truncate">Resume Intelligence Onboarding</h2>
+              <p className="text-xs text-slate-500 truncate">Zero-hallucination factual extraction for truthful matching</p>
             </div>
           </div>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition"
+            className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition shrink-0"
           >
             <X className="h-5 w-5" />
           </button>
@@ -374,11 +392,11 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                 </label>
               )}
 
-              <div className="flex items-center justify-between pt-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
+                  className="px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition order-2 sm:order-1 text-center"
                 >
                   Skip for now
                 </button>
@@ -386,7 +404,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                   type="button"
                   disabled={!selectedFile}
                   onClick={handleProcessFile}
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition flex items-center space-x-1.5 active:scale-95"
+                  className="px-5 py-2.5 min-h-[44px] bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition flex items-center justify-center space-x-1.5 active:scale-95 touch-target order-1 sm:order-2"
                 >
                   <span>Extract & Analyze Profile</span>
                   <ArrowRight className="h-4 w-4" />
@@ -522,11 +540,11 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
+                  className="px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition order-2 sm:order-1 text-center"
                 >
                   Close Without Saving
                 </button>
@@ -534,7 +552,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                   type="button"
                   disabled={isSaving}
                   onClick={handleSaveVerifiedProfile}
-                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/20 transition flex items-center space-x-1.5 active:scale-95"
+                  className="px-5 py-2.5 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/20 transition flex items-center justify-center space-x-1.5 active:scale-95 touch-target order-1 sm:order-2"
                 >
                   {isSaving ? (
                     <span>Saving...</span>

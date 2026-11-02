@@ -91,11 +91,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <div className="flex items-center space-x-6 min-w-0">
             <BrandLogo size="md" onClick={() => onSelectTab('jobs')} />
 
-            {/* Segmented Neumorphic Tab Container (Desktop) */}
-            <nav className="hidden lg:flex items-center bg-slate-100/90 p-1 rounded-2xl border border-slate-200/70 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]">
+            {/* Segmented Neumorphic Tab Container (Desktop & Tablet) */}
+            <nav className="hidden md:flex items-center bg-slate-100/90 p-1 rounded-2xl border border-slate-200/70 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]">
               <button
                 onClick={() => onSelectTab('jobs')}
-                className={`h-8 px-3.5 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all ${
+                className={`h-8 px-2.5 sm:px-3.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 sm:space-x-2 transition-all ${
                   activeTab === 'jobs'
                     ? 'bg-white text-blue-700 shadow-[0_1px_4px_rgba(0,0,0,0.06)] font-bold'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
@@ -108,7 +108,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
               <button
                 onClick={() => onSelectTab('applications')}
-                className={`h-8 px-3.5 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all ${
+                className={`h-8 px-2.5 sm:px-3.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 sm:space-x-2 transition-all ${
                   activeTab === 'applications'
                     ? 'bg-white text-blue-700 shadow-[0_1px_4px_rgba(0,0,0,0.06)] font-bold'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
@@ -120,7 +120,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
               <button
                 onClick={() => onSelectTab('profile')}
-                className={`h-8 px-3.5 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all ${
+                className={`h-8 px-2.5 sm:px-3.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 sm:space-x-2 transition-all ${
                   activeTab === 'profile'
                     ? 'bg-white text-blue-700 shadow-[0_1px_4px_rgba(0,0,0,0.06)] font-bold'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
@@ -132,7 +132,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
               <button
                 onClick={() => onSelectTab('twin')}
-                className={`h-8 px-3.5 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all ${
+                className={`h-8 px-2.5 sm:px-3.5 rounded-xl text-xs font-semibold flex items-center space-x-1.5 sm:space-x-2 transition-all ${
                   activeTab === 'twin'
                     ? 'bg-white text-blue-700 shadow-[0_1px_4px_rgba(0,0,0,0.06)] font-bold'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
@@ -227,7 +227,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl border border-slate-200/90 shadow-[0_12px_32px_-4px_rgba(15,23,42,0.12)] overflow-hidden py-2 animate-in fade-in duration-150 z-50">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-white rounded-2xl border border-slate-200/90 shadow-[0_12px_32px_-4px_rgba(15,23,42,0.12)] overflow-hidden py-2 animate-in fade-in duration-150 z-50">
                   <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-800">Notifications</span>
                     {unreadCount > 0 && (
@@ -276,7 +276,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               </button>
 
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-60 bg-white rounded-2xl border border-slate-200/90 shadow-[0_12px_32px_-4px_rgba(15,23,42,0.12)] overflow-hidden py-1.5 animate-in fade-in duration-150 z-50 text-xs">
+                <div className="absolute right-0 mt-2 w-60 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-slate-200/90 shadow-[0_12px_32px_-4px_rgba(15,23,42,0.12)] overflow-hidden py-1.5 animate-in fade-in duration-150 z-50 text-xs">
                   <div className="px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/60">
                     <p className="font-bold text-slate-900 truncate">{user.fullName || 'User'}</p>
                     <p className="text-slate-500 text-[11px] truncate">{user.email}</p>
@@ -366,12 +366,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       </header>
 
       {/* Mobile Bottom Navigation Bar (Hidden on Desktop, Fixed to bottom on Mobile) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] px-2 py-1.5 flex items-center justify-around safe-bottom">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-around">
         <button
           onClick={() => onSelectTab('jobs')}
-          className={`flex-1 py-1.5 rounded-xl flex flex-col items-center text-[10px] font-semibold transition ${
+          className={`flex-1 min-h-[44px] py-1.5 rounded-xl flex flex-col items-center justify-center text-[10px] font-semibold transition ${
             activeTab === 'jobs' ? 'text-blue-600 bg-blue-50/80' : 'text-slate-500 hover:text-slate-900'
           }`}
+          aria-label="Live Jobs"
         >
           <Briefcase className="h-4 w-4 mb-0.5" />
           <span>Live Jobs</span>
@@ -379,9 +380,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         <button
           onClick={() => onSelectTab('applications')}
-          className={`flex-1 py-1.5 rounded-xl flex flex-col items-center text-[10px] font-semibold transition ${
+          className={`flex-1 min-h-[44px] py-1.5 rounded-xl flex flex-col items-center justify-center text-[10px] font-semibold transition ${
             activeTab === 'applications' ? 'text-blue-600 bg-blue-50/80' : 'text-slate-500 hover:text-slate-900'
           }`}
+          aria-label="Applications"
         >
           <FileCheck className="h-4 w-4 mb-0.5" />
           <span>Applications</span>
@@ -389,9 +391,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         <button
           onClick={() => onSelectTab('profile')}
-          className={`flex-1 py-1.5 rounded-xl flex flex-col items-center text-[10px] font-semibold transition ${
+          className={`flex-1 min-h-[44px] py-1.5 rounded-xl flex flex-col items-center justify-center text-[10px] font-semibold transition ${
             activeTab === 'profile' ? 'text-blue-600 bg-blue-50/80' : 'text-slate-500 hover:text-slate-900'
           }`}
+          aria-label="Profile"
         >
           <User className="h-4 w-4 mb-0.5" />
           <span>Profile</span>
@@ -399,9 +402,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         <button
           onClick={() => onSelectTab('twin')}
-          className={`flex-1 py-1.5 rounded-xl flex flex-col items-center text-[10px] font-semibold transition ${
+          className={`flex-1 min-h-[44px] py-1.5 rounded-xl flex flex-col items-center justify-center text-[10px] font-semibold transition ${
             activeTab === 'twin' ? 'text-blue-600 bg-blue-50/80' : 'text-slate-500 hover:text-slate-900'
           }`}
+          aria-label="Career Twin"
         >
           <Shield className="h-4 w-4 mb-0.5 text-emerald-600" />
           <span>Career Twin</span>

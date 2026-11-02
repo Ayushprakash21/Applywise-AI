@@ -979,11 +979,11 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
 
       {/* Modal: Add Verified Skill */}
       {showAddSkillModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 my-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-bold text-slate-900">Add Verified Skill</h3>
-              <button onClick={() => setShowAddSkillModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowAddSkillModal(false)} className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center text-slate-400 hover:text-slate-600">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -997,17 +997,17 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
                   placeholder="e.g. Distributed Systems, Kubernetes, React"
                   value={newSkillName}
                   onChange={e => setNewSkillName(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 min-h-[40px] border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Category</label>
                   <select
                     value={newSkillCategory}
                     onChange={e => setNewSkillCategory(e.target.value as any)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    className="w-full px-3 py-2 min-h-[40px] border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   >
                     <option value="frontend">Frontend</option>
                     <option value="backend">Backend</option>
@@ -1029,7 +1029,7 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
                   <select
                     value={newSkillProficiency}
                     onChange={e => setNewSkillProficiency(e.target.value as any)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    className="w-full px-3 py-2 min-h-[40px] border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   >
                     <option value="expert">Expert</option>
                     <option value="proficient">Proficient</option>
@@ -1046,7 +1046,7 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
                   max="40"
                   value={newSkillYears}
                   onChange={e => setNewSkillYears(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 min-h-[40px] border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -1057,22 +1057,22 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
                   placeholder="e.g. Led migration to Cloudflare Workers in 2024"
                   value={newSkillNotes}
                   onChange={e => setNewSkillNotes(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 min-h-[40px] border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div className="pt-2 flex justify-end space-x-2">
+              <div className="pt-2 flex flex-wrap justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowAddSkillModal(false)}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-semibold hover:bg-slate-50"
+                  className="px-4 py-2 min-h-[40px] border border-slate-300 rounded-lg text-slate-700 font-semibold hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving || !newSkillName.trim()}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-xs disabled:opacity-50"
+                  className="px-4 py-2 min-h-[40px] bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-xs disabled:opacity-50 touch-target"
                 >
                   Save Fact to Twin
                 </button>
@@ -1084,11 +1084,11 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
 
       {/* Modal: Add Outcome */}
       {showAddOutcomeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 my-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-bold text-slate-900">Log Application Outcome</h3>
-              <button onClick={() => setShowAddOutcomeModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowAddOutcomeModal(false)} className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center text-slate-400 hover:text-slate-600">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -1102,7 +1102,7 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
                   placeholder="e.g. Stripe, Linear, Google"
                   value={newOutcomeCompany}
                   onChange={e => setNewOutcomeCompany(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 min-h-[40px] border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -1114,7 +1114,7 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
                   placeholder="e.g. Senior Software Engineer"
                   value={newOutcomeRole}
                   onChange={e => setNewOutcomeRole(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 min-h-[40px] border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -1123,7 +1123,7 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
                 <select
                   value={newOutcomeType}
                   onChange={e => setNewOutcomeType(e.target.value as any)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full px-3 py-2 min-h-[40px] border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 >
                   <option value="APPLICATION_SUBMITTED">Application Submitted</option>
                   <option value="RECRUITER_CONTACTED">Recruiter Contacted</option>
@@ -1146,18 +1146,18 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
                 />
               </div>
 
-              <div className="pt-2 flex justify-end space-x-2">
+              <div className="pt-2 flex flex-wrap justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowAddOutcomeModal(false)}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-semibold hover:bg-slate-50"
+                  className="px-4 py-2 min-h-[40px] border border-slate-300 rounded-lg text-slate-700 font-semibold hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={!newOutcomeCompany.trim() || !newOutcomeRole.trim()}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-xs disabled:opacity-50"
+                  className="px-4 py-2 min-h-[40px] bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-xs disabled:opacity-50 touch-target"
                 >
                   Save Outcome
                 </button>

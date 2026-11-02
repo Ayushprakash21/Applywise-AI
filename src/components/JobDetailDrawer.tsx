@@ -53,6 +53,25 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
   const [integrityReport, setIntegrityReport] = useState<ApplicationIntegrityReport | null>(null);
   const [isAuditingIntegrity, setIsAuditingIntegrity] = useState(false);
 
+  // Lock background scroll and listen for Escape key
+  React.useEffect(() => {
+    if (!vacancy) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [vacancy, onClose]);
+
   if (!vacancy) return null;
 
   const match = vacancy.matchEvaluation;
@@ -644,23 +663,23 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
         </div>
 
         {/* Action Footer */}
-        <div className="p-6 border-t border-slate-100 bg-white sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-3">
+        <div className="p-4 sm:p-6 border-t border-slate-100 bg-white sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-2.5 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <a
             href={vacancy.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center space-x-1.5"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center justify-center space-x-1.5 min-h-[44px]"
           >
             <span>Original Listing</span>
             <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
           </a>
 
-          <div className="flex items-center space-x-2">
+          <div className="w-full sm:w-auto flex flex-wrap items-center gap-2">
             {/* Assisted Apply (Mode A) */}
             <button
               onClick={handleAssistedApply}
               disabled={isApplyingAssisted}
-              className="px-4 py-2.5 rounded-xl border border-blue-300 bg-blue-50/60 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition flex items-center space-x-1.5"
+              className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl border border-blue-300 bg-blue-50/60 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition flex items-center justify-center space-x-1.5 min-h-[44px]"
             >
               {isApplyingAssisted ? (
                 <>
@@ -677,7 +696,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
 
             {/* Standard Prepare / Tailor */}
             {hasApplied ? (
-              <div className="flex items-center space-x-2 text-xs font-semibold text-emerald-700 bg-emerald-50 px-4 py-2.5 rounded-xl border border-emerald-200">
+              <div className="flex-1 sm:flex-initial flex items-center justify-center space-x-2 text-xs font-semibold text-emerald-700 bg-emerald-50 px-4 py-2.5 rounded-xl border border-emerald-200 min-h-[44px]">
                 <CheckCircle2 className="h-4 w-4" />
                 <span>Tracked</span>
               </div>
@@ -685,7 +704,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
               <button
                 onClick={() => onPrepareApplication(vacancy.id)}
                 disabled={isPreparing}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 disabled:opacity-50 transition flex items-center space-x-1.5"
+                className="flex-1 sm:flex-initial px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 disabled:opacity-50 transition flex items-center justify-center space-x-1.5 min-h-[44px]"
               >
                 {isPreparing ? (
                   <>

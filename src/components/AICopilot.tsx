@@ -183,7 +183,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center space-x-2.5 px-4 py-3 rounded-full bg-slate-900 text-white shadow-2xl hover:bg-slate-800 transition-all duration-300 hover:scale-[1.03] group border border-slate-700/80"
+          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center space-x-2.5 px-4 py-3 min-h-[44px] rounded-full bg-slate-900 text-white shadow-2xl hover:bg-slate-800 transition-all duration-300 hover:scale-[1.03] group border border-slate-700/80 touch-target"
           aria-label="Open ApplyWise Copilot"
         >
           <div className="relative">
@@ -203,8 +203,10 @@ export const AICopilot: React.FC<AICopilotProps> = ({
       {/* Expanded Copilot Drawer / Panel */}
       {isOpen && (
         <div
-          className={`fixed bottom-6 right-6 z-50 w-[92vw] sm:w-[420px] bg-white rounded-3xl border border-slate-200/90 shadow-2xl overflow-hidden flex flex-col transition-all duration-200 ${
-            isMinimized ? 'h-16' : 'h-[580px] max-h-[85vh]'
+          className={`fixed z-50 transition-all duration-200 bg-white shadow-2xl border border-slate-200/90 flex flex-col overflow-hidden ${
+            isMinimized
+              ? 'bottom-20 right-3 sm:bottom-6 sm:right-6 w-[calc(100vw-1.5rem)] max-w-sm sm:w-[420px] h-14 rounded-2xl'
+              : 'inset-x-3 bottom-20 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[420px] max-h-[calc(100vh-6rem)] sm:max-h-[85vh] h-[580px] rounded-2xl sm:rounded-3xl'
           }`}
         >
           {/* Header */}
@@ -225,14 +227,14 @@ export const AICopilot: React.FC<AICopilotProps> = ({
             <div className="flex items-center space-x-1 text-slate-400">
               <button
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="p-1.5 hover:text-white hover:bg-slate-800 rounded-lg transition"
+                className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center hover:text-white hover:bg-slate-800 rounded-lg transition"
                 title={isMinimized ? 'Expand' : 'Minimize'}
               >
                 {isMinimized ? <Maximize2 className="h-3.5 w-3.5" /> : <Minimize2 className="h-3.5 w-3.5" />}
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 hover:text-white hover:bg-slate-800 rounded-lg transition"
+                className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center hover:text-white hover:bg-slate-800 rounded-lg transition"
                 title="Close"
               >
                 <X className="h-4 w-4" />
