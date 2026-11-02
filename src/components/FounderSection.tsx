@@ -13,7 +13,7 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
   className = '',
 }) => {
   // Configurable external founder connect URL (preserves privacy without inventing fake links)
-  const founderConnectUrl = 'https://www.linkedin.com/in/ayush-prakash/';
+  const founderConnectUrl = 'https://www.linkedin.com/in/ayushprakash21/';
 
   return (
     <section className={`relative overflow-hidden py-16 md:py-24 ${className}`} id="founder">

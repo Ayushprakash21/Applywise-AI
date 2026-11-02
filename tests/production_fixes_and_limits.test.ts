@@ -358,3 +358,19 @@ test('Resume Identity Extraction: Flags emails differing from account owner', ()
   const noEmailResult = inspectResumeIdentity('Skills: Python, TypeScript, React, SQL', userEmail);
   assert.equal(noEmailResult.isMismatch, false);
 });
+
+test('Branding & Founder Verification: Founder LinkedIn URL points to exact verified profile', async () => {
+  const fs = await import('node:fs/promises');
+  const path = await import('node:path');
+  const founderFile = await fs.readFile(path.resolve('src/components/FounderSection.tsx'), 'utf-8');
+
+  assert.ok(
+    founderFile.includes('https://www.linkedin.com/in/ayushprakash21/'),
+    'FounderSection must link to verified profile https://www.linkedin.com/in/ayushprakash21/'
+  );
+  assert.equal(
+    founderFile.includes('https://www.linkedin.com/in/ayush-prakash/'),
+    false,
+    'Stale founder LinkedIn profile must not exist'
+  );
+});
