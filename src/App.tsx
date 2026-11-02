@@ -28,6 +28,7 @@ import { PricingPage } from './components/PricingPage.tsx';
 import { AICopilot } from './components/AICopilot.tsx';
 import { CareerTwinPage } from './components/CareerTwinPage.tsx';
 import { UserSubscription } from './config/plans.ts';
+import { isPermanentFreeAccessAccount } from './config/freeAccess.ts';
 
 export default function App() {
   // Current user state (validated against server)
@@ -292,7 +293,7 @@ export default function App() {
       ) : currentRoute === '/pricing' ? (
         <PricingPage
           currentUser={currentUser}
-          currentPlanId={subscription?.planId || subscription?.plan || 'free'}
+          currentPlanId={isPermanentFreeAccessAccount(currentUser) ? 'pro' : (subscription?.planId || subscription?.plan || 'free')}
           onOpenAuth={mode => {
             setAuthModalMode(mode);
             setAuthModalOpen(true);
@@ -321,7 +322,7 @@ export default function App() {
               const res = await api.markAllNotificationsRead();
               setNotifications(res.notifications);
             }}
-            plan={subscription?.planId || subscription?.plan || 'free'}
+            plan={isPermanentFreeAccessAccount(currentUser) ? 'pro' : (subscription?.planId || subscription?.plan || 'free')}
             onOpenPricing={() => navigateTo('/pricing')}
             onOpenAbout={() => navigateTo('/about')}
           />
@@ -420,7 +421,7 @@ export default function App() {
             experienceYears: profile.experiences?.length || 0,
           } : undefined,
           activeApplicationsCount: applications.length,
-          userPlan: subscription?.planId || subscription?.plan || 'free',
+          userPlan: isPermanentFreeAccessAccount(currentUser) ? 'pro' : (subscription?.planId || subscription?.plan || 'free'),
         }}
         onOpenPricing={() => navigateTo('/pricing')}
         onOpenAuth={mode => {

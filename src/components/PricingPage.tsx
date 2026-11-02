@@ -11,6 +11,7 @@ import {
 import { BrandLogo } from './BrandLogo.tsx';
 import { SUBSCRIPTION_PLANS, COMPARISON_FEATURES, PlanId } from '../config/plans.ts';
 import { AuthUser, api } from '../services/api.ts';
+import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 
 interface PricingPageProps {
   currentUser: AuthUser | null;
@@ -33,12 +34,19 @@ export const PricingPage: React.FC<PricingPageProps> = ({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const isFreeAccess = isPermanentFreeAccessAccount(currentUser);
+
   const handleSelectPlan = async (planId: PlanId) => {
     setErrorMessage(null);
     setSuccessMessage(null);
 
     if (!currentUser) {
       onOpenAuth(planId === 'free' ? 'signup' : 'login');
+      return;
+    }
+
+    if (isFreeAccess) {
+      setSuccessMessage('Your account is permanently authorized with full Pro access. No payment or billing is required.');
       return;
     }
 
@@ -167,6 +175,18 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           </div>
         </div>
 
+        {isFreeAccess && (
+          <div className="max-w-xl mx-auto p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-300 text-emerald-950 text-xs font-medium flex items-center space-x-3 shadow-sm mb-6">
+            <Sparkles className="h-6 w-6 text-emerald-600 shrink-0" />
+            <div>
+              <p className="font-extrabold text-sm text-slate-900">Permanent Free Access Active</p>
+              <p className="text-slate-600 mt-0.5">
+                Your account ({currentUser?.email}) has lifetime unrestricted access to all ApplyWise Pro features, AI Copilot, and automation tools without subscription charges.
+              </p>
+            </div>
+          </div>
+        )}
+
         {successMessage && (
           <div className="max-w-md mx-auto p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
             {successMessage}
@@ -239,8 +259,8 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           {/* Pro Plan Card */}
           <div className={`p-8 rounded-3xl bg-gradient-to-b from-white to-blue-50/40 border-2 ${currentPlanId === 'pro' ? 'border-blue-600 ring-4 ring-blue-100' : 'border-blue-500 shadow-xl shadow-blue-500/10'} flex flex-col justify-between space-y-6 relative overflow-hidden`}>
             {/* Badge */}
-            <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-mono uppercase font-bold px-4 py-1 rounded-bl-xl shadow-xs">
-              {currentPlanId === 'pro' ? 'YOUR ACTIVE PLAN' : 'RECOMMENDED'}
+            <div className="absolute top-0 right-0 bg-gradient-to-r from-emerald-600 to-blue-600 text-white text-[10px] font-mono uppercase font-bold px-4 py-1 rounded-bl-xl shadow-xs">
+              {isFreeAccess ? 'FOUNDER ACCESS — ACTIVE' : currentPlanId === 'pro' ? 'YOUR ACTIVE PLAN' : 'RECOMMENDED'}
             </div>
 
             <div className="space-y-4">
@@ -282,15 +302,19 @@ export const PricingPage: React.FC<PricingPageProps> = ({
 
             <button
               onClick={() => handleSelectPlan('pro')}
-              disabled={loadingPlan === 'pro' || (currentPlanId === 'pro' && !!currentUser)}
+              disabled={isFreeAccess || loadingPlan === 'pro' || (currentPlanId === 'pro' && !!currentUser)}
               className={`w-full py-3 rounded-xl text-xs font-semibold shadow-md transition flex items-center justify-center space-x-1.5 ${
-                currentPlanId === 'pro' && currentUser
+                isFreeAccess
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white cursor-default'
+                  : currentPlanId === 'pro' && currentUser
                   ? 'bg-emerald-600 text-white cursor-default'
                   : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/25'
               }`}
             >
               {loadingPlan === 'pro' ? (
                 <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : isFreeAccess ? (
+                <span>Founder Access (No Payment Required)</span>
               ) : currentPlanId === 'pro' && currentUser ? (
                 <span>Active Pro Subscription</span>
               ) : (

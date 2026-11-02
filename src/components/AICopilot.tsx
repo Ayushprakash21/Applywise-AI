@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { api, AuthUser } from '../services/api.ts';
 import { BrandLogo } from './BrandLogo.tsx';
+import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 
 interface Message {
   id: string;
@@ -228,9 +229,15 @@ export const AICopilot: React.FC<AICopilotProps> = ({
                 <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
                   <div className="flex items-center space-x-1.5">
                     <span className="font-medium text-slate-700">Monthly AI Quota:</span>
-                    <span className="font-bold text-slate-900">{usage.used} / {usage.limit}</span>
+                    {isPermanentFreeAccessAccount(currentUser) ? (
+                      <span className="font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        {usage.used} queries (Permanent Unlimited Access)
+                      </span>
+                    ) : (
+                      <span className="font-bold text-slate-900">{usage.used} / {usage.limit}</span>
+                    )}
                   </div>
-                  {usage.limit <= 10 && onOpenPricing && (
+                  {!isPermanentFreeAccessAccount(currentUser) && usage.limit <= 10 && onOpenPricing && (
                     <button
                       onClick={onOpenPricing}
                       className="text-blue-600 hover:text-blue-700 font-semibold flex items-center space-x-1"

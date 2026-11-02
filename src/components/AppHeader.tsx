@@ -17,6 +17,7 @@ import {
 import { BrandLogo } from './BrandLogo.tsx';
 import { AuthUser } from '../services/api.ts';
 import { NotificationItem, AutomationSettings } from '../types/index.ts';
+import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 
 interface AppHeaderProps {
   user: AuthUser;
@@ -139,7 +140,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         {/* Right: Safety Stop, Notifications, User Avatar Dropdown */}
         <div className="flex items-center space-x-3">
           {/* Subscription Status / Upgrade CTA */}
-          {plan === 'pro' ? (
+          {isPermanentFreeAccessAccount(user) ? (
+            <button
+              onClick={onOpenPricing}
+              className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-emerald-600 via-blue-600 to-indigo-600 text-white shadow-xs tracking-wider uppercase flex items-center space-x-1"
+              title="Permanent Free Access Granted"
+            >
+              <Sparkles className="h-3 w-3 text-amber-300" />
+              <span>PRO — FOUNDER ACCESS</span>
+            </button>
+          ) : plan === 'pro' ? (
             <button
               onClick={onOpenPricing}
               className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs tracking-wider uppercase flex items-center space-x-1"
@@ -250,7 +260,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                       className="w-full px-3.5 py-2 text-left text-blue-600 hover:bg-blue-50 flex items-center space-x-2 font-semibold transition"
                     >
                       <Sparkles className="h-4 w-4 text-blue-500" />
-                      <span>{plan === 'pro' ? 'Subscription & Billing' : 'Upgrade to Pro'}</span>
+                      <span>{isPermanentFreeAccessAccount(user) ? 'Pro — Founder Access' : plan === 'pro' ? 'Subscription & Billing' : 'Upgrade to Pro'}</span>
                     </button>
                   )}
 

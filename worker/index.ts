@@ -19,6 +19,12 @@ import { SOURCE_REGISTRY, isSafePublicUrl, LiveJobItem } from './jobConnectors.t
 import { runIncrementalJobSync } from './jobSyncManager.ts';
 import { runCentralIntegrityAudit, evaluateTransferableSkills } from './integrityEngine.ts';
 import { ApplicationReceipt, CareerOutcomeItem } from '../src/types/index.ts';
+import {
+  isPermanentFreeAccessAccount,
+  getEffectivePlan,
+  checkFeatureEntitlement,
+  checkAIUsageAllowance
+} from '../src/config/freeAccess.ts';
 
 type Bindings = {
   DB: D1Database;
@@ -299,17 +305,34 @@ app.get('/api/subscription/current', requireAuth, async (c) => {
   const store: D1Store = c.get('store');
   const sub = await store.getUserSubscription(user.id);
   const used = await store.getAIUsageCount(user.id, sub.currentPeriodStart);
-  const quotaLimit = sub.planId === 'pro' ? 300 : 10;
+
+  // Centralized Entitlement Evaluation
+  const effective = getEffectivePlan(user, sub);
+  const aiAllowance = checkAIUsageAllowance(user, used, sub);
+
+  const effectiveSub = {
+    ...sub,
+    planId: effective.planId,
+    plan: effective.planId,
+    status: effective.status,
+    billingInterval: effective.billingInterval,
+    planName: effective.planName,
+    badge: effective.badge,
+    isPermanentFreeAccess: effective.isPermanentFreeAccess,
+    description: effective.description,
+  };
 
   return c.json({
     success: true,
-    subscription: sub,
+    subscription: effectiveSub,
     usage: {
       used,
-      limit: quotaLimit,
-      remaining: Math.max(0, quotaLimit - used),
+      limit: aiAllowance.limit,
+      remaining: aiAllowance.remaining,
+      isUnlimited: aiAllowance.isUnlimited,
+      isPermanentFreeAccess: aiAllowance.isPermanentFreeAccess,
       periodStart: sub.currentPeriodStart,
-      periodEnd: sub.currentPeriodEnd,
+      periodEnd: effective.isPermanentFreeAccess ? '2099-12-31T23:59:59.999Z' : sub.currentPeriodEnd,
     },
   });
 });
@@ -318,6 +341,25 @@ app.post('/api/subscription/upgrade', requireAuth, async (c) => {
   try {
     const user: AuthUser = c.get('user')!;
     const store: D1Store = c.get('store');
+
+    // Centralized Allowlist Bypass: Never require checkout or fabricate billing
+    if (isPermanentFreeAccessAccount(user)) {
+      const effective = getEffectivePlan(user);
+      return c.json({
+        success: true,
+        subscription: {
+          planId: effective.planId,
+          plan: effective.planId,
+          status: effective.status,
+          billingInterval: effective.billingInterval,
+          planName: effective.planName,
+          badge: effective.badge,
+          isPermanentFreeAccess: true,
+        },
+        message: 'Your account is permanently authorized with full Pro access. No payment or billing is required.',
+      });
+    }
+
     const { planId = 'pro', billingInterval = 'monthly' } = await c.req.json();
 
     await store.updateUserSubscription(user.id, planId, billingInterval);
@@ -340,6 +382,22 @@ app.post('/api/subscription/cancel', requireAuth, async (c) => {
   try {
     const user: AuthUser = c.get('user')!;
     const store: D1Store = c.get('store');
+
+    // Centralized Allowlist Bypass: Permanent free access cannot be cancelled or expired
+    if (isPermanentFreeAccessAccount(user)) {
+      const effective = getEffectivePlan(user);
+      return c.json({
+        success: true,
+        subscription: {
+          planId: effective.planId,
+          status: effective.status,
+          planName: effective.planName,
+          isPermanentFreeAccess: true,
+        },
+        message: 'Your permanent free access is lifetime-active and does not require cancellation.',
+      });
+    }
+
     await store.cancelSubscription(user.id);
     await store.addAuditLog(user.id, 'User manual', 'SUBSCRIPTION_CANCEL_SCHEDULED', 'Pro Plan', 'Scheduled subscription cancellation at end of period');
 
@@ -376,18 +434,27 @@ app.post('/api/ai/copilot', requireAuth, async (c) => {
       return c.json({ success: false, error: 'A valid query message is required.' }, 400);
     }
 
-    // 1. Quota Enforcement
+    // 1. Quota Enforcement via Centralized Entitlement Service
     const sub = await store.getUserSubscription(user.id);
     const used = await store.getAIUsageCount(user.id, sub.currentPeriodStart);
-    const limit = sub.planId === 'pro' ? 300 : 10;
+    const allowance = checkAIUsageAllowance(user, used, sub);
 
-    if (used >= limit) {
-      return c.json({
-        success: false,
-        code: 'QUOTA_EXCEEDED',
-        error: `Monthly AI Copilot limit reached (${used}/${limit}). Upgrade to ApplyWise Pro for 300 AI queries/month and advanced career intelligence.`,
-        usage: { used, limit, remaining: 0 },
-      }, 403);
+    if (!allowance.allowed) {
+      if (allowance.isPermanentFreeAccess) {
+        return c.json({
+          success: false,
+          code: 'OPERATIONAL_SAFEGUARD_LIMIT',
+          error: `Safety Guard: Operational usage safeguard threshold reached (${used}/${allowance.limit} queries). To protect system resources, please resume in the next cycle.`,
+          usage: { used, limit: allowance.limit, remaining: 0 },
+        }, 429);
+      } else {
+        return c.json({
+          success: false,
+          code: 'QUOTA_EXCEEDED',
+          error: `Monthly AI Copilot limit reached (${used}/${allowance.limit}). Upgrade to ApplyWise Pro for 300 AI queries/month and advanced career intelligence.`,
+          usage: { used, limit: allowance.limit, remaining: 0 },
+        }, 403);
+      }
     }
 
     // 2. Build Context-Aware Prompt
@@ -462,8 +529,10 @@ Guidelines:
       conversationId,
       usage: {
         used: newUsed,
-        limit,
-        remaining: Math.max(0, limit - newUsed),
+        limit: allowance.limit,
+        remaining: Math.max(0, allowance.limit - newUsed),
+        isUnlimited: allowance.isUnlimited,
+        isPermanentFreeAccess: allowance.isPermanentFreeAccess,
       },
     });
   } catch (err: unknown) {

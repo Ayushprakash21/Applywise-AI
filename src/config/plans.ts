@@ -8,7 +8,7 @@ export interface UserSubscription {
   planId?: PlanId;
   plan?: PlanId;
   status: 'active' | 'cancelled' | 'past_due' | 'expired';
-  billingInterval?: 'monthly' | 'annual';
+  billingInterval?: 'monthly' | 'annual' | 'permanent';
   currency?: string;
   amount?: number;
   currentPeriodStart?: string;
@@ -16,6 +16,10 @@ export interface UserSubscription {
   periodStart?: string;
   periodEnd?: string;
   cancelAtPeriodEnd?: boolean;
+  planName?: string;
+  badge?: string;
+  isPermanentFreeAccess?: boolean;
+  description?: string;
 }
 
 export interface PlanFeature {
