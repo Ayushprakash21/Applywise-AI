@@ -11,6 +11,11 @@ import {
 } from './types/index.ts';
 import { BrandLogo } from './components/BrandLogo.tsx';
 import { AppHeader } from './components/AppHeader.tsx';
+import { DashboardShell, DashboardTab } from './components/DashboardShell.tsx';
+import { CareerCommandCenter } from './components/CareerCommandCenter.tsx';
+import { InterviewsPage } from './components/InterviewsPage.tsx';
+import { CareerIntelligenceReport } from './components/CareerIntelligenceReport.tsx';
+import { ResumeStudioTab } from './components/ResumeStudioTab.tsx';
 import { LandingPage } from './components/LandingPage.tsx';
 import { AuthModals } from './components/AuthModals.tsx';
 import { ResumeOnboardingModal } from './components/ResumeOnboardingModal.tsx';
@@ -32,6 +37,7 @@ import { AdminConsole } from './components/AdminConsole.tsx';
 import { AdminLoginPage } from './components/AdminLoginPage.tsx';
 import { UserSubscription } from './config/plans.ts';
 import { isPermanentFreeAccessAccount } from './config/freeAccess.ts';
+import { DashboardSummary } from './services/api.ts';
 
 export default function App() {
   // Current user state (validated against server)
@@ -41,8 +47,8 @@ export default function App() {
   // Client-side URL routing state ('/' | '/about' | '/pricing')
   const [currentRoute, setCurrentRoute] = useState<string>(() => window.location.pathname || '/');
 
-  // Navigation: signed-in tabs
-  const [activeTab, setActiveTab] = useState<'jobs' | 'applications' | 'profile' | 'twin'>('jobs');
+  // Navigation: signed-in tabs (Career Command Center is default overview)
+  const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
 
   // Core Data State
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -53,6 +59,7 @@ export default function App() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [subscription, setSubscription] = useState<UserSubscription | null>(null);
   const [usage, setUsage] = useState<AccountUsageStats | null>(null);
+  const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
 
   // Modals & Drawers
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -63,6 +70,8 @@ export default function App() {
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
+  const [copilotOpen, setCopilotOpen] = useState(false);
+  const [copilotPrompt, setCopilotPrompt] = useState<string | null>(null);
 
   // Loading States
   const [isSearching, setIsSearching] = useState(false);
@@ -120,7 +129,7 @@ export default function App() {
   const loadUserData = async () => {
     try {
       if (currentUser) {
-        const [profData, prefData, settData, vacData, appData, notifData, subData, usageData] = await Promise.all([
+        const [profData, prefData, settData, vacData, appData, notifData, subData, usageData, summaryData] = await Promise.all([
           api.getProfile(),
           api.getPreferences(),
           api.getSettings(),
@@ -129,6 +138,7 @@ export default function App() {
           api.getNotifications(),
           api.getSubscription().catch(() => ({ success: false, subscription: null })),
           api.getUserUsage().catch(() => ({ success: false, stats: null })),
+          api.getDashboardSummary().catch(() => ({ success: false, summary: null })),
         ]);
         setProfile(profData.profile);
         setPreferences(prefData.preferences);
@@ -142,6 +152,9 @@ export default function App() {
         if (usageData?.stats) {
           setUsage(usageData.stats);
         }
+        if (summaryData?.summary) {
+          setDashboardSummary(summaryData.summary);
+        }
 
         // Check if newly created account without profile and not previously dismissed
         const dismissed = localStorage.getItem(`applywise_onboarding_dismissed_${currentUser.id}`);
@@ -153,6 +166,7 @@ export default function App() {
         setVacancies(vacData.vacancies);
         setSubscription(null);
         setUsage(null);
+        setDashboardSummary(null);
       }
     } catch (err) {
       console.error('Error loading data:', err);
@@ -277,6 +291,21 @@ export default function App() {
     }
   };
 
+  const handleSelectTab = (tab: DashboardTab) => {
+    if (tab === 'settings') {
+      setSettingsModalOpen(true);
+    } else if (tab === 'privacy') {
+      setPrivacyModalOpen(true);
+    } else if (tab === 'subscription') {
+      navigateTo('/pricing');
+    } else if (tab === 'copilot') {
+      setCopilotOpen(true);
+    } else {
+      setActiveTab(tab);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   // Branded Loading State with official AV minimal logo
   if (isCheckingSession) {
     return (
@@ -356,95 +385,161 @@ export default function App() {
           onNavigateHome={() => navigateTo('/')}
         />
       ) : currentUser ? (
-        <>
-          <AppHeader
+        <div className="flex-1 w-full pb-24 lg:pb-8">
+          <DashboardShell
             user={currentUser}
             activeTab={activeTab}
-            onSelectTab={setActiveTab}
+            onSelectTab={handleSelectTab}
             notifications={notifications}
-            settings={settings}
-            onToggleEmergencyStop={handleToggleEmergencyStop}
-            onOpenSettingsModal={() => setSettingsModalOpen(true)}
-            onOpenPrivacy={() => setPrivacyModalOpen(true)}
-            onOpenTerms={() => setTermsModalOpen(true)}
-            onLogout={handleLogout}
-            onMarkNotificationRead={async id => {
-              const res = await api.markNotificationRead(id);
-              setNotifications(res.notifications);
-            }}
-            onMarkAllNotificationsRead={async () => {
-              const res = await api.markAllNotificationsRead();
-              setNotifications(res.notifications);
-            }}
-            plan={isPermanentFreeAccessAccount(currentUser) ? 'pro' : (subscription?.planId || subscription?.plan || 'free')}
-            usage={usage}
-            onOpenPricing={() => navigateTo('/pricing')}
-            onOpenAbout={() => navigateTo('/about')}
-            onOpenAdmin={() => navigateTo('/admin')}
-          />
+          onMarkNotificationRead={async id => {
+            const res = await api.markNotificationRead(id);
+            setNotifications(res.notifications);
+          }}
+          onMarkAllNotificationsRead={async () => {
+            const res = await api.markAllNotificationsRead();
+            setNotifications(res.notifications);
+          }}
+          settings={settings}
+          onToggleEmergencyStop={handleToggleEmergencyStop}
+          onOpenSettingsModal={() => setSettingsModalOpen(true)}
+          onOpenPrivacy={() => setPrivacyModalOpen(true)}
+          onOpenTerms={() => setTermsModalOpen(true)}
+          onOpenPricing={() => navigateTo('/pricing')}
+          onOpenAbout={() => navigateTo('/about')}
+          onOpenAdmin={() => navigateTo('/admin')}
+          onLogout={handleLogout}
+          plan={isPermanentFreeAccessAccount(currentUser) ? 'pro' : (subscription?.planId || subscription?.plan || 'free')}
+          usage={usage}
+        >
+          {activeTab === 'overview' && (
+            <CareerCommandCenter
+              user={currentUser}
+              summary={dashboardSummary}
+              profile={profile}
+              preferences={preferences}
+              vacancies={vacancies}
+              applications={applications}
+              onNavigateTab={tab => handleSelectTab(tab as DashboardTab)}
+              onSelectVacancy={v => setSelectedVacancy(v)}
+              onOpenOnboarding={() => setOnboardingOpen(true)}
+              onAskCopilotPrompt={prompt => {
+                setCopilotPrompt(prompt);
+                setCopilotOpen(true);
+              }}
+              onSearchJobs={q => handleSearchJobs(q)}
+            />
+          )}
 
-          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-8">
-            {activeTab === 'jobs' && (
-              <JobSearchPage
-                vacancies={vacancies}
-                onSelectVacancy={v => setSelectedVacancy(v)}
-                onSearch={handleSearchJobs}
-                isSearching={isSearching}
-                hasProfile={!!profile?.fullName}
-                onOpenOnboarding={() => setOnboardingOpen(true)}
-                onRefreshLiveJobs={async () => {
-                  const res = await api.refreshLiveJobs();
-                  showToast(res.message);
+          {(activeTab === 'jobs' || activeTab === 'matches') && (
+            <JobSearchPage
+              vacancies={activeTab === 'matches' ? vacancies.filter(v => (v.matchEvaluation?.matchScore || 0) >= 70 || (dashboardSummary?.relevantMatchesCount && (v.matchEvaluation?.matchScore || 0) >= 60)) : vacancies}
+              onSelectVacancy={v => setSelectedVacancy(v)}
+              onSearch={handleSearchJobs}
+              isSearching={isSearching}
+              hasProfile={!!profile?.fullName}
+              onOpenOnboarding={() => setOnboardingOpen(true)}
+              onRefreshLiveJobs={async () => {
+                const res = await api.refreshLiveJobs();
+                showToast(res.message);
+                await loadUserData();
+              }}
+            />
+          )}
+
+          {activeTab === 'applications' && (
+            <ApplicationsPage
+              applications={applications}
+              onSelectApplication={app => setPreviewResumeApp(app)}
+              onRefresh={loadUserData}
+              onViewResume={app => setPreviewResumeApp(app)}
+              onNavigateToJobs={() => setActiveTab('jobs')}
+            />
+          )}
+
+          {activeTab === 'interviews' && (
+            <InterviewsPage
+              applications={applications}
+              profile={profile}
+              onUpdateStatus={async (id, newStatus) => {
+                try {
+                  await api.transitionStatus(id, newStatus, 'Status updated in Interviews Workspace');
+                  showToast(`Application advanced to ${newStatus}`);
                   await loadUserData();
-                }}
-              />
-            )}
+                } catch (err: unknown) {
+                  const msg = err instanceof Error ? err.message : String(err);
+                  showToast(`Update error: ${msg}`);
+                }
+              }}
+              onNavigateToJobs={() => setActiveTab('jobs')}
+              onNavigateToApplications={() => setActiveTab('applications')}
+              onAskCopilot={prompt => {
+                setCopilotPrompt(prompt);
+                setCopilotOpen(true);
+              }}
+            />
+          )}
 
-            {activeTab === 'applications' && (
-              <ApplicationsPage
-                applications={applications}
-                onSelectApplication={app => setPreviewResumeApp(app)}
-                onRefresh={loadUserData}
-                onViewResume={app => setPreviewResumeApp(app)}
-                onNavigateToJobs={() => setActiveTab('jobs')}
-              />
-            )}
+          {activeTab === 'profile' && (
+            <ProfileAndPreferencesPage
+              profile={profile}
+              preferences={preferences}
+              onUpdateProfile={p => { setProfile(p); showToast('Profile updated!'); }}
+              onUpdatePreferences={pref => { setPreferences(pref); showToast('Preferences updated!'); }}
+              onOpenOnboarding={() => setOnboardingOpen(true)}
+            />
+          )}
 
-            {activeTab === 'profile' && (
-              <ProfileAndPreferencesPage
-                profile={profile}
-                preferences={preferences}
-                onUpdateProfile={p => { setProfile(p); showToast('Profile updated!'); }}
-                onUpdatePreferences={pref => { setPreferences(pref); showToast('Preferences updated!'); }}
-                onOpenOnboarding={() => setOnboardingOpen(true)}
-              />
-            )}
+          {(activeTab === 'career_twin' || (activeTab as string) === 'twin') && (
+            <CareerTwinPage
+              onShowToast={showToast}
+            />
+          )}
 
-            {activeTab === 'twin' && (
-              <CareerTwinPage
-                onShowToast={showToast}
-              />
-            )}
-          </main>
+          {activeTab === 'career_report' && (
+            <CareerIntelligenceReport
+              profile={profile}
+              preferences={preferences}
+              vacancies={vacancies}
+              onOpenOnboarding={() => setOnboardingOpen(true)}
+              onNavigateToJobs={() => setActiveTab('jobs')}
+              onAskCopilot={prompt => {
+                setCopilotPrompt(prompt);
+                setCopilotOpen(true);
+              }}
+            />
+          )}
+
+          {(activeTab === 'resume_studio' || activeTab === 'resume_intelligence') && (
+            <ResumeStudioTab
+              applications={applications}
+              profile={profile}
+              onTailorResume={async () => {
+                showToast('Choose a job vacancy to tailor your ATS resume package.');
+                setActiveTab('jobs');
+              }}
+              isTailoring={false}
+            />
+          )}
 
           {/* Minimal Clean Footer */}
-          <footer className="border-t border-slate-200/80 bg-white py-6 text-xs text-slate-500 mt-auto">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <footer className="border-t border-slate-200/80 dark:border-white/10 bg-transparent py-6 text-xs text-slate-500 mt-12">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center space-x-2">
                 <BrandLogo size="xs" showWordmark={false} />
-                <span>ApplyWise AI — Intelligent Job Discovery & Application Preparation</span>
+                <span>ApplyWise AI — Unified AI Career Operating System</span>
               </div>
-              <div className="flex items-center space-x-4">
-                <button onClick={() => navigateTo('/about')} className="hover:text-blue-600 transition">About Us</button>
-                <button onClick={() => navigateTo('/pricing')} className="hover:text-blue-600 transition">Pricing & Plans</button>
-                <button onClick={() => navigateTo('/admin')} className="hover:text-blue-600 transition">Admin Portal</button>
-                <button onClick={() => setPrivacyModalOpen(true)} className="hover:text-blue-600 transition">Privacy Policy</button>
-                <button onClick={() => setTermsModalOpen(true)} className="hover:text-blue-600 transition">Terms of Use</button>
-                <span>Zero Hallucination Guarantee</span>
+              <div className="flex flex-wrap items-center gap-4">
+                <button onClick={() => navigateTo('/about')} className="hover:text-cyan-500 transition">About Us</button>
+                <button onClick={() => navigateTo('/pricing')} className="hover:text-cyan-500 transition">Pricing & Plans</button>
+                <button onClick={() => navigateTo('/admin')} className="hover:text-cyan-500 transition">Admin Portal</button>
+                <button onClick={() => setPrivacyModalOpen(true)} className="hover:text-cyan-500 transition">Privacy Policy</button>
+                <button onClick={() => setTermsModalOpen(true)} className="hover:text-cyan-500 transition">Terms of Use</button>
+                <span className="text-slate-400">Zero Hallucination Standard</span>
               </div>
             </div>
           </footer>
-        </>
+        </DashboardShell>
+      </div>
       ) : (
         <LandingPage
           onOpenAuth={mode => { setAuthModalMode(mode); setAuthModalOpen(true); }}
@@ -486,6 +581,9 @@ export default function App() {
           setAuthModalMode(mode);
           setAuthModalOpen(true);
         }}
+        isOpenControlled={copilotOpen}
+        onToggleOpen={setCopilotOpen}
+        externalTriggerPrompt={copilotPrompt}
       />
 
       {/* Global Modals */}

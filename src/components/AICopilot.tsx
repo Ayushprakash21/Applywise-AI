@@ -29,6 +29,9 @@ interface AICopilotProps {
   contextDetails?: Record<string, unknown>;
   onOpenPricing?: () => void;
   onOpenAuth?: (mode: 'login' | 'signup') => void;
+  isOpenControlled?: boolean;
+  onToggleOpen?: (open: boolean) => void;
+  externalTriggerPrompt?: string | null;
 }
 
 export const AICopilot: React.FC<AICopilotProps> = ({
@@ -37,8 +40,16 @@ export const AICopilot: React.FC<AICopilotProps> = ({
   contextDetails = {},
   onOpenPricing,
   onOpenAuth,
+  isOpenControlled,
+  onToggleOpen,
+  externalTriggerPrompt,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = isOpenControlled !== undefined ? isOpenControlled : internalOpen;
+  const setIsOpen = (val: boolean) => {
+    setInternalOpen(val);
+    if (onToggleOpen) onToggleOpen(val);
+  };
   const [isMinimized, setIsMinimized] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([
@@ -75,6 +86,13 @@ export const AICopilot: React.FC<AICopilotProps> = ({
         .catch(() => {});
     }
   }, [isOpen, currentUser]);
+
+  useEffect(() => {
+    if (externalTriggerPrompt) {
+      setIsOpen(true);
+      handleSendMessage(externalTriggerPrompt);
+    }
+  }, [externalTriggerPrompt]);
 
   const handleSendMessage = async (textToSend?: string) => {
     const text = (textToSend || inputMessage).trim();

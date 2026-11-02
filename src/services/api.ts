@@ -17,6 +17,62 @@ import {
   AccountUsageStats
 } from '../types/index.ts';
 
+export interface DashboardSummary {
+  profileCompletion: number;
+  breakdown: {
+    hasBasicInfo: boolean;
+    hasTitle: boolean;
+    hasSummary: boolean;
+    hasExperience: boolean;
+    hasSkills: boolean;
+    hasEducation: boolean;
+    hasPreferences: boolean;
+    hasMasterResume: boolean;
+  };
+  pipeline: {
+    draft: number;
+    ready: number;
+    applied: number;
+    interview: number;
+    offer: number;
+    rejected: number;
+    withdrawn: number;
+  };
+  activeApplicationsCount: number;
+  upcomingInterviewsCount: number;
+  upcomingInterviews: Array<{
+    id: string;
+    company: string;
+    role: string;
+    status: string;
+    matchScore: number;
+  }>;
+  relevantMatchesCount: number;
+  topMatches: JobVacancy[];
+  nextBestAction: {
+    id: string;
+    title: string;
+    description: string;
+    reason: string;
+    actionLabel: string;
+    actionType: 'onboarding' | 'profile' | 'interview' | 'applications' | 'jobs' | 'matches';
+    targetId?: string;
+    priority: 'critical' | 'high' | 'medium' | 'low';
+  };
+  allRecommendations: Array<{
+    id: string;
+    title: string;
+    description: string;
+    reason: string;
+    actionLabel: string;
+    actionType: 'onboarding' | 'profile' | 'interview' | 'applications' | 'jobs' | 'matches';
+    targetId?: string;
+    priority: 'critical' | 'high' | 'medium' | 'low';
+  }>;
+  recentActivity: AuditLogEntry[];
+  unreadNotificationsCount: number;
+}
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -135,6 +191,9 @@ export const api = {
 
   getUserUsage: () =>
     fetchJson<{ success: boolean; stats: AccountUsageStats }>('/api/user/usage'),
+
+  getDashboardSummary: () =>
+    fetchJson<{ success: boolean; summary: DashboardSummary }>('/api/dashboard/summary'),
 
   // --- ADMINISTRATOR APIS ---
   getAdminMe: () =>

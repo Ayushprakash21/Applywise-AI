@@ -399,6 +399,225 @@ app.get('/api/user/usage', requireAuth, async (c) => {
 });
 
 // ============================================================================
+// 1A-1. CAREER COMMAND CENTER DASHBOARD SUMMARY
+// ============================================================================
+
+app.get('/api/dashboard/summary', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+
+    const [profile, preferences, applications, notifications, vacancies, auditLogs] = await Promise.all([
+      store.getProfile(user.id),
+      store.getPreferences(user.id),
+      store.getApplications(user.id),
+      store.getNotifications(user.id),
+      store.getVacancies(50),
+      store.getAuditLogs(user.id, 10),
+    ]);
+
+    // 1. Calculate Profile Completion
+    let score = 0;
+    const breakdown = {
+      hasBasicInfo: Boolean(profile?.fullName && profile?.email),
+      hasTitle: Boolean(profile?.currentTitle),
+      hasSummary: Boolean(profile?.professionalSummary && profile.professionalSummary.length > 20),
+      hasExperience: Boolean(profile?.experiences && profile.experiences.length > 0),
+      hasSkills: Boolean(profile?.skills && profile.skills.length > 0),
+      hasEducation: Boolean(profile?.education && profile.education.length > 0),
+      hasPreferences: Boolean(preferences?.targetRoles && preferences.targetRoles.length > 0),
+      hasMasterResume: Boolean(profile?.masterResumeFileName),
+    };
+
+    if (breakdown.hasBasicInfo) score += 15;
+    if (breakdown.hasTitle) score += 10;
+    if (breakdown.hasSummary) score += 15;
+    if (breakdown.hasExperience) score += 20;
+    if (breakdown.hasSkills) score += 15;
+    if (breakdown.hasEducation) score += 10;
+    if (breakdown.hasPreferences) score += 15;
+    const profileCompletion = Math.min(100, score);
+
+    // 2. Application Pipeline Distribution
+    const pipeline = {
+      draft: 0,
+      ready: 0,
+      applied: 0,
+      interview: 0,
+      offer: 0,
+      rejected: 0,
+      withdrawn: 0,
+    };
+
+    for (const app of applications) {
+      const s = app.status;
+      if (['DISCOVERED', 'PREPARING', 'NEEDS_REVIEW', 'RESUME_GENERATED'].includes(s)) {
+        pipeline.draft++;
+      } else if (['READY_TO_APPLY', 'PREPARED', 'APPLICATION_PREPARED', 'AWAITING_APPROVAL', 'AWAITING_USER_REVIEW', 'AUTHORIZED_TO_SUBMIT'].includes(s)) {
+        pipeline.ready++;
+      } else if (['SUBMITTED', 'SUBMITTED_CONFIRMED', 'SUBMITTED_VERIFIED', 'SUBMISSION_CONFIRMED', 'CONFIRMATION_VERIFIED', 'TRACKED', 'REDIRECTED_TO_EMPLOYER'].includes(s)) {
+        pipeline.applied++;
+      } else if (['INTERVIEW', 'INTERVIEWING'].includes(s)) {
+        pipeline.interview++;
+      } else if (['OFFER', 'OFFER_RECEIVED'].includes(s)) {
+        pipeline.offer++;
+      } else if (s === 'REJECTED') {
+        pipeline.rejected++;
+      } else if (s === 'WITHDRAWN') {
+        pipeline.withdrawn++;
+      }
+    }
+
+    const activeApplicationsCount = pipeline.applied + pipeline.interview;
+    const upcomingInterviews = applications.filter(a => ['INTERVIEW', 'INTERVIEWING'].includes(a.status));
+
+    // 3. Relevant Matches
+    const userRoleLower = (preferences?.preferredTitles || preferences?.targetRoles || [profile?.currentTitle || '']).map(r => r.toLowerCase());
+    const userSkillsLower = (profile?.skills || []).map(s => s.name.toLowerCase());
+
+    const matchedVacancies = vacancies.map(v => {
+      let matchScore = v.matchEvaluation?.matchScore || 0;
+      if (matchScore === 0) {
+        // Calculate transparent heuristic score based on user profile
+        let heuristic = 50;
+        const vTitle = v.title.toLowerCase();
+        const vDesc = (v.description || '').toLowerCase();
+        
+        if (userRoleLower.some(r => r && vTitle.includes(r))) heuristic += 25;
+        let skillHits = 0;
+        for (const sk of userSkillsLower) {
+          if (vDesc.includes(sk)) skillHits++;
+        }
+        heuristic += Math.min(20, skillHits * 5);
+        matchScore = Math.min(96, heuristic);
+      }
+      return {
+        ...v,
+        computedMatchScore: matchScore,
+      };
+    }).sort((a, b) => b.computedMatchScore - a.computedMatchScore);
+
+    const highMatches = matchedVacancies.filter(v => v.computedMatchScore >= 70);
+
+    // 4. Next Best Actions (Ranked by Urgency and User State)
+    const nextActions: Array<{
+      id: string;
+      title: string;
+      description: string;
+      reason: string;
+      actionLabel: string;
+      actionType: 'onboarding' | 'profile' | 'interview' | 'applications' | 'jobs' | 'matches';
+      targetId?: string;
+      priority: 'critical' | 'high' | 'medium' | 'low';
+    }> = [];
+
+    if (upcomingInterviews.length > 0) {
+      const nextInt = upcomingInterviews[0];
+      nextActions.push({
+        id: `interview_${nextInt.id}`,
+        title: `Prepare for ${nextInt.company} Interview`,
+        description: `Active interview stage recorded for ${nextInt.role}. Review competency talking points and STAR achievements.`,
+        reason: 'Upcoming interview requires high-readiness preparation.',
+        actionLabel: 'Open Interview Prep',
+        actionType: 'interview',
+        targetId: nextInt.id,
+        priority: 'critical',
+      });
+    }
+
+    if (pipeline.ready > 0) {
+      nextActions.push({
+        id: 'review_ready',
+        title: 'Review Tailored Application Package',
+        description: `You have ${pipeline.ready} tailored application(s) ready for your final verification and submission.`,
+        reason: 'Applicant-ready package awaits your authorization.',
+        actionLabel: 'Open Application Tracker',
+        actionType: 'applications',
+        priority: 'high',
+      });
+    }
+
+    if (!breakdown.hasMasterResume && !breakdown.hasExperience) {
+      nextActions.push({
+        id: 'upload_resume',
+        title: 'Upload Your Master Resume',
+        description: 'Upload your PDF or Word resume. Our zero-hallucination parser securely maps your verified history to your Career Twin.',
+        reason: 'Essential baseline required for precision job matching and ATS tailoring.',
+        actionLabel: 'Upload Resume',
+        actionType: 'onboarding',
+        priority: 'high',
+      });
+    } else if (profileCompletion < 75) {
+      nextActions.push({
+        id: 'complete_profile',
+        title: 'Strengthen Your Career Profile',
+        description: 'Add your target roles, preferred locations, and verified skills to increase your recommendation accuracy.',
+        reason: `Your profile is at ${profileCompletion}%. Adding target roles directly boosts match quality.`,
+        actionLabel: 'Complete Profile',
+        actionType: 'profile',
+        priority: 'medium',
+      });
+    }
+
+    if (highMatches.length > 0) {
+      const top = highMatches[0];
+      const hasApplied = applications.some(a => a.vacancyId === top.id);
+      if (!hasApplied) {
+        nextActions.push({
+          id: `match_${top.id}`,
+          title: `Review Top Job Match: ${top.title}`,
+          description: `${top.company} · ${top.location} (${top.computedMatchScore}% estimated alignment with your verified background).`,
+          reason: 'High compatibility opportunity discovered from verified employer feeds.',
+          actionLabel: 'Inspect Opportunity',
+          actionType: 'matches',
+          targetId: top.id,
+          priority: 'medium',
+        });
+      }
+    }
+
+    if (nextActions.length === 0) {
+      nextActions.push({
+        id: 'explore_jobs',
+        title: 'Explore Live Opportunities',
+        description: 'Scan new live vacancies synchronized from Remotive, Arbeitnow, and Jobicy official boards.',
+        reason: 'All current applications are up to date.',
+        actionLabel: 'Discover Jobs',
+        actionType: 'jobs',
+        priority: 'low',
+      });
+    }
+
+    return c.json({
+      success: true,
+      summary: {
+        profileCompletion,
+        breakdown,
+        pipeline,
+        activeApplicationsCount,
+        upcomingInterviewsCount: upcomingInterviews.length,
+        upcomingInterviews: upcomingInterviews.map(i => ({
+          id: i.id,
+          company: i.company,
+          role: i.role,
+          status: i.status,
+          matchScore: i.matchScore,
+        })),
+        relevantMatchesCount: highMatches.length,
+        topMatches: highMatches.slice(0, 4),
+        nextBestAction: nextActions[0],
+        allRecommendations: nextActions,
+        recentActivity: auditLogs.slice(0, 5),
+        unreadNotificationsCount: notifications.filter(n => !n.read).length,
+      },
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to load dashboard summary: ${msg}` }, 500);
+  }
+});
+
+// ============================================================================
 // 1B. SUBSCRIPTIONS & ENTITLEMENTS
 // ============================================================================
 
