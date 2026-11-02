@@ -222,15 +222,26 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
             <span>Active Connectors:</span>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
-            {['Greenhouse ATS', 'Lever ATS', 'Remotive', 'Arbeitnow', 'Jobicy'].map((src, i) => (
-              <span
-                key={i}
-                className="px-2.5 py-0.5 rounded-full bg-white border border-slate-200 text-slate-700 text-[11px] font-medium flex items-center space-x-1 shadow-2xs"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                <span>{src}</span>
-              </span>
-            ))}
+            {(sourcesHealth && sourcesHealth.length > 0 ? sourcesHealth : [
+              { source_name: 'Greenhouse ATS', status: 'healthy' },
+              { source_name: 'Lever ATS', status: 'healthy' },
+              { source_name: 'Remotive', status: 'healthy' },
+              { source_name: 'Arbeitnow', status: 'healthy' },
+              { source_name: 'Jobicy', status: 'healthy' },
+            ]).map((src: any, i: number) => {
+              const statusColor = src.status === 'degraded' ? 'bg-amber-500' : (src.status === 'offline' ? 'bg-rose-500' : 'bg-emerald-500');
+              const name = src.source_name || src.sourceId || src.name;
+              return (
+                <span
+                  key={i}
+                  className="px-2.5 py-0.5 rounded-full bg-white border border-slate-200 text-slate-700 text-[11px] font-medium flex items-center space-x-1 shadow-2xs"
+                  title={src.last_error ? `Error: ${src.last_error}` : (src.total_jobs ? `${src.total_jobs} active vacancies` : undefined)}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${statusColor}`} />
+                  <span>{name}</span>
+                </span>
+              );
+            })}
           </div>
           <span className="text-[11px] text-slate-500 font-medium">
             {vacancies.length} vacancies verified in temporary cache

@@ -61,7 +61,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fallback calculation if summary is loading
+  // Fallback calculations
   const profileScore = summary?.profileCompletion ?? (
     profile?.fullName && profile?.experiences?.length ? 85 : 35
   );
@@ -85,7 +85,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
   const nextAction = summary?.nextBestAction || {
     id: 'explore',
     title: 'Discover Live Vacancies',
-    description: 'Explore live opportunities synchronized across verified engineering, product, and leadership hiring boards.',
+    description: 'Explore live opportunities synchronized across verified company hiring feeds.',
     reason: 'Personalized live vacancies ready for inspection.',
     actionLabel: 'Discover Jobs',
     actionType: 'jobs' as const,
@@ -116,427 +116,444 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
     }
   };
 
+  // Recent applications (last 4)
+  const recentApplications = applications.slice(0, 4);
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
-      {/* 1. Personalized Welcome Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-[#0a1128] to-slate-900 border border-slate-800 p-6 sm:p-8 shadow-xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 text-xs font-mono">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
-              </span>
-              <span>CAREER COMMAND CENTER · ACTIVE OPERATING SYSTEM</span>
-            </div>
-
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">{user.fullName || 'Professional'}</span>
-            </h1>
-
-            <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
-              {profile?.currentTitle
-                ? `${profile.currentTitle} ${profile.currentEmployer ? `at ${profile.currentEmployer}` : ''} · ${relevantMatchesCount} live opportunities aligned with your background.`
-                : 'Your entire job search, intelligently connected with verified career intelligence and zero hallucination.'}
-            </p>
-          </div>
-
-          {/* Quick Search Field in Header */}
-          <div className="w-full lg:w-96">
-            <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-              <Search className="absolute left-3.5 h-4 w-4 text-cyan-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search jobs, skills, or roles..."
-                className="w-full pl-10 pr-24 py-2.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-cyan-500/50 shadow-inner"
-              />
-              <button
-                type="submit"
-                className="absolute right-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold transition shadow"
-              >
-                Find
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Core Career Metrics (Answering: Where do I stand in my career?) */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
-            Career Overview Metrics
-          </h2>
-          <span className="text-[11px] text-slate-400 font-mono">Real Verified Data</span>
+    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-200">
+      {/* 1. Welcoming Consumer SaaS Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-7 shadow-xs">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight flex items-center space-x-2">
+            <span>Welcome back, {user.fullName ? user.fullName.split(' ')[0] : 'Job Seeker'}!</span>
+            <span className="text-2xl">👋</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            {profile?.currentTitle
+              ? `${profile.currentTitle} ${profile.currentEmployer ? `at ${profile.currentEmployer}` : ''} · ${relevantMatchesCount} opportunities aligned with your background.`
+              : "Here is what's happening with your job applications and recommended next steps."}
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Metric 1: Profile Completion */}
-          <div
-            onClick={() => onNavigateTab('profile')}
-            className="group p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/50 hover:shadow-lg transition cursor-pointer flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Profile Completion</span>
-              <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-cyan-400 group-hover:scale-105 transition-transform">
-                <UserCheck className="h-4 w-4" />
-              </div>
-            </div>
-            <div className="my-3">
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono">
-                {profileScore}%
-              </div>
-              <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-700"
-                  style={{ width: `${profileScore}%` }}
-                />
-              </div>
-            </div>
-            <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-              <span>{profileScore === 100 ? 'Verified Complete' : 'Needs Target Roles'}</span>
-              <span className="text-cyan-600 dark:text-cyan-400 font-semibold group-hover:translate-x-0.5 transition-transform flex items-center">
-                <span>Edit</span>
-                <ChevronRight className="h-3 w-3 ml-0.5" />
-              </span>
-            </div>
-          </div>
-
-          {/* Metric 2: Relevant Job Matches */}
-          <div
-            onClick={() => onNavigateTab('matches')}
-            className="group p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/50 hover:shadow-lg transition cursor-pointer flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Relevant Job Matches</span>
-              <div className="p-2 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400 group-hover:scale-105 transition-transform">
-                <Sparkles className="h-4 w-4" />
-              </div>
-            </div>
-            <div className="my-3">
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono">
-                {relevantMatchesCount}
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                ≥70% compatibility threshold
-              </p>
-            </div>
-            <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-              <span>Verified Employer Feeds</span>
-              <span className="text-cyan-600 dark:text-cyan-400 font-semibold group-hover:translate-x-0.5 transition-transform flex items-center">
-                <span>View</span>
-                <ChevronRight className="h-3 w-3 ml-0.5" />
-              </span>
-            </div>
-          </div>
-
-          {/* Metric 3: Active Applications */}
-          <div
-            onClick={() => onNavigateTab('applications')}
-            className="group p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/50 hover:shadow-lg transition cursor-pointer flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Active Applications</span>
-              <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform">
-                <Briefcase className="h-4 w-4" />
-              </div>
-            </div>
-            <div className="my-3">
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono">
-                {activeAppsCount}
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                {applications.length} total prepared & tracked
-              </p>
-            </div>
-            <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-              <span>Tracked Pipelines</span>
-              <span className="text-indigo-600 dark:text-indigo-400 font-semibold group-hover:translate-x-0.5 transition-transform flex items-center">
-                <span>Track</span>
-                <ChevronRight className="h-3 w-3 ml-0.5" />
-              </span>
-            </div>
-          </div>
-
-          {/* Metric 4: Upcoming Interviews */}
-          <div
-            onClick={() => onNavigateTab('interviews')}
-            className="group p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/50 hover:shadow-lg transition cursor-pointer flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Upcoming Interviews</span>
-              <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform">
-                <Calendar className="h-4 w-4" />
-              </div>
-            </div>
-            <div className="my-3">
-              <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono">
-                {upcomingInterviewsCount}
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                {upcomingInterviewsCount > 0 ? 'Prep workspace active' : 'No active rounds'}
-              </p>
-            </div>
-            <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-              <span>Interview Coaching</span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-semibold group-hover:translate-x-0.5 transition-transform flex items-center">
-                <span>Prepare</span>
-                <ChevronRight className="h-3 w-3 ml-0.5" />
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Your Next Best Action (Answering: What should I do next?) */}
-      <div className="rounded-3xl p-6 sm:p-7 bg-white dark:bg-[#090d1a] border border-slate-200 dark:border-cyan-500/30 shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-cyan-100 dark:bg-cyan-950/80 text-cyan-800 dark:text-cyan-300 text-[10px] font-mono uppercase tracking-wider font-bold border border-cyan-300 dark:border-cyan-500/40">
-                Priority: {nextAction.priority}
-              </span>
-              <span className="text-xs font-mono text-slate-400 uppercase tracking-widest">
-                // Recommended Action
-              </span>
-            </div>
-
-            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-              {nextAction.title}
-            </h3>
-
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
-              {nextAction.description}
-            </p>
-
-            <div className="pt-1 flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-              <span>Reason: {nextAction.reason}</span>
-            </div>
-          </div>
-
-          <div className="shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* Quick Search */}
+        <div className="w-full md:w-80">
+          <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+            <Search className="absolute left-3.5 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search jobs, skills, or companies..."
+              className="w-full pl-10 pr-20 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 shadow-inner"
+            />
             <button
-              onClick={() => handleExecuteAction(nextAction.actionType)}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-cyan-500/20 transition flex items-center justify-center space-x-2"
+              type="submit"
+              className="absolute right-1.5 px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-xs"
             >
-              <span>{nextAction.actionLabel}</span>
-              <ArrowRight className="h-4 w-4" />
+              Search
             </button>
-          </div>
+          </form>
         </div>
       </div>
 
-      {/* 4. Application Pipeline (Answering: What is happening with my applications?) */}
-      <div className="rounded-3xl p-6 sm:p-7 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-              <TrendingUp className="h-4 w-4 text-cyan-500" />
-              <span>Application Pipeline & Status Lifecycle</span>
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Transparent tracking across all verified stages. Never faking submission receipts.
-            </p>
-          </div>
-
-          <button
-            onClick={() => onNavigateTab('applications')}
-            className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 hover:underline flex items-center space-x-1"
-          >
-            <span>View Full Tracker</span>
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
-
-        {/* Visual Pipeline Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-          {[
-            { key: 'draft', label: 'Draft', count: summary?.pipeline.draft ?? 0, color: 'text-slate-400', border: 'border-slate-300 dark:border-slate-700' },
-            { key: 'ready', label: 'Ready to Apply', count: summary?.pipeline.ready ?? 0, color: 'text-cyan-500', border: 'border-cyan-500/40' },
-            { key: 'applied', label: 'Applied', count: summary?.pipeline.applied ?? 0, color: 'text-blue-500', border: 'border-blue-500/40' },
-            { key: 'interview', label: 'Interview', count: summary?.pipeline.interview ?? 0, color: 'text-purple-500', border: 'border-purple-500/40' },
-            { key: 'offer', label: 'Offer', count: summary?.pipeline.offer ?? 0, color: 'text-emerald-500', border: 'border-emerald-500/40' },
-            { key: 'rejected', label: 'Rejected', count: summary?.pipeline.rejected ?? 0, color: 'text-rose-400', border: 'border-rose-500/40' },
-            { key: 'withdrawn', label: 'Withdrawn', count: summary?.pipeline.withdrawn ?? 0, color: 'text-slate-400', border: 'border-slate-700' },
-          ].map(stage => (
-            <div
-              key={stage.key}
-              onClick={() => onNavigateTab('applications')}
-              className={`p-3.5 rounded-xl border ${stage.border} bg-slate-50 dark:bg-slate-950/60 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition cursor-pointer text-center space-y-1`}
-            >
-              <div className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">
-                {stage.label}
-              </div>
-              <div className={`text-xl font-mono font-bold ${stage.color}`}>
-                {stage.count}
-              </div>
+      {/* 2. Key Metrics Row (Matching JobHuntly / Flashjobs / My Job Trackr) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Metric 1: Active Applications */}
+        <div
+          onClick={() => onNavigateTab('applications')}
+          className="group p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-300 hover:shadow-md transition cursor-pointer flex flex-col justify-between shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500">Active Applications</span>
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Briefcase className="h-4 w-4" />
             </div>
-          ))}
+          </div>
+          <div className="my-2.5">
+            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono">
+              {activeAppsCount}
+            </div>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              {applications.length} total tracked
+            </p>
+          </div>
+          <div className="flex items-center text-[11px] text-blue-600 font-semibold group-hover:translate-x-0.5 transition-transform">
+            <span>View Tracker</span>
+            <ChevronRight className="h-3.5 w-3.5 ml-0.5" />
+          </div>
+        </div>
+
+        {/* Metric 2: Relevant Job Matches */}
+        <div
+          onClick={() => onNavigateTab('matches')}
+          className="group p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-300 hover:shadow-md transition cursor-pointer flex flex-col justify-between shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500">Relevant Job Matches</span>
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Sparkles className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="my-2.5">
+            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono">
+              {relevantMatchesCount}
+            </div>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Matching your target roles
+            </p>
+          </div>
+          <div className="flex items-center text-[11px] text-indigo-600 font-semibold group-hover:translate-x-0.5 transition-transform">
+            <span>Review Matches</span>
+            <ChevronRight className="h-3.5 w-3.5 ml-0.5" />
+          </div>
+        </div>
+
+        {/* Metric 3: Upcoming Interviews */}
+        <div
+          onClick={() => onNavigateTab('interviews')}
+          className="group p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-300 hover:shadow-md transition cursor-pointer flex flex-col justify-between shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500">Upcoming Interviews</span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Calendar className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="my-2.5">
+            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono">
+              {upcomingInterviewsCount}
+            </div>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              {upcomingInterviewsCount > 0 ? 'Active rounds scheduled' : 'No active rounds'}
+            </p>
+          </div>
+          <div className="flex items-center text-[11px] text-emerald-600 font-semibold group-hover:translate-x-0.5 transition-transform">
+            <span>Interview Prep</span>
+            <ChevronRight className="h-3.5 w-3.5 ml-0.5" />
+          </div>
+        </div>
+
+        {/* Metric 4: Profile Completion */}
+        <div
+          onClick={() => onNavigateTab('profile')}
+          className="group p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-300 hover:shadow-md transition cursor-pointer flex flex-col justify-between shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500">Profile Completion</span>
+            <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <UserCheck className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="my-2.5">
+            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono">
+              {profileScore}%
+            </div>
+            <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+              <div
+                className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                style={{ width: `${profileScore}%` }}
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-[11px] text-slate-500">
+            <span>{profileScore === 100 ? 'Verified Complete' : 'Add details'}</span>
+            <span className="text-blue-600 font-semibold group-hover:translate-x-0.5 transition-transform flex items-center">
+              <span>Edit Profile</span>
+              <ChevronRight className="h-3 w-3 ml-0.5" />
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* 5. Recommended Job Opportunities (Answering: Which job opportunities are relevant to me?) */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-              <Briefcase className="h-4 w-4 text-cyan-500" />
-              <span>Recommended Job Opportunities</span>
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Live vacancies evaluated against your verified profile. Match scores are estimates based on factual requirements.
-            </p>
+      {/* 3. Main Two-Column Layout (Matching JobHuntly / Flashjobs) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
+        {/* Left Column (2 Cols): Applications & Jobs */}
+        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+          {/* Recent Applications Card (JobHuntly style) */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Recent Applications</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Your latest tracked submissions and status updates.</p>
+              </div>
+              <button
+                onClick={() => onNavigateTab('applications')}
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center space-x-1"
+              >
+                <span>View All ({applications.length})</span>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            {recentApplications.length === 0 ? (
+              <div className="p-8 text-center border border-dashed border-slate-200 rounded-xl space-y-2">
+                <Briefcase className="h-8 w-8 text-slate-400 mx-auto" />
+                <p className="text-xs text-slate-600 font-medium">No applications saved yet.</p>
+                <p className="text-xs text-slate-400">Discover suitable roles and save or tailor applications here.</p>
+                <button
+                  onClick={() => onNavigateTab('jobs')}
+                  className="mt-2 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold"
+                >
+                  Find Jobs
+                </button>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {recentApplications.map(app => (
+                  <div
+                    key={app.id}
+                    onClick={() => onNavigateTab('applications')}
+                    className="py-3 flex items-center justify-between gap-3 hover:bg-slate-50/70 p-2 rounded-xl transition cursor-pointer"
+                  >
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-slate-700 shrink-0 text-sm">
+                        {app.company ? app.company[0].toUpperCase() : 'C'}
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{app.role}</h4>
+                        <div className="flex items-center space-x-2 text-[11px] text-slate-500 mt-0.5">
+                          <span>{app.company}</span>
+                          <span>·</span>
+                          <span>{app.location}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3 shrink-0">
+                      <span className="hidden sm:inline-block text-[11px] text-slate-400">
+                        {new Date(app.createdAt).toLocaleDateString()}
+                      </span>
+                      <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold capitalize ${
+                        app.status === 'INTERVIEWING'
+                          ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                          : app.status === 'OFFER_RECEIVED'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : app.status === 'SUBMITTED'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        {app.status.toLowerCase().replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <button
-            onClick={() => onNavigateTab('jobs')}
-            className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 hover:underline flex items-center space-x-1"
-          >
-            <span>Discover All Jobs</span>
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
+          {/* Recommended Job Opportunities */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Recommended Job Opportunities</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Match scores are estimates based on your verified skills and published requirements.
+                </p>
+              </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {highMatches.map(v => (
-            <div
-              key={v.id}
-              onClick={() => onSelectVacancy(v)}
-              className="p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/50 hover:shadow-md transition cursor-pointer flex flex-col justify-between space-y-4"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-cyan-300 font-mono text-[10px] uppercase">
-                    {v.source}
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    {v.remote && (
-                      <span className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 text-[10px] font-semibold">
-                        Remote
+              <button
+                onClick={() => onNavigateTab('jobs')}
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center space-x-1"
+              >
+                <span>Browse All Jobs</span>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {highMatches.map(v => (
+                <div
+                  key={v.id}
+                  onClick={() => onSelectVacancy(v)}
+                  className="p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-400 hover:shadow-md transition cursor-pointer flex flex-col justify-between space-y-3 shadow-xs"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] uppercase font-semibold">
+                        {v.source}
                       </span>
-                    )}
-                    <span className="px-2 py-0.5 rounded bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-400 font-mono text-xs font-bold">
-                      {v.matchEvaluation?.matchScore || 85}% match
+                      <div className="flex items-center space-x-1.5">
+                        {v.remote && (
+                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
+                            Remote
+                          </span>
+                        )}
+                        <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[11px] font-semibold">
+                          {v.matchEvaluation?.matchScore || 85}% match
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-900 line-clamp-1">
+                        {v.title}
+                      </h4>
+                      <div className="flex items-center space-x-1.5 text-xs text-slate-500 mt-1">
+                        <Building className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                        <span>{v.company}</span>
+                        <span>·</span>
+                        <MapPin className="h-3 w-3 shrink-0 text-slate-400" />
+                        <span className="truncate">{v.location}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span className="text-[11px] text-slate-500 truncate max-w-[180px]">
+                      {v.requirements?.[0] || 'Aligned with your skills'}
+                    </span>
+                    <span className="text-blue-600 font-semibold flex items-center space-x-1">
+                      <span>View Details</span>
+                      <ArrowRight className="h-3 w-3" />
                     </span>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-                <div>
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-white line-clamp-1">
-                    {v.title}
-                  </h4>
-                  <div className="flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    <Building className="h-3.5 w-3.5 shrink-0" />
-                    <span>{v.company}</span>
-                    <span>·</span>
-                    <MapPin className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{v.location}</span>
-                  </div>
+        {/* Right Column (1 Col): Next Step, Status & Assistant */}
+        <div className="space-y-6">
+          {/* Your Recommended Action Card */}
+          <div className="rounded-2xl p-5 sm:p-6 bg-white border border-slate-200/80 shadow-xs space-y-3">
+            <div className="flex items-center space-x-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-semibold uppercase tracking-wider">
+                Priority: {nextAction.priority}
+              </span>
+              <span className="text-xs font-semibold text-slate-500">
+                Your Recommended Action
+              </span>
+            </div>
+
+            <h3 className="text-base font-bold text-slate-900 tracking-tight">
+              {nextAction.title}
+            </h3>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              {nextAction.description}
+            </p>
+
+            <div className="pt-1 flex items-center space-x-1.5 text-xs text-slate-500">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+              <span>Reason: {nextAction.reason}</span>
+            </div>
+
+            <button
+              onClick={() => handleExecuteAction(nextAction.actionType)}
+              className="w-full mt-2 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition flex items-center justify-center space-x-1.5"
+            >
+              <span>{nextAction.actionLabel}</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          {/* Application Pipeline & Status Lifecycle */}
+          <div className="rounded-2xl p-5 sm:p-6 bg-white border border-slate-200/80 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
+                <TrendingUp className="h-4 w-4 text-blue-600" />
+                <span>Application Pipeline & Status Lifecycle</span>
+              </h3>
+              <button
+                onClick={() => onNavigateTab('applications')}
+                className="text-xs font-semibold text-blue-600 hover:underline"
+              >
+                Track
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {[
+                { label: 'Draft', count: summary?.pipeline.draft ?? 0, bg: 'bg-slate-50', text: 'text-slate-700' },
+                { label: 'Ready to Apply', count: summary?.pipeline.ready ?? 0, bg: 'bg-cyan-50', text: 'text-cyan-800' },
+                { label: 'Applied', count: summary?.pipeline.applied ?? 0, bg: 'bg-blue-50', text: 'text-blue-800' },
+                { label: 'Interview', count: summary?.pipeline.interview ?? 0, bg: 'bg-purple-50', text: 'text-purple-800' },
+                { label: 'Offer', count: summary?.pipeline.offer ?? 0, bg: 'bg-emerald-50', text: 'text-emerald-800' },
+                { label: 'Rejected', count: summary?.pipeline.rejected ?? 0, bg: 'bg-rose-50', text: 'text-rose-800' },
+              ].map(st => (
+                <div
+                  key={st.label}
+                  onClick={() => onNavigateTab('applications')}
+                  className={`p-2.5 rounded-xl ${st.bg} border border-slate-200/60 cursor-pointer flex items-center justify-between`}
+                >
+                  <span className="text-[11px] font-medium text-slate-600">{st.label}</span>
+                  <span className={`font-mono font-bold ${st.text}`}>{st.count}</span>
                 </div>
-              </div>
+              ))}
+            </div>
+          </div>
 
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-mono">
-                <span className="text-[11px] text-slate-400 truncate max-w-[200px]">
-                  {v.requirements?.[0] || 'High alignment with your skills'}
-                </span>
-                <span className="text-cyan-600 dark:text-cyan-400 font-semibold flex items-center space-x-1">
-                  <span>Inspect</span>
-                  <ArrowRight className="h-3 w-3" />
-                </span>
+          {/* AI Career Copilot Assistance */}
+          <div className="rounded-2xl p-5 sm:p-6 bg-white border border-slate-200/80 shadow-xs space-y-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                <Bot className="h-4 w-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-slate-900">AI Career Copilot</h4>
+                <p className="text-[10px] text-slate-500">Personal guidance based on your verified background</p>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* 6. Career Progress & AI Copilot Shortcuts (Answering: How can I improve my chances?) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Skills & Gap Analysis Snapshot */}
-        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 flex flex-col justify-between">
-          <div className="space-y-3">
+            <div className="space-y-1.5 pt-1">
+              {[
+                'Explain my best job matches and skill alignment',
+                'Help me prepare for my next interview with STAR stories',
+                'What should I improve in my resume to stand out?',
+              ].map((prompt, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => onAskCopilotPrompt(prompt)}
+                  className="w-full text-left p-2 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200/70 hover:border-blue-200 text-xs text-slate-700 hover:text-blue-700 transition flex items-center justify-between group"
+                >
+                  <span className="truncate pr-2">{prompt}</span>
+                  <ArrowRight className="h-3 w-3 text-slate-400 group-hover:text-blue-600 shrink-0" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Verified Career Twin Status */}
+          <div className="rounded-2xl p-5 sm:p-6 bg-white border border-slate-200/80 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-                <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              <h4 className="text-xs font-bold text-slate-900 flex items-center space-x-1.5">
+                <ShieldCheck className="h-4 w-4 text-emerald-600" />
                 <span>Verified Career Twin Status</span>
               </h4>
               <button
                 onClick={() => onNavigateTab('twin')}
-                className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 hover:underline"
+                className="text-xs font-semibold text-blue-600 hover:underline"
               >
-                Inspect Twin →
+                Inspect →
               </button>
             </div>
 
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Your profile is verified with zero-hallucination factual grounding. Tailored resumes strictly preserve your real employers and metrics.
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Your profile is verified with zero-hallucination grounding. Resumes only use authentic career facts.
             </p>
 
-            <div className="space-y-2 pt-2">
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-400">Verified Skills Count:</span>
-                <span className="font-mono font-bold text-slate-900 dark:text-white">{profile?.skills?.length || 0} skills</span>
+            <div className="space-y-1 text-xs pt-1">
+              <div className="flex justify-between text-slate-600">
+                <span>Verified Skills:</span>
+                <span className="font-semibold text-slate-900">{profile?.skills?.length || 0} skills</span>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-400">Recorded Experiences:</span>
-                <span className="font-mono font-bold text-slate-900 dark:text-white">{profile?.experiences?.length || 0} positions</span>
+              <div className="flex justify-between text-slate-600">
+                <span>Recorded Positions:</span>
+                <span className="font-semibold text-slate-900">{profile?.experiences?.length || 0} positions</span>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-400">Target Roles Configured:</span>
-                <span className="font-mono font-bold text-slate-900 dark:text-white">{preferences?.targetRoles?.length || 0} roles</span>
+              <div className="flex justify-between text-slate-600">
+                <span>Target Roles:</span>
+                <span className="font-semibold text-slate-900">{preferences?.targetRoles?.length || 0} configured</span>
               </div>
             </div>
-          </div>
 
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
             <button
               onClick={() => onNavigateTab('career_report')}
-              className="w-full py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:border-cyan-500 text-xs font-semibold text-slate-700 dark:text-slate-200 transition text-center"
+              className="w-full mt-2 py-2 rounded-xl border border-slate-200 hover:border-blue-400 text-xs font-semibold text-slate-700 hover:text-blue-600 transition"
             >
-              Generate Full Career Intelligence Report
+              Generate Full Gap Report
             </button>
-          </div>
-        </div>
-
-        {/* Right: AI Career Copilot Contextual Assistant */}
-        <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 to-[#0c142c] border border-cyan-500/20 shadow-md space-y-4">
-          <div className="flex items-center space-x-2.5">
-            <div className="p-2 rounded-xl bg-cyan-950 border border-cyan-500/30 text-cyan-400">
-              <Bot className="h-5 w-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white">AI Career Copilot</h4>
-              <p className="text-[11px] text-cyan-300">Context-aware strategy using your authorized career data</p>
-            </div>
-          </div>
-
-          <p className="text-xs text-slate-300 leading-relaxed">
-            Ask Copilot to analyze your match breakdown, coach you for interviews, or recommend high-impact resume improvements.
-          </p>
-
-          <div className="space-y-2 pt-1">
-            {[
-              'Explain my best job matches and skill alignment',
-              'Help me prepare for my next interview with STAR stories',
-              'What should I improve in my resume to stand out?',
-              'Which applications need my immediate attention?',
-            ].map((prompt, idx) => (
-              <button
-                key={idx}
-                onClick={() => onAskCopilotPrompt(prompt)}
-                className="w-full text-left p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-cyan-500/40 text-xs text-slate-200 hover:text-cyan-300 transition flex items-center justify-between group"
-              >
-                <span className="truncate pr-2">{prompt}</span>
-                <ArrowRight className="h-3 w-3 text-cyan-400 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all shrink-0" />
-              </button>
-            ))}
           </div>
         </div>
       </div>

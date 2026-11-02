@@ -534,13 +534,13 @@ export const SOURCE_REGISTRY: ConnectorDefinition[] = [
     fetchFn: () => fetchLeverBoard('spotify', 'Spotify'),
   },
   {
-    id: 'lever_netflix',
-    name: 'Netflix Careers',
-    company: 'Netflix',
+    id: 'lever_palantir',
+    name: 'Palantir Careers',
+    company: 'Palantir Technologies',
     type: 'ats_lever',
-    endpoint: 'https://api.lever.co/v0/postings/netflix',
+    endpoint: 'https://api.lever.co/v0/postings/palantir',
     rateLimitSeconds: 600,
-    fetchFn: () => fetchLeverBoard('netflix', 'Netflix'),
+    fetchFn: () => fetchLeverBoard('palantir', 'Palantir Technologies'),
   },
 
   // 3. Official Aggregator Connectors

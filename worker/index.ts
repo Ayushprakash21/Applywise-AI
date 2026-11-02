@@ -11,7 +11,7 @@ import { workerResumeEngine } from './resumeEngine.ts';
 import { workerJobDiscovery } from './jobDiscovery.ts';
 import { workerMatchingEngine } from './matchingEngine.ts';
 import { workerSubmissionAdapter } from './submissionAdapter.ts';
-import { initialVacancies, initialIntegrations } from '../src/data/seedData.ts';
+import { initialIntegrations } from '../src/data/seedData.ts';
 import { validateStateTransition } from '../src/utils/rules.ts';
 import { ApplicationRecord, ApplicationStatus } from '../src/types/index.ts';
 
@@ -1091,16 +1091,24 @@ app.post('/api/settings/emergency-stop', requireAuth, async (c) => {
 
 app.get('/api/vacancies', optionalAuth, async (c) => {
   const store: D1Store = c.get('store');
-  let vacancies = await store.getVacancies(100);
+  
+  // Search live jobs from live_jobs_cache
+  let searchRes = await store.searchLiveJobs({ limit: 50, sort: 'recent' });
 
-  // Auto-seed real initial vacancies if database is fresh
-  if (vacancies.length === 0) {
-    await store.cacheInitialVacanciesIfEmpty(initialVacancies);
-    vacancies = await store.getVacancies(100);
+  // If live cache is cold or empty, automatically run incremental sync from live providers
+  if (searchRes.total === 0) {
+    try {
+      await runIncrementalJobSync(store, { batchLimit: 4 });
+      searchRes = await store.searchLiveJobs({ limit: 50, sort: 'recent' });
+    } catch (syncErr) {
+      console.error('Initial live job sync error:', syncErr);
+    }
   }
 
+  const vacancies = searchRes.jobs;
+
   const user = c.get('user');
-  if (user) {
+  if (user && vacancies.length > 0) {
     const profile = await store.getProfile(user.id);
     const preferences = await store.getPreferences(user.id);
 
@@ -1130,7 +1138,13 @@ app.get('/api/vacancies', optionalAuth, async (c) => {
     }
   }
 
-  return c.json({ success: true, vacancies });
+  return c.json({
+    success: true,
+    vacancies,
+    total: searchRes.total,
+    isLive: true,
+    providerStatus: vacancies.length > 0 ? 'healthy' : 'empty_or_offline',
+  });
 });
 
 // ============================================================================
@@ -2045,10 +2059,10 @@ app.post('/api/integrity/verify', requireAuth, async (c) => {
     const twin = await store.getCareerDigitalTwin(user.id);
     const existingApplications = await store.getApplications(user.id);
 
-    // Look for vacancy in live jobs cache or seed vacancies
+    // Look for vacancy in live jobs cache or cached vacancies
     let vacancy = await store.getLiveJobById(vacancyId);
     if (!vacancy) {
-      vacancy = initialVacancies.find(v => v.id === vacancyId) || null;
+      vacancy = await store.getVacancyById(vacancyId);
     }
 
     const report = runCentralIntegrityAudit({

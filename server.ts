@@ -22,8 +22,10 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Cache real vacancy feeds without inserting fictional users
-authAndStore.cacheInitialVacanciesIfEmpty(initialVacancies);
+// Only seed mock fixtures if running in automated test mode
+if (process.env.NODE_ENV === 'test') {
+  authAndStore.cacheInitialVacanciesIfEmpty(initialVacancies);
+}
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
@@ -395,7 +397,18 @@ app.post('/api/settings/emergency-stop', requireAuth, (req: AuthenticatedRequest
 // ============================================================================
 
 app.get('/api/vacancies', optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
-  const vacancies = authAndStore.getVacancies(100);
+  let vacancies = authAndStore.getVacancies(100);
+  if (vacancies.length === 0) {
+    try {
+      const liveRes = await jobDiscovery.searchJobs({ limit: 25 });
+      if (liveRes.vacancies.length > 0) {
+        authAndStore.saveVacancies(liveRes.vacancies);
+        vacancies = authAndStore.getVacancies(100);
+      }
+    } catch (e) {
+      console.error('Initial live job discovery error:', e);
+    }
+  }
 
   // If user is logged in, attach match evaluation
   if (req.user) {

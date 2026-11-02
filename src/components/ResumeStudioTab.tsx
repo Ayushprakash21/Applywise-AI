@@ -59,11 +59,11 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
 
   if (!selectedApp || !profile) {
     return (
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-12 text-center text-slate-400">
-        <FileText className="mx-auto h-10 w-10 text-slate-600 mb-3" />
-        <h3 className="text-base font-semibold text-white">No Tailored Resumes Generated Yet</h3>
-        <p className="text-xs text-slate-400 mt-1">
-          Go to Job Discovery and select "Prepare Application" on any vacancy to generate an ATS-tailored resume.
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-12 text-center text-slate-500 shadow-xs">
+        <FileText className="mx-auto h-10 w-10 text-slate-400 mb-3" />
+        <h3 className="text-base font-semibold text-slate-900">No Tailored Resumes Generated Yet</h3>
+        <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+          Explore job opportunities and click "Prepare Application" on any role to generate an ATS-tailored resume.
         </p>
       </div>
     );
@@ -74,32 +74,32 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
   return (
     <div className="space-y-6">
       {/* Studio Header Toolbar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
         <div>
           <div className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold text-white tracking-tight">Resume & Document Studio</h1>
-            <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium flex items-center space-x-1">
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Resume & Cover Letter Studio</h1>
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium flex items-center space-x-1">
               <ShieldCheck className="h-3.5 w-3.5" />
-              <span>Truthfulness Audit: {resume.truthfulnessScore}/100</span>
+              <span>Verified Facts: {resume.truthfulnessScore}/100</span>
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Applicant Tracking System (ATS) optimized layout with guaranteed factual fidelity.
+          <p className="text-xs text-slate-500 mt-0.5">
+            ATS-optimized layout formatted for clarity, truthful experience, and readability.
           </p>
         </div>
 
         {/* Target Vacancy Selector */}
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center space-x-2 bg-slate-950/70 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs">
-            <span className="text-slate-400">Target Role:</span>
+          <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700">
+            <span className="text-slate-500">Target Role:</span>
             <select
               value={selectedAppId}
               onChange={e => setSelectedAppId(e.target.value)}
-              className="bg-transparent text-white font-medium focus:outline-none cursor-pointer"
+              className="bg-transparent text-slate-900 font-semibold focus:outline-none cursor-pointer"
             >
               {applications.map(app => (
-                <option key={app.id} value={app.id} className="bg-slate-900 text-white">
-                  {app.company} – {app.role} ({app.matchScore}%)
+                <option key={app.id} value={app.id}>
+                  {app.company} – {app.role} ({app.matchScore}% match)
                 </option>
               ))}
             </select>
@@ -108,26 +108,26 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
           <button
             onClick={() => onTailorResume({ applicationId: selectedApp.id })}
             disabled={isTailoring}
-            className="flex items-center space-x-1.5 rounded-xl border border-indigo-700/80 bg-indigo-950/40 px-3 py-2 text-xs font-semibold text-indigo-300 hover:bg-indigo-900/50 transition disabled:opacity-50"
+            className="flex items-center space-x-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition disabled:opacity-50"
           >
             <Sparkles className={`h-4 w-4 ${isTailoring ? 'animate-spin' : ''}`} />
-            <span>{isTailoring ? 'Tailoring with Gemini...' : 'Re-optimize with Gemini'}</span>
+            <span>{isTailoring ? 'Tailoring...' : 'Optimize with AI'}</span>
           </button>
 
           <button
             onClick={handleCopyText}
-            className="flex items-center space-x-1.5 rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition"
+            className="flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 shadow-xs transition"
           >
-            {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
-            <span>{copied ? 'Copied!' : 'Copy ATS Text'}</span>
+            {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 text-slate-500" />}
+            <span>{copied ? 'Copied!' : 'Copy Text'}</span>
           </button>
 
           <button
             onClick={handlePrint}
-            className="flex items-center space-x-1.5 rounded-xl bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-md hover:bg-indigo-500 transition"
+            className="flex items-center space-x-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition"
           >
             <Printer className="h-4 w-4" />
-            <span>Export / Print PDF</span>
+            <span>Print / PDF</span>
           </button>
         </div>
       </div>
@@ -137,13 +137,13 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
         {/* Left Sidebar: Document Meta & Truthfulness Checklist */}
         <div className="space-y-4">
           {/* View Switcher */}
-          <div className="flex rounded-xl border border-slate-800 bg-slate-900 p-1">
+          <div className="flex rounded-xl border border-slate-200 bg-slate-100 p-1">
             <button
               onClick={() => setActiveView('resume')}
               className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
                 activeView === 'resume'
-                  ? 'bg-indigo-600 text-white shadow'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-white text-blue-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Tailored Resume
@@ -152,8 +152,8 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
               onClick={() => setActiveView('cover_letter')}
               className={`flex-1 py-2 text-xs font-semibold rounded-lg transition ${
                 activeView === 'cover_letter'
-                  ? 'bg-indigo-600 text-white shadow'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-white text-blue-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Cover Letter
@@ -161,40 +161,34 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
           </div>
 
           {/* Audit Verification Card */}
-          <div className="rounded-2xl border border-emerald-900/40 bg-emerald-950/15 p-4 space-y-3">
-            <div className="flex items-center space-x-2 text-emerald-400 font-bold text-xs">
-              <ShieldCheck className="h-4 w-4" />
-              <span>Anti-Hallucination Audit</span>
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 space-y-3">
+            <div className="flex items-center space-x-2 text-emerald-800 font-bold text-xs">
+              <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              <span>Anti-Hallucination Guarantee</span>
             </div>
-            <div className="space-y-1.5 text-xs text-slate-300">
+            <div className="space-y-1.5 text-xs text-slate-700">
               <div className="flex items-center justify-between">
                 <span>Verified Fact Alignment:</span>
-                <span className="font-mono font-bold text-emerald-400">100%</span>
+                <span className="font-semibold text-emerald-700">100%</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Unverified Claims:</span>
-                <span className="font-mono text-emerald-400">0</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Version ID:</span>
-                <span className="font-mono text-[10px] text-slate-400 truncate max-w-[120px]">
-                  {resume.versionId}
-                </span>
+                <span>Fabricated Claims:</span>
+                <span className="font-semibold text-emerald-700">0</span>
               </div>
             </div>
-            <div className="pt-2 border-t border-emerald-900/30 text-[11px] text-emerald-300/80 leading-relaxed">
-              Every job title, employer, degree, and tool matches candidate's master record.
+            <div className="pt-2 border-t border-emerald-200/80 text-[11px] text-emerald-800 leading-relaxed">
+              Every job title, employer, period, and skill matches your authentic profile facts.
             </div>
           </div>
 
           {/* Keyword Targeting */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 space-y-3">
-            <h4 className="text-xs font-semibold text-white">Targeted ATS Keywords</h4>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-4 space-y-3 shadow-xs">
+            <h4 className="text-xs font-semibold text-slate-900">Targeted Role Keywords</h4>
             <div className="flex flex-wrap gap-1.5">
               {resume.targetedSkills.map((sk, i) => (
                 <span
                   key={i}
-                  className="text-[10px] px-2 py-0.5 rounded bg-indigo-950/60 text-indigo-300 border border-indigo-800/40 font-medium"
+                  className="text-[11px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/80 font-medium"
                 >
                   {sk}
                 </span>
@@ -205,19 +199,19 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
 
         {/* Right Preview Surface: Formatted A4 ATS Document */}
         <div className="lg:col-span-3">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 sm:p-10 shadow-2xl backdrop-blur-sm print:bg-white print:text-black print:border-none print:p-0">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-10 shadow-xs print:border-none print:p-0">
             {activeView === 'resume' ? (
               /* Clean ATS Resume Document */
-              <div className="max-w-3xl mx-auto space-y-6 text-slate-200 print:text-black">
+              <div className="max-w-3xl mx-auto space-y-6 text-slate-800 print:text-black">
                 {/* Header */}
-                <div className="border-b border-slate-800 print:border-black pb-5 text-center space-y-1">
-                  <h2 className="text-2xl font-bold tracking-tight text-white print:text-black">
+                <div className="border-b border-slate-200 print:border-black pb-5 text-center space-y-1">
+                  <h2 className="text-2xl font-bold tracking-tight text-slate-900 print:text-black">
                     {profile.fullName}
                   </h2>
-                  <p className="text-xs text-indigo-400 print:text-slate-800 font-semibold tracking-wide uppercase">
+                  <p className="text-xs text-blue-600 print:text-slate-800 font-semibold tracking-wide uppercase">
                     {resume.headline}
                   </p>
-                  <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400 print:text-slate-700 pt-1">
+                  <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-500 print:text-slate-700 pt-1">
                     <span>{profile.email}</span>
                     <span>·</span>
                     <span>{profile.phone}</span>
@@ -234,27 +228,27 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
 
                 {/* Professional Summary */}
                 <div className="space-y-1.5">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-400 print:text-black border-b border-slate-800 print:border-black pb-1">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 print:text-black border-b border-slate-200 print:border-black pb-1">
                     Professional Summary
                   </h3>
-                  <p className="text-xs leading-relaxed text-slate-300 print:text-slate-900">
+                  <p className="text-xs leading-relaxed text-slate-700 print:text-slate-900">
                     {resume.professionalSummary}
                   </p>
                 </div>
 
                 {/* Core Competencies */}
                 <div className="space-y-1.5">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-400 print:text-black border-b border-slate-800 print:border-black pb-1">
-                    Core Technical Competencies
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 print:text-black border-b border-slate-200 print:border-black pb-1">
+                    Core Competencies
                   </h3>
-                  <p className="text-xs leading-relaxed text-slate-300 print:text-slate-900 font-medium">
+                  <p className="text-xs leading-relaxed text-slate-700 print:text-slate-900 font-medium">
                     {resume.targetedSkills.join(' • ')}
                   </p>
                 </div>
 
                 {/* Experience */}
                 <div className="space-y-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-400 print:text-black border-b border-slate-800 print:border-black pb-1">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 print:text-black border-b border-slate-200 print:border-black pb-1">
                     Professional Experience
                   </h3>
 
@@ -262,14 +256,14 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
                     {resume.tailoredExperiences.map((exp, idx) => (
                       <div key={idx} className="space-y-1.5">
                         <div className="flex justify-between items-baseline text-xs">
-                          <span className="font-bold text-white print:text-black text-sm">
-                            {exp.role} <span className="text-indigo-400 print:text-slate-700 font-normal">| {exp.company}</span>
+                          <span className="font-bold text-slate-900 print:text-black text-sm">
+                            {exp.role} <span className="text-blue-600 print:text-slate-700 font-normal">| {exp.company}</span>
                           </span>
-                          <span className="font-mono text-slate-400 print:text-slate-600 text-[11px]">
+                          <span className="text-slate-500 print:text-slate-600 text-[11px]">
                             {exp.period}
                           </span>
                         </div>
-                        <ul className="space-y-1 text-xs text-slate-300 print:text-slate-800 pl-4 list-disc">
+                        <ul className="space-y-1 text-xs text-slate-700 print:text-slate-800 pl-4 list-disc">
                           {exp.bulletPoints.map((bp, bIdx) => (
                             <li key={bIdx} className="leading-relaxed">
                               {bp}
@@ -283,10 +277,10 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
 
                 {/* Education */}
                 <div className="space-y-1.5">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-400 print:text-black border-b border-slate-800 print:border-black pb-1">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 print:text-black border-b border-slate-200 print:border-black pb-1">
                     Education
                   </h3>
-                  <div className="space-y-1 text-xs text-slate-300 print:text-slate-800">
+                  <div className="space-y-1 text-xs text-slate-700 print:text-slate-800">
                     {resume.education.map((edu, i) => (
                       <div key={i}>{edu}</div>
                     ))}
@@ -296,10 +290,10 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
                 {/* Certifications */}
                 {resume.certifications.length > 0 && (
                   <div className="space-y-1.5">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-400 print:text-black border-b border-slate-800 print:border-black pb-1">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 print:text-black border-b border-slate-200 print:border-black pb-1">
                       Certifications
                     </h3>
-                    <div className="space-y-1 text-xs text-slate-300 print:text-slate-800">
+                    <div className="space-y-1 text-xs text-slate-700 print:text-slate-800">
                       {resume.certifications.map((cert, i) => (
                         <div key={i}>{cert}</div>
                       ))}
@@ -309,14 +303,14 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
               </div>
             ) : (
               /* Cover Letter Document */
-              <div className="max-w-2xl mx-auto space-y-6 text-slate-200 print:text-black text-xs leading-relaxed whitespace-pre-wrap font-sans">
-                <div className="border-b border-slate-800 pb-3 text-slate-400">
-                  <div className="font-bold text-white text-sm">{profile.fullName}</div>
+              <div className="max-w-2xl mx-auto space-y-6 text-slate-800 print:text-black text-xs leading-relaxed whitespace-pre-wrap font-sans">
+                <div className="border-b border-slate-200 pb-3 text-slate-500">
+                  <div className="font-bold text-slate-900 text-sm">{profile.fullName}</div>
                   <div>{profile.email} · {profile.location}</div>
-                  <div className="mt-2 text-indigo-400">Application for: {selectedApp.role} at {selectedApp.company}</div>
+                  <div className="mt-2 text-blue-600 font-semibold">Application for: {selectedApp.role} at {selectedApp.company}</div>
                 </div>
-                <div className="text-slate-300 leading-relaxed font-normal">
-                  {selectedApp.coverLetter || 'No cover letter drafted for this application.'}
+                <div className="text-slate-700 leading-relaxed font-normal">
+                  {selectedApp.coverLetter || 'No cover letter drafted for this application yet.'}
                 </div>
               </div>
             )}

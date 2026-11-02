@@ -263,10 +263,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           <div className="p-4 rounded-xl border border-emerald-900/40 bg-emerald-950/15 text-slate-300 text-xs leading-relaxed space-y-1.5">
             <div className="flex items-center space-x-2 text-emerald-400 font-semibold text-sm">
               <ShieldCheck className="h-4 w-4" />
-              <span>Orion Truthfulness & Compliance Guard</span>
+              <span>ApplyWise AI Truthfulness & Compliance Guard</span>
             </div>
             <p>
-              Orion enforces zero-hallucination resume tailoring. All dates, employer names, degrees, and technical skills in tailored documents are derived exclusively from your verified master profile. The agent never fabricates answers to legal declarations or screening questions.
+              ApplyWise AI enforces zero-hallucination resume tailoring. All dates, employer names, degrees, and technical skills in tailored documents are derived exclusively from your verified master profile. The platform never fabricates answers to legal declarations or screening questions.
             </p>
           </div>
         </div>

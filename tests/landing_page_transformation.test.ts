@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-test('Landing Page Transformation - Daoism Systems Architectural Integrity', async (t) => {
+test('Landing Page Light-Theme Restoration & Architectural Integrity', async (t) => {
   const landingPagePath = path.resolve(process.cwd(), 'src/components/LandingPage.tsx');
   const careerVisualPath = path.resolve(process.cwd(), 'src/components/CareerNetworkVisual.tsx');
   const founderSectionPath = path.resolve(process.cwd(), 'src/components/FounderSection.tsx');
@@ -19,29 +19,29 @@ test('Landing Page Transformation - Daoism Systems Architectural Integrity', asy
   const founderSource = fs.readFileSync(founderSectionPath, 'utf8');
   const cssSource = fs.readFileSync(indexCssPath, 'utf8');
 
-  await t.test('Visual Styling & Theme Architecture (Daoism Systems Aesthetic)', () => {
-    // Dark background #030712 / #050811
-    assert.match(landingSource, /bg-\[#030712\]/, 'Landing page should use deep midnight obsidian #030712');
-    assert.match(landingSource, /bg-grid-cyber/, 'Hero should include subtle cyber grid');
-    assert.match(cssSource, /bg-grid-cyber/, 'CSS should define bg-grid-cyber utility');
-    assert.match(cssSource, /dark-glass/, 'CSS should define dark-glass utility');
+  await t.test('Visual Styling & Theme Architecture (Light-Theme Aesthetic)', () => {
+    // Light background #F8FAFC and #FFFFFF
+    assert.match(landingSource, /bg-\[#F8FAFC\]/, 'Landing page should use light background #F8FAFC');
+    assert.match(landingSource, /bg-white/, 'Landing page sections should use clean white surfaces');
+    assert.match(landingSource, /text-slate-900/, 'Headings should use dark high-contrast slate text');
+    assert.match(cssSource, /glass-card/, 'CSS should define glass-card utility');
   });
 
   await t.test('Hero Section Narrative and Copy Requirements', () => {
-    // Monospaced badge
-    assert.match(landingSource, /APPLYWISE AI 2\.0 · TRUTHFUL CAREER INTELLIGENCE/, 'Must feature monospaced system pill');
-    // Primary headline
-    assert.match(landingSource, /Your next chapter/, 'Hero headline part 1');
+    // System pill
+    assert.match(landingSource, /APPLYWISE AI 2\.0 · TRUTHFUL CAREER INTELLIGENCE/, 'Must feature system pill');
+    // Primary headline: Your next career move starts with clarity.
+    assert.match(landingSource, /Your next career move/, 'Hero headline part 1');
     assert.match(landingSource, /starts with clarity\./, 'Hero headline part 2');
     // Supporting copy
-    assert.match(landingSource, /maps verified experience to live opportunities with zero hallucination/i, 'Hero narrative copy');
+    assert.match(landingSource, /Bring your experience, job opportunities, applications, and career goals together in one intelligent workspace/i, 'Hero narrative copy');
     // Search capsule
     assert.match(landingSource, /handleSearchSubmit/, 'Search form must be wired to handleSearchSubmit');
     assert.match(landingSource, /onSearch/, 'Search submission must invoke onSearch');
   });
 
   await t.test('Career Network Constellation Visual Integration', () => {
-    assert.match(landingSource, /<CareerNetworkVisual \/>/, 'Landing page must embed CareerNetworkVisual');
+    assert.match(landingSource, /<CareerNetworkVisual theme="light" \/>/, 'Landing page must embed CareerNetworkVisual with light theme');
     // Check performance optimizations in CareerNetworkVisual
     assert.match(careerSource, /IntersectionObserver/, 'CareerNetworkVisual must pause rendering when offscreen');
     assert.match(careerSource, /visibilitychange/, 'CareerNetworkVisual must pause on visibilitychange');
@@ -80,7 +80,7 @@ test('Landing Page Transformation - Daoism Systems Architectural Integrity', asy
   });
 
   await t.test('Founder Story & Authority Verification', () => {
-    assert.match(landingSource, /<FounderSection theme="dark"/, 'Embeds FounderSection with dark theme');
+    assert.match(landingSource, /<FounderSection theme="light"/, 'Embeds FounderSection with light theme');
     assert.match(founderSource, /https:\/\/www\.linkedin\.com\/in\/ayushprakash21\//, 'Founder section must maintain exact personal LinkedIn profile');
     assert.match(founderSource, /Ayush Prakash/, 'Founder name preserved');
   });

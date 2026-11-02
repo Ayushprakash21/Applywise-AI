@@ -86,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="font-semibold tracking-tight text-white text-base">ORION</span>
+              <span className="font-semibold tracking-tight text-white text-base">ApplyWise AI</span>
               <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                 CAREER AGENT
               </span>

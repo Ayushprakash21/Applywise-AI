@@ -19,7 +19,11 @@ import {
   Menu,
   X as CloseIcon,
   Shield,
-  FileText
+  FileText,
+  Bookmark,
+  Send,
+  Briefcase,
+  AlertCircle
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
 import { JobVacancy } from '../types/index.ts';
@@ -61,37 +65,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col selection:bg-cyan-500 selection:text-black">
-      {/* Top Navigation - Fixed / Sticky Dark Glass */}
-      <header className="sticky top-0 z-50 bg-[#030712]/80 backdrop-blur-xl border-b border-white/10 transition-colors">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans">
+      {/* Top Navigation - Clean Consumer SaaS Header */}
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-colors shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <BrandLogo
-            variant="dark"
+            variant="light"
             size="md"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           />
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-7 text-xs font-mono uppercase tracking-wider text-slate-400">
-            <a href="#network" className="hover:text-cyan-400 transition-colors">
-              Career Graph
+          <nav className="hidden lg:flex items-center space-x-7 text-xs font-semibold text-slate-600">
+            <a href="#network" className="hover:text-blue-600 transition-colors">
+              Skill Alignment
             </a>
-            <a href="#journey" className="hover:text-cyan-400 transition-colors">
-              Journey
+            <a href="#journey" className="hover:text-blue-600 transition-colors">
+              How It Works
             </a>
-            <a href="#cockpit" className="hover:text-cyan-400 transition-colors">
-              Cockpit
+            <a href="#cockpit" className="hover:text-blue-600 transition-colors">
+              Job Match Preview
             </a>
-            <a href="#integrity" className="hover:text-cyan-400 transition-colors">
-              Integrity Engine
+            <a href="#integrity" className="hover:text-blue-600 transition-colors">
+              Integrity Standard
             </a>
-            <a href="#jobs" className="hover:text-cyan-400 transition-colors">
+            <a href="#jobs" className="hover:text-blue-600 transition-colors">
               Live Vacancies
             </a>
             {onOpenPricing && (
               <button
                 onClick={onOpenPricing}
-                className="hover:text-cyan-400 transition-colors uppercase tracking-wider"
+                className="hover:text-blue-600 transition-colors font-semibold"
               >
                 Pricing
               </button>
@@ -99,9 +103,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {onOpenAbout && (
               <button
                 onClick={onOpenAbout}
-                className="hover:text-cyan-400 transition-colors uppercase tracking-wider"
+                className="hover:text-blue-600 transition-colors font-semibold"
               >
-                About
+                About Us
               </button>
             )}
           </nav>
@@ -110,13 +114,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="hidden sm:flex items-center space-x-3">
             <button
               onClick={() => onOpenAuth('login')}
-              className="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 transition-colors"
             >
               Sign In
             </button>
             <button
               onClick={() => onOpenAuth('signup')}
-              className="relative group px-5 py-2.5 rounded-xl text-xs font-bold text-black bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 shadow-[0_0_20px_-3px_rgba(6,182,212,0.4)] transition-all flex items-center space-x-1.5"
+              className="group px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-500/20 transition-all flex items-center space-x-1.5"
             >
               <span>Get Started Free</span>
               <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -126,7 +130,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Mobile menu trigger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 text-slate-400 hover:text-white transition-colors"
+            className="lg:hidden p-2 text-slate-600 hover:text-slate-900 transition-colors"
             aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? <CloseIcon className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -135,39 +139,39 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         {/* Mobile dropdown drawer */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-[#090d1a] border-b border-white/10 px-6 py-6 space-y-4 font-mono text-xs uppercase tracking-wider text-slate-300 animate-in fade-in slide-in-from-top-2">
+          <div className="lg:hidden bg-white border-b border-slate-200 px-6 py-6 space-y-4 text-xs font-semibold text-slate-700 shadow-xl animate-in fade-in slide-in-from-top-2">
             <a
               href="#network"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-cyan-400"
+              className="block py-2 hover:text-blue-600"
             >
-              Career Graph
+              Skill Alignment
             </a>
             <a
               href="#journey"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-cyan-400"
+              className="block py-2 hover:text-blue-600"
             >
-              Journey
+              How It Works
             </a>
             <a
               href="#cockpit"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-cyan-400"
+              className="block py-2 hover:text-blue-600"
             >
-              Cockpit
+              Job Match Preview
             </a>
             <a
               href="#integrity"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-cyan-400"
+              className="block py-2 hover:text-blue-600"
             >
-              Integrity Engine
+              Integrity Standard
             </a>
             <a
               href="#jobs"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-cyan-400"
+              className="block py-2 hover:text-blue-600"
             >
               Live Vacancies
             </a>
@@ -177,7 +181,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenPricing();
                 }}
-                className="block w-full text-left py-2 hover:text-cyan-400"
+                className="block w-full text-left py-2 hover:text-blue-600"
               >
                 Pricing
               </button>
@@ -188,18 +192,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenAbout();
                 }}
-                className="block w-full text-left py-2 hover:text-cyan-400"
+                className="block w-full text-left py-2 hover:text-blue-600"
               >
-                About
+                About Us
               </button>
             )}
-            <div className="pt-4 border-t border-white/10 flex flex-col space-y-2">
+            <div className="pt-4 border-t border-slate-100 flex flex-col space-y-2">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onOpenAuth('login');
                 }}
-                className="w-full py-2.5 rounded-lg border border-white/10 text-center font-semibold text-slate-200"
+                className="w-full py-2.5 rounded-xl border border-slate-200 text-center font-semibold text-slate-700 hover:bg-slate-50"
               >
                 Sign In
               </button>
@@ -208,7 +212,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenAuth('signup');
                 }}
-                className="w-full py-2.5 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-black font-bold text-center"
+                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-center shadow-xs"
               >
                 Get Started Free
               </button>
@@ -218,86 +222,77 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-16 pb-20 md:pt-24 md:pb-32 bg-grid-cyber">
-        {/* Ambient atmospheric glows */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-cyan-600/15 via-blue-600/10 to-transparent rounded-full blur-[120px] pointer-events-none -z-10" />
-        <div className="absolute -top-20 left-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none -z-10" />
-
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center space-y-8">
-          {/* Monospaced System Pill */}
-          <div className="inline-flex items-center space-x-2.5 px-4 py-1.5 rounded-full bg-cyan-950/40 border border-cyan-500/30 text-cyan-300 text-xs font-mono tracking-wider shadow-[0_0_15px_-3px_rgba(6,182,212,0.3)]">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
-            </span>
+      <section className="relative overflow-hidden pt-12 pb-16 md:pt-20 md:pb-24 bg-white border-b border-slate-200/80">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-6 sm:space-y-7">
+          {/* Friendly System Pill */}
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold shadow-xs">
+            <Sparkles className="h-3.5 w-3.5 text-blue-600" />
             <span>APPLYWISE AI 2.0 · TRUTHFUL CAREER INTELLIGENCE</span>
           </div>
 
           {/* Main Hero Headline */}
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-white tracking-tight leading-[1.08]">
-            Your next chapter <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-300">
-              starts with clarity.
-            </span>
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+            Your next career move <br />
+            <span className="text-blue-600">starts with clarity.</span>
           </h1>
 
           {/* Subheading */}
-          <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-400 font-normal leading-relaxed">
-            A career intelligence platform that maps verified experience to live opportunities with zero hallucination. Built for engineers, operators, and leaders who value substance over noise.
+          <p className="max-w-2xl mx-auto text-sm sm:text-base md:text-lg text-slate-600 leading-relaxed font-normal">
+            Bring your experience, job opportunities, applications, and career goals together in one intelligent workspace. Make informed career decisions with a clearer view of your next step.
           </p>
 
           {/* Dual CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <button
               onClick={() => onOpenAuth('signup')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black font-bold text-sm rounded-xl shadow-[0_0_30px_-5px_rgba(6,182,212,0.5)] transition-all flex items-center justify-center space-x-2"
+              className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl shadow-sm shadow-blue-500/20 transition-all flex items-center justify-center space-x-2"
             >
               <span>Get Started Free</span>
               <ArrowRight className="h-4 w-4" />
             </button>
             <a
               href="#cockpit"
-              className="w-full sm:w-auto px-8 py-3.5 bg-white/5 hover:bg-white/10 border border-white/15 text-slate-300 hover:text-white font-semibold text-sm rounded-xl backdrop-blur-md transition-colors flex items-center justify-center space-x-2"
+              className="w-full sm:w-auto px-8 py-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 font-semibold text-sm rounded-xl transition-colors flex items-center justify-center space-x-2 shadow-xs"
             >
-              <span>Explore the Platform</span>
+              <span>Explore Job Match</span>
               <ChevronRight className="h-4 w-4 text-slate-400" />
             </a>
           </div>
 
           {/* Interactive Search Capsule */}
-          <div className="max-w-2xl mx-auto pt-6 px-2 sm:px-0">
+          <div className="max-w-2xl mx-auto pt-4 px-2 sm:px-0">
             <form
               onSubmit={handleSearchSubmit}
-              className="relative flex flex-col sm:flex-row items-stretch sm:items-center p-1.5 sm:p-2 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl shadow-2xl focus-within:border-cyan-500/60 transition-all gap-2"
+              className="relative flex flex-col sm:flex-row items-stretch sm:items-center p-1.5 sm:p-2 rounded-2xl bg-white border border-slate-200 shadow-md focus-within:border-blue-500 transition-all gap-2"
             >
               <div className="flex items-center min-w-0 flex-1">
-                <Search className="h-5 w-5 text-cyan-400 ml-2.5 sm:ml-3 shrink-0" />
+                <Search className="h-5 w-5 text-slate-400 ml-2.5 sm:ml-3 shrink-0" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search by title, skill, or tech stack..."
-                  className="w-full min-w-0 px-2.5 sm:px-3 py-2 text-xs sm:text-sm text-white placeholder:text-slate-500 outline-none bg-transparent"
+                  placeholder="Search by title, skill, or role (e.g. Product Manager, Go, Staff Frontend)..."
+                  className="w-full min-w-0 px-2.5 sm:px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none bg-transparent"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full sm:w-auto px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-black rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-cyan-500/20 shrink-0 transition"
+                className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-xs shrink-0 transition"
               >
                 Find Jobs
               </button>
             </form>
 
             {/* Popular Filter Pills */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs font-mono text-slate-400">
-              <span className="text-slate-500">POPULAR:</span>
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-3 text-xs text-slate-600">
+              <span className="font-semibold text-slate-400">Popular:</span>
               {[
-                'Distributed Systems',
-                'Product Strategy',
-                'TypeScript',
-                'Cloudflare Workers',
-                'AI Engineering',
-                'Staff Frontend',
+                'Software Engineer',
+                'Product Manager',
+                'Data Analyst',
+                'Marketing',
+                'DevOps',
+                'Customer Success'
               ].map(tag => (
                 <button
                   key={tag}
@@ -306,7 +301,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     setSearchQuery(tag);
                     onSearch(tag);
                   }}
-                  className="px-2.5 py-1 rounded-md bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-cyan-500/40 text-slate-300 hover:text-cyan-300 transition-all text-[11px]"
+                  className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-700 text-xs font-medium transition shadow-xs"
                 >
                   {tag}
                 </button>
@@ -316,103 +311,110 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
 
         {/* Visual Graph Section Anchor */}
-        <div id="network" className="mt-16 max-w-6xl mx-auto px-4 sm:px-6">
-          <CareerNetworkVisual />
+        <div id="network" className="mt-12 max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="rounded-2xl bg-white border border-slate-200/90 p-4 sm:p-6 shadow-xs">
+            <div className="mb-3 text-left">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                <Network className="h-4 w-4 text-blue-600" />
+                <span>Interactive Skill Alignment</span>
+              </h3>
+              <p className="text-xs text-slate-500">
+                Visualize how verified skills map directly to live market opportunities.
+              </p>
+            </div>
+            <CareerNetworkVisual theme="light" />
+          </div>
         </div>
       </section>
 
-      {/* Section A: The Career Network Constellation */}
-      <section className="py-24 bg-[#050811] border-y border-white/10 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-16">
-          <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="text-cyan-400 font-mono text-xs tracking-widest uppercase">
-              // Paradigm Shift
+      {/* Section A: 3 Core Product Pillars */}
+      <section className="py-16 sm:py-20 bg-white border-b border-slate-200/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
+          <div className="text-center max-w-3xl mx-auto space-y-2.5">
+            <span className="text-blue-600 font-semibold text-xs tracking-wider uppercase">
+              Why Job Seekers Choose ApplyWise AI
             </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              From fragmented resumes <br />
-              to an interconnected career graph.
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Honest, simple tools to manage your entire search.
             </h2>
-            <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
-              Traditional job searching relies on throwing flat documents into automated keyword black holes. ApplyWise AI models your career as an active, verified knowledge graph.
+            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-2xl mx-auto">
+              No buzzwords, no invented experience, and no spammy auto-submissions. Built for real people who value substance and truthfulness.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Card 1 */}
-            <div className="group relative p-8 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-cyan-500/40 backdrop-blur-xl transition-all duration-300 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-cyan-950/60 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-                  <Network className="h-6 w-6" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            {/* Pillar 1 */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition">
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+                  <FileText className="h-5 w-5" />
                 </div>
-                <div className="space-y-1">
-                  <span className="font-mono text-[10px] text-cyan-400 tracking-widest uppercase">01 / Foundation</span>
-                  <h3 className="text-xl font-bold text-white">Career Digital Twin</h3>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900">Truthful Resume Tailoring</h3>
+                  <p className="text-slate-600 text-xs leading-relaxed mt-1">
+                    Every tailored resume and bullet point is strictly derived from your actual experience. We never fabricate employers, dates, or credentials.
+                  </p>
                 </div>
-                <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                  Your accomplishments, verified projects, core competencies, and career trajectory persist as a living digital twin—grounded strictly in your authentic history.
-                </p>
               </div>
-              <div className="pt-6 mt-6 border-t border-white/5 flex items-center space-x-2 text-cyan-400 font-mono text-xs">
+              <div className="pt-3 border-t border-slate-200 flex items-center space-x-2 text-blue-600 text-xs font-semibold">
                 <CheckCircle2 className="h-4 w-4" />
                 <span>Zero AI hallucinations</span>
               </div>
             </div>
 
-            {/* Card 2 */}
-            <div className="group relative p-8 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-cyan-500/40 backdrop-blur-xl transition-all duration-300 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-950/60 border border-blue-500/30 flex items-center justify-center text-blue-400">
-                  <Globe className="h-6 w-6" />
+            {/* Pillar 2 */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition">
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                  <Globe className="h-5 w-5" />
                 </div>
-                <div className="space-y-1">
-                  <span className="font-mono text-[10px] text-blue-400 tracking-widest uppercase">02 / Sourcing</span>
-                  <h3 className="text-xl font-bold text-white">Live Multi-Board Discovery</h3>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900">Verified Job Feeds</h3>
+                  <p className="text-slate-600 text-xs leading-relaxed mt-1">
+                    Live openings gathered directly from official hiring boards (Remotive, Arbeitnow, Jobicy). No dead links, ghost openings, or recycled postings.
+                  </p>
                 </div>
-                <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                  Direct edge integration with primary vacancy feeds (Remotive, Arbeitnow, Jobicy). No dead links, no ghost postings, and zero speculative scraped listings.
-                </p>
               </div>
-              <div className="pt-6 mt-6 border-t border-white/5 flex items-center space-x-2 text-blue-400 font-mono text-xs">
+              <div className="pt-3 border-t border-slate-200 flex items-center space-x-2 text-emerald-600 text-xs font-semibold">
                 <CheckCircle2 className="h-4 w-4" />
-                <span>Synchronized edge cache</span>
+                <span>Real active listings</span>
               </div>
             </div>
 
-            {/* Card 3 */}
-            <div className="group relative p-8 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-cyan-500/40 backdrop-blur-xl transition-all duration-300 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-indigo-950/60 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-                  <ShieldCheck className="h-6 w-6" />
+            {/* Pillar 3 */}
+            <div className="p-6 sm:p-7 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition">
+              <div className="space-y-3">
+                <div className="w-11 h-11 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600">
+                  <Briefcase className="h-5 w-5" />
                 </div>
-                <div className="space-y-1">
-                  <span className="font-mono text-[10px] text-indigo-400 tracking-widest uppercase">03 / Verification</span>
-                  <h3 className="text-xl font-bold text-white">Integrity Verification Engine</h3>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900">Application Tracker</h3>
+                  <p className="text-slate-600 text-xs leading-relaxed mt-1">
+                    Keep your active submissions, interview stages, and follow-ups in one clean, straightforward workspace that you control completely.
+                  </p>
                 </div>
-                <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                  Every match score and tailored resume is audited by a verification pipeline that enforces complete truthfulness before any document is generated.
-                </p>
               </div>
-              <div className="pt-6 mt-6 border-t border-white/5 flex items-center space-x-2 text-indigo-400 font-mono text-xs">
+              <div className="pt-3 border-t border-slate-200 flex items-center space-x-2 text-indigo-600 text-xs font-semibold">
                 <CheckCircle2 className="h-4 w-4" />
-                <span>Mathematical fact-checking</span>
+                <span>Clear interview tracking</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Section B: From Experience to Opportunity (The 6-Stage Journey) */}
-      <section id="journey" className="py-24 bg-[#030712] relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-16">
-          <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="text-cyan-400 font-mono text-xs tracking-widest uppercase">
-              // Systematic Process
+      {/* Section B: How It Works (The 6-Stage Journey) */}
+      <section id="journey" className="py-16 sm:py-20 bg-[#F8FAFC] border-b border-slate-200/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
+          <div className="text-center max-w-3xl mx-auto space-y-2.5">
+            <span className="text-blue-600 font-semibold text-xs tracking-wider uppercase">
+              Step-by-Step Guidance
             </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              From experience to opportunity.
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              From raw resume to tracked applications.
             </h2>
-            <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
-              A structured 6-stage pipeline built to convert raw career history into verified, high-impact job applications.
+            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+              A transparent, stress-free process designed to help you organize your career search in minutes.
             </p>
           </div>
 
@@ -422,61 +424,61 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 num: '01',
                 title: 'Resume Ingestion',
                 subtitle: 'Zero-loss extraction',
-                desc: 'Upload PDF or DOCX resumes. The sandboxed parser extracts genuine employment periods, technologies, and demonstrable impact.',
-                badge: 'PDF.js & XML Parser',
+                desc: 'Upload your PDF or Word resume. Our parser securely extracts your verified employment periods, skills, and accomplishments.',
+                badge: 'PDF.js & Word',
               },
               {
                 num: '02',
                 title: 'Twin Construction',
-                subtitle: 'Knowledge modeling',
-                desc: 'Synthesizes your experience into structured skill nodes, verified competencies, seniority indicators, and geographic preferences.',
-                badge: 'Structured Graph',
+                subtitle: 'Profile modeling',
+                desc: 'Organizes your career background into structured competencies, seniority indicators, and target preferences.',
+                badge: 'Structured Facts',
               },
               {
                 num: '03',
                 title: 'Live Vacancy Stream',
-                subtitle: 'Global opportunity matching',
-                desc: 'Scans live multi-source engineering, product, and leadership openings worldwide across verified employer feeds.',
-                badge: 'Sub-second Discovery',
+                subtitle: 'Opportunity matching',
+                desc: 'Discovers verified engineering, product, and leadership openings across top global hiring feeds.',
+                badge: 'Real Openings',
               },
               {
                 num: '04',
                 title: 'Evidence-Based Fit',
-                subtitle: 'Transparent compatibility',
-                desc: 'Computes multi-dimensional match scores with an explicit gap breakdown. Know exactly why a vacancy fits before applying.',
-                badge: 'Zero Speculation',
+                subtitle: 'Clear compatibility',
+                desc: 'Evaluates role requirements against your verified skills with clear, understandable explanations.',
+                badge: 'Clear Breakdown',
               },
               {
                 num: '05',
                 title: 'Truthful Tailoring',
                 subtitle: 'ATS-grade optimization',
-                desc: 'Re-aligns real achievements to vacancy requirements without inventing unearned titles, buzzwords, or phantom metrics.',
+                desc: 'Formats your authentic accomplishments to match vacancy requirements without inventing unearned titles or skills.',
                 badge: 'Clean DOCX Export',
               },
               {
                 num: '06',
                 title: 'Tracked Submission',
-                subtitle: 'Audit trail & tracking',
-                desc: 'Prefills application portals and logs direct submissions with verifiable timestamps and application status lifecycle.',
-                badge: 'Complete Audit Log',
+                subtitle: 'Application progress',
+                desc: 'Keeps track of where you applied, interview dates, and next steps in a clean personal board.',
+                badge: 'Organized Tracker',
               },
             ].map(stage => (
               <div
                 key={stage.num}
-                className="relative p-6 sm:p-8 rounded-2xl bg-[#090d1a]/60 border border-white/10 hover:border-cyan-500/30 transition-all group flex flex-col justify-between"
+                className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-blue-300 hover:shadow-md transition-all flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/5">
-                    <span className="font-mono text-2xl font-black text-cyan-400/40 group-hover:text-cyan-400 transition-colors">
+                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                    <span className="font-mono text-2xl font-black text-blue-600">
                       {stage.num}
                     </span>
-                    <span className="font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100">
                       {stage.badge}
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-1">{stage.title}</h3>
-                  <div className="font-mono text-xs text-cyan-400/80 mb-3">{stage.subtitle}</div>
-                  <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">{stage.desc}</p>
+                  <h3 className="text-base font-bold text-slate-900 mb-1">{stage.title}</h3>
+                  <div className="text-xs font-semibold text-blue-600 mb-2">{stage.subtitle}</div>
+                  <p className="text-slate-600 text-xs leading-relaxed">{stage.desc}</p>
                 </div>
               </div>
             ))}
@@ -484,138 +486,186 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* Section C: Product Demonstration / Interactive Cockpit */}
-      <section id="cockpit" className="py-24 bg-[#050811] border-y border-white/10 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
-          <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="text-cyan-400 font-mono text-xs tracking-widest uppercase">
-              // Platform Preview
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-              The Application Intelligence Cockpit.
+      {/* Section C: Phase 3 Redesigned Match Experience */}
+      <section id="cockpit" className="py-16 sm:py-20 bg-white border-b border-slate-200/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10">
+          {/* Phase 3 Required Page Heading and Supporting Text */}
+          <div className="text-center max-w-3xl mx-auto space-y-2.5">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Your job match
             </h2>
-            <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
-              Experience the transparency of our matching engine. Inspect evidence, verify criteria, and view tailored documents in real time.
+            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+              See how your experience compares with this role and where you may need to improve.
             </p>
           </div>
 
-          {/* Interactive Cockpit Container */}
-          <div className="max-w-5xl mx-auto rounded-2xl bg-[#090d1a] border border-cyan-500/20 shadow-[0_0_50px_-10px_rgba(6,182,212,0.15)] overflow-hidden">
-            {/* Cockpit Window Bar */}
-            <div className="px-6 py-4 bg-black/40 border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center space-x-2">
-                <span className="h-3 w-3 rounded-full bg-rose-500/80 inline-block" />
-                <span className="h-3 w-3 rounded-full bg-amber-500/80 inline-block" />
-                <span className="h-3 w-3 rounded-full bg-emerald-500/80 inline-block" />
-                <span className="ml-3 font-mono text-xs text-slate-400">
-                  applywise-cockpit://v2.4/evaluation
-                </span>
+          {/* Interactive Consumer-Facing Job Match Card */}
+          <div className="max-w-4xl mx-auto rounded-2xl bg-white border border-slate-200 shadow-md overflow-hidden">
+            {/* Clean Tab Switcher */}
+            <div className="px-6 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
+              <div className="text-xs font-bold text-slate-700">
+                Sample Role Evaluation
               </div>
 
-              {/* Tabs */}
-              <div className="flex items-center space-x-1 p-1 bg-white/5 rounded-xl border border-white/10 text-xs font-mono overflow-x-auto max-w-full">
+              <div className="flex items-center space-x-1 p-1 bg-slate-200/70 rounded-xl border border-slate-200 text-xs font-semibold overflow-x-auto max-w-full">
                 <button
                   onClick={() => setActiveTab('fit')}
                   className={`px-3 py-1.5 rounded-lg transition-all shrink-0 ${
                     activeTab === 'fit'
-                      ? 'bg-cyan-500 text-black font-bold shadow'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-white text-blue-700 font-bold shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Match Matrix
+                  Job Match & Fit
                 </button>
                 <button
                   onClick={() => setActiveTab('audit')}
                   className={`px-3 py-1.5 rounded-lg transition-all shrink-0 ${
                     activeTab === 'audit'
-                      ? 'bg-cyan-500 text-black font-bold shadow'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-white text-blue-700 font-bold shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Truth Audit
+                  Profile Evidence
                 </button>
                 <button
                   onClick={() => setActiveTab('tailor')}
                   className={`px-3 py-1.5 rounded-lg transition-all shrink-0 ${
                     activeTab === 'tailor'
-                      ? 'bg-cyan-500 text-black font-bold shadow'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-white text-blue-700 font-bold shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  ATS Doc Preview
+                  Tailored Resume
                 </button>
               </div>
             </div>
 
-            {/* Cockpit Content Panes */}
-            <div className="p-6 sm:p-10">
+            {/* Tab Contents */}
+            <div className="p-6 sm:p-8 bg-white">
               {activeTab === 'fit' && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                  {/* Left Column: Job Spec */}
-                  <div className="lg:col-span-1 space-y-4 p-5 rounded-xl bg-white/[0.02] border border-white/10">
-                    <span className="font-mono text-[10px] text-cyan-400 uppercase tracking-widest">
-                      Target Role
-                    </span>
-                    <div>
-                      <h4 className="text-base font-bold text-white">Staff Distributed Systems Engineer</h4>
-                      <p className="text-xs text-slate-400">Stripe · Infrastructure & Platforms</p>
-                    </div>
-                    <div className="pt-3 border-t border-white/10 space-y-2 text-xs font-mono">
-                      <div className="flex justify-between text-slate-400">
-                        <span>Location:</span>
-                        <span className="text-slate-200">Remote (US / Canada)</span>
+                <div className="space-y-6">
+                  {/* Phase 3 Job Summary Card */}
+                  <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-semibold uppercase">
+                          Full-Time
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
+                          Remote
+                        </span>
                       </div>
-                      <div className="flex justify-between text-slate-400">
-                        <span>Salary Range:</span>
-                        <span className="text-emerald-400 font-semibold">$240k - $295k</span>
-                      </div>
-                      <div className="flex justify-between text-slate-400">
-                        <span>Core Reqs:</span>
-                        <span className="text-slate-200">Raft, Go, Edge KV, High Throughput</span>
+                      <h3 className="text-lg font-bold text-slate-900">Staff Distributed Systems Engineer</h3>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                        <span className="font-semibold text-slate-700">Stripe</span>
+                        <span>·</span>
+                        <span>United States & Canada (Remote)</span>
+                        <span>·</span>
+                        <span className="text-emerald-700 font-semibold">$240,000 – $295,000 / year (Verified listing)</span>
                       </div>
                     </div>
+
+                    <button
+                      onClick={() => onOpenAuth('signup')}
+                      className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shrink-0 shadow-xs"
+                    >
+                      View or Apply for Role
+                    </button>
                   </div>
 
-                  {/* Right Column: Match Breakdown */}
-                  <div className="lg:col-span-2 space-y-6">
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/30">
-                      <div>
-                        <span className="font-mono text-xs text-cyan-400 uppercase tracking-wider">
-                          Overall Match Score
-                        </span>
-                        <div className="text-3xl font-extrabold text-white mt-1">
-                          94.2% <span className="text-xs text-emerald-400 font-normal ml-2">High Confidence Match</span>
-                        </div>
-                      </div>
-                      <div className="w-16 h-16 rounded-full border-4 border-cyan-400/20 border-t-cyan-400 flex items-center justify-center font-mono text-sm font-bold text-cyan-300">
-                        94%
-                      </div>
+                  {/* Phase 3 Match Summary */}
+                  <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-200 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-blue-800 uppercase tracking-wider">
+                        Match Assessment
+                      </span>
+                      <span className="text-xs font-bold text-blue-700 px-2.5 py-0.5 rounded-full bg-blue-100">
+                        Strong Fit · 88% Alignment
+                      </span>
                     </div>
+                    <p className="text-xs text-slate-700 leading-relaxed">
+                      Calculated from your verified background: 4 of 5 core competencies (distributed consensus, Go services, edge computing, cross-functional leadership) match the published job spec.
+                    </p>
+                  </div>
 
-                    <div className="space-y-3">
-                      <div className="text-xs font-mono uppercase text-slate-400 tracking-wider">
-                        Evidence Cross-Verification
-                      </div>
+                  {/* Phase 3 Why This Job May Fit */}
+                  <div className="space-y-2.5">
+                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                      Why this job may fit
+                    </h4>
+                    <div className="space-y-2 text-xs">
                       {[
-                        { skill: 'Distributed Consensus (Raft / Paxos)', status: 'Verified in 2 past employers', match: 98 },
-                        { skill: 'Go & Low-Latency Systems', status: '7 years production experience', match: 95 },
-                        { skill: 'Edge Architectures & KV Storage', status: 'Active architecture patent / lead', match: 92 },
-                        { skill: 'Cross-functional Staff Leadership', status: 'Led 14-person distributed team', match: 90 },
+                        { title: 'Relevant experience', detail: '7+ years engineering scalable cloud services and high-throughput systems.' },
+                        { title: 'Matching skills', detail: 'Go, Raft consensus protocols, low-latency KV data stores, and edge platforms.' },
+                        { title: 'Related responsibilities', detail: 'Led distributed infrastructure teams and partnered with product teams on system reliability.' },
                       ].map((item, idx) => (
-                        <div key={idx} className="p-3 rounded-lg bg-white/[0.02] border border-white/5 space-y-2">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-medium text-slate-200">{item.skill}</span>
-                            <span className="font-mono text-cyan-400">{item.match}%</span>
-                          </div>
-                          <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" style={{ width: `${item.match}%` }} />
-                          </div>
-                          <div className="text-[11px] text-slate-400 font-mono flex items-center space-x-1">
-                            <Check className="h-3 w-3 text-emerald-400" />
-                            <span>{item.status}</span>
+                        <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-start space-x-2.5">
+                          <Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold text-slate-900">{item.title}: </span>
+                            <span className="text-slate-600">{item.detail}</span>
                           </div>
                         </div>
                       ))}
+                    </div>
+                  </div>
+
+                  {/* Phase 3 Areas to Improve */}
+                  <div className="space-y-2.5">
+                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                      Areas to improve
+                    </h4>
+                    <div className="space-y-2 text-xs">
+                      {[
+                        'This role requests experience with a skill that isn\'t listed on your profile: eBPF monitoring.',
+                        'Your resume doesn\'t yet provide evidence for this requirement: multi-region failover testing.',
+                        'Consider adding a relevant project if you have this experience.',
+                      ].map((gap, idx) => (
+                        <div key={idx} className="p-3 rounded-lg bg-amber-50/60 border border-amber-200 flex items-start space-x-2.5 text-amber-900">
+                          <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                          <span>{gap}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Phase 3 Next Steps Actions */}
+                  <div className="pt-2 border-t border-slate-100">
+                    <div className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
+                      Next steps
+                    </div>
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      <button
+                        onClick={() => onOpenAuth('signup')}
+                        className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                      >
+                        Tailor my resume
+                      </button>
+                      <button
+                        onClick={() => onOpenAuth('signup')}
+                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium"
+                      >
+                        Review my experience
+                      </button>
+                      <button
+                        onClick={() => onOpenAuth('signup')}
+                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium"
+                      >
+                        Create a cover letter
+                      </button>
+                      <button
+                        onClick={() => onOpenAuth('signup')}
+                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium"
+                      >
+                        Save this job
+                      </button>
+                      <button
+                        onClick={() => onOpenAuth('signup')}
+                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium"
+                      >
+                        Track my application
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -623,34 +673,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               {activeTab === 'audit' && (
                 <div className="space-y-6">
-                  <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-500/30 flex items-center space-x-3 text-xs font-mono text-emerald-300">
-                    <ShieldCheck className="h-5 w-5 text-emerald-400 shrink-0" />
+                  <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center space-x-3 text-xs text-emerald-800 font-medium">
+                    <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0" />
                     <span>AUDIT PASS: Zero fabricated credentials, metrics, or false employer statements detected.</span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-                    <div className="p-5 rounded-xl bg-white/[0.02] border border-white/10 space-y-3">
-                      <div className="font-mono text-cyan-400 uppercase tracking-widest flex items-center space-x-2">
+                    <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                      <div className="font-semibold text-blue-700 uppercase tracking-wider flex items-center space-x-2">
                         <Terminal className="h-4 w-4" />
                         <span>Candidate Master Fact-Sheet</span>
                       </div>
-                      <div className="p-3 bg-black/50 rounded font-mono text-slate-300 space-y-1.5 leading-relaxed text-[11px]">
+                      <div className="p-3 bg-white rounded-lg border border-slate-200 text-slate-700 space-y-1.5 leading-relaxed text-[11px] font-mono">
                         <div>• Company: Cloudflare (2021 - 2024)</div>
                         <div>• Role: Senior Infrastructure Engineer</div>
-                        <div>• Impact: Reduced tail latency by 38% across 12,000 edge nodes</div>
-                        <div>• Tech: Go, Rust, eBPF, Raft consensus</div>
+                        <div>• Impact: Reduced tail latency by 38% across edge clusters</div>
+                        <div>• Tech: Go, Rust, Raft consensus</div>
                       </div>
                     </div>
 
-                    <div className="p-5 rounded-xl bg-white/[0.02] border border-white/10 space-y-3">
-                      <div className="font-mono text-cyan-400 uppercase tracking-widest flex items-center space-x-2">
+                    <div className="p-5 rounded-xl bg-blue-50/40 border border-blue-200 space-y-3">
+                      <div className="font-semibold text-blue-700 uppercase tracking-wider flex items-center space-x-2">
                         <FileText className="h-4 w-4" />
                         <span>Tailored Output Bullet</span>
                       </div>
-                      <div className="p-3 bg-black/50 rounded font-mono text-cyan-100 space-y-1.5 leading-relaxed text-[11px]">
-                        <div className="text-emerald-400 font-bold">// Grounded in Fact #1 & #3:</div>
-                        <div>"Architected low-latency distributed edge synchronization services in Go, cutting tail latency 38% across 12,000 nodes using Raft consensus protocols."</div>
-                        <div className="text-[10px] text-slate-400 pt-1 border-t border-white/10">Hash: 8f9b4c2... (Audit Trail Matched)</div>
+                      <div className="p-3 bg-white rounded-lg border border-blue-200 text-slate-800 space-y-1.5 leading-relaxed text-[11px] font-mono">
+                        <div className="text-emerald-700 font-bold">// Grounded in Fact #1 & #3:</div>
+                        <div>"Architected low-latency distributed edge synchronization services in Go, cutting tail latency 38% using Raft consensus protocols."</div>
+                        <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-100">Audit Trail Matched (No Hallucination)</div>
                       </div>
                     </div>
                   </div>
@@ -658,25 +708,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               )}
 
               {activeTab === 'tailor' && (
-                <div className="p-6 rounded-xl bg-white/[0.02] border border-white/10 space-y-4 font-mono text-xs">
-                  <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                    <div className="text-cyan-400 font-bold uppercase tracking-wider">
+                <div className="p-6 rounded-xl bg-slate-50 border border-slate-200 space-y-4 text-xs font-mono">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                    <div className="text-blue-700 font-bold uppercase tracking-wider">
                       ATS DOCX EXPORT ENGINE · STRIPE-ALIGNED
                     </div>
-                    <span className="text-[11px] text-slate-400">Format: Standard ATS-12 Compliant</span>
+                    <span className="text-[11px] text-slate-500 font-sans">Format: Standard ATS-12 Compliant</span>
                   </div>
-                  <div className="space-y-3 text-slate-300 text-[11px] leading-relaxed">
-                    <p className="text-white font-bold text-sm">AYUSH PRAKASH — LEAD PRODUCT & SYSTEMS ARCHITECT</p>
-                    <p className="text-slate-400">San Francisco, CA · ayush@example.com · github.com/Ayushprakash21</p>
+                  <div className="space-y-3 text-slate-700 text-[11px] leading-relaxed font-sans">
+                    <p className="text-slate-900 font-bold text-sm">AYUSH PRAKASH — LEAD PRODUCT & SYSTEMS ARCHITECT</p>
+                    <p className="text-slate-500">San Francisco, CA · ayush@example.com · github.com/Ayushprakash21</p>
                     <div className="pt-2">
-                      <span className="text-cyan-400 font-bold">PROFESSIONAL SUMMARY</span>
-                      <p className="text-slate-300 mt-1">
+                      <span className="text-blue-700 font-bold text-xs uppercase tracking-wider">PROFESSIONAL SUMMARY</span>
+                      <p className="text-slate-600 mt-1 leading-relaxed">
                         High-integrity software engineer and product architect with verified expertise building edge-scale distributed applications and fault-tolerant cloud systems.
                       </p>
                     </div>
                     <div className="pt-2">
-                      <span className="text-cyan-400 font-bold">TARGETED COMPETENCIES</span>
-                      <p className="text-slate-300 mt-1">
+                      <span className="text-blue-700 font-bold text-xs uppercase tracking-wider">TARGETED COMPETENCIES</span>
+                      <p className="text-slate-600 mt-1 leading-relaxed">
                         Distributed Systems · Edge Computing · Go · TypeScript · Cloudflare Workers · Consensus Algorithms
                       </p>
                     </div>
@@ -688,35 +738,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* Section D: Truth and Verification Guarantee (Zero Hallucination) */}
-      <section id="integrity" className="py-24 bg-[#030712] relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-16">
-          <div className="text-center max-w-3xl mx-auto space-y-3">
-            <span className="text-cyan-400 font-mono text-xs tracking-widest uppercase">
-              // Application Integrity Engine
+      {/* Section D: The Zero-Hallucination Standard */}
+      <section id="integrity" className="py-16 sm:py-20 bg-[#F8FAFC] border-b border-slate-200/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10">
+          <div className="text-center max-w-3xl mx-auto space-y-2.5">
+            <span className="text-blue-600 font-semibold text-xs tracking-wider uppercase">
+              Application Integrity Engine
             </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
               The Zero-Hallucination Standard.
             </h2>
-            <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
               Most AI career tools make up numbers, fabricate employers, and flood ATS portals with toxic spam. ApplyWise AI is engineered with rigorous mathematical verification.
             </p>
           </div>
 
           {/* Comparison Matrix */}
-          <div className="max-w-4xl mx-auto rounded-2xl bg-[#090d1a] border border-white/10 overflow-hidden">
-            <div className="grid grid-cols-1 sm:grid-cols-2 text-xs font-mono uppercase tracking-wider border-b border-white/10">
-              <div className="p-3.5 sm:p-5 text-rose-400 bg-rose-950/20 flex items-center space-x-2">
-                <X className="h-4 w-4 shrink-0" />
+          <div className="max-w-4xl mx-auto rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden">
+            <div className="grid grid-cols-1 sm:grid-cols-2 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+              <div className="p-4 sm:p-5 text-rose-700 bg-rose-50/70 flex items-center space-x-2">
+                <X className="h-4 w-4 shrink-0 text-rose-600" />
                 <span>Generic Generative AI</span>
               </div>
-              <div className="p-3.5 sm:p-5 text-cyan-300 bg-cyan-950/20 flex items-center space-x-2 border-t sm:border-t-0 sm:border-l border-white/10">
-                <Check className="h-4 w-4 shrink-0" />
+              <div className="p-4 sm:p-5 text-blue-700 bg-blue-50/70 flex items-center space-x-2 border-t sm:border-t-0 sm:border-l border-slate-200">
+                <Check className="h-4 w-4 shrink-0 text-blue-600" />
                 <span>ApplyWise AI Engine</span>
               </div>
             </div>
 
-            <div className="divide-y divide-white/5 text-xs sm:text-sm">
+            <div className="divide-y divide-slate-100 text-xs sm:text-sm">
               {[
                 {
                   issue: 'Work Experience Integrity',
@@ -739,14 +789,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   good: 'Transparent tracking, authentic external portal links, and verifiable audit records.',
                 },
               ].map((row, idx) => (
-                <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-white/5">
-                  <div className="p-3.5 sm:p-5 text-slate-400 bg-white/[0.01] space-y-1">
-                    <div className="font-mono text-[10px] text-slate-500 uppercase">{row.issue}</div>
-                    <p className="text-xs text-rose-300/80 leading-relaxed">{row.bad}</p>
+                <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+                  <div className="p-4 sm:p-5 text-slate-600 bg-white space-y-1">
+                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{row.issue}</div>
+                    <p className="text-xs text-rose-700/90 leading-relaxed">{row.bad}</p>
                   </div>
-                  <div className="p-3.5 sm:p-5 text-slate-200 bg-cyan-950/10 space-y-1">
-                    <div className="font-mono text-[10px] text-cyan-400 uppercase">{row.issue}</div>
-                    <p className="text-xs text-cyan-200 leading-relaxed font-medium">{row.good}</p>
+                  <div className="p-4 sm:p-5 text-slate-800 bg-blue-50/20 space-y-1">
+                    <div className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider">{row.issue}</div>
+                    <p className="text-xs text-slate-800 leading-relaxed font-medium">{row.good}</p>
                   </div>
                 </div>
               ))}
@@ -756,65 +806,65 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* Section E: Live Job Discovery */}
-      <section id="jobs" className="py-24 bg-[#050811] border-t border-white/10 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-2">
-              <span className="text-cyan-400 font-mono text-xs tracking-widest uppercase">
-                // Live Stream
+      <section id="jobs" className="py-16 sm:py-20 bg-white border-b border-slate-200/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <span className="text-blue-600 font-semibold text-xs tracking-wider uppercase">
+                Live Feed
               </span>
-              <h2 className="text-3xl font-extrabold text-white tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                 Live Discovered Vacancies
               </h2>
-              <p className="text-slate-400 text-xs sm:text-sm">
-                Real-time openings aggregated across verified engineering, product, and operations boards.
+              <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
+                Real openings from verified company hiring feeds with live status.
               </p>
             </div>
             <button
               onClick={() => onOpenAuth('signup')}
-              className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-cyan-300 font-mono text-xs uppercase tracking-wider flex items-center space-x-2 w-fit transition-colors"
+              className="px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-semibold flex items-center space-x-1.5 w-fit transition-colors"
             >
               <span>Explore All Live Listings</span>
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {featuredVacancies.slice(0, 6).map(v => (
               <div
                 key={v.id}
                 onClick={() => onSelectVacancy(v)}
-                className="group p-6 rounded-2xl bg-white/[0.02] border border-white/10 hover:border-cyan-500/40 hover:bg-white/[0.04] transition-all cursor-pointer flex flex-col justify-between space-y-4"
+                className="group p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between space-y-4 shadow-xs"
               >
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-cyan-400 font-mono text-[10px] uppercase">
+                    <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] uppercase font-semibold">
                       {v.source}
                     </span>
                     {v.remote && (
-                      <span className="px-2 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-[10px] font-semibold">
+                      <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
                         Remote
                       </span>
                     )}
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
+                    <h3 className="font-bold text-sm text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
                       {v.title}
                     </h3>
-                    <div className="flex items-center space-x-1.5 text-xs text-slate-400 mt-1">
-                      <Building className="h-3.5 w-3.5 text-slate-500" />
+                    <div className="flex items-center space-x-1.5 text-xs text-slate-500 mt-1">
+                      <Building className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                       <span>{v.company}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs text-slate-400 font-mono">
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                   <div className="flex items-center space-x-1 truncate max-w-[170px]">
-                    <MapPin className="h-3 w-3 text-slate-500 shrink-0" />
+                    <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
                     <span className="truncate">{v.location}</span>
                   </div>
-                  <span className="text-cyan-400 font-semibold flex items-center space-x-1 group-hover:translate-x-1 transition-transform">
-                    <span>Inspect</span>
+                  <span className="text-blue-600 font-semibold flex items-center space-x-1 group-hover:translate-x-0.5 transition-transform">
+                    <span>Details</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </span>
                 </div>
@@ -824,41 +874,33 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* Section F: Founder & Product Story */}
+      {/* Section F: Meet the Founder */}
       <section id="founder">
-        <FounderSection theme="dark" onReadStory={onOpenAbout} />
+        <FounderSection theme="light" onReadStory={onOpenAbout} />
       </section>
 
-      {/* Section G: Final Call to Action */}
-      <section className="py-24 bg-gradient-to-b from-[#030712] via-[#090d1a] to-[#030712] relative overflow-hidden border-t border-white/10">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
-
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-8 relative z-10">
-          <span className="text-cyan-400 font-mono text-xs tracking-widest uppercase">
-            // Make Your Next Move
-          </span>
-
-          <h2 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight">
-            Make your next move <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-              a considered one.
-            </span>
+      {/* Section G: Call to Action */}
+      <section className="py-16 sm:py-20 bg-blue-600 text-white relative overflow-hidden">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-5 relative z-10">
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+            Make your next career move <br />
+            with complete confidence.
           </h2>
 
-          <p className="text-sm sm:text-base text-slate-400 max-w-xl mx-auto leading-relaxed">
-            Create your free account today. Construct your verified Career Digital Twin, discover authentic vacancies, and apply with mathematical precision.
+          <p className="text-xs sm:text-sm text-blue-100 max-w-xl mx-auto leading-relaxed">
+            Create your free account today. Upload your resume, configure your target roles, and start applying with verified clarity.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <button
               onClick={() => onOpenAuth('signup')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black font-bold text-sm rounded-xl shadow-[0_0_30px_-5px_rgba(6,182,212,0.5)] transition-all"
+              className="w-full sm:w-auto px-8 py-3.5 bg-white hover:bg-slate-50 text-blue-700 font-bold text-sm rounded-xl shadow-md transition-all"
             >
               Start for Free
             </button>
             <button
               onClick={() => onOpenAuth('login')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-white/5 hover:bg-white/10 border border-white/15 text-slate-300 hover:text-white font-semibold text-sm rounded-xl backdrop-blur-md transition-colors"
+              className="w-full sm:w-auto px-8 py-3.5 bg-blue-700/60 hover:bg-blue-700 border border-blue-400/40 text-white font-semibold text-sm rounded-xl transition-colors"
             >
               Sign In to Existing Account
             </button>
@@ -866,8 +908,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* Footer - Cinematic Dark */}
-      <footer className="mt-auto bg-[#02050b] text-slate-400 py-12 text-xs border-t border-white/5">
+      {/* Footer */}
+      <footer className="mt-auto bg-slate-900 text-slate-400 py-12 text-xs border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <BrandLogo
             variant="dark"
@@ -875,32 +917,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           />
 
-          <div className="flex flex-wrap items-center justify-center gap-6 font-mono text-[11px] uppercase tracking-wider text-slate-500">
+          <div className="flex flex-wrap items-center justify-center gap-6 font-medium text-[11px] text-slate-400">
             {onOpenAbout && (
-              <button onClick={onOpenAbout} className="hover:text-cyan-400 transition-colors">
+              <button onClick={onOpenAbout} className="hover:text-white transition-colors">
                 About Us
               </button>
             )}
             {onOpenPricing && (
-              <button onClick={onOpenPricing} className="hover:text-cyan-400 transition-colors">
+              <button onClick={onOpenPricing} className="hover:text-white transition-colors">
                 Pricing & Plans
               </button>
             )}
             {onOpenAdmin && (
-              <button onClick={onOpenAdmin} className="hover:text-cyan-400 transition-colors">
+              <button onClick={onOpenAdmin} className="hover:text-white transition-colors">
                 Admin Portal
               </button>
             )}
-            <button onClick={onOpenPrivacy} className="hover:text-cyan-400 transition-colors">
+            <button onClick={onOpenPrivacy} className="hover:text-white transition-colors">
               Privacy Policy
             </button>
-            <button onClick={onOpenTerms} className="hover:text-cyan-400 transition-colors">
+            <button onClick={onOpenTerms} className="hover:text-white transition-colors">
               Terms of Use
             </button>
-            <span className="text-slate-600">Zero Hallucination Standard</span>
+            <span className="text-slate-500">Zero Hallucination Standard</span>
           </div>
 
-          <p className="text-slate-600 font-mono text-[11px]">
+          <p className="text-slate-500 font-mono text-[11px]">
             © {new Date().getFullYear()} ApplyWise AI. All rights reserved.
           </p>
         </div>

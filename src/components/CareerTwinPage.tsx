@@ -292,37 +292,37 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Page Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white rounded-2xl p-6 sm:p-8 mb-8 shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 mb-8 shadow-sm relative overflow-hidden">
+        <div className="absolute right-0 top-0 w-96 h-96 bg-blue-50/60 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div>
             <div className="flex items-center space-x-2.5 mb-2">
-              <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                 <ShieldCheck className="h-3.5 w-3.5" />
                 <span>Evidence-Backed Model</span>
               </span>
-              <span className="text-xs text-slate-400">v2.0 Integrity Verified</span>
+              <span className="text-xs text-slate-500 font-medium">v2.0 Integrity Verified</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Career Digital Twin</h1>
-            <p className="text-slate-300 text-sm mt-1 max-w-2xl">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Career Digital Twin</h1>
+            <p className="text-slate-600 text-sm mt-1 max-w-2xl leading-relaxed">
               A persistent, verifiable model of your professional identity. Distinguishes verified facts from AI inferences, prevents hallucinated resume claims, and bridges transferable skills.
             </p>
           </div>
 
           {/* Completeness Meter */}
-          <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/15 min-w-[240px]">
+          <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 min-w-[240px]">
             <div className="flex items-center justify-between text-xs mb-1.5">
-              <span className="font-semibold text-slate-200">Twin Completeness</span>
-              <span className="font-extrabold text-blue-300 text-sm">{twin.completenessScore}%</span>
+              <span className="font-semibold text-slate-700">Twin Completeness</span>
+              <span className="font-extrabold text-blue-600 text-sm font-mono">{twin.completenessScore}%</span>
             </div>
-            <div className="w-full h-2.5 bg-white/20 rounded-full overflow-hidden">
+            <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-blue-400 to-emerald-400 rounded-full transition-all duration-500"
+                className="h-full bg-gradient-to-r from-blue-600 to-emerald-500 rounded-full transition-all duration-500"
                 style={{ width: `${twin.completenessScore}%` }}
               />
             </div>
-            <div className="flex items-center justify-between text-[11px] text-slate-400 mt-2">
+            <div className="flex items-center justify-between text-[11px] text-slate-500 mt-2 font-mono">
               <span>{twin.skillsInventory.length} Skills</span>
               <span>{pendingInferences.length} Pending Inferences</span>
             </div>
@@ -330,17 +330,17 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
         </div>
 
         {/* Sub-tab Navigation */}
-        <div className="flex items-center space-x-2 mt-6 pt-4 border-t border-white/10 overflow-x-auto">
+        <div className="flex items-center space-x-2 mt-6 pt-4 border-t border-slate-100 overflow-x-auto">
           <button
             onClick={() => setActiveSubTab('overview')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap flex items-center space-x-1.5 ${
-              activeSubTab === 'overview' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-300 hover:text-white hover:bg-white/10'
+              activeSubTab === 'overview' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <Target className="h-3.5 w-3.5" />
             <span>Overview & Inferences</span>
             {pendingInferences.length > 0 && (
-              <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-400 text-amber-950 font-bold">
+              <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-100 text-amber-800 font-bold">
                 {pendingInferences.length}
               </span>
             )}
@@ -349,7 +349,7 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
           <button
             onClick={() => setActiveSubTab('skills')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap flex items-center space-x-1.5 ${
-              activeSubTab === 'skills' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-300 hover:text-white hover:bg-white/10'
+              activeSubTab === 'skills' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <Award className="h-3.5 w-3.5" />
@@ -359,7 +359,7 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
           <button
             onClick={() => setActiveSubTab('transferable')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap flex items-center space-x-1.5 ${
-              activeSubTab === 'transferable' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-300 hover:text-white hover:bg-white/10'
+              activeSubTab === 'transferable' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <Sparkles className="h-3.5 w-3.5" />
@@ -369,7 +369,7 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
           <button
             onClick={() => setActiveSubTab('experience')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap flex items-center space-x-1.5 ${
-              activeSubTab === 'experience' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-300 hover:text-white hover:bg-white/10'
+              activeSubTab === 'experience' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <Briefcase className="h-3.5 w-3.5" />
@@ -379,7 +379,7 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
           <button
             onClick={() => setActiveSubTab('outcomes')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap flex items-center space-x-1.5 ${
-              activeSubTab === 'outcomes' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-300 hover:text-white hover:bg-white/10'
+              activeSubTab === 'outcomes' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <TrendingUp className="h-3.5 w-3.5" />

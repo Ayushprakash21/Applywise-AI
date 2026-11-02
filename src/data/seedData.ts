@@ -204,6 +204,16 @@ export const initialIntegrations: SourceIntegrationStatus[] = [
   },
 ];
 
+/**
+ * DEMO FIXTURE VACANCIES
+ * Note: These are predefined offline mock fixtures for test environments only.
+ * They MUST NOT be injected into production live job caches or served as live vacancies.
+ */
+/**
+ * DEMO FIXTURE VACANCIES
+ * Note: These are predefined offline mock fixtures for test environments only.
+ * They MUST NOT be injected into production live job caches or served as live vacancies.
+ */
 export const initialVacancies: JobVacancy[] = [
   {
     id: 'vac_vercel_01',
