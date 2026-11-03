@@ -284,8 +284,7 @@ export default function App() {
 
   const handleUpgradePlan = async (plan: 'free' | 'pro', billingCycle: 'monthly' | 'annual') => {
     if (!currentUser) {
-      setAuthModalMode('signup');
-      setAuthModalOpen(true);
+      navigateTo('/signup');
       return;
     }
     try {
@@ -414,8 +413,7 @@ export default function App() {
 
   const handlePrepareApplication = async (vacancyId: string) => {
     if (!currentUser) {
-      setAuthModalMode('signup');
-      setAuthModalOpen(true);
+      navigateTo('/signup');
       return;
     }
 
@@ -777,8 +775,7 @@ export default function App() {
         }}
         onOpenPricing={() => navigateTo('/pricing')}
         onOpenAuth={mode => {
-          setAuthModalMode(mode);
-          setAuthModalOpen(true);
+          navigateTo(mode === 'signup' ? '/signup' : '/login');
         }}
         isOpenControlled={copilotOpen}
         onToggleOpen={setCopilotOpen}

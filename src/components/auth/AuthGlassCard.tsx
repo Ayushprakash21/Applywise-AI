@@ -13,12 +13,15 @@ export const AuthGlassCard: React.FC<AuthGlassCardProps> = ({
   className = '',
   ...props
 }) => {
+  const hasMaxWidth = /max-w-/.test(className);
+  const defaultWidth = hasMaxWidth ? '' : 'max-w-[540px]';
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease }}
-      className={`relative w-full max-w-[450px] p-6 sm:p-8 rounded-3xl glass-auth-surface overflow-hidden ${className}`}
+      className={`relative w-full ${defaultWidth} rounded-3xl glass-auth-surface overflow-hidden ${className}`}
       {...props}
     >
       {/* Specular glass reflection line at top edge */}

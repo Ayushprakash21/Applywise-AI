@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
 
 export interface AuthHeaderProps {
@@ -14,8 +15,11 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
   onNavigateLogin,
   onNavigateSignup,
 }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const handleNav = (path: string, e?: React.MouseEvent) => {
     if (e) e.preventDefault();
+    setMobileMenuOpen(false);
     if (path === '/' && onNavigateHome) {
       onNavigateHome();
       return;
@@ -34,8 +38,8 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/45 border-b border-white/60 transition-colors">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/60 border-b border-white/60 transition-colors">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-4">
         {/* LEFT: Official ApplyVise AI Brand Logo */}
         <div className="flex items-center shrink-0">
           <BrandLogo
@@ -46,47 +50,47 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
           />
         </div>
 
-        {/* CENTRE: Navigation Links (Visually centered) */}
+        {/* CENTRE: Desktop Navigation Links (Never wrap individually) */}
         <nav
           aria-label="Global Navigation"
-          className="hidden md:flex items-center space-x-8 lg:space-x-10 text-sm font-medium text-slate-600"
+          className="hidden md:flex items-center space-x-6 lg:space-x-8 text-sm font-medium text-slate-600"
         >
           <a
             href="/#cockpit"
             onClick={(e) => handleNav('/#cockpit', e)}
-            className="transition-colors hover:text-slate-900 focus:outline-hidden focus-visible:text-blue-600"
+            className="whitespace-nowrap transition-colors hover:text-slate-900 focus:outline-hidden focus-visible:text-blue-600"
           >
             Features
           </a>
           <a
             href="/#journey"
             onClick={(e) => handleNav('/#journey', e)}
-            className="transition-colors hover:text-slate-900 focus:outline-hidden focus-visible:text-blue-600"
+            className="whitespace-nowrap transition-colors hover:text-slate-900 focus:outline-hidden focus-visible:text-blue-600"
           >
             How it Works
           </a>
           <a
             href="/pricing"
             onClick={(e) => handleNav('/pricing', e)}
-            className="transition-colors hover:text-slate-900 focus:outline-hidden focus-visible:text-blue-600"
+            className="whitespace-nowrap transition-colors hover:text-slate-900 focus:outline-hidden focus-visible:text-blue-600"
           >
             Pricing
           </a>
           <a
             href="/about"
             onClick={(e) => handleNav('/about', e)}
-            className="transition-colors hover:text-slate-900 focus:outline-hidden focus-visible:text-blue-600"
+            className="whitespace-nowrap transition-colors hover:text-slate-900 focus:outline-hidden focus-visible:text-blue-600"
           >
             Support
           </a>
         </nav>
 
-        {/* RIGHT: Authentication Switchers */}
-        <div className="flex items-center space-x-3 shrink-0">
+        {/* RIGHT: Authentication Switchers & Mobile Hamburger */}
+        <div className="flex items-center space-x-2.5 sm:space-x-3 shrink-0">
           <button
             type="button"
             onClick={onNavigateLogin}
-            className={`px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer ${
+            className={`px-3.5 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-200 cursor-pointer ${
               activePage === 'login'
                 ? 'bg-white/90 text-slate-900 border border-slate-300/80 shadow-xs ring-2 ring-violet-500/20'
                 : 'bg-white/50 hover:bg-white/80 text-slate-700 border border-slate-200/80 shadow-2xs hover:text-slate-900'
@@ -98,7 +102,7 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
           <button
             type="button"
             onClick={onNavigateSignup}
-            className={`px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer ${
+            className={`px-3.5 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-200 cursor-pointer ${
               activePage === 'signup'
                 ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-[#8065F5] text-white shadow-md shadow-violet-500/30 ring-2 ring-violet-400/40 hover:opacity-95'
                 : 'bg-gradient-to-r from-blue-600 to-[#8065F5] text-white shadow-sm hover:shadow-md hover:shadow-violet-500/25 hover:opacity-95'
@@ -106,8 +110,52 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
           >
             Sign Up
           </button>
+
+          {/* Mobile Menu Button (< 768px) */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 transition"
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Drawer Menu (< 768px) */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-slate-200/60 bg-white/95 backdrop-blur-lg px-6 py-4 space-y-3 shadow-lg">
+          <a
+            href="/#cockpit"
+            onClick={(e) => handleNav('/#cockpit', e)}
+            className="block py-2 text-sm font-medium text-slate-700 hover:text-blue-600 transition"
+          >
+            Features
+          </a>
+          <a
+            href="/#journey"
+            onClick={(e) => handleNav('/#journey', e)}
+            className="block py-2 text-sm font-medium text-slate-700 hover:text-blue-600 transition"
+          >
+            How it Works
+          </a>
+          <a
+            href="/pricing"
+            onClick={(e) => handleNav('/pricing', e)}
+            className="block py-2 text-sm font-medium text-slate-700 hover:text-blue-600 transition"
+          >
+            Pricing
+          </a>
+          <a
+            href="/about"
+            onClick={(e) => handleNav('/about', e)}
+            className="block py-2 text-sm font-medium text-slate-700 hover:text-blue-600 transition"
+          >
+            Support
+          </a>
+        </div>
+      )}
     </header>
   );
 };
