@@ -11,6 +11,7 @@ import {
   loadGoogleScript,
   initGoogleIdentity,
   renderGoogleButton,
+  triggerGooglePrompt,
   unregisterGoogleCallback,
 } from '../services/googleAuth.ts';
 
@@ -65,8 +66,10 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
     appleAuthEnabled?: boolean;
   } | null>(null);
   const googleBtnRef = useRef<HTMLDivElement>(null);
-  const [googleButtonRendered, setGoogleButtonRendered] = useState(false);
   const [googleInitError, setGoogleInitError] = useState<string | null>(null);
+
+  const onSuccessRef = useRef(onSuccess);
+  onSuccessRef.current = onSuccess;
 
   // Check auth configuration and initialize Google Identity Services
   useEffect(() => {
@@ -88,7 +91,7 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
         localStorage.setItem('applywise_user', JSON.stringify(res.user));
         setSuccessMsg('Google registration verified! Redirecting to your dashboard...');
         setTimeout(() => {
-          if (onSuccess) onSuccess(res.user, res.token);
+          if (onSuccessRef.current) onSuccessRef.current(res.user, res.token);
         }, 500);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -134,7 +137,7 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
       isMounted = false;
       unregisterGoogleCallback(handleCredentialResponse);
     };
-  }, [onSuccess]);
+  }, []);
 
   // Password strength calculation
   const getPasswordStrength = (pwd: string) => {
@@ -235,14 +238,8 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
       return;
     }
     setSocialLoading(true);
-    google.accounts.id.prompt((notification: any) => {
-      if (notification.isNotDisplayed()) {
-        if (googleBtnRef.current) {
-          renderGoogleButton(googleBtnRef.current, { mode: 'signup', width: 360 });
-          setGoogleButtonRendered(true);
-        }
-        setSocialLoading(false);
-      } else if (notification.isDismissedMoment()) {
+    triggerGooglePrompt((notification) => {
+      if (notification.isNotDisplayed || notification.isDismissed) {
         setSocialLoading(false);
       }
     });
@@ -480,18 +477,16 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
                       {/* Mounted GSI Target */}
                       <div
                         ref={googleBtnRef}
-                        className={`w-full flex justify-center min-h-[44px] ${googleButtonRendered ? 'block' : 'hidden'}`}
+                        className={`w-full flex justify-center min-h-[44px] hidden`}
                       />
 
-                      {/* Visual Glass Button (fallback/display before GSI mounts) */}
-                      {!googleButtonRendered && (
-                        <GoogleAuthButton
-                          mode="signup"
-                          onClick={handleGoogleClick}
-                          disabled={socialLoading}
-                          loading={socialLoading}
-                        />
-                      )}
+                      {/* Stable Glass Google Button */}
+                      <GoogleAuthButton
+                        mode="signup"
+                        onClick={handleGoogleClick}
+                        disabled={socialLoading}
+                        loading={socialLoading}
+                      />
                     </div>
                   </div>
                 )}

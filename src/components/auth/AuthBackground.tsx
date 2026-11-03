@@ -7,7 +7,7 @@ interface AuthBackgroundProps {
 
 export const AuthBackground: React.FC<AuthBackgroundProps> = ({ theme }) => {
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden select-none z-0">
+    <div className="fixed inset-0 pointer-events-none overflow-hidden select-none z-0" style={{ contain: 'paint' }}>
       {/* Dynamic Animated Blurred Light Orbs */}
       {/* Orb 1: Indigo / Violet top-right */}
       <div 

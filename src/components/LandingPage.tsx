@@ -494,7 +494,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Your job match
             </h2>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-              See how your experience compares with this role and where you may need to improve.
+              See how your experience aligns with this role and discover actionable ways to strengthen your application.
             </p>
           </div>
 

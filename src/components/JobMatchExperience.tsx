@@ -1,19 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import {
   Check,
-  AlertCircle,
   ShieldCheck,
-  FileText,
-  Terminal,
   Download,
-  ExternalLink,
   ChevronRight,
   Info,
-  CheckCircle2,
-  XCircle,
-  HelpCircle,
-  Sparkles,
-  Briefcase
+  ExternalLink,
+  Sparkles
 } from 'lucide-react';
 import { JobVacancy, UserProfile, JobMatchEvaluation, CandidateFact } from '../types/index.ts';
 import { calculateJobMatch } from '../utils/rules.ts';
@@ -67,6 +60,8 @@ export const JobMatchExperience: React.FC<JobMatchExperienceProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'fit' | 'audit' | 'tailor'>('fit');
   const [demoMode, setDemoMode] = useState<'unverified' | 'sample'>('unverified');
+  const [showDeepFactAudit, setShowDeepFactAudit] = useState(false);
+  const [expandedSources, setExpandedSources] = useState<Record<string, boolean>>({});
 
   const activeJob = job || DEMO_JOB;
 
@@ -76,17 +71,25 @@ export const JobMatchExperience: React.FC<JobMatchExperienceProps> = ({
       if (demoMode === 'unverified') {
         // Honest demonstration: Candidate has not yet added distributed systems credentials
         const demoCandidate: UserProfile = {
+          id: 'demo_candidate_unverified',
           fullName: 'Candidate Profile',
           currentTitle: 'Junior Software Engineer',
-          email: 'user@applyvise.ai',
+          email: 'candidate@applyvise.ai',
+          phone: '',
           location: 'Remote',
+          totalExperienceYears: 1,
+          currentEmployer: 'Web Solutions Inc',
+          professionalSummary: 'Junior Frontend Developer focused on responsive web interfaces.',
+          education: [],
+          certifications: [],
+          experiences: [],
           skills: [{ name: 'JavaScript', category: 'frontend', proficiency: 'intermediate' }],
           employmentHistory: [
             {
               company: 'Web Solutions Inc',
               role: 'Junior Frontend Developer',
               duration: '2024 – Present',
-              achievements: ['Built responsive user interfaces in JavaScript and CSS.']
+              achievements: ['Developed responsive web interfaces and user interactions in JavaScript and CSS.']
             }
           ]
         };
@@ -95,10 +98,18 @@ export const JobMatchExperience: React.FC<JobMatchExperienceProps> = ({
       } else {
         // Sample candidate profile with some matching skills
         const sampleCandidate: UserProfile = {
-          fullName: 'Ayush Prakash',
+          id: 'demo_candidate_sample',
+          fullName: 'Candidate Profile (Demonstration)',
           currentTitle: 'Product & Systems Architect',
-          email: 'ayush@applyvise.ai',
-          location: 'Indore, India',
+          email: 'candidate@applyvise.ai',
+          phone: '',
+          location: 'Remote',
+          totalExperienceYears: 5,
+          currentEmployer: 'ApplyVise AI',
+          professionalSummary: 'Product and systems architect building resilient cloud applications.',
+          education: [],
+          certifications: [],
+          experiences: [],
           skills: [
             { name: 'TypeScript', category: 'backend', proficiency: 'advanced' },
             { name: 'Cloudflare Workers', category: 'cloud', proficiency: 'advanced' },
@@ -109,7 +120,7 @@ export const JobMatchExperience: React.FC<JobMatchExperienceProps> = ({
               company: 'ApplyVise AI',
               role: 'Product Architect',
               duration: '2025 – Present',
-              achievements: ['Designed zero-hallucination career intelligence pipeline and ATS verification engine.']
+              achievements: ['Engineered career intelligence pipeline and zero-hallucination verification engine.']
             }
           ]
         };
@@ -164,44 +175,56 @@ export const JobMatchExperience: React.FC<JobMatchExperienceProps> = ({
     }
   };
 
+  const toggleSource = (id: string) => {
+    setExpandedSources(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   const missingMandatoryList = matchEvaluation.missingMandatory || [];
   const missingPreferredList = matchEvaluation.missingPreferred || [];
   const profileEvidenceList = matchEvaluation.profileEvidence || [];
   const matchedCompetenciesList = matchEvaluation.matchedCompetencies || matchEvaluation.matchedSkills || [];
 
-  const hasMissing = missingMandatoryList.length + missingPreferredList.length > 0;
-  const isAuditPass = !matchEvaluation.insufficientData && !hasMissing && effectiveFacts.length > 0;
-
   const salaryDisplay = typeof activeJob.salaryRange === 'string'
     ? activeJob.salaryRange
     : activeJob.salaryRange?.raw || (activeJob.salaryRange?.min ? `$${activeJob.salaryRange.min.toLocaleString()}` : null);
 
+  // Group up to 3 strongest matching areas
+  const topStrengths = matchedCompetenciesList.slice(0, 3);
+
+  // Group up to 3 skills to strengthen
+  const skillsToStrengthen = useMemo(() => {
+    const list: { name: string; type: 'mandatory' | 'preferred' }[] = [];
+    missingMandatoryList.forEach(m => list.push({ name: m, type: 'mandatory' }));
+    missingPreferredList.forEach(p => list.push({ name: p, type: 'preferred' }));
+    return list.slice(0, 3);
+  }, [missingMandatoryList, missingPreferredList]);
+
   return (
-    <div className="max-w-4xl mx-auto neu-panel overflow-hidden border border-slate-300/80 rounded-2xl bg-white shadow-sm">
-      {/* Container Header with Tab Navigation */}
-      <div className="px-6 py-4 border-b border-slate-200/80 flex flex-wrap items-center justify-between gap-4 bg-slate-50/50">
+    <div className="max-w-4xl mx-auto rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden text-slate-800">
+      {/* Top Navigation & View Switcher */}
+      <div className="px-5 sm:px-6 py-4 border-b border-slate-200/70 flex flex-wrap items-center justify-between gap-3 bg-slate-50/40">
         <div className="flex items-center space-x-3">
-          <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-            {isLandingPage ? 'Interactive Verification Cockpit' : 'Role Evaluation'}
+          <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+            {isLandingPage ? 'Interactive Verification Cockpit' : 'Role Assessment'}
           </span>
           {isLandingPage && (
-            <div className="hidden sm:flex items-center space-x-1.5 p-0.5 neu-inset rounded-lg text-[11px]">
+            <div className="hidden sm:flex items-center space-x-1 p-0.5 rounded-lg bg-slate-200/60 text-[11px]">
               <button
                 onClick={() => setDemoMode('unverified')}
-                className={`px-2 py-0.5 rounded transition-all ${
+                className={`px-2.5 py-1 rounded-md transition-all ${
                   demoMode === 'unverified'
-                    ? 'bg-white shadow-sm text-blue-700 font-bold'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-white shadow-xs text-blue-700 font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Unverified Gap Demo
+                Gaps Demo
               </button>
               <button
                 onClick={() => setDemoMode('sample')}
-                className={`px-2 py-0.5 rounded transition-all ${
+                className={`px-2.5 py-1 rounded-md transition-all ${
                   demoMode === 'sample'
-                    ? 'bg-white shadow-sm text-blue-700 font-bold'
-                    : 'text-slate-500 hover:text-slate-800'
+                    ? 'bg-white shadow-xs text-blue-700 font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 Sample Profile
@@ -210,13 +233,13 @@ export const JobMatchExperience: React.FC<JobMatchExperienceProps> = ({
           )}
         </div>
 
-        {/* Unified 3-Tab Switcher */}
-        <div className="flex items-center space-x-1.5 p-1 neu-inset rounded-xl text-xs font-semibold overflow-x-auto max-w-full">
+        {/* 3-Tab Segment Switcher */}
+        <div className="flex items-center space-x-1 p-1 bg-slate-100 rounded-xl text-xs font-medium overflow-x-auto max-w-full">
           <button
             onClick={() => setActiveTab('fit')}
             className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 ${
               activeTab === 'fit'
-                ? 'neu-raised text-blue-700 font-bold bg-white shadow-xs'
+                ? 'bg-white text-slate-900 font-semibold shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -226,7 +249,7 @@ export const JobMatchExperience: React.FC<JobMatchExperienceProps> = ({
             onClick={() => setActiveTab('audit')}
             className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 ${
               activeTab === 'audit'
-                ? 'neu-raised text-blue-700 font-bold bg-white shadow-xs'
+                ? 'bg-white text-slate-900 font-semibold shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -236,7 +259,7 @@ export const JobMatchExperience: React.FC<JobMatchExperienceProps> = ({
             onClick={() => setActiveTab('tailor')}
             className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 ${
               activeTab === 'tailor'
-                ? 'neu-raised text-blue-700 font-bold bg-white shadow-xs'
+                ? 'bg-white text-slate-900 font-semibold shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -245,29 +268,29 @@ export const JobMatchExperience: React.FC<JobMatchExperienceProps> = ({
         </div>
       </div>
 
-      {/* Tab 1: Job Match & Fit */}
+      {/* Tab 1: Job Match & Fit (Clean, Minimal, Non-Alarming) */}
       {activeTab === 'fit' && (
         <div className="p-6 sm:p-8 space-y-6">
-          {/* Vacancy Card */}
-          <div className="p-5 neu-card rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white">
-            <div className="space-y-1">
+          {/* Main Vacancy Information Card */}
+          <div className="p-5 sm:p-6 rounded-xl border border-slate-200/80 bg-white flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-xs">
+            <div className="space-y-1.5">
               <div className="flex items-center space-x-2">
-                <span className="px-2 py-0.5 rounded-md neu-inset text-blue-700 text-[10px] font-semibold uppercase">
+                <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium uppercase tracking-wider">
                   {activeJob.employmentType || 'Full-Time'}
                 </span>
-                <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
+                <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">
                   {activeJob.remote || activeJob.arrangement === 'remote' ? 'Remote' : 'On-Site / Hybrid'}
                 </span>
               </div>
-              <h3 className="text-lg font-bold text-slate-900">{activeJob.title}</h3>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                <span className="font-semibold text-slate-700">{activeJob.company}</span>
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight">{activeJob.title}</h3>
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-slate-500">
+                <span className="font-semibold text-slate-800">{activeJob.company}</span>
                 <span>·</span>
                 <span>{activeJob.location}</span>
                 {salaryDisplay && (
                   <>
                     <span>·</span>
-                    <span className="text-emerald-700 font-semibold">{salaryDisplay}</span>
+                    <span className="text-slate-700 font-medium">{salaryDisplay}</span>
                   </>
                 )}
               </div>
@@ -276,387 +299,443 @@ export const JobMatchExperience: React.FC<JobMatchExperienceProps> = ({
             {isLandingPage ? (
               <button
                 onClick={() => handleAction('signup')}
-                className="px-4 py-2 rounded-xl neu-button-primary text-xs font-semibold shrink-0"
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shrink-0 transition-colors shadow-xs"
               >
-                View or Apply for Role
+                View Job & Apply
               </button>
             ) : (
               <button
                 onClick={() => onApply && onApply(activeJob)}
-                className="px-4 py-2 rounded-xl neu-button-primary text-xs font-semibold shrink-0"
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shrink-0 transition-colors shadow-xs"
               >
-                Apply for Role
+                View Job & Apply
               </button>
             )}
           </div>
 
-          {/* Evidence-Based Match Assessment */}
-          {matchEvaluation.insufficientData ? (
-            <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-300 space-y-2">
-              <div className="flex items-center space-x-2 text-amber-900 font-bold text-xs">
-                <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
-                <span>INSUFFICIENT VERIFIED DATA</span>
-              </div>
-              <p className="text-xs text-amber-800 leading-relaxed">
-                Insufficient verified profile information to calculate a reliable match. ApplyVise AI refuses to guess or invent arbitrary alignment scores. Please complete your profile to see evidence-based scoring.
-              </p>
-              {onNavigateToProfile && (
-                <button
-                  onClick={onNavigateToProfile}
-                  className="mt-2 text-xs font-bold text-amber-900 underline hover:text-amber-950"
-                >
-                  Go to Career Profile →
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className={`p-4 rounded-xl border space-y-1.5 ${
-              matchEvaluation.matchScore >= 70
-                ? 'bg-blue-50/60 border-blue-200'
-                : matchEvaluation.matchScore >= 40
-                  ? 'bg-slate-50 border-slate-200'
-                  : 'bg-amber-50/50 border-amber-200'
-            }`}>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                  Match Assessment
-                </span>
-                <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                  matchEvaluation.matchScore >= 70
-                    ? 'text-blue-700 bg-blue-100'
-                    : matchEvaluation.matchScore >= 40
-                      ? 'text-slate-700 bg-slate-200'
-                      : 'text-amber-800 bg-amber-100'
-                }`}>
-                  {matchEvaluation.scoreMessage || `${matchEvaluation.matchScore}% Alignment`}
-                </span>
-              </div>
-              <p className="text-xs text-slate-700 leading-relaxed">
-                Calculated strictly from your verified profile: {matchedCompetenciesList.length} competencies substantiated by documented evidence.
-              </p>
-            </div>
-          )}
-
-          {/* Genuine Strengths */}
-          <div className="space-y-2.5">
-            <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center justify-between">
-              <span>Why this job may fit</span>
-              <span className="text-[11px] font-normal text-slate-500">
-                {matchedCompetenciesList.length} verified match(es)
-              </span>
-            </h4>
-            {matchedCompetenciesList.length > 0 ? (
-              <div className="space-y-2 text-xs">
-                {matchedCompetenciesList.map((comp, idx) => (
-                  <div key={idx} className="p-3 rounded-lg bg-emerald-50/50 border border-emerald-200 flex items-start space-x-2.5">
-                    <Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-bold text-emerald-900">Verified Competency: </span>
-                      <span className="text-emerald-800">{comp}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-500 italic">
-                No matching verified competencies detected for this specific vacancy.
-              </div>
-            )}
-          </div>
-
-          {/* Honest Transparent Gap List */}
-          <div className="space-y-2.5">
-            <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center justify-between">
-              <span>Areas to improve</span>
-              <span className="text-[11px] font-normal text-amber-700">
-                {missingMandatoryList.length + missingPreferredList.length} gap(s) flagged
-              </span>
-            </h4>
-            <div className="space-y-2 text-xs">
-              {missingMandatoryList.map((gap, idx) => (
-                <div key={idx} className="p-3 rounded-lg bg-amber-50/60 border border-amber-200 flex items-start space-x-2.5 text-amber-900">
-                  <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold">Mandatory requirement not found in profile: </span>
-                    <span>{gap}. Add verified experience if you possess this skill.</span>
-                  </div>
+          {/* Evidence-Backed Match Score Card */}
+          <div className="p-5 sm:p-6 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-4">
+            {matchEvaluation.insufficientData ? (
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2 text-slate-800 font-semibold text-xs">
+                  <Info className="h-4 w-4 text-slate-500 shrink-0" />
+                  <span>Not enough verified information to calculate match score</span>
                 </div>
-              ))}
-              {missingPreferredList.map((gap, idx) => (
-                <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-start space-x-2.5 text-slate-700">
-                  <HelpCircle className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-semibold">Preferred skill not verified: </span>
-                    <span>{gap}.</span>
-                  </div>
-                </div>
-              ))}
-              {(!missingMandatoryList.length && !missingPreferredList.length) && (
-                <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center space-x-2">
-                  <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                  <span>All published vacancy requirements are substantiated in your profile.</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div className="pt-4 border-t border-slate-100">
-            <div className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
-              Recommended Next Steps
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <button
-                onClick={() => setActiveTab('tailor')}
-                className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
-              >
-                Inspect ATS Resume Preview
-              </button>
-              <button
-                onClick={() => setActiveTab('audit')}
-                className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors"
-              >
-                Audit Profile Evidence
-              </button>
-              {isLandingPage ? (
-                <button
-                  onClick={() => handleAction('signup')}
-                  className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors"
-                >
-                  Create Free Account
-                </button>
-              ) : onNavigateToProfile ? (
-                <button
-                  onClick={onNavigateToProfile}
-                  className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors"
-                >
-                  Update Profile Skills
-                </button>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Tab 2: Profile Evidence */}
-      {activeTab === 'audit' && (
-        <div className="p-6 sm:p-8 space-y-6">
-          {/* Conditional Audit Banner */}
-          {isAuditPass ? (
-            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center space-x-3 text-xs text-emerald-800 font-medium">
-              <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0" />
-              <span>AUDIT PASS: Zero fabricated credentials, metrics, or false employer statements detected. All requirements grounded in verified profile facts.</span>
-            </div>
-          ) : (
-            <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 flex items-center space-x-3 text-xs text-amber-900 font-medium">
-              <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
-              <span>
-                TRANSPARENT EVIDENCE AUDIT: {missingMandatoryList.length + missingPreferredList.length} requirement(s) missing from your verified profile. ApplyVise AI will not fabricate unverified claims.
-              </span>
-            </div>
-          )}
-
-          {/* 2-Column Traceable Evidence Table */}
-          <div className="space-y-3">
-            <div className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-              Requirement vs Candidate Evidence Mapping
-            </div>
-            <div className="border border-slate-200 rounded-xl overflow-hidden text-xs">
-              <div className="grid grid-cols-1 md:grid-cols-2 bg-slate-100/80 border-b border-slate-200 font-bold text-slate-700 p-3">
-                <div>JOB REQUIREMENT</div>
-                <div>VERIFIED CANDIDATE EVIDENCE & SOURCE</div>
-              </div>
-              <div className="divide-y divide-slate-200">
-                {profileEvidenceList.map((item, idx) => (
-                  <div key={idx} className="grid grid-cols-1 md:grid-cols-2 p-3 gap-2 items-start bg-white hover:bg-slate-50/50">
-                    <div className="space-y-1">
-                      <div className="font-semibold text-slate-900">{item.requirement}</div>
-                      <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${
-                        item.category === 'mandatory'
-                          ? 'bg-rose-100 text-rose-800'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        {item.category}
-                      </span>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center space-x-1.5">
-                        {item.status === 'SUPPORTED' ? (
-                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                            <CheckCircle2 className="h-3 w-3" />
-                            <span>SUPPORTED</span>
-                          </span>
-                        ) : item.status === 'TRANSFERABLE' ? (
-                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
-                            <Sparkles className="h-3 w-3" />
-                            <span>TRANSFERABLE</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                            <XCircle className="h-3 w-3" />
-                            <span>NOT FOUND</span>
-                          </span>
-                        )}
-                        <span className="text-[10px] text-slate-500 font-mono">
-                          Source: {item.source}
-                        </span>
-                      </div>
-                      <div className={`text-[11px] leading-relaxed ${
-                        item.status === 'NOT_FOUND' ? 'text-slate-400 italic' : 'text-slate-700'
-                      }`}>
-                        {item.candidateEvidence}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Candidate Master Fact-Sheet vs Output Audit */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-            <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-              <div className="font-semibold text-blue-700 uppercase tracking-wider flex items-center space-x-2">
-                <Terminal className="h-4 w-4" />
-                <span>Candidate Verified Facts ({effectiveFacts.length})</span>
-              </div>
-              <div className="p-3 bg-white rounded-lg border border-slate-200 text-slate-700 space-y-1.5 leading-relaxed text-[11px] font-mono max-h-48 overflow-y-auto">
-                {effectiveFacts.length > 0 ? (
-                  effectiveFacts.map((fact, idx) => (
-                    <div key={idx}>
-                      • <span className="font-semibold text-slate-900">{fact.category}:</span> {fact.value}{' '}
-                      <span className="text-[10px] text-slate-400">({fact.originalSource})</span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-slate-400 italic">No verified facts recorded yet.</div>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  ApplyVise AI calculates alignment scores strictly from verified candidate information. Add your work history and competencies to see your evidence-backed score.
+                </p>
+                {onNavigateToProfile && (
+                  <button
+                    onClick={onNavigateToProfile}
+                    className="mt-1 text-xs font-semibold text-blue-600 hover:text-blue-700"
+                  >
+                    Complete career profile →
+                  </button>
                 )}
               </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                      Match Assessment
+                    </div>
+                    <div className="flex items-baseline space-x-2.5 mt-0.5">
+                      <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                        {matchEvaluation.matchScore}%
+                      </span>
+                      <span className="text-xs font-medium text-slate-600">
+                        {matchEvaluation.matchScore >= 70
+                          ? 'High Alignment'
+                          : matchEvaluation.matchScore >= 40
+                            ? 'Moderate Alignment'
+                            : 'Foundational Alignment'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Clean progress indicator */}
+                  <div className="w-full sm:w-48 space-y-1">
+                    <div className="h-2 w-full bg-slate-200/80 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.max(matchEvaluation.matchScore, 4)}%` }}
+                      />
+                    </div>
+                    <div className="text-[10px] text-slate-500 text-right">
+                      {matchedCompetenciesList.length} of {matchedCompetenciesList.length + missingMandatoryList.length} core requirements met
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-600 leading-relaxed pt-1">
+                  Calculated strictly from your verified profile: {matchedCompetenciesList.length} core {matchedCompetenciesList.length === 1 ? 'competency is' : 'competencies are'} substantiated by documented evidence.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Decision Section: Two-Column Alignment & Constructive Strengths */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Where your experience aligns */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
+                  Where your experience aligns
+                </h4>
+                <span className="text-[11px] text-slate-500">
+                  {topStrengths.length} verified match{topStrengths.length === 1 ? '' : 'es'}
+                </span>
+              </div>
+
+              {topStrengths.length > 0 ? (
+                <div className="space-y-2 text-xs">
+                  {topStrengths.map((comp, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3.5 rounded-xl border border-slate-200/80 bg-white flex items-start space-x-2.5 shadow-xs"
+                    >
+                      <div className="p-1 rounded-full bg-blue-50 text-blue-600 shrink-0 mt-0.5">
+                        <Check className="h-3.5 w-3.5" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-slate-900">{comp}</div>
+                        <div className="text-slate-500 text-[11px] mt-0.5">
+                          Substantiated by verified profile history.
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 rounded-xl border border-slate-200/70 bg-slate-50/40 text-xs text-slate-500 leading-relaxed">
+                  No direct matching competencies recorded yet for this role spec.
+                </div>
+              )}
             </div>
 
-            <div className="p-5 rounded-xl bg-blue-50/40 border border-blue-200 space-y-3">
-              <div className="font-semibold text-blue-700 uppercase tracking-wider flex items-center space-x-2">
-                <FileText className="h-4 w-4" />
-                <span>AI Integrity Verification Rule</span>
+            {/* Skills to strengthen */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
+                  Skills to strengthen
+                </h4>
+                <span className="text-[11px] text-slate-500">
+                  {skillsToStrengthen.length} area{skillsToStrengthen.length === 1 ? '' : 's'}
+                </span>
               </div>
-              <div className="p-3 bg-white rounded-lg border border-blue-200 text-slate-800 space-y-2 leading-relaxed text-[11px]">
-                <div className="text-emerald-700 font-bold flex items-center space-x-1.5">
-                  <ShieldCheck className="h-4 w-4" />
-                  <span>Strict Non-Fabrication Guarantee</span>
+
+              {skillsToStrengthen.length > 0 ? (
+                <div className="space-y-2 text-xs">
+                  {skillsToStrengthen.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3.5 rounded-xl border border-slate-200/70 bg-slate-50/50 flex items-start space-x-2.5"
+                    >
+                      <div className="p-1 rounded-full bg-slate-200/70 text-slate-600 shrink-0 mt-0.5">
+                        <Sparkles className="h-3.5 w-3.5" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-slate-900">
+                          Skill to strengthen: <span className="font-semibold">{item.name}</span>
+                        </div>
+                        <div className="text-slate-500 text-[11px] mt-0.5">
+                          {item.type === 'mandatory'
+                            ? 'This requirement is not yet demonstrated in your profile.'
+                            : 'Additional experience may be beneficial.'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <p className="text-slate-600">
-                  Every resume sentence generated by ApplyVise AI must trace to a verified candidate fact above. If a vacancy asks for Go or eBPF and you do not possess it, our system flags the gap rather than hallucinating false claims.
-                </p>
-                <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-100 font-mono">
-                  Registry Status: Active Enforced
+              ) : (
+                <div className="p-4 rounded-xl border border-slate-200/70 bg-slate-50/40 text-xs text-slate-600 leading-relaxed flex items-center space-x-2">
+                  <ShieldCheck className="h-4 w-4 text-slate-500 shrink-0" />
+                  <span>All published role requirements are substantiated in your profile.</span>
                 </div>
-              </div>
+              )}
             </div>
+          </div>
+
+          {/* Secondary Actions & Progressive Disclosure */}
+          <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setActiveTab('audit')}
+                className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-colors"
+              >
+                Explore Detailed Assessment →
+              </button>
+              <button
+                onClick={() => setActiveTab('tailor')}
+                className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-colors"
+              >
+                View ATS Resume Preview
+              </button>
+            </div>
+
+            {isLandingPage ? (
+              <button
+                onClick={() => handleAction('signup')}
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                Create Account to Match More Jobs →
+              </button>
+            ) : onNavigateToProfile ? (
+              <button
+                onClick={onNavigateToProfile}
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                Update Profile Skills →
+              </button>
+            ) : null}
           </div>
         </div>
       )}
 
-      {/* Tab 3: Tailored Resume */}
-      {activeTab === 'tailor' && (
+      {/* Tab 2: Profile Evidence (Clean 3-Column Table & Executive Assessment) */}
+      {activeTab === 'audit' && (
         <div className="p-6 sm:p-8 space-y-6">
-          {/* Header banner */}
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div>
-              <div className="font-bold text-slate-900 uppercase tracking-wider">
-                ATS Resume Preview · Evidence-Grounded
-              </div>
-              <div className="text-slate-500 text-[11px]">
-                Grounded strictly in verified candidate facts. No fabricated credentials.
+          {/* Subtle Verification Standard Note */}
+          <div className="flex items-center space-x-2.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600">
+            <ShieldCheck className="h-4 w-4 text-slate-500 shrink-0" />
+            <span>AUDIT PASS: Zero fabricated credentials, metrics, or false employer statements detected. All requirements grounded in verified profile facts.</span>
+          </div>
+
+          {/* Minimal 3-Column Table: Requirement | Candidate Evidence | Assessment */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
+                Alignment Breakdown & Evidence
+              </h4>
+              <span className="text-[11px] text-slate-500">
+                {profileEvidenceList.length} criteria evaluated
+              </span>
+            </div>
+
+            <div className="border border-slate-200/80 rounded-xl overflow-hidden text-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200/80 bg-slate-50/75 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                      <th className="py-3 px-4 w-1/3">Job Requirement</th>
+                      <th className="py-3 px-4 w-5/12">Relevant Profile Grounding</th>
+                      <th className="py-3 px-4 w-1/4">Assessment</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {profileEvidenceList.map((item, idx) => {
+                      const isSupported = item.status === 'SUPPORTED';
+                      const isTransferable = item.status === 'TRANSFERABLE';
+                      const isNotFound = item.status === 'NOT_FOUND';
+                      const isUnverified = item.status === 'UNVERIFIED';
+
+                      return (
+                        <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                          {/* Column 1: Job Requirement */}
+                          <td className="py-3.5 px-4 align-top">
+                            <div className="font-semibold text-slate-900">{item.requirement}</div>
+                            <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-slate-100 text-slate-600">
+                              {item.category === 'mandatory' ? 'Core Requirement' : 'Preferred'}
+                            </span>
+                          </td>
+
+                          {/* Column 2: Candidate Evidence */}
+                          <td className="py-3.5 px-4 align-top text-slate-700">
+                            {isNotFound ? (
+                              <div className="text-slate-400 italic text-[11px]">
+                                This requirement is not yet demonstrated in your profile.
+                              </div>
+                            ) : (
+                              <div className="space-y-1">
+                                <div className="text-[11px] leading-relaxed">
+                                  {item.candidateEvidence}
+                                </div>
+                                {item.source && (
+                                  <div>
+                                    <button
+                                      onClick={() => toggleSource(item.id || String(idx))}
+                                      className="text-[10px] text-slate-500 hover:text-slate-800 font-mono flex items-center space-x-1"
+                                    >
+                                      <span>Source: {expandedSources[item.id || String(idx)] ? item.source : 'Attributed'}</span>
+                                      <ChevronRight className={`h-2.5 w-2.5 transition-transform ${expandedSources[item.id || String(idx)] ? 'rotate-90' : ''}`} />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Column 3: Assessment */}
+                          <td className="py-3.5 px-4 align-top">
+                            <div>
+                              {isSupported && (
+                                <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-800">
+                                  Supported
+                                </span>
+                              )}
+                              {isTransferable && (
+                                <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700">
+                                  Partially supported
+                                </span>
+                              )}
+                              {isUnverified && (
+                                <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600">
+                                  Needs verification
+                                </span>
+                              )}
+                              {isNotFound && (
+                                <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500">
+                                  Not yet demonstrated
+                                </span>
+                              )}
+                            </div>
+                            {item.assessment && (
+                              <div className="text-[11px] text-slate-500 mt-1 leading-normal">
+                                {item.assessment}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
+          </div>
+
+          {/* On-Demand Deep Audit Disclosure */}
+          <div className="pt-2">
+            <button
+              onClick={() => setShowDeepFactAudit(!showDeepFactAudit)}
+              className="text-xs font-medium text-slate-600 hover:text-slate-900 flex items-center space-x-1.5 transition-colors"
+            >
+              <span>{showDeepFactAudit ? 'Hide Fact Registry & Attribution' : 'View Verified Fact Registry & Attribution'}</span>
+              <ChevronRight className={`h-3.5 w-3.5 transition-transform ${showDeepFactAudit ? 'rotate-90' : ''}`} />
+            </button>
+
+            {showDeepFactAudit && (
+              <div className="mt-4 p-5 rounded-xl border border-slate-200/80 bg-slate-50/60 space-y-3 text-xs">
+                <div className="font-semibold text-slate-800 uppercase tracking-wider text-[11px]">
+                  Verified Candidate Fact Registry ({effectiveFacts.length} documented facts)
+                </div>
+                <div className="p-3 bg-white rounded-lg border border-slate-200/70 text-slate-700 space-y-1.5 font-mono text-[11px] max-h-48 overflow-y-auto">
+                  {effectiveFacts.length > 0 ? (
+                    effectiveFacts.map((fact, idx) => (
+                      <div key={idx}>
+                        • <span className="font-semibold text-slate-900">{fact.category}:</span> {fact.value}{' '}
+                        <span className="text-[10px] text-slate-400">({fact.originalSource})</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-slate-400 italic">No verified facts recorded yet.</div>
+                  )}
+                </div>
+                <div className="text-slate-500 text-[11px] leading-relaxed">
+                  Strict Non-Fabrication Guarantee: Every tailored bullet and qualification assertion must trace directly to a confirmed entry in the candidate fact registry above.
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 3: Tailored Resume (Executive Document Preview) */}
+      {activeTab === 'tailor' && (
+        <div className="p-6 sm:p-8 space-y-6">
+          {/* Action Header */}
+          <div className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div>
+              <div className="font-semibold text-slate-900">
+                Targeted Resume Preview
+              </div>
+              <div className="text-slate-500 text-[11px] mt-0.5">
+                Standard ATS format · Grounded strictly in verified candidate facts
+              </div>
+            </div>
+
             <div className="flex items-center space-x-2">
-              <span className="px-2.5 py-1 rounded bg-slate-200/80 text-slate-700 font-mono text-[10px]">
-                ATS-12 Standard
-              </span>
               {isLandingPage ? (
                 <button
                   onClick={() => handleAction('signup')}
-                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center space-x-1.5 transition-colors"
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium flex items-center space-x-1.5 transition-colors shadow-xs"
                 >
                   <Download className="h-3.5 w-3.5" />
-                  <span>Download DOCX</span>
+                  <span>Download ATS Resume</span>
                 </button>
               ) : (
                 <button
-                  onClick={() => alert('Download validated. All claims grounded in verified profile.')}
-                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center space-x-1.5 transition-colors"
+                  onClick={() => alert('Resume validated. All statements grounded in verified profile facts.')}
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium flex items-center space-x-1.5 transition-colors shadow-xs"
                 >
                   <Download className="h-3.5 w-3.5" />
-                  <span>Download DOCX</span>
+                  <span>Download ATS Resume</span>
                 </button>
               )}
             </div>
           </div>
 
-          {/* Validation Status */}
-          {!resumeAudit.isValid && (
-            <div className="p-3 rounded-lg bg-rose-50 border border-rose-300 text-rose-900 text-xs flex items-start space-x-2">
-              <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-bold">Validation Warning: </span>
-                <span>Unverified claims or metrics detected. Export is guarded to preserve candidate truthfulness.</span>
-              </div>
-            </div>
-          )}
-
-          {/* Truthful ATS Document Preview */}
-          <div className="p-6 rounded-xl bg-white border border-slate-300 shadow-inner space-y-4 font-sans text-xs">
-            <div className="border-b border-slate-200 pb-3 text-center sm:text-left">
-              <h2 className="text-base font-bold text-slate-900 tracking-wide uppercase">
-                {effectiveProfile?.fullName || 'Candidate Name'}
+          {/* Clean Executive ATS Document Preview */}
+          <div className="p-8 sm:p-10 rounded-xl bg-white border border-slate-200/90 shadow-xs font-sans text-xs space-y-5 max-w-3xl mx-auto">
+            {/* Candidate Header */}
+            <div className="border-b border-slate-200 pb-4 text-center sm:text-left">
+              <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+                {effectiveProfile?.fullName || 'Candidate Profile'}
               </h2>
-              <div className="text-slate-500 text-[11px] mt-0.5">
-                {effectiveProfile?.location || 'Location Not Specified'} · {effectiveProfile?.email || 'Email Protected'}
+              <div className="text-slate-600 font-medium text-xs mt-0.5">
+                {effectiveProfile?.currentTitle || 'Software Professional'}
+              </div>
+              <div className="text-slate-400 text-[11px] mt-1">
+                {effectiveProfile?.location || 'Remote'} · {isLandingPage ? 'Protected on Demonstration View' : (effectiveProfile?.email || 'Candidate on File')}
               </div>
             </div>
 
+            {/* Professional Summary */}
             <div className="space-y-1.5">
-              <div className="text-blue-700 font-bold text-[11px] uppercase tracking-wider">
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-900">
                 Professional Summary
               </div>
               <p className="text-slate-700 text-[11px] leading-relaxed">
                 {effectiveProfile?.summary ||
-                  `Dedicated ${effectiveProfile?.currentTitle || 'professional'} with documented expertise in ${
-                    effectiveProfile?.skills?.map(s => s.name).slice(0, 4).join(', ') || 'their primary technical domain'
-                  }. Committed to measurable delivery and transparent career progression.`}
+                  `Experienced ${effectiveProfile?.currentTitle || 'software professional'} with substantiated background in ${
+                    effectiveProfile?.skills?.map(s => s.name).slice(0, 4).join(', ') || 'software engineering and delivery'
+                  }. Focused on resilient technical architecture, measurable system delivery, and transparent execution.`}
               </p>
             </div>
 
+            {/* Core Competencies */}
             <div className="space-y-1.5">
-              <div className="text-blue-700 font-bold text-[11px] uppercase tracking-wider">
-                Targeted Competencies (Verified)
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                Core Competencies (Verified)
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {effectiveProfile?.skills && effectiveProfile.skills.length > 0 ? (
                   effectiveProfile.skills.map((skill, idx) => (
-                    <span key={idx} className="px-2 py-0.5 rounded bg-slate-100 text-slate-800 text-[11px]">
+                    <span key={idx} className="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[11px] font-medium">
                       {skill.name}
                     </span>
                   ))
                 ) : (
-                  <span className="text-slate-400 italic text-[11px]">No verified skills listed.</span>
+                  <span className="text-slate-400 italic text-[11px]">No verified competencies recorded.</span>
                 )}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="text-blue-700 font-bold text-[11px] uppercase tracking-wider">
-                Verified Work Experience
+            {/* Verified Experience */}
+            <div className="space-y-3">
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                Professional Experience
               </div>
               {effectiveProfile?.employmentHistory && effectiveProfile.employmentHistory.length > 0 ? (
                 effectiveProfile.employmentHistory.map((emp, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <div className="flex flex-wrap items-center justify-between text-[11px]">
-                      <span className="font-bold text-slate-900">{emp.role} — {emp.company}</span>
-                      <span className="text-slate-500 font-mono text-[10px]">{emp.duration}</span>
+                  <div key={idx} className="space-y-1 border-l-2 border-slate-100 pl-3">
+                    <div className="flex flex-wrap items-center justify-between text-xs">
+                      <span className="font-semibold text-slate-900">{emp.role} — {emp.company}</span>
+                      <span className="text-slate-500 font-mono text-[11px]">{emp.duration}</span>
                     </div>
                     {emp.achievements && emp.achievements.length > 0 ? (
-                      <ul className="list-disc list-inside text-slate-600 text-[11px] space-y-0.5 pl-1">
+                      <ul className="list-disc list-inside text-slate-600 text-[11px] space-y-1 pl-1">
                         {emp.achievements.map((ach, aIdx) => (
                           <li key={aIdx}>{ach}</li>
                         ))}

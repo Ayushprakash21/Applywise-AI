@@ -152,6 +152,40 @@ export function renderGoogleButton(
 }
 
 /**
+ * Programmatically triggers Google Identity Services One Tap / Credential prompt.
+ * Handles notification callbacks, suppression, and dismissal gracefully.
+ */
+export function triggerGooglePrompt(
+  onNotification?: (notification: { isNotDisplayed: boolean; isDismissed: boolean; reason?: string }) => void
+): void {
+  if (typeof window === 'undefined') return;
+  const google = (window as any).google;
+  if (!google?.accounts?.id) {
+    if (onNotification) {
+      onNotification({ isNotDisplayed: true, isDismissed: false, reason: 'script_not_loaded' });
+    }
+    return;
+  }
+
+  try {
+    google.accounts.id.prompt((notification: any) => {
+      const isNotDisplayed = typeof notification?.isNotDisplayed === 'function' ? notification.isNotDisplayed() : false;
+      const isDismissed = typeof notification?.isDismissedMoment === 'function' ? notification.isDismissedMoment() : false;
+      const reason = typeof notification?.getNotDisplayedReason === 'function' ? notification.getNotDisplayedReason() : undefined;
+
+      if (onNotification) {
+        onNotification({ isNotDisplayed, isDismissed, reason });
+      }
+    });
+  } catch (err) {
+    console.warn('Google Identity prompt notice:', err);
+    if (onNotification) {
+      onNotification({ isNotDisplayed: true, isDismissed: false, reason: 'prompt_exception' });
+    }
+  }
+}
+
+/**
  * Unregisters a callback when its component unmounts.
  */
 export function unregisterGoogleCallback(cb: GoogleCredentialCallback): void {

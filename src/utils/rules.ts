@@ -5,7 +5,9 @@ import {
   JobVacancy,
   JobMatchEvaluation,
   ApplicationStatus,
-  TailoredResumeContent
+  TailoredResumeContent,
+  CandidateFact,
+  ProfileEvidenceItem
 } from '../types/index.ts';
 
 /**
