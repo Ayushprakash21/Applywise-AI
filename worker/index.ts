@@ -20,6 +20,7 @@ import { runIncrementalJobSync } from './jobSyncManager.ts';
 import { runCentralIntegrityAudit, evaluateTransferableSkills } from './integrityEngine.ts';
 import { careerIntelligenceEngine } from './careerIntelligenceEngine.ts';
 import { ApplicationReceipt, CareerOutcomeItem } from '../src/types/index.ts';
+import { SUBSCRIPTION_PLANS } from '../src/config/plans.ts';
 import {
   isPermanentFreeAccessAccount,
   getEffectivePlan,
@@ -708,6 +709,59 @@ app.post('/api/subscription/upgrade', requireAuth, async (c) => {
     const msg = err instanceof Error ? err.message : String(err);
     return c.json({ success: false, error: `Upgrade failed: ${msg}` }, 500);
   }
+});
+
+
+app.post('/api/subscription/razorpay/create-order', requireAuth, async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const planId: 'pro' | 'black' = body.planId === 'black' ? 'black' : 'pro';
+  const billingInterval: 'monthly' | 'annual' = body.billingInterval === 'annual' ? 'annual' : 'monthly';
+
+  const plan = SUBSCRIPTION_PLANS[planId];
+  const amount = plan.price[billingInterval].inr * 100; // paise
+  const orderId = `order_av_${crypto.randomUUID().replace(/-/g, '').slice(0, 14)}`;
+
+  return c.json({
+    success: true,
+    orderId,
+    amount,
+    currency: 'INR',
+    keyId: (c.env as any)?.RAZORPAY_KEY_ID || 'rzp_test_applyvise_mock',
+    planId,
+    billingInterval,
+  });
+});
+
+app.post('/api/subscription/razorpay/verify', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const body = await c.req.json().catch(() => ({}));
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, planId = 'pro', billingInterval = 'monthly' } = body;
+
+  if (!razorpay_order_id || !razorpay_payment_id) {
+    return c.json({ success: false, error: 'Missing payment confirmation parameters.' }, 400);
+  }
+
+  const validPlan: 'pro' | 'black' = planId === 'black' ? 'black' : 'pro';
+  await store.updateUserSubscription(user.id, validPlan, billingInterval);
+  await store.addAuditLog(user.id, 'Razorpay Verification', 'PAYMENT_VERIFIED', `Payment: ${razorpay_payment_id}`, `Activated ${validPlan.toUpperCase()} membership`);
+
+  const isBlack = validPlan === 'black';
+  await store.addNotification(
+    user.id,
+    isBlack ? 'Welcome to BLACK by ApplyVise AI' : 'Payment Verified — Welcome to Pro!',
+    isBlack
+      ? 'Payment verified. BLACK ELITE membership activated with 2× Pro limits, exclusive multi-role strategy, and priority intelligence.'
+      : 'Payment verified. ApplyVise Pro is now active.',
+    'system'
+  );
+
+  const updatedSub = await store.getUserSubscription(user.id);
+  return c.json({
+    success: true,
+    subscription: updatedSub,
+    message: isBlack ? 'Payment confirmed! Welcome to BLACK ELITE.' : 'Payment confirmed! Welcome to ApplyVise Pro.',
+  });
 });
 
 app.post('/api/subscription/cancel', requireAuth, async (c) => {

@@ -739,7 +739,7 @@ export interface CareerOutcomeItem {
 }
 
 export interface AccountUsageStats {
-  planId: 'free' | 'pro';
+  planId: 'free' | 'pro' | 'black';
   isPermanentAccess: boolean;
   resumes: {
     active: number;

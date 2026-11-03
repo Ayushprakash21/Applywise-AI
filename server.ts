@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import fs from 'fs';
@@ -17,6 +18,8 @@ import {
 } from './src/data/seedData.ts';
 import { validateStateTransition } from './src/utils/rules.ts';
 import { ApplicationRecord, JobVacancy, ApplicationStatus } from './src/types/index.ts';
+import { getEffectivePlan, checkAIUsageAllowance, isPermanentFreeAccessAccount } from './src/config/freeAccess.ts';
+import { SUBSCRIPTION_PLANS } from './src/config/plans.ts';
 
 dotenv.config();
 
@@ -935,6 +938,191 @@ app.post('/api/notifications/mark-all-read', requireAuth, (req: AuthenticatedReq
 
 app.get('/api/integrations', (req: Request, res: Response) => {
   res.json({ success: true, integrations: initialIntegrations });
+});
+
+
+// ============================================================================
+// SUBSCRIPTION & RAZORPAY ENDPOINTS (FREE, PRO & BLACK)
+// ============================================================================
+
+app.get('/api/subscription/current', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user!;
+  const sub = authAndStore.getUserSubscription(user.id);
+  const used = 0; // AI usage
+
+  const effective = getEffectivePlan(user, sub);
+  const aiAllowance = checkAIUsageAllowance(user, used, sub);
+
+  const effectiveSub = {
+    ...sub,
+    planId: effective.planId,
+    plan: effective.planId,
+    status: effective.status,
+    billingInterval: effective.billingInterval,
+    planName: effective.planName,
+    badge: effective.badge,
+    isPermanentFreeAccess: effective.isPermanentFreeAccess,
+    description: effective.description,
+  };
+
+  res.json({
+    success: true,
+    subscription: effectiveSub,
+    usage: {
+      used,
+      limit: aiAllowance.limit,
+      remaining: aiAllowance.remaining,
+      isUnlimited: aiAllowance.isUnlimited,
+      isPermanentFreeAccess: aiAllowance.isPermanentFreeAccess,
+      periodStart: sub.currentPeriodStart,
+      periodEnd: effective.isPermanentFreeAccess ? '2099-12-31T23:59:59.999Z' : sub.currentPeriodEnd,
+    },
+  });
+});
+
+app.post('/api/subscription/upgrade', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user!;
+    if (isPermanentFreeAccessAccount(user)) {
+      const effective = getEffectivePlan(user);
+      return res.json({
+        success: true,
+        subscription: {
+          planId: effective.planId,
+          plan: effective.planId,
+          status: effective.status,
+          billingInterval: effective.billingInterval,
+          planName: effective.planName,
+          badge: effective.badge,
+          isPermanentFreeAccess: true,
+        },
+        message: 'Your account is permanently authorized with full Pro access. No payment or billing is required.',
+      });
+    }
+
+    const { planId = 'pro', billingInterval = 'monthly' } = req.body || {};
+    const validPlan: 'pro' | 'black' = planId === 'black' ? 'black' : 'pro';
+
+    authAndStore.updateUserSubscription(user.id, validPlan, billingInterval);
+    authAndStore.addAuditLog(user.id, 'User manual', 'SUBSCRIPTION_UPGRADED', `Plan: ${validPlan} (${billingInterval})`, `Upgraded account to ${validPlan.toUpperCase()}`);
+
+    const isBlack = validPlan === 'black';
+    authAndStore.addNotification(
+      user.id,
+      isBlack ? 'Welcome to BLACK by ApplyVise AI' : 'Welcome to ApplyVise Pro!',
+      isBlack
+        ? 'Your account is now activated with BLACK ELITE membership. You have unlocked 2× Pro usage, exclusive multi-role strategy, advanced interview simulations, and priority AI processing.'
+        : 'Your account has been upgraded. You now have access to high-volume AI intelligence, advanced ATS tailoring, and deep gap analysis.',
+      'system'
+    );
+
+    const updatedSub = authAndStore.getUserSubscription(user.id);
+    return res.json({
+      success: true,
+      subscription: updatedSub,
+      message: isBlack
+        ? 'Welcome to BLACK by ApplyVise AI! Your Career. Without Limits.'
+        : 'Welcome to ApplyVise Pro! All premium capabilities are now active.',
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return res.status(500).json({ success: false, error: `Upgrade failed: ${msg}` });
+  }
+});
+
+app.post('/api/subscription/cancel', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user!;
+    if (isPermanentFreeAccessAccount(user)) {
+      const effective = getEffectivePlan(user);
+      return res.json({
+        success: true,
+        subscription: {
+          planId: effective.planId,
+          status: effective.status,
+          planName: effective.planName,
+          isPermanentFreeAccess: true,
+        },
+        message: 'Your permanent free access is lifetime-active and does not require cancellation.',
+      });
+    }
+
+    authAndStore.cancelSubscription(user.id);
+    authAndStore.addAuditLog(user.id, 'User manual', 'SUBSCRIPTION_CANCEL_SCHEDULED', 'Pro/Black Plan', 'Scheduled subscription cancellation at end of period');
+
+    const updatedSub = authAndStore.getUserSubscription(user.id);
+    return res.json({
+      success: true,
+      subscription: updatedSub,
+      message: 'Subscription will remain active until the end of your current billing period.',
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return res.status(500).json({ success: false, error: `Cancellation failed: ${msg}` });
+  }
+});
+
+// Razorpay Order Creation
+app.post('/api/subscription/razorpay/create-order', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const { planId = 'pro', billingInterval = 'monthly' } = req.body || {};
+  const validPlan: 'pro' | 'black' = planId === 'black' ? 'black' : 'pro';
+  const validInterval: 'monthly' | 'annual' = billingInterval === 'annual' ? 'annual' : 'monthly';
+
+  const plan = SUBSCRIPTION_PLANS[validPlan];
+  const amount = plan.price[validInterval].inr * 100; // in paise
+  const orderId = `order_av_${crypto.randomUUID().replace(/-/g, '').slice(0, 14)}`;
+
+  res.json({
+    success: true,
+    orderId,
+    amount,
+    currency: 'INR',
+    keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_applyvise_mock',
+    planId: validPlan,
+    billingInterval: validInterval,
+  });
+});
+
+// Razorpay Payment Verification
+app.post('/api/subscription/razorpay/verify', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user!;
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, planId = 'pro', billingInterval = 'monthly' } = req.body || {};
+
+  if (!razorpay_order_id || !razorpay_payment_id) {
+    return res.status(400).json({ success: false, error: 'Missing payment confirmation parameters.' });
+  }
+
+  // Signature verification if secret configured
+  const secret = process.env.RAZORPAY_KEY_SECRET;
+  if (secret && razorpay_signature) {
+    const hmac = crypto.createHmac('sha256', secret);
+    hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
+    const expectedSig = hmac.digest('hex');
+    if (expectedSig !== razorpay_signature) {
+      return res.status(400).json({ success: false, error: 'Invalid payment signature. Verification failed.' });
+    }
+  }
+
+  const validPlan: 'pro' | 'black' = planId === 'black' ? 'black' : 'pro';
+  authAndStore.updateUserSubscription(user.id, validPlan, billingInterval);
+  authAndStore.addAuditLog(user.id, 'Razorpay Verification', 'PAYMENT_VERIFIED', `Payment: ${razorpay_payment_id}`, `Activated ${validPlan.toUpperCase()} membership`);
+
+  const isBlack = validPlan === 'black';
+  authAndStore.addNotification(
+    user.id,
+    isBlack ? 'Welcome to BLACK by ApplyVise AI' : 'Payment Verified — Welcome to Pro!',
+    isBlack
+      ? 'Payment verified. BLACK ELITE membership activated with 2× Pro limits, exclusive multi-role strategy, and priority intelligence.'
+      : 'Payment verified. ApplyVise Pro is now active.',
+    'system'
+  );
+
+  const updatedSub = authAndStore.getUserSubscription(user.id);
+  res.json({
+    success: true,
+    subscription: updatedSub,
+    message: isBlack ? 'Payment confirmed! Welcome to BLACK ELITE.' : 'Payment confirmed! Welcome to ApplyVise Pro.',
+  });
 });
 
 // --- CAREER INTELLIGENCE & NEXT-GEN APPLICATION SUITE (PART 2) ---

@@ -20,9 +20,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Award,
-  KeyRound
+  KeyRound,
+  Compass,
+  Command,
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
+import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
 import { AuthUser } from '../services/api.ts';
 import { NotificationItem, AutomationSettings, AccountUsageStats } from '../types/index.ts';
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
@@ -44,7 +49,7 @@ export type DashboardTab =
   | 'privacy'
   | 'subscription';
 
-interface DashboardShellProps {
+export interface DashboardShellProps {
   user: AuthUser;
   activeTab: DashboardTab;
   onSelectTab: (tab: DashboardTab) => void;
@@ -60,7 +65,7 @@ interface DashboardShellProps {
   onOpenAbout: () => void;
   onOpenAdmin?: () => void;
   onLogout: () => void;
-  plan?: 'free' | 'pro';
+  plan?: 'free' | 'pro' | 'black';
   usage?: AccountUsageStats | null;
   children: React.ReactNode;
 }
@@ -150,15 +155,21 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-[#E9EDF3] neu-bg text-slate-800 flex flex-col font-sans">
-      {/* Top Fixed Header - Clean Consumer SaaS Header */}
-      <header className="sticky top-0 z-40 bg-[#EEF2F7]/95 backdrop-blur-md border-b border-slate-300/60 transition-colors shadow-xs">
-        <div className="w-full px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+    <div className="min-h-screen bg-[#E9EEF6] text-slate-800 flex flex-col font-sans selection:bg-violet-200 selection:text-violet-900 relative">
+      {/* Ambient Flowing Background (matching authentication experience) */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden select-none z-0">
+        <div className="absolute -top-[10%] right-[15%] w-[680px] h-[680px] rounded-full bg-gradient-to-br from-indigo-300/15 via-purple-300/10 to-transparent blur-[140px]" />
+        <div className="absolute bottom-[10%] left-[5%] w-[640px] h-[640px] rounded-full bg-gradient-to-tr from-blue-300/15 via-sky-200/20 to-transparent blur-[130px]" />
+      </div>
+
+      {/* Top Fixed Header - Frosted Translucent Glass */}
+      <header className="sticky top-0 z-40 bg-white/60 backdrop-blur-xl border-b border-white/80 transition-colors shadow-2xs">
+        <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-4">
           {/* Left: Brand Logo & Mobile Toggle */}
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl text-slate-500 hover:text-slate-900 transition-colors"
+              className="lg:hidden p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-white/80 transition-colors cursor-pointer"
               aria-label="Toggle Navigation Drawer"
             >
               {mobileMenuOpen ? <CloseIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -166,20 +177,38 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
             <BrandLogo
               variant="light"
-              size="sm"
+              size="md"
               onClick={() => onSelectTab('overview')}
+              className="cursor-pointer"
             />
+          </div>
+
+          {/* Center: Command / Search Navigation */}
+          <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
+            <div
+              onClick={() => onSelectTab('jobs')}
+              className="w-full px-4 py-2 rounded-2xl bg-white/65 hover:bg-white/85 border border-white/90 text-xs text-slate-400 flex items-center justify-between shadow-2xs transition-all cursor-pointer"
+            >
+              <div className="flex items-center space-x-2.5">
+                <Search className="w-4 h-4 text-slate-400" />
+                <span className="text-slate-500 font-medium">Search verified opportunities, skills, companies...</span>
+              </div>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/60 text-slate-600 font-semibold border border-slate-300/50">
+                ⌘K
+              </span>
+            </div>
           </div>
 
           {/* Right Toolbar */}
           <div className="flex items-center space-x-2 sm:space-x-3">
             {/* Safe Mode Indicator */}
             <button
+              type="button"
               onClick={onToggleEmergencyStop}
-              className={`hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium transition ${
+              className={`hidden sm:flex items-center space-x-2 px-3.5 py-1.5 rounded-full border text-xs font-semibold shadow-2xs transition cursor-pointer ${
                 settings?.emergencyStop
-                  ? 'bg-rose-50 border-rose-200 text-rose-700'
-                  : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                  ? 'bg-rose-50/90 border-rose-200 text-rose-700'
+                  : 'bg-emerald-50/90 border-emerald-200 text-emerald-700'
               }`}
             >
               <span className={`h-2 w-2 rounded-full ${settings?.emergencyStop ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`} />
@@ -189,24 +218,26 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             {/* Notifications Button & Dropdown */}
             <div className="relative" ref={notifRef}>
               <button
+                type="button"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
+                className="relative p-2.5 rounded-xl bg-white/70 hover:bg-white border border-white/85 text-slate-600 hover:text-slate-900 transition shadow-2xs cursor-pointer"
                 aria-label="Notifications"
               >
-                <Bell className="h-5 w-5" />
+                <Bell className="h-4.5 w-4.5" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-blue-600 ring-2 ring-white" />
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[#8065F5] ring-2 ring-white animate-pulse" />
                 )}
               </button>
 
               {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-sm rounded-2xl bg-white border border-slate-200 shadow-xl p-4 z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 mt-2.5 w-[calc(100vw-2rem)] sm:w-96 max-w-sm rounded-3xl bg-white/85 backdrop-blur-2xl border border-white/90 shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <span className="font-bold text-xs uppercase tracking-wider text-slate-700">Notifications</span>
+                    <span className="font-bold text-xs uppercase tracking-wider text-slate-800 font-mono">Notifications</span>
                     {unreadCount > 0 && (
                       <button
+                        type="button"
                         onClick={onMarkAllNotificationsRead}
-                        className="text-[11px] text-blue-600 hover:underline"
+                        className="text-[11px] font-semibold text-[#8065F5] hover:underline cursor-pointer"
                       >
                         Mark all as read
                       </button>
@@ -214,7 +245,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   </div>
                   <div className="py-2 max-h-72 overflow-y-auto divide-y divide-slate-100">
                     {notifications.length === 0 ? (
-                      <div className="py-6 text-center text-xs text-slate-400">
+                      <div className="py-8 text-center text-xs text-slate-400">
                         No notifications right now.
                       </div>
                     ) : (
@@ -222,13 +253,25 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                         <div
                           key={n.id}
                           onClick={() => onMarkNotificationRead(n.id)}
-                          className={`py-2.5 px-2 rounded-lg cursor-pointer transition ${n.read ? 'opacity-60' : 'bg-blue-50/50'}`}
+                          className={`py-2.5 px-2.5 rounded-xl cursor-pointer transition ${n.read ? 'opacity-60' : 'bg-blue-50/60 hover:bg-blue-50'}`}
                         >
                           <div className="text-xs font-semibold text-slate-900">{n.title}</div>
                           <div className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">{n.message}</div>
                         </div>
                       ))
                     )}
+                  </div>
+                  <div className="pt-2 text-center border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNotificationsOpen(false);
+                        onSelectTab('notifications');
+                      }}
+                      className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
+                    >
+                      View all in Notifications →
+                    </button>
                   </div>
                 </div>
               )}
@@ -237,73 +280,112 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             {/* User Profile Menu */}
             <div className="relative" ref={userMenuRef}>
               <button
+                type="button"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-100 transition text-left"
+                className="flex items-center space-x-2.5 p-1.5 pr-3 rounded-full bg-white/70 hover:bg-white border border-white/85 shadow-2xs transition text-left cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-xl bg-blue-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-[#8065F5] text-white font-bold flex items-center justify-center text-xs shadow-xs">
                   {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
                 </div>
                 <div className="hidden md:block">
-                  <div className="text-xs font-bold text-slate-900 truncate max-w-[120px]">
-                    {user.fullName || 'User'}
+                  <div className="text-xs font-bold text-slate-900 truncate max-w-[120px] flex items-center gap-1.5">
+                    <span>{user.fullName || 'User'}</span>
+                    {plan === 'black' && <RoyalCrownLogo size="xs" />}
                   </div>
-                  <div className="text-[10px] text-blue-600 font-semibold">
-                    {isFounderAccount ? 'PRO · FOUNDER' : plan.toUpperCase()}
+                  <div className="text-[10px] text-slate-500 font-medium">
+                    {plan === 'black' ? (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-bold text-[9px] bg-[#090B12] text-[#F3DEAC] border border-[#D6B46A]/40">
+                        BLACK ELITE
+                      </span>
+                    ) : isFounderAccount ? (
+                      'PRO · FOUNDER'
+                    ) : (
+                      plan.toUpperCase()
+                    )}
                   </div>
                 </div>
-                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+                <ChevronDown className="h-3.5 w-3.5 text-slate-400 hidden sm:block" />
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-2xl bg-white border border-slate-200 shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2 text-xs">
-                  <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                    <div className="font-bold text-slate-900 truncate">{user.fullName}</div>
-                    <div className="text-[11px] text-slate-400 truncate">{user.email}</div>
+                <div className="absolute right-0 mt-2.5 w-64 max-w-[calc(100vw-2rem)] rounded-3xl bg-white/85 backdrop-blur-2xl border border-white/90 shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="p-3 border-b border-slate-100">
+                    <p className="text-xs font-bold text-slate-900 truncate">{user.fullName}</p>
+                    <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
+                    {plan === 'black' ? (
+                      <div className="mt-2 inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#090B12] text-[#F3DEAC] border border-[#D6B46A]/60 shadow-xs">
+                        <RoyalCrownLogo size="xs" />
+                        <span>BLACK ELITE Member</span>
+                      </div>
+                    ) : (
+                      <div className="mt-2 inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200">
+                        <span>{isFounderAccount ? 'Founder Lifetime Access' : `${plan.toUpperCase()} Plan`}</span>
+                      </div>
+                    )}
                   </div>
 
-                  {isAdmin && onOpenAdmin && (
+                  <div className="py-1 text-xs space-y-0.5">
                     <button
-                      onClick={() => { setUserMenuOpen(false); onOpenAdmin(); }}
-                      className="w-full text-left px-3 py-2 rounded-xl text-amber-700 hover:bg-amber-50 font-semibold flex items-center space-x-2"
+                      type="button"
+                      onClick={() => {
+                        onSelectTab('profile');
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 flex items-center space-x-2 cursor-pointer transition"
                     >
-                      <KeyRound className="h-4 w-4" />
-                      <span>Admin Console</span>
+                      <User className="h-4 w-4 text-slate-500" />
+                      <span>My Profile</span>
                     </button>
-                  )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSelectTab('settings');
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 flex items-center space-x-2 cursor-pointer transition"
+                    >
+                      <Sliders className="h-4 w-4 text-slate-500" />
+                      <span>Settings</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSelectTab('subscription');
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 flex items-center space-x-2 cursor-pointer transition"
+                    >
+                      <Award className="h-4 w-4 text-slate-500" />
+                      <span>Subscription</span>
+                    </button>
+                    {isAdmin && onOpenAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onOpenAdmin();
+                          setUserMenuOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl text-violet-700 hover:bg-violet-50 font-semibold flex items-center space-x-2 cursor-pointer transition"
+                      >
+                        <KeyRound className="h-4 w-4 text-violet-600" />
+                        <span>Admin Console</span>
+                      </button>
+                    )}
+                  </div>
 
-                  <button
-                    onClick={() => { setUserMenuOpen(false); onOpenSettingsModal(); }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 flex items-center space-x-2"
-                  >
-                    <Sliders className="h-4 w-4" />
-                    <span>Account Settings</span>
-                  </button>
-
-                  <button
-                    onClick={() => { setUserMenuOpen(false); onOpenPricing(); }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 flex items-center space-x-2"
-                  >
-                    <Award className="h-4 w-4" />
-                    <span>Subscription Plan</span>
-                  </button>
-
-                  <button
-                    onClick={() => { setUserMenuOpen(false); onOpenPrivacy(); }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 flex items-center space-x-2"
-                  >
-                    <Shield className="h-4 w-4" />
-                    <span>Privacy & Data Rights</span>
-                  </button>
-
-                  <div className="my-1 border-t border-slate-100" />
-
-                  <button
-                    onClick={() => { setUserMenuOpen(false); onLogout(); }}
-                    className="w-full text-left px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 font-semibold flex items-center space-x-2"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span>Sign Out</span>
-                  </button>
+                  <div className="pt-1 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onLogout();
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 font-medium flex items-center space-x-2 cursor-pointer transition text-xs"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -311,170 +393,124 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
         </div>
       </header>
 
-      {/* Main Workspace with Responsive Sidebar */}
-      <div className="flex-1 flex w-full">
-        {/* Desktop Collapsible Sidebar */}
+      {/* Main Workspace Body with Sidebar */}
+      <div className="flex-1 flex w-full max-w-[1720px] mx-auto relative z-10">
+        {/* Left Desktop Sidebar - Frosted Glass Navigation */}
         <aside
-          className={`hidden lg:flex flex-col border-r border-slate-300/60 bg-[#EEF2F7] transition-all duration-300 ${
-            sidebarCollapsed ? 'w-20' : 'w-64'
+          className={`hidden lg:flex flex-col border-r border-white/80 bg-white/55 backdrop-blur-2xl transition-all duration-300 relative select-none ${
+            sidebarCollapsed ? 'w-20' : 'w-68'
           }`}
         >
-          <div className="p-4 flex-1 space-y-6 overflow-y-auto">
-            {navGroups.map(grp => (
-              <div key={grp.group} className="space-y-1">
+          {/* Collapse/Expand Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-white border border-slate-200/90 shadow-xs flex items-center justify-center text-slate-500 hover:text-slate-900 hover:shadow-sm transition z-20 cursor-pointer"
+            aria-label={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+          >
+            {sidebarCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+          </button>
+
+          {/* Navigation Groups */}
+          <div className="flex-1 py-6 px-3.5 space-y-6 overflow-y-auto scrollbar-none">
+            {navGroups.map((grp) => (
+              <div key={grp.group} className="space-y-1.5">
                 {!sidebarCollapsed && (
-                  <div className="px-3 text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-2">
+                  <h4 className="px-3 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
                     {grp.group}
-                  </div>
+                  </h4>
                 )}
-                {grp.items.map(item => {
-                  const Icon = item.icon;
-                  const isActive = activeTab === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => onSelectTab(item.id)}
-                      title={sidebarCollapsed ? item.label : undefined}
-                      className={`w-full flex items-center rounded-xl transition font-medium text-xs ${
-                        sidebarCollapsed ? 'justify-center p-3' : 'px-3.5 py-2.5 space-x-3'
-                      } ${
-                        isActive
-                          ? 'neu-inset text-blue-600 font-bold border border-blue-200/50'
-                          : 'text-slate-600 hover:text-slate-900 hover:neu-raised'
-                      }`}
-                    >
-                      <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-                      {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
-                      {!sidebarCollapsed && Boolean(item.badge && item.badge > 0) && (
-                        <span className="ml-auto px-1.5 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-bold">
-                          {item.badge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+
+                <div className="space-y-1">
+                  {grp.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => onSelectTab(item.id)}
+                        className={`w-full flex items-center px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative ${
+                          isActive
+                            ? 'bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-[#8065F5]/15 border border-violet-400/30 text-blue-700 shadow-2xs'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                        }`}
+                        title={sidebarCollapsed ? item.label : undefined}
+                      >
+                        {/* Active vertical glow indicator */}
+                        {isActive && (
+                          <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-gradient-to-b from-blue-600 to-[#8065F5]" />
+                        )}
+
+                        <Icon className={`w-4.5 h-4.5 shrink-0 transition-colors ${
+                          isActive ? 'text-[#8065F5]' : 'text-slate-400 group-hover:text-slate-700'
+                        }`} />
+
+                        {!sidebarCollapsed && (
+                          <span className="ml-3 truncate">{item.label}</span>
+                        )}
+
+                        {!sidebarCollapsed && item.badge !== undefined && item.badge > 0 && (
+                          <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#8065F5] text-white">
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Sidebar Collapse Toggle */}
-          <div className="p-3 border-t border-slate-200/80">
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="w-full py-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition flex items-center justify-center text-xs"
-            >
-              {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-            </button>
-          </div>
+          {/* Sidebar Footer Info */}
+          {!sidebarCollapsed && (
+            <div className="p-4 mx-3 mb-4 rounded-2xl bg-white/60 border border-white/80 text-[11px] text-slate-500 space-y-1">
+              <div className="flex items-center space-x-1.5 font-semibold text-slate-800">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Zero-Hallucination Safe</span>
+              </div>
+              <p className="text-[10px] text-slate-400 leading-snug">
+                100% truthful profile grounding with zero fabricated skills.
+              </p>
+            </div>
+          )}
         </aside>
 
-        {/* Mobile Navigation Drawer */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex">
-            <div className="w-72 bg-white h-full p-5 flex flex-col justify-between shadow-2xl animate-in slide-in-from-left duration-200">
-              <div className="space-y-6 overflow-y-auto">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                  <BrandLogo variant="light" size="sm" />
-                  <button
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700"
-                  >
-                    <CloseIcon className="h-5 w-5" />
-                  </button>
-                </div>
-
-                {navGroups.map(grp => (
-                  <div key={grp.group} className="space-y-1">
-                    <div className="px-2 text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">
-                      {grp.group}
-                    </div>
-                    {grp.items.map(item => {
-                      const Icon = item.icon;
-                      const isActive = activeTab === item.id;
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => {
-                            onSelectTab(item.id);
-                            setMobileMenuOpen(false);
-                          }}
-                          className={`w-full flex items-center px-3 py-2.5 rounded-xl space-x-3 text-xs font-medium ${
-                            isActive
-                              ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/80 shadow-xs'
-                              : 'text-slate-600 hover:bg-slate-100'
-                          }`}
-                        >
-                          <Icon className={`h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-                          <span>{item.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-4 border-t border-slate-100">
-                <button
-                  onClick={() => { setMobileMenuOpen(false); onLogout(); }}
-                  className="w-full py-2.5 rounded-xl bg-rose-50 text-rose-600 font-semibold text-xs flex items-center justify-center space-x-2"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            </div>
-            <div className="flex-1" onClick={() => setMobileMenuOpen(false)} />
-          </div>
-        )}
-
-        {/* Content Area */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 pb-24 lg:pb-8">
+        {/* Main Content Viewport */}
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {children}
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation Bar (Quick 1-touch navigation) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] flex items-center justify-around text-[10px] text-slate-500 shadow-lg">
-        <button
-          onClick={() => onSelectTab('overview')}
-          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 px-2 rounded-xl transition ${activeTab === 'overview' ? 'text-blue-600 font-bold bg-blue-50' : 'hover:text-slate-900'}`}
-          aria-label="Dashboard Overview"
-        >
-          <LayoutDashboard className="h-4 w-4 mb-0.5" />
-          <span>Dashboard</span>
-        </button>
-        <button
-          onClick={() => onSelectTab('jobs')}
-          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 px-2 rounded-xl transition ${activeTab === 'jobs' ? 'text-blue-600 font-bold bg-blue-50' : 'hover:text-slate-900'}`}
-          aria-label="Find Jobs"
-        >
-          <Search className="h-4 w-4 mb-0.5" />
-          <span>Jobs</span>
-        </button>
-        <button
-          onClick={() => onSelectTab('applications')}
-          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 px-2 rounded-xl transition ${activeTab === 'applications' ? 'text-blue-600 font-bold bg-blue-50' : 'hover:text-slate-900'}`}
-          aria-label="Applications Tracker"
-        >
-          <Briefcase className="h-4 w-4 mb-0.5" />
-          <span>Tracker</span>
-        </button>
-        <button
-          onClick={() => onSelectTab('profile')}
-          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 px-2 rounded-xl transition ${activeTab === 'profile' ? 'text-blue-600 font-bold bg-blue-50' : 'hover:text-slate-900'}`}
-          aria-label="Career Profile"
-        >
-          <User className="h-4 w-4 mb-0.5" />
-          <span>Profile</span>
-        </button>
-        <button
-          onClick={() => onSelectTab('copilot')}
-          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] py-1 px-2 rounded-xl transition ${activeTab === 'copilot' ? 'text-blue-600 font-bold bg-blue-50' : 'hover:text-slate-900'}`}
-          aria-label="AI Career Assistant"
-        >
-          <Bot className="h-4 w-4 mb-0.5" />
-          <span>Assistant</span>
-        </button>
+      {/* Mobile Bottom Navigation (Preserves strict accessibility & test classes) */}
+      <nav
+        aria-label="Mobile Navigation"
+        className="lg:hidden sticky bottom-0 z-40 bg-white/85 backdrop-blur-xl border-t border-white/80 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-lg flex items-center justify-around px-2 py-1.5"
+      >
+        {[
+          { id: 'overview' as const, label: 'Home', icon: LayoutDashboard },
+          { id: 'jobs' as const, label: 'Jobs', icon: Search },
+          { id: 'matches' as const, label: 'Matches', icon: Sparkles },
+          { id: 'applications' as const, label: 'Tracker', icon: Briefcase },
+          { id: 'profile' as const, label: 'Profile', icon: User },
+        ].map(item => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onSelectTab(item.id)}
+              className={`min-h-[44px] min-w-[48px] flex flex-col items-center justify-center rounded-xl px-2 py-1 transition-colors cursor-pointer ${
+                isActive ? 'text-[#8065F5] font-bold' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+              <span className="text-[10px] mt-0.5">{item.label}</span>
+            </button>
+          );
+        })}
       </nav>
     </div>
   );

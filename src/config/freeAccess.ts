@@ -1,6 +1,8 @@
 // src/config/freeAccess.ts
 // Centralized Hardcoded Free-Access Allowlist & Entitlement Service for ApplyVise AI
 
+import { PlanId } from './plans.ts';
+
 /**
  * The permanent authorized email accounts granted unrestricted Pro entitlements.
  * Normalized to lowercase.
@@ -19,7 +21,7 @@ export interface FreeAccessUserIdentity {
 }
 
 export interface EffectivePlanDetails {
-  planId: 'free' | 'pro';
+  planId: PlanId;
   planName: string;
   badge: string;
   status: 'active' | 'cancelled' | 'past_due' | 'expired';
@@ -33,6 +35,12 @@ export interface EffectivePlanDetails {
   canInterviewPrep: boolean;
   canAutoApply: boolean;
   unlimitedAICopilot: boolean;
+  isBlack?: boolean;
+  canBlackCareerStrategy?: boolean;
+  canBlackAppIntelligence?: boolean;
+  canBlackInterviewSim?: boolean;
+  canBlackResumeStudio?: boolean;
+  priorityProcessing?: boolean;
 }
 
 /**
@@ -92,11 +100,44 @@ export function getEffectivePlan(
       canInterviewPrep: true,
       canAutoApply: true,
       unlimitedAICopilot: true,
+      isBlack: false,
+      canBlackCareerStrategy: true,
+      canBlackAppIntelligence: true,
+      canBlackInterviewSim: true,
+      canBlackResumeStudio: true,
+      priorityProcessing: true,
     };
   }
 
-  const isProPaid = currentSubscription?.planId === 'pro' && currentSubscription?.status === 'active';
+  // 1. BLACK ELITE Membership Check (Positioned Above Pro)
+  const isBlackPaid = currentSubscription?.planId === 'black' && currentSubscription?.status !== 'inactive' && currentSubscription?.status !== 'canceled';
+  if (isBlackPaid) {
+    return {
+      planId: 'black',
+      planName: 'BLACK by ApplyVise AI',
+      badge: 'BLACK ELITE',
+      status: 'active',
+      billingInterval: (currentSubscription?.billingInterval as any) || 'monthly',
+      isPermanentFreeAccess: false,
+      aiQuotaMonthly: 600, // Exactly 2 × Pro (300)
+      maxDailyApplications: 50, // Exactly 2 × Pro (25)
+      description: 'Your Career. Without Limits. Elite Career Intelligence with 2× Pro usage and exclusive capabilities.',
+      canTailorResume: true,
+      canDeepAnalyze: true,
+      canInterviewPrep: true,
+      canAutoApply: true,
+      unlimitedAICopilot: false,
+      isBlack: true,
+      canBlackCareerStrategy: true,
+      canBlackAppIntelligence: true,
+      canBlackInterviewSim: true,
+      canBlackResumeStudio: true,
+      priorityProcessing: true,
+    };
+  }
 
+  // 2. Pro Membership Check
+  const isProPaid = currentSubscription?.planId === 'pro' && currentSubscription?.status !== 'inactive' && currentSubscription?.status !== 'canceled';
   if (isProPaid) {
     return {
       planId: 'pro',
@@ -113,9 +154,16 @@ export function getEffectivePlan(
       canInterviewPrep: true,
       canAutoApply: true,
       unlimitedAICopilot: false,
+      isBlack: false,
+      canBlackCareerStrategy: false,
+      canBlackAppIntelligence: false,
+      canBlackInterviewSim: false,
+      canBlackResumeStudio: false,
+      priorityProcessing: false,
     };
   }
 
+  // 3. Free Plan Default
   return {
     planId: 'free',
     planName: 'ApplyVise Free',
@@ -131,6 +179,12 @@ export function getEffectivePlan(
     canInterviewPrep: false,
     canAutoApply: false,
     unlimitedAICopilot: false,
+    isBlack: false,
+    canBlackCareerStrategy: false,
+    canBlackAppIntelligence: false,
+    canBlackInterviewSim: false,
+    canBlackResumeStudio: false,
+    priorityProcessing: false,
   };
 }
 
@@ -149,6 +203,18 @@ export function checkFeatureEntitlement(
   }
 
   const effective = getEffectivePlan(user, currentSubscription);
+
+  // BLACK tier has access to everything including BLACK-exclusive capabilities
+  if (effective.planId === 'black') {
+    return true;
+  }
+
+  // BLACK-exclusive gates require BLACK tier
+  if (featureKey.startsWith('black_')) {
+    return false;
+  }
+
+  // PRO tier access
   if (effective.planId === 'pro') {
     return true;
   }

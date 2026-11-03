@@ -189,12 +189,42 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
   };
 
   const stepsList = [
-    { id: 'uploading', label: '1. Uploading document' },
-    { id: 'extracting', label: '2. Extracting text' },
-    { id: 'analyzing', label: '3. Analyzing profile' },
-    { id: 'validating', label: '4. Validating fields' },
-    { id: 'review', label: '5. Ready for review' },
+    { id: 'uploading', label: 'Uploading document', stepNum: 1 },
+    { id: 'extracting', label: 'Extracting text', stepNum: 2 },
+    { id: 'analyzing', label: 'Analyzing profile', stepNum: 3 },
+    { id: 'validating', label: 'Validating fields', stepNum: 4 },
+    { id: 'review', label: 'Ready for review', stepNum: 5 },
   ];
+
+  const getProgressPercentage = () => {
+    switch (step) {
+      case 'uploading': return 20;
+      case 'extracting': return 40;
+      case 'analyzing': return 60;
+      case 'validating': return 80;
+      case 'review': return 100;
+      case 'idle':
+      default: return 0;
+    }
+  };
+
+  const getCurrentStepInfo = () => {
+    switch (step) {
+      case 'uploading':
+        return { stepNum: 1, title: 'Uploading document' };
+      case 'extracting':
+        return { stepNum: 2, title: 'Extracting text' };
+      case 'analyzing':
+        return { stepNum: 3, title: 'Analyzing profile' };
+      case 'validating':
+        return { stepNum: 4, title: 'Validating fields' };
+      case 'review':
+        return { stepNum: 5, title: 'Ready for review' };
+      case 'idle':
+      default:
+        return { stepNum: 1, title: 'Ready to upload' };
+    }
+  };
 
   const getStepStatus = (stepId: string) => {
     const order = ['idle', 'uploading', 'extracting', 'analyzing', 'validating', 'review'];
@@ -235,32 +265,98 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
           </button>
         </div>
 
-        {/* Progress Tracker Bar */}
-        <div className="px-6 py-3 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between overflow-x-auto text-[11px] gap-2">
-          {stepsList.map(s => {
-            const status = getStepStatus(s.id);
-            return (
-              <div
-                key={s.id}
-                className={`flex items-center space-x-1.5 shrink-0 px-2.5 py-1 rounded-full font-medium transition ${
-                  status === 'completed'
-                    ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
-                    : status === 'current'
-                    ? 'text-blue-700 bg-blue-50 border border-blue-200 font-semibold'
-                    : 'text-slate-400'
-                }`}
-              >
-                {status === 'completed' ? (
-                  <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                ) : status === 'current' ? (
-                  <div className="h-2 w-2 rounded-full bg-blue-600 animate-ping" />
-                ) : (
-                  <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
-                )}
-                <span>{s.label}</span>
+        {/* Progress Tracker Bar - Responsive 5-Step Grid & Independent Track */}
+        <div
+          data-testid="onboarding-progress-container"
+          className="w-full max-w-full box-border px-4 sm:px-6 py-3.5 bg-slate-50/70 border-b border-slate-100 overflow-hidden shrink-0"
+        >
+          {/* Mobile View (< 640px): Compact Step Indicator */}
+          <div className="sm:hidden space-y-2 w-full max-w-full box-border" data-testid="progress-mobile-compact">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center space-x-1.5 min-w-0">
+                <span className="font-bold text-slate-900 shrink-0">
+                  Step {getCurrentStepInfo().stepNum} of 5:
+                </span>
+                <span className="text-slate-600 font-medium truncate">
+                  {getCurrentStepInfo().title}
+                </span>
               </div>
-            );
-          })}
+              <span className="text-[11px] font-semibold text-blue-600 shrink-0 ml-2">
+                {getProgressPercentage()}%
+              </span>
+            </div>
+            {/* Mobile Progress Track */}
+            <div className="w-full h-1 bg-slate-200/80 rounded-full overflow-hidden box-border">
+              <div
+                data-testid="progress-fill-mobile"
+                className="h-full bg-blue-600 rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${Math.max(getProgressPercentage(), step === 'idle' ? 4 : getProgressPercentage())}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Desktop & Tablet View (>= 640px): Full 5-Step Equal-Width Grid + Independent Track */}
+          <div className="hidden sm:block space-y-2.5 w-full max-w-full box-border" data-testid="progress-desktop-grid">
+            {/* 5-Column Grid */}
+            <div
+              className="grid w-full max-w-full box-border items-center"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+                width: '100%',
+                maxWidth: '100%',
+                boxSizing: 'border-box',
+              }}
+            >
+              {stepsList.map((s, idx) => {
+                const status = getStepStatus(s.id);
+                return (
+                  <div
+                    key={s.id}
+                    data-testid={`progress-step-${idx + 1}`}
+                    className="min-w-0 flex flex-col items-center justify-center text-center px-1"
+                    style={{ minWidth: 0, boxSizing: 'border-box' }}
+                  >
+                    <div className="flex items-center space-x-1.5 max-w-full min-w-0">
+                      {status === 'completed' ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                      ) : status === 'current' ? (
+                        <div className="relative flex h-2 w-2 shrink-0 items-center justify-center">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600" />
+                        </div>
+                      ) : (
+                        <div className="h-1.5 w-1.5 rounded-full bg-slate-300 shrink-0" />
+                      )}
+                      <span
+                        className={`text-[10px] sm:text-[11px] md:text-xs truncate transition-colors leading-tight ${
+                          status === 'completed'
+                            ? 'text-emerald-700 font-semibold'
+                            : status === 'current'
+                            ? 'text-blue-700 font-bold'
+                            : 'text-slate-400 font-medium'
+                        }`}
+                        title={`${idx + 1}. ${s.label}`}
+                      >
+                        {idx + 1}. {s.label}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Independent Thin Elegant Progress Track */}
+            <div className="w-full max-w-full box-border px-1">
+              <div className="w-full h-1 bg-slate-200/80 rounded-full overflow-hidden box-border">
+                <div
+                  data-testid="progress-fill-desktop"
+                  className="h-full bg-blue-600 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${Math.max(getProgressPercentage(), step === 'idle' ? 4 : getProgressPercentage())}%` }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Body Area */}

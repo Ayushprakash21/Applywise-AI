@@ -38,6 +38,7 @@ import { AdminLoginPage } from './components/AdminLoginPage.tsx';
 import { FlowLogin } from './components/FlowLogin.tsx';
 import { FlowSignup } from './components/FlowSignup.tsx';
 import { NotFoundPage } from './components/NotFoundPage.tsx';
+import { NotificationsPage } from './components/NotificationsPage.tsx';
 
 const normalizePath = (rawPath: string): string => {
   const path = (rawPath || '/').split('?')[0].split('#')[0] || '/';
@@ -61,6 +62,7 @@ const PROTECTED_ROUTES = new Set([
   '/resume_studio',
   '/resume_intelligence',
   '/settings',
+  '/notifications',
 ]);
 
 const KNOWN_ROUTES = new Set([
@@ -86,6 +88,7 @@ const KNOWN_ROUTES = new Set([
   '/resume_studio',
   '/resume_intelligence',
   '/settings',
+  '/notifications',
 ]);
 import { UserSubscription } from './config/plans.ts';
 import { isPermanentFreeAccessAccount } from './config/freeAccess.ts';
@@ -129,6 +132,8 @@ export default function App() {
   const [isSearching, setIsSearching] = useState(false);
   const [isPreparingApp, setIsPreparingApp] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const [notificationsError, setNotificationsError] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -156,6 +161,12 @@ export default function App() {
       navigateTo('/');
     }
   }, [currentUser, currentRoute]);
+
+  useEffect(() => {
+    if (currentUser && currentRoute === '/notifications' && activeTab !== 'notifications') {
+      setActiveTab('notifications');
+    }
+  }, [currentRoute, currentUser, activeTab]);
 
   // Redirect unauthenticated users away from protected routes to login
   useEffect(() => {
@@ -262,6 +273,51 @@ export default function App() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       showToast(`Upgrade error: ${msg}`);
+    }
+  };
+
+
+  // Notification handlers
+  const handleMarkNotificationRead = async (id: string) => {
+    try {
+      const res = await api.markNotificationRead(id);
+      if (res && res.notifications) {
+        setNotifications(res.notifications);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showToast(`Failed to update notification: ${msg}`);
+    }
+  };
+
+  const handleMarkAllNotificationsRead = async () => {
+    try {
+      const res = await api.markAllNotificationsRead();
+      if (res && res.notifications) {
+        setNotifications(res.notifications);
+        showToast('All notifications marked as read');
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showToast(`Failed to mark all as read: ${msg}`);
+    }
+  };
+
+  const handleRefreshNotifications = async () => {
+    setIsLoadingNotifications(true);
+    setNotificationsError(null);
+    try {
+      const res = await api.getNotifications();
+      if (res && res.notifications) {
+        setNotifications(res.notifications);
+      } else {
+        setNotificationsError('Could not retrieve notifications from server');
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setNotificationsError(msg || 'Unable to connect to notifications service');
+    } finally {
+      setIsLoadingNotifications(false);
     }
   };
 
@@ -508,7 +564,7 @@ export default function App() {
           onOpenAbout={() => navigateTo('/about')}
           onOpenAdmin={() => navigateTo('/admin')}
           onLogout={handleLogout}
-          plan={isPermanentFreeAccessAccount(currentUser) ? 'pro' : (subscription?.planId || subscription?.plan || 'free')}
+          plan={subscription?.planId === 'black' ? 'black' : isPermanentFreeAccessAccount(currentUser) ? 'pro' : ((subscription?.planId as 'free' | 'pro' | 'black') || subscription?.plan || 'free')}
           usage={usage}
         >
           {activeTab === 'overview' && (
@@ -621,6 +677,19 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'notifications' && (
+            <NotificationsPage
+              notifications={notifications}
+              isLoading={isLoadingNotifications}
+              error={notificationsError}
+              onRefresh={handleRefreshNotifications}
+              onMarkAsRead={handleMarkNotificationRead}
+              onMarkAllAsRead={handleMarkAllNotificationsRead}
+              onNavigateToJobs={() => setActiveTab('jobs')}
+              onNavigateToApplications={() => setActiveTab('applications')}
+            />
+          )}
+
           {/* Minimal Clean Footer */}
           <footer className="border-t border-slate-200/80 dark:border-white/10 bg-transparent py-6 text-xs text-slate-500 mt-12">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -664,7 +733,8 @@ export default function App() {
       )}
 
       {/* Global AI Career Copilot */}
-      <AICopilot
+      {!['/login', '/signin', '/signup', '/register', '/admin/login'].includes(currentRoute) && (
+        <AICopilot
         currentUser={currentUser}
         currentPageContext={currentRoute === '/' ? (currentUser ? activeTab : 'landing') : currentRoute.replace('/', '')}
         contextDetails={{
@@ -690,6 +760,7 @@ export default function App() {
         onToggleOpen={setCopilotOpen}
         externalTriggerPrompt={copilotPrompt}
       />
+      )}
 
       {/* Global Modals */}
       <AuthModals

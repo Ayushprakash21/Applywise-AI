@@ -10,7 +10,7 @@ export const FREE_TIER_LIMITS = {
 };
 
 export interface AccountUsageStats {
-  planId: 'free' | 'pro';
+  planId: 'free' | 'pro' | 'black';
   isPermanentAccess: boolean;
   resumes: {
     active: number;
@@ -53,7 +53,7 @@ export async function getAccountUsageStats(
   const isPerm = userEmail ? isPermanentFreeAccessEmail(userEmail) : false;
   const sub = await store.getUserSubscription(userId);
   const isPro = isPerm || (sub && sub.planId === 'pro' && sub.status === 'active');
-  const planId: 'free' | 'pro' = isPro ? 'pro' : 'free';
+  const planId: 'free' | 'pro' | 'black' = isPro ? 'pro' : 'free';
 
   const [activeResumes, applicationCount] = await Promise.all([
     store.countResumeDocuments(userId),
@@ -124,7 +124,7 @@ export async function assertCanUploadResume(
   if (isPerm) return;
 
   const sub = await store.getUserSubscription(userId);
-  if (sub && sub.planId === 'pro' && sub.status === 'active') return;
+  if (sub && (sub.planId === 'pro' || sub.planId === 'black') && sub.status === 'active') return;
 
   // Free Tier checks
   if (replaceExisting) {
@@ -156,7 +156,7 @@ export async function assertCanCreateApplication(
   if (isPerm) return;
 
   const sub = await store.getUserSubscription(userId);
-  if (sub && sub.planId === 'pro' && sub.status === 'active') return;
+  if (sub && (sub.planId === 'pro' || sub.planId === 'black') && sub.status === 'active') return;
 
   // Check if an application for this vacancy already exists for this user (updates are always permitted)
   const existing = await store.getApplicationByVacancy(userId, vacancyId);

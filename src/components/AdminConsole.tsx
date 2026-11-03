@@ -27,6 +27,7 @@ import {
 import { api, AuthUser } from '../services/api.ts';
 import { AuditLogEntry } from '../types/index.ts';
 import { BrandLogo } from './BrandLogo.tsx';
+import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
 
 interface AdminConsoleProps {
   currentUser: AuthUser;
@@ -381,7 +382,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
 
               <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Pro Plans</span>
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Paid Plans (Pro & BLACK)</span>
                   <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
                     <Sparkles className="h-4 w-4" />
                   </div>

@@ -695,7 +695,7 @@ export class D1Store {
 
   // --- SUBSCRIPTIONS & ENTITLEMENTS ---
   async getUserSubscription(userId: string): Promise<{
-    planId: 'free' | 'pro';
+    planId: 'free' | 'pro' | 'black';
     status: 'active' | 'cancelled' | 'past_due';
     billingInterval: 'monthly' | 'annual';
     currentPeriodStart: string;
@@ -738,7 +738,7 @@ export class D1Store {
 
   async updateUserSubscription(
     userId: string,
-    planId: 'free' | 'pro',
+    planId: 'free' | 'pro' | 'black',
     billingInterval: 'monthly' | 'annual' = 'monthly'
   ): Promise<void> {
     const now = new Date();

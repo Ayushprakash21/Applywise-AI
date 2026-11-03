@@ -34,7 +34,7 @@ interface AppHeaderProps {
   onOpenPrivacy: () => void;
   onOpenTerms: () => void;
   onLogout: () => void;
-  plan?: 'free' | 'pro';
+  plan?: 'free' | 'pro' | 'black';
   usage?: AccountUsageStats | null;
   onOpenPricing?: () => void;
   onOpenAbout?: () => void;

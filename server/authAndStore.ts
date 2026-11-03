@@ -132,6 +132,19 @@ sqlite.exec(`
     timestamp TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS user_subscriptions (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    plan_id TEXT NOT NULL DEFAULT 'free',
+    status TEXT NOT NULL DEFAULT 'active',
+    billing_interval TEXT NOT NULL DEFAULT 'monthly',
+    current_period_start TEXT NOT NULL,
+    current_period_end TEXT NOT NULL,
+    cancel_at_period_end INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS notifications (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -701,6 +714,71 @@ export const authAndStore = {
     } else {
       sqlite.prepare('UPDATE notifications SET read = 1 WHERE user_id = ?').run(userId);
     }
+  },
+
+
+  getUserSubscription(userId: string): {
+    planId: 'free' | 'pro' | 'black';
+    status: 'active' | 'cancelled' | 'past_due';
+    billingInterval: 'monthly' | 'annual';
+    currentPeriodStart: string;
+    currentPeriodEnd: string;
+    cancelAtPeriodEnd: boolean;
+  } {
+    const row = sqlite.prepare(
+      'SELECT plan_id, status, billing_interval, current_period_start, current_period_end, cancel_at_period_end FROM user_subscriptions WHERE user_id = ?'
+    ).get(userId) as any;
+
+    if (!row) {
+      const now = new Date().toISOString();
+      const nextMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      return {
+        planId: 'free',
+        status: 'active',
+        billingInterval: 'monthly',
+        currentPeriodStart: now,
+        currentPeriodEnd: nextMonth,
+        cancelAtPeriodEnd: false,
+      };
+    }
+
+    return {
+      planId: row.plan_id as 'free' | 'pro' | 'black',
+      status: row.status as 'active' | 'cancelled' | 'past_due',
+      billingInterval: row.billing_interval as 'monthly' | 'annual',
+      currentPeriodStart: row.current_period_start,
+      currentPeriodEnd: row.current_period_end,
+      cancelAtPeriodEnd: Boolean(row.cancel_at_period_end),
+    };
+  },
+
+  updateUserSubscription(
+    userId: string,
+    planId: 'free' | 'pro' | 'black',
+    billingInterval: 'monthly' | 'annual' = 'monthly'
+  ): void {
+    const now = new Date();
+    const periodDays = billingInterval === 'annual' ? 365 : 30;
+    const periodEnd = new Date(now.getTime() + periodDays * 24 * 60 * 60 * 1000).toISOString();
+    const id = crypto.randomUUID();
+
+    sqlite.prepare(`
+      INSERT INTO user_subscriptions (id, user_id, plan_id, status, billing_interval, current_period_start, current_period_end, cancel_at_period_end, created_at, updated_at)
+      VALUES (?, ?, ?, 'active', ?, ?, ?, 0, ?, ?)
+      ON CONFLICT(user_id) DO UPDATE SET
+        plan_id = excluded.plan_id,
+        status = excluded.status,
+        billing_interval = excluded.billing_interval,
+        current_period_start = excluded.current_period_start,
+        current_period_end = excluded.current_period_end,
+        cancel_at_period_end = 0,
+        updated_at = excluded.updated_at
+    `).run(id, userId, planId, billingInterval, now.toISOString(), periodEnd, now.toISOString(), now.toISOString());
+  },
+
+  cancelSubscription(userId: string): void {
+    sqlite.prepare('UPDATE user_subscriptions SET cancel_at_period_end = 1, updated_at = ? WHERE user_id = ?')
+      .run(new Date().toISOString(), userId);
   },
 
   // --- VACANCY CACHING (Real listings only, never seeds fictional users) ---

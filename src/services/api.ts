@@ -610,7 +610,7 @@ export const api = {
     fetchJson<{
       success: boolean;
       subscription: {
-        planId: 'free' | 'pro';
+        planId: 'free' | 'pro' | 'black';
         status: 'active' | 'cancelled' | 'past_due';
         billingInterval: 'monthly' | 'annual';
         currentPeriodStart: string;
@@ -634,6 +634,36 @@ export const api = {
     }>('/api/subscription/upgrade', {
       method: 'POST',
       body: JSON.stringify({ planId, billingInterval }),
+    }),
+
+  createRazorpayOrder: (planId: 'pro' | 'black' = 'pro', billingInterval: 'monthly' | 'annual' = 'monthly') =>
+    fetchJson<{
+      success: boolean;
+      orderId: string;
+      amount: number;
+      currency: string;
+      keyId: string;
+      planId: string;
+      billingInterval: string;
+    }>('/api/subscription/razorpay/create-order', {
+      method: 'POST',
+      body: JSON.stringify({ planId, billingInterval }),
+    }),
+
+  verifyRazorpayPayment: (payload: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    planId: 'pro' | 'black';
+    billingInterval: 'monthly' | 'annual';
+  }) =>
+    fetchJson<{
+      success: boolean;
+      subscription: any;
+      message: string;
+    }>('/api/subscription/razorpay/verify', {
+      method: 'POST',
+      body: JSON.stringify(payload),
     }),
 
   cancelSubscription: () =>
