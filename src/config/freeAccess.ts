@@ -86,21 +86,21 @@ export function getEffectivePlan(
 
   if (isFreeAccess) {
     return {
-      planId: 'pro',
-      planName: 'Pro — Founder Access',
-      badge: 'PRO — FOUNDER ACCESS',
+      planId: 'black',
+      planName: 'BLACK by ApplyVise AI — Founder Elite Access',
+      badge: 'BLACK ELITE',
       status: 'active',
       billingInterval: 'permanent',
       isPermanentFreeAccess: true,
-      aiQuotaMonthly: 1000, // High operational runaway protection ceiling
-      maxDailyApplications: 50,
-      description: 'Permanent unrestricted access to all ApplyVise Pro capabilities, AI Copilot, and automation tools.',
+      aiQuotaMonthly: 1200, // High operational runaway protection ceiling (2× Pro 600)
+      maxDailyApplications: 100, // Unrestricted daily application ceiling (2× Pro 50)
+      description: 'Permanent unrestricted access to BLACK by ApplyVise AI, exclusive career intelligence, AI Copilot, and priority capabilities.',
       canTailorResume: true,
       canDeepAnalyze: true,
       canInterviewPrep: true,
       canAutoApply: true,
       unlimitedAICopilot: true,
-      isBlack: false,
+      isBlack: true,
       canBlackCareerStrategy: true,
       canBlackAppIntelligence: true,
       canBlackInterviewSim: true,

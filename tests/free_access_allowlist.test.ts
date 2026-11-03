@@ -45,15 +45,15 @@ test('Free-Access Allowlist: Both authorized accounts receive permanent free acc
   assert.strictEqual(isPermanentFreeAccessAccount(user2), true);
 
   const plan1 = getEffectivePlan(user1);
-  assert.strictEqual(plan1.planId, 'pro');
+  assert.strictEqual(plan1.planId, 'black');
   assert.strictEqual(plan1.isPermanentFreeAccess, true);
-  assert.strictEqual(plan1.planName, 'Pro — Founder Access');
+  assert.strictEqual(plan1.badge, 'BLACK ELITE');
   assert.strictEqual(plan1.billingInterval, 'permanent');
 
   const plan2 = getEffectivePlan(user2);
-  assert.strictEqual(plan2.planId, 'pro');
+  assert.strictEqual(plan2.planId, 'black');
   assert.strictEqual(plan2.isPermanentFreeAccess, true);
-  assert.strictEqual(plan2.planName, 'Pro — Founder Access');
+  assert.strictEqual(plan2.badge, 'BLACK ELITE');
 });
 
 test('Free-Access Allowlist: Unverified accounts do not receive the exception when verification status is required', () => {

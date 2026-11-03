@@ -2755,3 +2755,160 @@ export default {
     ctx.waitUntil(runIncrementalJobSync(store, { batchLimit: 4 }));
   },
 };
+
+
+// ============================================================================
+// FOUNDER PROFILE PUBLIC & ADMIN API ROUTES
+// ============================================================================
+
+// 1. Public Published Profile Endpoint
+app.get('/api/founder-profile', async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const profile = await store.getPublishedFounderProfile();
+    c.header('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+    return c.json({ success: true, profile });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message || 'Failed to fetch founder profile' }, 500);
+  }
+});
+
+// 2. Public Image Asset Serving
+app.get('/api/founder-profile/image/:id', async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const id = c.req.param('id');
+    const asset = await store.getFounderImageAsset(id);
+    if (!asset) {
+      return c.text('Not found', 404);
+    }
+
+    const binaryString = atob(asset.data_base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    return new Response(bytes, {
+      headers: {
+        'Content-Type': asset.mime_type || 'image/jpeg',
+        'Content-Length': bytes.length.toString(),
+        'Cache-Control': 'public, max-age=86400, immutable',
+      },
+    });
+  } catch (err: any) {
+    return c.text('Error serving image', 500);
+  }
+});
+
+// 3. Admin: Get Full Profile Details & Draft State
+app.get('/api/admin/founder-profile', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const data = await store.getAdminFounderProfile();
+    return c.json({ success: true, ...data });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 4. Admin: Save Draft Changes
+app.put('/api/admin/founder-profile/draft', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    const draft = await c.req.json().catch(() => ({}));
+    const updated = await store.updateFounderProfileDraft(draft);
+    await store.addAuditLog(user.id, 'Founder Profile', 'DRAFT_SAVED', 'founder_main', 'Founder profile draft updated');
+    return c.json({ success: true, draft: updated });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 5. Admin: Publish Changes to Live
+app.post('/api/admin/founder-profile/publish', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    const published = await store.publishFounderProfile();
+    await store.addAuditLog(user.id, 'Founder Profile', 'PROFILE_PUBLISHED', 'founder_main', 'Founder profile changes published to live site');
+    return c.json({ success: true, profile: published });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 6. Admin: Revert Draft to Last Published
+app.post('/api/admin/founder-profile/revert', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    const reverted = await store.revertFounderProfileDraft();
+    await store.addAuditLog(user.id, 'Founder Profile', 'DRAFT_REVERTED', 'founder_main', 'Founder profile draft reverted to published version');
+    return c.json({ success: true, draft: reverted });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 7. Admin: Upload Photograph
+app.post('/api/admin/founder-profile/photo', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    const formData = await c.req.formData();
+    const file = formData.get('photo') as File | null;
+
+    if (!file) {
+      return c.json({ success: false, error: 'No image file uploaded' }, 400);
+    }
+
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!allowedMimes.includes(file.type)) {
+      return c.json({ success: false, error: 'Invalid image format. Allowed: JPG, PNG, WebP' }, 400);
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      return c.json({ success: false, error: 'File size exceeds 5 MB limit' }, 400);
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8 = new Uint8Array(arrayBuffer);
+    let binary = '';
+    for (let i = 0; i < uint8.length; i++) {
+      binary += String.fromCharCode(uint8[i]);
+    }
+    const base64 = btoa(binary);
+
+    const assetId = await store.saveFounderImageAsset(file.name, file.type, file.size, base64);
+    const photoUrl = `/api/founder-profile/image/${assetId}`;
+
+    const { draft } = await store.getAdminFounderProfile();
+    const updatedDraft = await store.updateFounderProfileDraft({
+      ...draft,
+      photoUrl,
+      photoAssetId: assetId,
+      photoAspectRatio: '1:1',
+    });
+
+    await store.addAuditLog(user.id, 'Founder Profile', 'PHOTO_UPLOADED', assetId, `Photograph uploaded: ${file.name} (${Math.round(file.size / 1024)} KB)`);
+
+    return c.json({ success: true, photoUrl, assetId, draft: updatedDraft });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 8. Admin: Remove Photograph
+app.delete('/api/admin/founder-profile/photo', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    await store.removeFounderPhoto();
+    await store.addAuditLog(user.id, 'Founder Profile', 'PHOTO_REMOVED', 'founder_main', 'Founder photograph removed from draft');
+    return c.json({ success: true, message: 'Photograph removed from draft' });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});

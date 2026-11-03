@@ -1343,6 +1343,130 @@ app.get('/api/admin/sources/health', requireAdmin, (req: AuthenticatedRequest, r
   });
 });
 
+// ============================================================================
+// FOUNDER PROFILE PUBLIC & ADMIN API ROUTES
+// ============================================================================
+
+// 1. Public Published Profile Endpoint
+app.get('/api/founder-profile', (_req: Request, res: Response) => {
+  try {
+    const profile = authAndStore.getPublishedFounderProfile();
+    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+    return res.json({ success: true, profile });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message || 'Failed to fetch founder profile' });
+  }
+});
+
+// 2. Public Image Asset Serving
+app.get('/api/founder-profile/image/:id', (req: Request, res: Response) => {
+  try {
+    const asset = authAndStore.getFounderImageAsset(req.params.id);
+    if (!asset) {
+      return res.status(404).send('Not found');
+    }
+    const buffer = Buffer.from(asset.data_base64, 'base64');
+    res.setHeader('Content-Type', asset.mime_type || 'image/jpeg');
+    res.setHeader('Content-Length', buffer.length.toString());
+    res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+    return res.send(buffer);
+  } catch (err: any) {
+    return res.status(500).send('Error serving image');
+  }
+});
+
+// 3. Admin: Get Full Profile Details & Draft State
+app.get('/api/admin/founder-profile', requireAdmin, (_req: AuthenticatedRequest, res: Response) => {
+  try {
+    const data = authAndStore.getAdminFounderProfile();
+    return res.json({ success: true, ...data });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4. Admin: Save Draft Changes
+app.put('/api/admin/founder-profile/draft', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const draft = req.body || {};
+    const updated = authAndStore.updateFounderProfileDraft(draft);
+    authAndStore.addAuditLog(req.user!.id, 'Founder Profile', 'DRAFT_SAVED', 'founder_main', 'Founder profile draft updated');
+    return res.json({ success: true, draft: updated });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5. Admin: Publish Changes to Live
+app.post('/api/admin/founder-profile/publish', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const published = authAndStore.publishFounderProfile();
+    authAndStore.addAuditLog(req.user!.id, 'Founder Profile', 'PROFILE_PUBLISHED', 'founder_main', 'Founder profile changes published to live site');
+    return res.json({ success: true, profile: published });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 6. Admin: Revert Draft to Last Published
+app.post('/api/admin/founder-profile/revert', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const reverted = authAndStore.revertFounderProfileDraft();
+    authAndStore.addAuditLog(req.user!.id, 'Founder Profile', 'DRAFT_REVERTED', 'founder_main', 'Founder profile draft reverted to published version');
+    return res.json({ success: true, draft: reverted });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 7. Admin: Upload Photograph
+app.post('/api/admin/founder-profile/photo', requireAdmin, upload.single('photo'), (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ success: false, error: 'No image file uploaded' });
+    }
+
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!allowedMimes.includes(file.mimetype)) {
+      return res.status(400).json({ success: false, error: 'Invalid image format. Allowed: JPG, PNG, WebP' });
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      return res.status(400).json({ success: false, error: 'File size exceeds 5 MB limit' });
+    }
+
+    const base64 = file.buffer.toString('base64');
+    const assetId = authAndStore.saveFounderImageAsset(file.originalname, file.mimetype, file.size, base64);
+    const photoUrl = `/api/founder-profile/image/${assetId}`;
+
+    const { draft } = authAndStore.getAdminFounderProfile();
+    const updatedDraft = authAndStore.updateFounderProfileDraft({
+      ...draft,
+      photoUrl,
+      photoAssetId: assetId,
+      photoAspectRatio: '1:1',
+    });
+
+    authAndStore.addAuditLog(req.user!.id, 'Founder Profile', 'PHOTO_UPLOADED', assetId, `Photograph uploaded: ${file.originalname} (${Math.round(file.size / 1024)} KB)`);
+
+    return res.json({ success: true, photoUrl, assetId, draft: updatedDraft });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 8. Admin: Remove Photograph
+app.delete('/api/admin/founder-profile/photo', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    authAndStore.removeFounderPhoto();
+    authAndStore.addAuditLog(req.user!.id, 'Founder Profile', 'PHOTO_REMOVED', 'founder_main', 'Founder photograph removed from draft');
+    return res.json({ success: true, message: 'Photograph removed from draft' });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Frontend Vite Integration & Server Startup
 async function startServer() {
   const isProduction = process.env.NODE_ENV === 'production';
@@ -1363,7 +1487,10 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  
+
+
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`[ApplyVise AI] Server running on http://0.0.0.0:${PORT}`);
   });
 }

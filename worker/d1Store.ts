@@ -1,3 +1,5 @@
+import { DEFAULT_FOUNDER_PROFILE } from '../src/data/defaultFounderProfile.ts';
+import { FounderProfile } from '../src/types/index.ts';
 // worker/d1Store.ts
 // Cloudflare D1 Relational Store for ApplyVise AI
 
@@ -20,6 +22,7 @@ import {
   ApplicationIntegrityReport,
   CareerOutcomeItem
 } from '../src/types/index.ts';
+import { isPermanentFreeAccessAccount } from '../src/config/freeAccess.ts';
 
 export interface AuthUser {
   id: string;
@@ -702,6 +705,19 @@ export class D1Store {
     currentPeriodEnd: string;
     cancelAtPeriodEnd: boolean;
   }> {
+    const userRow = await this.db.prepare('SELECT email, is_verified FROM users WHERE id = ?').bind(userId).first<{ email: string; is_verified: number }>();
+    if (userRow && isPermanentFreeAccessAccount({ email: userRow.email, isVerified: !!userRow.is_verified })) {
+      const now = new Date();
+      return {
+        planId: 'black',
+        status: 'active',
+        billingInterval: 'annual',
+        currentPeriodStart: now.toISOString(),
+        currentPeriodEnd: '2099-12-31T23:59:59.999Z',
+        cancelAtPeriodEnd: false,
+      };
+    }
+
     const row = await this.db.prepare(
       'SELECT plan_id, status, billing_interval, current_period_start, current_period_end, cancel_at_period_end FROM user_subscriptions WHERE user_id = ?'
     ).bind(userId).first<{
@@ -727,7 +743,7 @@ export class D1Store {
     }
 
     return {
-      planId: row.plan_id === 'pro' ? 'pro' : 'free',
+      planId: row.plan_id === 'black' ? 'black' : row.plan_id === 'pro' ? 'pro' : 'free',
       status: (row.status as any) || 'active',
       billingInterval: (row.billing_interval as any) || 'monthly',
       currentPeriodStart: row.current_period_start,
@@ -2007,4 +2023,194 @@ export class D1Store {
       return [];
     }
   }
+
+  // --- FOUNDER PROFILE & ASSET MANAGEMENT ---
+  async getPublishedFounderProfile(): Promise<FounderProfile> {
+    try {
+      const row = await this.db.prepare('SELECT * FROM founder_profile WHERE id = ?')
+        .bind('founder_main').first<any>();
+      if (!row) {
+        return DEFAULT_FOUNDER_PROFILE;
+      }
+      return {
+        id: row.id,
+        name: row.name,
+        designation: row.designation,
+        subtitle: row.subtitle,
+        companyName: row.company_name,
+        shortBio: row.short_bio || '',
+        bioParagraphs: JSON.parse(row.bio_paragraphs || '[]'),
+        missionStatement: row.mission_statement || '',
+        quote: row.quote,
+        quoteAuthor: row.quote_author,
+        expertiseTags: JSON.parse(row.expertise_tags || '[]'),
+        linkedinUrl: row.linkedin_url,
+        storyUrl: row.story_url,
+        photoUrl: row.photo_url || null,
+        photoAssetId: row.photo_asset_id || null,
+        photoAspectRatio: row.photo_aspect_ratio || '1:1',
+        isPublished: Boolean(row.is_published),
+        publishedAt: row.published_at,
+        updatedAt: row.updated_at,
+      };
+    } catch {
+      return DEFAULT_FOUNDER_PROFILE;
+    }
+  }
+
+  async getAdminFounderProfile(): Promise<{ published: FounderProfile; draft: FounderProfile; isDraftModified: boolean }> {
+    const published = await this.getPublishedFounderProfile();
+    try {
+      const row = await this.db.prepare('SELECT draft_data FROM founder_profile WHERE id = ?')
+        .bind('founder_main').first<any>();
+      if (row && row.draft_data) {
+        const draftObj = JSON.parse(row.draft_data);
+        return {
+          published,
+          draft: { ...published, ...draftObj },
+          isDraftModified: true,
+        };
+      }
+    } catch {}
+
+    return {
+      published,
+      draft: { ...published },
+      isDraftModified: false,
+    };
+  }
+
+  async updateFounderProfileDraft(draft: Partial<FounderProfile>): Promise<FounderProfile> {
+    const current = await this.getAdminFounderProfile();
+    const merged = { ...current.draft, ...draft, isPublished: false, updatedAt: new Date().toISOString() };
+    const now = new Date().toISOString();
+
+    const existing = await this.db.prepare('SELECT id FROM founder_profile WHERE id = ?')
+      .bind('founder_main').first<any>();
+    if (!existing) {
+      await this.db.prepare(`
+        INSERT INTO founder_profile (
+          id, name, designation, subtitle, company_name, short_bio, bio_paragraphs,
+          mission_statement, quote, quote_author, expertise_tags, linkedin_url,
+          story_url, photo_url, photo_asset_id, photo_aspect_ratio, is_published,
+          draft_data, created_at, updated_at, published_at
+        ) VALUES (
+          'founder_main', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?
+        )
+      `).bind(
+        merged.name, merged.designation, merged.subtitle, merged.companyName,
+        merged.shortBio, JSON.stringify(merged.bioParagraphs), merged.missionStatement,
+        merged.quote, merged.quoteAuthor, JSON.stringify(merged.expertiseTags),
+        merged.linkedinUrl, merged.storyUrl, merged.photoUrl || null,
+        merged.photoAssetId || null, merged.photoAspectRatio || '1:1',
+        JSON.stringify(merged), now, now, now
+      ).run();
+    } else {
+      await this.db.prepare('UPDATE founder_profile SET draft_data = ?, updated_at = ? WHERE id = ?')
+        .bind(JSON.stringify(merged), now, 'founder_main').run();
+    }
+
+    return merged;
+  }
+
+  async publishFounderProfile(): Promise<FounderProfile> {
+    const { draft } = await this.getAdminFounderProfile();
+    const now = new Date().toISOString();
+
+    await this.db.prepare(`
+      INSERT INTO founder_profile (
+        id, name, designation, subtitle, company_name, short_bio, bio_paragraphs,
+        mission_statement, quote, quote_author, expertise_tags, linkedin_url,
+        story_url, photo_url, photo_asset_id, photo_aspect_ratio, is_published,
+        draft_data, created_at, updated_at, published_at
+      ) VALUES (
+        'founder_main', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NULL, ?, ?, ?
+      )
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        designation = excluded.designation,
+        subtitle = excluded.subtitle,
+        company_name = excluded.company_name,
+        short_bio = excluded.short_bio,
+        bio_paragraphs = excluded.bio_paragraphs,
+        mission_statement = excluded.mission_statement,
+        quote = excluded.quote,
+        quote_author = excluded.quote_author,
+        expertise_tags = excluded.expertise_tags,
+        linkedin_url = excluded.linkedin_url,
+        story_url = excluded.story_url,
+        photo_url = excluded.photo_url,
+        photo_asset_id = excluded.photo_asset_id,
+        photo_aspect_ratio = excluded.photo_aspect_ratio,
+        is_published = 1,
+        draft_data = NULL,
+        updated_at = excluded.updated_at,
+        published_at = excluded.published_at
+    `).bind(
+      draft.name, draft.designation, draft.subtitle, draft.companyName,
+      draft.shortBio, JSON.stringify(draft.bioParagraphs), draft.missionStatement,
+      draft.quote, draft.quoteAuthor, JSON.stringify(draft.expertiseTags),
+      draft.linkedinUrl, draft.storyUrl, draft.photoUrl || null,
+      draft.photoAssetId || null, draft.photoAspectRatio || '1:1',
+      now, now, now
+    ).run();
+
+    return { ...draft, isPublished: true, publishedAt: now, updatedAt: now };
+  }
+
+  async revertFounderProfileDraft(): Promise<FounderProfile> {
+    const now = new Date().toISOString();
+    await this.db.prepare('UPDATE founder_profile SET draft_data = NULL, updated_at = ? WHERE id = ?')
+      .bind(now, 'founder_main').run();
+    return this.getPublishedFounderProfile();
+  }
+
+  async saveFounderImageAsset(
+    filenameOrOpts: string | { filename?: string; fileName?: string; mimeType: string; fileSize?: number; sizeBytes?: number; dataBase64: string },
+    maybeMime?: string,
+    maybeSize?: number,
+    maybeData?: string
+  ): Promise<string> {
+    let filename = 'founder_photo.png';
+    let mimeType = 'image/png';
+    let fileSize = 0;
+    let dataBase64 = '';
+
+    if (typeof filenameOrOpts === 'object' && filenameOrOpts !== null) {
+      filename = filenameOrOpts.filename || filenameOrOpts.fileName || 'founder_photo.png';
+      mimeType = filenameOrOpts.mimeType || 'image/png';
+      fileSize = filenameOrOpts.fileSize || filenameOrOpts.sizeBytes || 0;
+      dataBase64 = filenameOrOpts.dataBase64 || '';
+    } else {
+      filename = filenameOrOpts;
+      mimeType = maybeMime || 'image/png';
+      fileSize = maybeSize || 0;
+      dataBase64 = maybeData || '';
+    }
+
+    const id = 'asset_' + crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+    const now = new Date().toISOString();
+    await this.db.prepare(`
+      INSERT INTO founder_image_assets (id, filename, mime_type, file_size, data_base64, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(id, filename, mimeType, fileSize, dataBase64, now).run();
+    return id;
+  }
+
+  async getFounderImageAsset(id: string): Promise<{ filename: string; mime_type: string; file_size: number; data_base64: string } | null> {
+    try {
+      const row = await this.db.prepare('SELECT filename, mime_type, file_size, data_base64 FROM founder_image_assets WHERE id = ?')
+        .bind(id).first<any>();
+      if (!row) return null;
+      return row;
+    } catch {
+      return null;
+    }
+  }
+
+  async removeFounderPhoto(): Promise<void> {
+    const { draft } = await this.getAdminFounderProfile();
+    await this.updateFounderProfileDraft({ ...draft, photoUrl: null, photoAssetId: null });
+  }
+
 }

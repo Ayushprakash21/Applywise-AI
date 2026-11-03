@@ -23,7 +23,8 @@ import {
   ResumeToJobComparison,
   CareerRoadmap,
   JobAlertRule,
-  ApplicationActivityEvent
+  ApplicationActivityEvent,
+  FounderProfile
 } from '../types/index.ts';
 
 export interface DashboardSummary {
@@ -761,4 +762,53 @@ export const api = {
         recommendations: string[];
       };
     }>('/api/career-twin/insights'),
+
+  // --- FOUNDER PROFILE & WEBSITE MANAGEMENT ---
+  getFounderProfile: () =>
+    fetchJson<{ success: boolean; profile: FounderProfile }>('/api/founder-profile'),
+
+  getAdminFounderProfile: () =>
+    fetchJson<{ success: boolean; published: FounderProfile; draft: FounderProfile; isDraftModified: boolean }>('/api/admin/founder-profile'),
+
+  updateFounderProfileDraft: (draft: Partial<FounderProfile>) =>
+    fetchJson<{ success: boolean; draft: FounderProfile }>('/api/admin/founder-profile/draft', {
+      method: 'PUT',
+      body: JSON.stringify(draft),
+    }),
+
+  publishFounderProfile: () =>
+    fetchJson<{ success: boolean; profile: FounderProfile }>('/api/admin/founder-profile/publish', {
+      method: 'POST',
+    }),
+
+  revertFounderProfileDraft: () =>
+    fetchJson<{ success: boolean; draft: FounderProfile }>('/api/admin/founder-profile/revert', {
+      method: 'POST',
+    }),
+
+  uploadFounderPhoto: async (file: File) => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    const token = localStorage.getItem('applyvise_token') || localStorage.getItem('applywise_token');
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = 'Bearer ' + token;
+    }
+    const res = await fetch('/api/admin/founder-profile/photo', {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Upload failed' })) as { error?: string };
+      throw new Error(err?.error || 'Failed to upload photo');
+    }
+    return res.json() as Promise<{ success: boolean; photoUrl: string; assetId: string; draft: FounderProfile }>;
+  },
+
+  removeFounderPhoto: () =>
+    fetchJson<{ success: boolean; message: string }>('/api/admin/founder-profile/photo', {
+      method: 'DELETE',
+    }),
+
 };

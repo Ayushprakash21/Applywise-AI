@@ -1,11 +1,15 @@
-import React from 'react';
-import { Sparkles, ArrowRight, Linkedin, Quote, ShieldCheck, Cpu, Code2, Award } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Sparkles, ArrowRight, Linkedin, Quote } from 'lucide-react';
+import { FounderProfile } from '../types/index.ts';
+import { DEFAULT_FOUNDER_PROFILE } from '../data/defaultFounderProfile.ts';
+import { api } from '../services/api.ts';
 
 interface FounderSectionProps {
   onReadStory?: () => void;
   showExtendedBio?: boolean;
   className?: string;
   theme?: 'dark' | 'light';
+  initialProfile?: FounderProfile;
 }
 
 export const FounderSection: React.FC<FounderSectionProps> = ({
@@ -13,10 +17,34 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
   showExtendedBio = false,
   className = '',
   theme = 'dark',
+  initialProfile,
 }) => {
-  // Authoritative verified founder LinkedIn URL
-  const founderConnectUrl = 'https://www.linkedin.com/in/ayushprakash21/';
+  const [profile, setProfile] = useState<FounderProfile>(initialProfile || DEFAULT_FOUNDER_PROFILE);
   const isDark = theme === 'dark';
+
+  useEffect(() => {
+    if (initialProfile) {
+      setProfile(initialProfile);
+      return;
+    }
+    let isMounted = true;
+    api.getFounderProfile()
+      .then((res) => {
+        if (isMounted && res.profile) {
+          setProfile(res.profile);
+        }
+      })
+      .catch((err) => {
+        // Fallback gracefully to default verified founder profile
+        console.warn('Failed to load published founder profile, using default:', err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [initialProfile]);
+
+  // Verified LinkedIn URL with fallback to official profile
+  const founderConnectUrl = profile.linkedinUrl || 'https://www.linkedin.com/in/ayushprakash21/';
 
   return (
     <section className={`relative overflow-hidden py-20 md:py-32 ${className}`} id="founder">
@@ -63,59 +91,66 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center relative z-10">
-            {/* Left: Avatar & Badges */}
+            {/* Left: Avatar / Photo & Badges */}
             <div className="lg:col-span-4 flex flex-col items-center text-center space-y-5">
-              {/* Premium Monogram Mark with Orbital Lighting */}
+              {/* Premium Photo or Monogram Mark with Orbital Lighting */}
               <div className="relative group">
-                <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-3xl bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-600 p-[1.5px] shadow-[0_0_40px_rgba(14,165,233,0.25)] transition-transform duration-500 group-hover:scale-[1.02]">
-                  <div className="w-full h-full rounded-[22px] bg-slate-950 flex flex-col items-center justify-center text-white relative overflow-hidden">
-                    <span className="text-4xl sm:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-white via-cyan-100 to-blue-300">
-                      AP
-                    </span>
-                    <span className="text-[10px] uppercase font-mono tracking-widest text-cyan-400 mt-2 font-semibold">
-                      Founder & Architect
-                    </span>
-                    <div className="absolute inset-0 border border-white/10 rounded-[22px] pointer-events-none" />
-                  </div>
+                <div className="w-44 h-44 sm:w-52 sm:h-52 rounded-3xl bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-600 p-[2px] shadow-[0_0_40px_rgba(14,165,233,0.25)] transition-transform duration-500 group-hover:scale-[1.02]">
+                  {profile.photoUrl ? (
+                    <div className="w-full h-full rounded-[22px] bg-slate-950 overflow-hidden relative group/img">
+                      <img
+                        src={profile.photoUrl}
+                        alt={profile.name}
+                        className="w-full h-full object-cover rounded-[22px] transition-transform duration-700 group-hover/img:scale-105"
+                      />
+                      <div className="absolute inset-0 border border-white/15 rounded-[22px] pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
+                    </div>
+                  ) : (
+                    <div className="w-full h-full rounded-[22px] bg-slate-950 flex flex-col items-center justify-center text-white relative overflow-hidden">
+                      <span className="text-4xl sm:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-white via-cyan-100 to-blue-300">
+                        AP
+                      </span>
+                      <span className="text-[10px] uppercase font-mono tracking-widest text-cyan-400 mt-2 font-semibold">
+                        Founder & Architect
+                      </span>
+                      <div className="absolute inset-0 border border-white/10 rounded-[22px] pointer-events-none" />
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div>
                 <h3 className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  Ayush Prakash
+                  {profile.name || 'Ayush Prakash'}
                 </h3>
                 <p className="text-xs font-semibold text-cyan-400 mt-1">
-                  Founder & Product Architect, ApplyVise AI
+                  {profile.designation || 'Founder & Product Architect, ApplyVise AI'}
                 </p>
-                <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  MBA (Marketing & IT) • Project Management • AI Enthusiast
-                </p>
+                {profile.subtitle && (
+                  <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    {profile.subtitle}
+                  </p>
+                )}
               </div>
 
               {/* Verified Expertise Tags */}
-              <div className="flex flex-wrap justify-center gap-1.5 pt-1 text-[11px]">
-                <span className={`px-2.5 py-1 rounded-lg border ${
-                  isDark
-                    ? 'bg-slate-900/80 border-white/10 text-slate-300'
-                    : 'bg-slate-100 border-slate-200 text-slate-700'
-                }`}>
-                  Supply Chain & Operations
-                </span>
-                <span className={`px-2.5 py-1 rounded-lg border ${
-                  isDark
-                    ? 'bg-slate-900/80 border-white/10 text-slate-300'
-                    : 'bg-slate-100 border-slate-200 text-slate-700'
-                }`}>
-                  Digital Product Strategy
-                </span>
-                <span className={`px-2.5 py-1 rounded-lg border ${
-                  isDark
-                    ? 'bg-slate-900/80 border-white/10 text-slate-300'
-                    : 'bg-slate-100 border-slate-200 text-slate-700'
-                }`}>
-                  Applied AI Workflows
-                </span>
-              </div>
+              {profile.expertiseTags && profile.expertiseTags.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-1.5 pt-1 text-[11px]">
+                  {profile.expertiseTags.map((tag, idx) => (
+                    <span
+                      key={idx}
+                      className={`px-2.5 py-1 rounded-lg border ${
+                        isDark
+                          ? 'bg-slate-900/80 border-white/10 text-slate-300'
+                          : 'bg-slate-100 border-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Right: Bio & Founder Vision */}
@@ -123,35 +158,35 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
               <div className={`space-y-4 text-xs sm:text-sm leading-relaxed ${
                 isDark ? 'text-slate-300' : 'text-slate-600'
               }`}>
-                <p>
-                  <strong className={isDark ? 'text-white' : 'text-slate-900'}>Ayush Prakash</strong> is a technology enthusiast, project management professional, and entrepreneur focused on exploring how artificial intelligence can make career development more accessible, transparent, and truthful.
-                </p>
-                <p>
-                  With a background spanning project management, business operations, supply chain, and an MBA in Marketing and IT, he brings together business thinking, operational rigor, and a passion for building AI-powered digital products that respect user authenticity.
-                </p>
-                <p>
-                  ApplyVise AI reflects his vision of making job searching more organized, intelligent, and grounded in reality. His mission is to build software that eliminates repetitive application toil while guaranteeing zero fabrication of work history, employers, or qualifications.
-                </p>
+                {profile.bioParagraphs && profile.bioParagraphs.length > 0 ? (
+                  profile.bioParagraphs.map((para, idx) => (
+                    <p key={idx}>{para}</p>
+                  ))
+                ) : (
+                  <p>{profile.shortBio}</p>
+                )}
               </div>
 
               {/* Founder Personal Quote Box */}
-              <div className={`p-5 rounded-2xl border relative ${
-                isDark
-                  ? 'bg-slate-900/60 border-white/10 shadow-[inset_0_1px_2px_rgba(255,255,255,0.05)]'
-                  : 'bg-slate-50 border-slate-200'
-              }`}>
-                <Quote className="h-6 w-6 text-cyan-400/30 absolute top-3 right-4" />
-                <p className={`text-xs sm:text-sm italic leading-relaxed ${
-                  isDark ? 'text-slate-200' : 'text-slate-700'
+              {profile.quote && (
+                <div className={`p-5 rounded-2xl border relative ${
+                  isDark
+                    ? 'bg-slate-900/60 border-white/10 shadow-[inset_0_1px_2px_rgba(255,255,255,0.05)]'
+                    : 'bg-slate-50 border-slate-200'
                 }`}>
-                  "ApplyVise AI started with a simple conviction: job searching should be more organized, less repetitive, and better supported by technology. Candidates should never have to compromise between ATS optimization and the truth. By bringing verified AI capabilities into one unified platform, we enable applicants to approach their career journey with clarity, confidence, and integrity."
-                </p>
-                <div className="mt-3 text-right">
-                  <span className={`text-xs font-semibold ${isDark ? 'text-cyan-400' : 'text-slate-900'}`}>
-                    — Ayush Prakash
-                  </span>
+                  <Quote className="h-6 w-6 text-cyan-400/30 absolute top-3 right-4" />
+                  <p className={`text-xs sm:text-sm italic leading-relaxed ${
+                    isDark ? 'text-slate-200' : 'text-slate-700'
+                  }`}>
+                    "{profile.quote}"
+                  </p>
+                  <div className="mt-3 text-right">
+                    <span className={`text-xs font-semibold ${isDark ? 'text-cyan-400' : 'text-slate-900'}`}>
+                      — {profile.quoteAuthor || profile.name}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Action Buttons & Verified Social Link */}
               <div className="flex flex-wrap items-center gap-3 pt-2">

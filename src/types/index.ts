@@ -76,6 +76,11 @@ export interface ExperienceItem {
   verifiedSkillsUsed: string[];
   isDateUncertain?: boolean;
   dateWarning?: string;
+  originalDateText?: string;
+  confidence?: number;
+  needsVerification?: boolean;
+  sourceText?: string;
+  employmentType?: string | null;
 }
 
 export interface UserProfile {
@@ -757,4 +762,27 @@ export interface AccountUsageStats {
     tier: 'standard' | 'unlimited';
     isUnlimited: boolean;
   };
+}
+
+
+export interface FounderProfile {
+  id?: string;
+  name: string;
+  designation: string;
+  subtitle: string;
+  companyName: string;
+  shortBio: string;
+  bioParagraphs: string[];
+  missionStatement: string;
+  quote: string;
+  quoteAuthor: string;
+  expertiseTags: string[];
+  linkedinUrl: string;
+  storyUrl: string;
+  photoUrl?: string | null;
+  photoAssetId?: string | null;
+  photoAspectRatio?: string;
+  isPublished?: boolean;
+  publishedAt?: string | null;
+  updatedAt?: string;
 }

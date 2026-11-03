@@ -14,7 +14,7 @@ if (typeof (globalThis as any).pdfjsWorker === 'undefined') {
 import { PDFParse } from 'pdf-parse';
 import mammoth from 'mammoth';
 import { Document, Paragraph, TextRun, HeadingLevel, Packer, AlignmentType } from 'docx';
-import { UserProfile, TailoredResumeContent, VerifiedSkill } from '../src/types/index.ts';
+import { UserProfile, TailoredResumeContent, VerifiedSkill, ExperienceItem } from '../src/types/index.ts';
 import { detectJobFamily } from './matchingEngine.ts';
 
 export interface ExtractionResult {
@@ -31,157 +31,20 @@ export interface TruthfulnessValidationResult {
   issues: string[];
 }
 
-export interface ParsedEmploymentDates {
-  startDate: string;
-  endDate: string;
-  current: boolean;
-  isDateUncertain: boolean;
-  dateWarning?: string;
-  durationMonths: number;
-}
+import {
+  type ParsedEmploymentDates,
+  parseEmploymentDates,
+  parseStructuralEmploymentHistory,
+  isInvalidToken,
+  type RawEmploymentRecord
+} from '../src/utils/structuralEmploymentParser.ts';
 
-export function parseEmploymentDates(rawDateStr?: string | null): ParsedEmploymentDates {
-  if (!rawDateStr || typeof rawDateStr !== 'string') {
-    return {
-      startDate: '',
-      endDate: '',
-      current: false,
-      isDateUncertain: true,
-      dateWarning: 'No employment dates found; requires confirmation.',
-      durationMonths: 0,
-    };
-  }
-
-  const cleaned = rawDateStr.replace(/[\r\n\t]+/g, ' ').trim();
-  if (!cleaned) {
-    return {
-      startDate: '',
-      endDate: '',
-      current: false,
-      isDateUncertain: true,
-      dateWarning: 'Empty date string.',
-      durationMonths: 0,
-    };
-  }
-
-  const cleanToken = (s: string) => s.replace(/^[-–—\s/]+|[-–—\s/]+$/g, '').trim();
-  const isCurrentToken = (s: string) => /^(present|current|ongoing|now|till\s*date|to\s*date)$/i.test(s.trim());
-  const hasCurrentAnywhere = /\b(present|current|ongoing|now)\b/i.test(cleaned);
-  const hasTrailingSeparator = /[-–—]\s*$/.test(cleaned);
-  const hasLeadingSeparator = /^\s*[-–—]/.test(cleaned);
-
-  let parts: string[] = [];
-  if (hasTrailingSeparator) {
-    parts = [cleanToken(cleaned.replace(/[-–—]\s*$/, '')), ''];
-  } else if (hasLeadingSeparator) {
-    parts = ['', cleanToken(cleaned.replace(/^\s*[-–—]/, ''))];
-  } else if (/[–—]/.test(cleaned)) {
-    parts = cleaned.split(/[–—]/).map(cleanToken);
-  } else if (/\s+[-–—]\s+/.test(cleaned)) {
-    parts = cleaned.split(/\s+[-–—]\s+/).map(cleanToken);
-  } else if (/\s+(?:to|until|through)\s+/i.test(cleaned)) {
-    parts = cleaned.split(/\s+(?:to|until|through)\s+/i).map(cleanToken);
-  } else if (cleaned.includes('-')) {
-    const hyphenSplit = cleaned.split('-').map(cleanToken);
-    parts = hyphenSplit;
-  } else {
-    parts = [cleanToken(cleaned)];
-  }
-
-  const nowYear = new Date().getFullYear();
-  const nowMonth = new Date().getMonth() + 1;
-
-  if (parts.length === 1) {
-    const singleToken = cleanToken(parts[0]);
-    if (isCurrentToken(singleToken) || hasCurrentAnywhere) {
-      return {
-        startDate: '',
-        endDate: 'Present',
-        current: true,
-        isDateUncertain: true,
-        dateWarning: 'Role explicitly marked current, but start date is missing.',
-        durationMonths: 0,
-      };
-    }
-
-    const yearMatch = singleToken.match(/\b(19\d\d|20\d\d)\b/);
-    if (yearMatch) {
-      return {
-        startDate: singleToken,
-        endDate: '',
-        current: false,
-        isDateUncertain: true,
-        dateWarning: 'Single date detected; end date missing and not assumed to be Present.',
-        durationMonths: 12,
-      };
-    }
-
-    return {
-      startDate: singleToken,
-      endDate: '',
-      current: false,
-      isDateUncertain: true,
-      dateWarning: 'Ambiguous OCR text; requires candidate confirmation.',
-      durationMonths: 0,
-    };
-  }
-
-  const rawStart = cleanToken(parts[0]);
-  const rawEnd = cleanToken(parts[1]);
-  const isCurrent = isCurrentToken(rawEnd) || hasCurrentAnywhere;
-  const finalEnd = isCurrent ? 'Present' : rawEnd;
-  const finalStart = rawStart;
-
-  let isDateUncertain = false;
-  let dateWarning: string | undefined;
-
-  if (!finalStart) {
-    isDateUncertain = true;
-    dateWarning = 'Start date is missing.';
-  }
-
-  if (!finalEnd) {
-    isDateUncertain = true;
-    dateWarning = 'End date is missing and not assumed to be Present.';
-  }
-
-  const startYearMatch = finalStart.match(/\b(19\d\d|20\d\d)\b/);
-  const endYearMatch = !isCurrent ? finalEnd.match(/\b(19\d\d|20\d\d)\b/) : null;
-
-  let durationMonths = 0;
-
-  if (startYearMatch) {
-    const startYear = parseInt(startYearMatch[1], 10);
-    if (startYear > nowYear + 1) {
-      isDateUncertain = true;
-      dateWarning = `Invalid future start year: ${startYear}`;
-    }
-
-    if (endYearMatch) {
-      const endYear = parseInt(endYearMatch[1], 10);
-      if (startYear > endYear) {
-        isDateUncertain = true;
-        dateWarning = `Chronological error: Start date (${finalStart}) is after end date (${finalEnd}).`;
-      } else {
-        durationMonths = Math.max(1, (endYear - startYear) * 12);
-      }
-    } else if (isCurrent) {
-      durationMonths = Math.max(1, (nowYear - startYear) * 12 + nowMonth);
-    }
-  } else {
-    isDateUncertain = true;
-    dateWarning = dateWarning || 'Could not parse start year.';
-  }
-
-  return {
-    startDate: finalStart,
-    endDate: finalEnd,
-    current: isCurrent,
-    isDateUncertain,
-    dateWarning,
-    durationMonths,
-  };
-}
+export type { ParsedEmploymentDates, RawEmploymentRecord };
+export {
+  parseEmploymentDates,
+  parseStructuralEmploymentHistory,
+  isInvalidToken
+};
 
 export const workerResumeEngine = {
   /**
@@ -383,18 +246,27 @@ Return ONLY a valid JSON object matching this structure:
             }))
           : [],
         experiences: Array.isArray(parsed.experiences)
-          ? parsed.experiences.map((exp: any) => ({
-              id: crypto.randomUUID(),
-              company: exp.company || '',
-              role: exp.role || '',
-              startDate: exp.startDate || '',
-              endDate: exp.endDate || '',
-              current: !!exp.current,
-              location: exp.location || '',
-              description: exp.description || '',
-              achievements: Array.isArray(exp.achievements) ? exp.achievements : [],
-              verifiedSkillsUsed: Array.isArray(exp.verifiedSkillsUsed) ? exp.verifiedSkillsUsed : [],
-            }))
+          ? parsed.experiences
+              .filter((exp: any) => exp && exp.company && !isInvalidToken(exp.company) && !isInvalidToken(exp.role))
+              .map((exp: any) => {
+                const dateRes = parseEmploymentDates(exp.startDate ? `${exp.startDate} - ${exp.endDate || (exp.current ? 'Present' : '')}` : exp.period);
+                return {
+                  id: crypto.randomUUID(),
+                  company: exp.company.trim(),
+                  role: exp.role.trim(),
+                  startDate: dateRes.startDate,
+                  endDate: dateRes.endDate,
+                  current: Boolean(dateRes.current),
+                  location: exp.location || '',
+                  description: exp.description || '',
+                  achievements: Array.isArray(exp.achievements) ? exp.achievements : [],
+                  verifiedSkillsUsed: Array.isArray(exp.verifiedSkillsUsed) ? exp.verifiedSkillsUsed : [],
+                  isDateUncertain: dateRes.isDateUncertain,
+                  dateWarning: dateRes.dateWarning,
+                  originalDateText: dateRes.originalDateText,
+                  needsVerification: dateRes.isDateUncertain,
+                };
+              })
           : [],
         languages: Array.isArray(parsed.languages) && parsed.languages.length > 0 ? parsed.languages : ['English'],
         masterResumeLastUpdated: new Date().toISOString(),
@@ -429,52 +301,33 @@ Return ONLY a valid JSON object matching this structure:
       new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text)
     );
 
-    // Heuristic experience extraction from text if available
-    const parsedExperiences = existingProfile?.experiences ? [...existingProfile.experiences] : [];
+    // Structural experience extraction
+    let parsedExperiences: ExperienceItem[] = existingProfile?.experiences ? [...existingProfile.experiences] : [];
     if (parsedExperiences.length === 0) {
-      const expSectionMatch = text.match(/(?:EXPERIENCE|WORK HISTORY|EMPLOYMENT)[\s\S]*?(?=(?:EDUCATION|SKILLS|CERTIFICATIONS|$))/i);
-      if (expSectionMatch) {
-        const expBlock = expSectionMatch[0];
-        const expLines = expBlock.split('\n').map(l => l.trim()).filter(Boolean);
-
-        for (const line of expLines) {
-          if (/^(?:experience|work history|employment|education|skills|certifications)/i.test(line)) continue;
-          const atMatch = line.match(/^([^—–\n]+?)\s+(?:at|@)\s+([^(\n]+?)(?:\s*\((.*?)\))?$/i);
-          const dashMatch = line.match(/^([A-Za-z0-9\s]+?)\s+[-–—]\s+([^(\n]+?)(?:\s*\((.*?)\))?$/i);
-          const match = atMatch || dashMatch;
-
-          if (match) {
-            const part1 = match[1].trim();
-            const part2 = match[2].trim();
-            const dates = match[3] ? match[3].trim() : '';
-            const isAt = Boolean(atMatch);
-            const role = isAt ? part1 : part2;
-            const company = isAt ? part2 : part1;
-
-            if (company.length > 1 && role.length > 1 && company.length < 50 && role.length < 60) {
-              const parsedDates = parseEmploymentDates(dates);
-              parsedExperiences.push({
-                id: crypto.randomUUID(),
-                company,
-                role,
-                startDate: parsedDates.startDate,
-                endDate: parsedDates.endDate,
-                current: parsedDates.current,
-                isDateUncertain: parsedDates.isDateUncertain,
-                dateWarning: parsedDates.dateWarning,
-                location: '',
-                description: '',
-                achievements: [],
-                verifiedSkillsUsed: [],
-              });
-            }
-          }
-        }
-      }
+      const structural = parseStructuralEmploymentHistory(text);
+      parsedExperiences = structural.map((rec: RawEmploymentRecord) => ({
+        id: crypto.randomUUID(),
+        company: rec.company,
+        role: rec.job_title,
+        startDate: rec.start_date || '',
+        endDate: rec.is_current ? 'Present' : (rec.end_date || ''),
+        current: rec.is_current,
+        location: rec.location || '',
+        description: rec.description.join(' '),
+        achievements: rec.description.filter((d: string) => /^[•\-*]/.test(d) || d.length > 30),
+        verifiedSkillsUsed: [],
+        isDateUncertain: rec.needs_verification,
+        dateWarning: rec.needs_verification ? 'Employment dates not detected — Please verify.' : undefined,
+        originalDateText: rec.original_date_text,
+        confidence: rec.confidence,
+        needsVerification: rec.needs_verification,
+        employmentType: rec.employment_type,
+        sourceText: rec.source_text
+      }));
     }
 
     // Dynamic experience duration calculation
-    const totalMonths = parsedExperiences.reduce((sum, exp) => {
+    const totalMonths = parsedExperiences.reduce((sum: number, exp: ExperienceItem) => {
       const d = parseEmploymentDates(exp.startDate ? `${exp.startDate} - ${exp.endDate || (exp.current ? 'Present' : '')}` : '');
       return sum + d.durationMonths;
     }, 0);

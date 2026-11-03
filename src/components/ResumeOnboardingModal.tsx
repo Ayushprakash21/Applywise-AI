@@ -12,10 +12,13 @@ import {
   FileUp,
   AlertTriangle,
   Lock,
-  EyeOff
+  EyeOff,
+  Edit3,
+  Trash2,
+  Plus
 } from 'lucide-react';
 import { api } from '../services/api.ts';
-import { UserProfile } from '../types/index.ts';
+import { UserProfile, ExperienceItem } from '../types/index.ts';
 import { BrandLogo } from './BrandLogo.tsx';
 
 interface ResumeOnboardingModalProps {
@@ -41,6 +44,61 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
   const [replaceExisting, setReplaceExisting] = useState(false);
   const [showReplaceOption, setShowReplaceOption] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [editingExpIndex, setEditingExpIndex] = useState<number | null>(null);
+  const [editExpForm, setEditExpForm] = useState<ExperienceItem | null>(null);
+
+  const handleStartEdit = (index: number) => {
+    if (!extractedProfile) return;
+    setEditingExpIndex(index);
+    setEditExpForm({ ...extractedProfile.experiences[index] });
+  };
+
+  const handleSaveEdit = () => {
+    if (editingExpIndex === null || !editExpForm || !extractedProfile) return;
+    const updated = [...extractedProfile.experiences];
+    updated[editingExpIndex] = { ...editExpForm };
+    setExtractedProfile({
+      ...extractedProfile,
+      experiences: updated,
+    });
+    setEditingExpIndex(null);
+    setEditExpForm(null);
+  };
+
+  const handleDeleteExp = (index: number) => {
+    if (!extractedProfile) return;
+    const updated = extractedProfile.experiences.filter((_, idx) => idx !== index);
+    setExtractedProfile({
+      ...extractedProfile,
+      experiences: updated,
+    });
+    if (editingExpIndex === index) {
+      setEditingExpIndex(null);
+      setEditExpForm(null);
+    }
+  };
+
+  const handleAddExp = () => {
+    if (!extractedProfile) return;
+    const newExp: ExperienceItem = {
+      id: crypto.randomUUID(),
+      company: '',
+      role: '',
+      startDate: '',
+      endDate: '',
+      current: false,
+      location: '',
+      description: '',
+      achievements: [],
+      verifiedSkillsUsed: [],
+    };
+    setExtractedProfile({
+      ...extractedProfile,
+      experiences: [newExp, ...extractedProfile.experiences],
+    });
+    setEditingExpIndex(0);
+    setEditExpForm(newExp);
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
@@ -618,20 +676,197 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
 
               {/* Work History Summary */}
               <div>
-                <label className="font-semibold text-slate-700 mb-1.5 block text-xs">
-                  Preserved Employment Records ({extractedProfile.experiences.length})
-                </label>
-                <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                  {extractedProfile.experiences.map((exp, i) => (
-                    <div key={i} className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                      <div className="flex justify-between font-semibold text-slate-900">
-                        <span>{exp.role}</span>
-                        <span className="text-slate-500 font-normal">{exp.startDate} - {exp.endDate || 'Present'}</span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="font-semibold text-slate-700 block text-xs">
+                    Preserved Employment Records ({extractedProfile.experiences.length})
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAddExp}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center space-x-1"
+                  >
+                    <Plus className="h-3 w-3" />
+                    <span>Add Role</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                  {extractedProfile.experiences.map((exp, i) => {
+                    const isEditing = editingExpIndex === i;
+
+                    if (isEditing && editExpForm) {
+                      return (
+                        <div key={i} className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl text-xs space-y-2.5 shadow-xs">
+                          <div className="flex items-center justify-between border-b border-blue-200/60 pb-1.5 font-bold text-blue-900">
+                            <span>Edit Employment Record #{i + 1}</span>
+                            <button
+                              type="button"
+                              onClick={() => setEditingExpIndex(null)}
+                              className="text-slate-400 hover:text-slate-600"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Company Name *</label>
+                              <input
+                                type="text"
+                                value={editExpForm.company}
+                                onChange={e => setEditExpForm({ ...editExpForm, company: e.target.value })}
+                                placeholder="e.g. Tata Consultancy Services"
+                                className="w-full px-2.5 py-1.5 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 font-semibold"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Job Title *</label>
+                              <input
+                                type="text"
+                                value={editExpForm.role}
+                                onChange={e => setEditExpForm({ ...editExpForm, role: e.target.value })}
+                                placeholder="e.g. Senior Process Associate"
+                                className="w-full px-2.5 py-1.5 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Location</label>
+                              <input
+                                type="text"
+                                value={editExpForm.location}
+                                onChange={e => setEditExpForm({ ...editExpForm, location: e.target.value })}
+                                placeholder="e.g. Indore"
+                                className="w-full px-2.5 py-1.5 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Start Date</label>
+                              <input
+                                type="text"
+                                value={editExpForm.startDate}
+                                onChange={e => setEditExpForm({ ...editExpForm, startDate: e.target.value })}
+                                placeholder="e.g. September 2024 or 2024-09"
+                                className="w-full px-2.5 py-1.5 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">End Date</label>
+                              <input
+                                type="text"
+                                disabled={editExpForm.current}
+                                value={editExpForm.current ? 'Present' : editExpForm.endDate}
+                                onChange={e => setEditExpForm({ ...editExpForm, endDate: e.target.value })}
+                                placeholder="e.g. December 2024 or 2024-12"
+                                className="w-full px-2.5 py-1.5 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-slate-100 disabled:text-slate-500"
+                              />
+                            </div>
+
+                            <div className="flex items-center pt-4">
+                              <label className="inline-flex items-center space-x-2 text-xs font-semibold text-slate-800 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={editExpForm.current}
+                                  onChange={e => setEditExpForm({
+                                    ...editExpForm,
+                                    current: e.target.checked,
+                                    endDate: e.target.checked ? 'Present' : (editExpForm.endDate === 'Present' ? '' : editExpForm.endDate)
+                                  })}
+                                  className="h-3.5 w-3.5 rounded text-blue-600 focus:ring-blue-500"
+                                />
+                                <span>I currently work in this role</span>
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-1">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteExp(i)}
+                              className="text-xs text-red-600 hover:text-red-700 font-semibold flex items-center space-x-1"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              <span>Remove Record</span>
+                            </button>
+
+                            <div className="flex items-center space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => setEditingExpIndex(null)}
+                                className="px-2.5 py-1 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleSaveEdit}
+                                className="px-3 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700 font-semibold shadow-xs"
+                              >
+                                Save Changes
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // Format clean date display according to requirements
+                    let dateDisplay = '';
+                    if (exp.startDate && (exp.endDate || exp.current)) {
+                      dateDisplay = `${exp.startDate} – ${exp.current ? 'Present' : exp.endDate}`;
+                    } else if (exp.startDate && !exp.endDate && !exp.current) {
+                      dateDisplay = `${exp.startDate}`;
+                    } else if (!exp.startDate && exp.current) {
+                      dateDisplay = 'Present';
+                    }
+
+                    return (
+                      <div key={i} className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1 relative group">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            {/* COMPANY NAME (Prominent & Uppercase/Bold) */}
+                            <div className="font-extrabold text-slate-900 text-xs tracking-tight">
+                              {exp.company || 'Employer not detected'}
+                            </div>
+                            {/* Job Title | Location */}
+                            <div className="text-blue-700 font-semibold text-xs mt-0.5">
+                              {exp.role && exp.role.toLowerCase() !== 'present' ? exp.role : 'Designation not detected'}
+                              {exp.location ? <span className="text-slate-500 font-normal"> | {exp.location}</span> : null}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            {/* Start Date – End Date */}
+                            {dateDisplay ? (
+                              <span className="font-medium text-slate-600 text-[11px] whitespace-nowrap bg-white px-2 py-0.5 rounded border border-slate-200">
+                                {dateDisplay}
+                              </span>
+                            ) : (
+                              <span className="text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap">
+                                Employment dates not detected — Please verify
+                              </span>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => handleStartEdit(i)}
+                              className="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-white border border-transparent hover:border-slate-200 transition"
+                              title="Edit this employment record"
+                            >
+                              <Edit3 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {exp.description && (
+                          <p className="text-slate-500 mt-1 line-clamp-2 leading-relaxed text-[11px]">{exp.description}</p>
+                        )}
                       </div>
-                      <div className="text-blue-600 font-medium">{exp.company}</div>
-                      <p className="text-slate-600 mt-1 line-clamp-2 leading-relaxed">{exp.description}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 

@@ -50,7 +50,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
     }
 
     if (isFreeAccess) {
-      setSuccessMessage('Your account is permanently authorized with full Pro access. No payment or billing is required.');
+      setSuccessMessage('Your account is permanently authorized with full BLACK Elite access. No payment or billing is required.');
       return;
     }
 
@@ -312,7 +312,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           <div className={`p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-white to-blue-50/40 border-2 ${currentPlanId === 'pro' ? 'border-blue-600 ring-4 ring-blue-100' : 'border-blue-500 shadow-xl shadow-blue-500/10'} flex flex-col justify-between space-y-6 relative overflow-hidden`}>
             {/* Badge */}
             <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-mono uppercase font-bold px-4 py-1 rounded-bl-xl shadow-xs">
-              {isFreeAccess ? 'FOUNDER ACCESS — ACTIVE' : currentPlanId === 'pro' ? 'YOUR ACTIVE PLAN' : 'POPULAR CHOICE'}
+              {currentPlanId === 'pro' && !isFreeAccess ? 'YOUR ACTIVE PLAN' : 'POPULAR CHOICE'}
             </div>
 
             <div className="space-y-4">
@@ -391,7 +391,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                 <div className="flex items-center justify-between">
                   <RoyalCrownLogo size="lg" animated showWordmark />
                   <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-[#D6B46A] via-[#F3DEAC] to-[#D6B46A] text-[#090B12] shadow-sm">
-                    {currentPlanId === 'black' ? 'YOUR ACTIVE TIER' : 'BLACK ELITE'}
+                    {isFreeAccess ? 'FOUNDER ACCESS — ACTIVE' : currentPlanId === 'black' ? 'YOUR ACTIVE TIER' : 'BLACK ELITE'}
                   </span>
                 </div>
 

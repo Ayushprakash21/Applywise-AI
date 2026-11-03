@@ -116,6 +116,30 @@ export default function App() {
   const [usage, setUsage] = useState<AccountUsageStats | null>(null);
   const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
 
+  // Centralized Theme Management System
+  // Backend subscription entitlement & allowlist are the authoritative source of truth
+  const isBlackSubscriber = !!currentUser && (
+    subscription?.planId === 'black' ||
+    subscription?.plan === 'black' ||
+    isPermanentFreeAccessAccount(currentUser)
+  );
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+
+    if (isBlackSubscriber) {
+      root.setAttribute('data-theme', 'black');
+      root.classList.add('theme-black');
+      body.classList.add('theme-black');
+    } else {
+      root.removeAttribute('data-theme');
+      root.classList.remove('theme-black');
+      body.classList.remove('theme-black');
+    }
+  }, [isBlackSubscriber]);
+
+
   // Modals & Drawers
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup' | 'recovery'>('login');
@@ -482,7 +506,7 @@ export default function App() {
       ) : currentRoute === '/pricing' ? (
         <PricingPage
           currentUser={currentUser}
-          currentPlanId={isPermanentFreeAccessAccount(currentUser) ? 'pro' : (subscription?.planId || subscription?.plan || 'free')}
+          currentPlanId={isBlackSubscriber ? 'black' : (subscription?.planId || subscription?.plan || 'free')}
           onOpenAuth={mode => {
             if (mode === 'signup') {
               navigateTo('/signup');
@@ -564,7 +588,7 @@ export default function App() {
           onOpenAbout={() => navigateTo('/about')}
           onOpenAdmin={() => navigateTo('/admin')}
           onLogout={handleLogout}
-          plan={subscription?.planId === 'black' ? 'black' : isPermanentFreeAccessAccount(currentUser) ? 'pro' : ((subscription?.planId as 'free' | 'pro' | 'black') || subscription?.plan || 'free')}
+          plan={isBlackSubscriber ? 'black' : ((subscription?.planId as 'free' | 'pro' | 'black') || subscription?.plan || 'free')}
           usage={usage}
         >
           {activeTab === 'overview' && (
@@ -749,7 +773,7 @@ export default function App() {
             experienceYears: profile.experiences?.length || 0,
           } : undefined,
           activeApplicationsCount: applications.length,
-          userPlan: isPermanentFreeAccessAccount(currentUser) ? 'pro' : (subscription?.planId || subscription?.plan || 'free'),
+          userPlan: isBlackSubscriber ? 'black' : (subscription?.planId || subscription?.plan || 'free'),
         }}
         onOpenPricing={() => navigateTo('/pricing')}
         onOpenAuth={mode => {

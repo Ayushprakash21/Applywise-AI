@@ -1,3 +1,6 @@
+import { DEFAULT_FOUNDER_PROFILE } from '../src/data/defaultFounderProfile.ts';
+import { FounderProfile } from '../src/types/index.ts';
+import { isPermanentFreeAccessAccount } from '../src/config/freeAccess.ts';
 import { DatabaseSync } from 'node:sqlite';
 import path from 'path';
 import fs from 'fs';
@@ -160,6 +163,39 @@ sqlite.exec(`
   CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(token);
   CREATE INDEX IF NOT EXISTS idx_apps_user ON applications(user_id);
   CREATE INDEX IF NOT EXISTS idx_vacancies_active ON cached_vacancies(is_active);
+
+  CREATE TABLE IF NOT EXISTS founder_profile (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    designation TEXT NOT NULL,
+    subtitle TEXT NOT NULL,
+    company_name TEXT NOT NULL,
+    short_bio TEXT,
+    bio_paragraphs TEXT NOT NULL,
+    mission_statement TEXT,
+    quote TEXT NOT NULL,
+    quote_author TEXT NOT NULL,
+    expertise_tags TEXT NOT NULL,
+    linkedin_url TEXT NOT NULL,
+    story_url TEXT NOT NULL,
+    photo_url TEXT,
+    photo_asset_id TEXT,
+    photo_aspect_ratio TEXT DEFAULT '1:1',
+    is_published INTEGER NOT NULL DEFAULT 1,
+    draft_data TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    published_at TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS founder_image_assets (
+    id TEXT PRIMARY KEY,
+    filename TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    file_size INTEGER NOT NULL,
+    data_base64 TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
 `);
 
 export interface AuthUser {
@@ -725,6 +761,18 @@ export const authAndStore = {
     currentPeriodEnd: string;
     cancelAtPeriodEnd: boolean;
   } {
+    const userRow = sqlite.prepare('SELECT email, is_verified FROM users WHERE id = ?').get(userId) as any;
+    if (userRow && isPermanentFreeAccessAccount({ email: userRow.email, isVerified: Boolean(userRow.is_verified) })) {
+      const now = new Date().toISOString();
+      return {
+        planId: 'black',
+        status: 'active',
+        billingInterval: 'annual',
+        currentPeriodStart: now,
+        currentPeriodEnd: '2099-12-31T23:59:59.999Z',
+        cancelAtPeriodEnd: false,
+      };
+    }
     const row = sqlite.prepare(
       'SELECT plan_id, status, billing_interval, current_period_start, current_period_end, cancel_at_period_end FROM user_subscriptions WHERE user_id = ?'
     ).get(userId) as any;
@@ -782,6 +830,192 @@ export const authAndStore = {
   },
 
   // --- VACANCY CACHING (Real listings only, never seeds fictional users) ---
+  
+  // --- FOUNDER PROFILE & ASSET MANAGEMENT ---
+  getPublishedFounderProfile(): FounderProfile {
+    try {
+      const row = sqlite.prepare('SELECT * FROM founder_profile WHERE id = ?').get('founder_main') as any;
+      if (!row) {
+        return DEFAULT_FOUNDER_PROFILE;
+      }
+      return {
+        id: row.id,
+        name: row.name,
+        designation: row.designation,
+        subtitle: row.subtitle,
+        companyName: row.company_name,
+        shortBio: row.short_bio || '',
+        bioParagraphs: JSON.parse(row.bio_paragraphs || '[]'),
+        missionStatement: row.mission_statement || '',
+        quote: row.quote,
+        quoteAuthor: row.quote_author,
+        expertiseTags: JSON.parse(row.expertise_tags || '[]'),
+        linkedinUrl: row.linkedin_url,
+        storyUrl: row.story_url,
+        photoUrl: row.photo_url || null,
+        photoAssetId: row.photo_asset_id || null,
+        photoAspectRatio: row.photo_aspect_ratio || '1:1',
+        isPublished: Boolean(row.is_published),
+        publishedAt: row.published_at,
+        updatedAt: row.updated_at,
+      };
+    } catch {
+      return DEFAULT_FOUNDER_PROFILE;
+    }
+  },
+
+  getAdminFounderProfile(): { published: FounderProfile; draft: FounderProfile; isDraftModified: boolean } {
+    const published = this.getPublishedFounderProfile();
+    try {
+      const row = sqlite.prepare('SELECT draft_data FROM founder_profile WHERE id = ?').get('founder_main') as any;
+      if (row && row.draft_data) {
+        const draftObj = JSON.parse(row.draft_data);
+        return {
+          published,
+          draft: { ...published, ...draftObj },
+          isDraftModified: true,
+        };
+      }
+    } catch {}
+
+    return {
+      published,
+      draft: { ...published },
+      isDraftModified: false,
+    };
+  },
+
+  updateFounderProfileDraft(draft: Partial<FounderProfile>): FounderProfile {
+    const current = this.getAdminFounderProfile();
+    const merged = { ...current.draft, ...draft, isPublished: false, updatedAt: new Date().toISOString() };
+    const now = new Date().toISOString();
+
+    const existing = sqlite.prepare('SELECT id FROM founder_profile WHERE id = ?').get('founder_main');
+    if (!existing) {
+      sqlite.prepare(`
+        INSERT INTO founder_profile (
+          id, name, designation, subtitle, company_name, short_bio, bio_paragraphs,
+          mission_statement, quote, quote_author, expertise_tags, linkedin_url,
+          story_url, photo_url, photo_asset_id, photo_aspect_ratio, is_published,
+          draft_data, created_at, updated_at, published_at
+        ) VALUES (
+          'founder_main', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?
+        )
+      `).run(
+        merged.name, merged.designation, merged.subtitle, merged.companyName,
+        merged.shortBio, JSON.stringify(merged.bioParagraphs), merged.missionStatement,
+        merged.quote, merged.quoteAuthor, JSON.stringify(merged.expertiseTags),
+        merged.linkedinUrl, merged.storyUrl, merged.photoUrl || null,
+        merged.photoAssetId || null, merged.photoAspectRatio || '1:1',
+        JSON.stringify(merged), now, now, now
+      );
+    } else {
+      sqlite.prepare('UPDATE founder_profile SET draft_data = ?, updated_at = ? WHERE id = ?')
+        .run(JSON.stringify(merged), now, 'founder_main');
+    }
+
+    return merged;
+  },
+
+  publishFounderProfile(): FounderProfile {
+    const { draft } = this.getAdminFounderProfile();
+    const now = new Date().toISOString();
+
+    sqlite.prepare(`
+      INSERT INTO founder_profile (
+        id, name, designation, subtitle, company_name, short_bio, bio_paragraphs,
+        mission_statement, quote, quote_author, expertise_tags, linkedin_url,
+        story_url, photo_url, photo_asset_id, photo_aspect_ratio, is_published,
+        draft_data, created_at, updated_at, published_at
+      ) VALUES (
+        'founder_main', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NULL, ?, ?, ?
+      )
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        designation = excluded.designation,
+        subtitle = excluded.subtitle,
+        company_name = excluded.company_name,
+        short_bio = excluded.short_bio,
+        bio_paragraphs = excluded.bio_paragraphs,
+        mission_statement = excluded.mission_statement,
+        quote = excluded.quote,
+        quote_author = excluded.quote_author,
+        expertise_tags = excluded.expertise_tags,
+        linkedin_url = excluded.linkedin_url,
+        story_url = excluded.story_url,
+        photo_url = excluded.photo_url,
+        photo_asset_id = excluded.photo_asset_id,
+        photo_aspect_ratio = excluded.photo_aspect_ratio,
+        is_published = 1,
+        draft_data = NULL,
+        updated_at = excluded.updated_at,
+        published_at = excluded.published_at
+    `).run(
+      draft.name, draft.designation, draft.subtitle, draft.companyName,
+      draft.shortBio, JSON.stringify(draft.bioParagraphs), draft.missionStatement,
+      draft.quote, draft.quoteAuthor, JSON.stringify(draft.expertiseTags),
+      draft.linkedinUrl, draft.storyUrl, draft.photoUrl || null,
+      draft.photoAssetId || null, draft.photoAspectRatio || '1:1',
+      now, now, now
+    );
+
+    return { ...draft, isPublished: true, publishedAt: now, updatedAt: now };
+  },
+
+  revertFounderProfileDraft(): FounderProfile {
+    const now = new Date().toISOString();
+    sqlite.prepare('UPDATE founder_profile SET draft_data = NULL, updated_at = ? WHERE id = ?')
+      .run(now, 'founder_main');
+    return this.getPublishedFounderProfile();
+  },
+
+  saveFounderImageAsset(
+    filenameOrOpts: string | { filename?: string; fileName?: string; mimeType: string; fileSize?: number; sizeBytes?: number; dataBase64: string },
+    maybeMime?: string,
+    maybeSize?: number,
+    maybeData?: string
+  ): string {
+    let filename = 'founder_photo.png';
+    let mimeType = 'image/png';
+    let fileSize = 0;
+    let dataBase64 = '';
+
+    if (typeof filenameOrOpts === 'object' && filenameOrOpts !== null) {
+      filename = filenameOrOpts.filename || filenameOrOpts.fileName || 'founder_photo.png';
+      mimeType = filenameOrOpts.mimeType || 'image/png';
+      fileSize = filenameOrOpts.fileSize || filenameOrOpts.sizeBytes || 0;
+      dataBase64 = filenameOrOpts.dataBase64 || '';
+    } else {
+      filename = filenameOrOpts;
+      mimeType = maybeMime || 'image/png';
+      fileSize = maybeSize || 0;
+      dataBase64 = maybeData || '';
+    }
+
+    const id = 'asset_' + crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+    const now = new Date().toISOString();
+    sqlite.prepare(`
+      INSERT INTO founder_image_assets (id, filename, mime_type, file_size, data_base64, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(id, filename, mimeType, fileSize, dataBase64, now);
+    return id;
+  },
+
+  getFounderImageAsset(id: string): { filename: string; mime_type: string; file_size: number; data_base64: string } | null {
+    try {
+      const row = sqlite.prepare('SELECT filename, mime_type, file_size, data_base64 FROM founder_image_assets WHERE id = ?').get(id) as any;
+      if (!row) return null;
+      return row;
+    } catch {
+      return null;
+    }
+  },
+
+  removeFounderPhoto(): void {
+    const { draft } = this.getAdminFounderProfile();
+    this.updateFounderProfileDraft({ ...draft, photoUrl: null, photoAssetId: null });
+  },
+
   cacheInitialVacanciesIfEmpty(vacancies?: JobVacancy[]) {
     if (vacancies && vacancies.length > 0) {
       authAndStore.saveVacancies(vacancies);

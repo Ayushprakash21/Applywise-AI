@@ -28,6 +28,7 @@ import { api, AuthUser } from '../services/api.ts';
 import { AuditLogEntry } from '../types/index.ts';
 import { BrandLogo } from './BrandLogo.tsx';
 import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
+import { AdminFounderProfile } from './AdminFounderProfile.tsx';
 
 interface AdminConsoleProps {
   currentUser: AuthUser;
@@ -35,7 +36,7 @@ interface AdminConsoleProps {
   onLogout: () => void;
 }
 
-type AdminTab = 'overview' | 'users' | 'sources' | 'audit' | 'system';
+type AdminTab = 'overview' | 'users' | 'sources' | 'audit' | 'system' | 'founder';
 
 export const AdminConsole: React.FC<AdminConsoleProps> = ({
   currentUser,
@@ -200,7 +201,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
           </div>
 
           <div className="flex items-center space-x-3">
-            <button
+                        <button
               onClick={onNavigateHome}
               className="h-8 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700/80 shadow-xs flex items-center space-x-1.5 transition"
             >
@@ -296,6 +297,18 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             >
               <Database className="h-3.5 w-3.5 text-emerald-400" />
               <span>System Health & Edge</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('founder')}
+              className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
+                activeTab === 'founder'
+                  ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+              }`}
+            >
+              <Sparkles className="h-3.5 w-3.5 text-pink-400" />
+              <span>Founder Profile</span>
             </button>
           </div>
         </div>
@@ -861,6 +874,11 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               </div>
             </div>
           </div>
+        )}
+
+        {/* TAB 6: FOUNDER PROFILE MANAGEMENT */}
+        {activeTab === 'founder' && (
+          <AdminFounderProfile onNotify={showNotification} />
         )}
       </main>
     </div>

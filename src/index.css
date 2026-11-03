@@ -288,3 +288,333 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+
+/* ==========================================================================
+   APPLYVISE AI — GLOBAL BLACK THEME SYSTEM
+   Ultra-Luxury Obsidian Black & Royal Champagne Gold Architecture
+   ========================================================================== */
+
+:root[data-theme="black"],
+body.theme-black,
+.theme-black {
+  --bg-primary: #08090D;
+  --bg-secondary: #101116;
+  --bg-card: #15171E;
+  --bg-elevated: #1C1E26;
+  --gold-primary: #D6B46A;
+  --gold-royal: #E5C477;
+  --gold-champagne: #F3DEAC;
+  --gold-muted: #A88B4F;
+  --text-primary: #F7F4EC;
+  --text-secondary: #B9B4A8;
+  --border-gold: rgba(214, 180, 106, 0.22);
+  --border-gold-strong: rgba(214, 180, 106, 0.45);
+  --gold-glow: 0 0 25px rgba(214, 180, 106, 0.18);
+  
+  background-color: #08090D !important;
+  color: #F7F4EC !important;
+}
+
+/* 1. Base Document & Canvas Overrides */
+.theme-black,
+.theme-black body,
+body.theme-black {
+  background-color: #08090D !important;
+  color: #F7F4EC !important;
+}
+
+.theme-black ::selection {
+  background: rgba(214, 180, 106, 0.35) !important;
+  color: #F3DEAC !important;
+}
+
+/* Scrollbars */
+.theme-black ::-webkit-scrollbar-track {
+  background: #08090D !important;
+}
+.theme-black ::-webkit-scrollbar-thumb {
+  background: #A88B4F !important;
+  border-radius: 9999px;
+}
+.theme-black ::-webkit-scrollbar-thumb:hover {
+  background: #D6B46A !important;
+}
+
+/* 2. Layout, Shell, Header, Sidebar & Bottom Navigation */
+.theme-black .min-h-screen,
+.theme-black [class*="bg-[#E9EEF6]"],
+.theme-black [class*="bg-[#E9EDF3]"],
+.theme-black [class*="bg-[#EEF2F7]"],
+.theme-black .neu-bg {
+  background-color: #08090D !important;
+  color: #F7F4EC !important;
+}
+
+.theme-black header {
+  background: rgba(16, 17, 22, 0.88) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(214, 180, 106, 0.22) !important;
+}
+
+.theme-black aside {
+  background: rgba(16, 17, 22, 0.94) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-right: 1px solid rgba(214, 180, 106, 0.22) !important;
+}
+
+.theme-black nav[aria-label="Mobile Navigation"] {
+  background: rgba(16, 17, 22, 0.94) !important;
+  backdrop-filter: blur(20px) !important;
+  border-top: 1px solid rgba(214, 180, 106, 0.22) !important;
+}
+
+/* Navigation items in sidebar & mobile */
+.theme-black aside button:not([class*="rounded-full"]),
+.theme-black nav button {
+  color: #B9B4A8 !important;
+}
+.theme-black aside button:hover,
+.theme-black nav button:hover {
+  color: #F7F4EC !important;
+  background-color: rgba(28, 30, 38, 0.6) !important;
+}
+
+/* Active navigation item with gold highlight */
+.theme-black aside button[class*="border-violet-400"],
+.theme-black aside button[class*="text-blue-700"],
+.theme-black nav button[class*="font-bold"] {
+  background: linear-gradient(90deg, rgba(214, 180, 106, 0.16), rgba(214, 180, 106, 0.04)) !important;
+  border: 1px solid rgba(214, 180, 106, 0.35) !important;
+  color: #F3DEAC !important;
+}
+.theme-black aside button [class*="bg-gradient-to-b from-blue-600"] {
+  background: linear-gradient(to bottom, #E5C477, #D6B46A) !important;
+  box-shadow: 0 0 10px rgba(214, 180, 106, 0.4) !important;
+}
+.theme-black aside button [class*="text-[#8065F5]"] {
+  color: #D6B46A !important;
+}
+.theme-black nav button[class*="text-[#8065F5]"] {
+  color: #D6B46A !important;
+}
+
+/* 3. Cards, Containers, and Glass Surfaces */
+.theme-black .bg-white,
+.theme-black .bg-white\/50,
+.theme-black .bg-white\/55,
+.theme-black .bg-white\/60,
+.theme-black .bg-white\/65,
+.theme-black .bg-white\/70,
+.theme-black .bg-white\/75,
+.theme-black .bg-white\/80,
+.theme-black .bg-white\/85,
+.theme-black .bg-white\/90,
+.theme-black .bg-white\/95,
+.theme-black .glass-card,
+.theme-black .glass-panel,
+.theme-black .neu-card,
+.theme-black .neu-surface,
+.theme-black .neu-raised,
+.theme-black .neu-panel,
+.theme-black .neu-glass {
+  background-color: #15171E !important;
+  border-color: rgba(214, 180, 106, 0.22) !important;
+  color: #F7F4EC !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Hover elevation */
+.theme-black .glass-card-hover:hover,
+.theme-black .neu-raised-hover:hover {
+  border-color: rgba(214, 180, 106, 0.45) !important;
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(214, 180, 106, 0.15) !important;
+}
+
+/* Elevated secondary surfaces */
+.theme-black .bg-slate-50,
+.theme-black .bg-slate-100,
+.theme-black .bg-slate-200,
+.theme-black .bg-slate-50\/60,
+.theme-black .bg-slate-100\/80,
+.theme-black .bg-gray-50,
+.theme-black .bg-gray-100,
+.theme-black .bg-indigo-50,
+.theme-black .bg-blue-50,
+.theme-black .bg-violet-50 {
+  background-color: #1C1E26 !important;
+  border-color: rgba(214, 180, 106, 0.22) !important;
+  color: #F7F4EC !important;
+}
+
+/* 4. Typography Mapping */
+.theme-black h1,
+.theme-black h2,
+.theme-black h3,
+.theme-black h4,
+.theme-black h5,
+.theme-black h6,
+.theme-black .text-slate-900,
+.theme-black .text-slate-800,
+.theme-black .text-slate-700,
+.theme-black .text-gray-900,
+.theme-black .text-gray-800 {
+  color: #F7F4EC !important;
+}
+
+.theme-black p,
+.theme-black span:not([class*="bg-"]),
+.theme-black .text-slate-600,
+.theme-black .text-slate-500,
+.theme-black .text-slate-400,
+.theme-black .text-gray-600,
+.theme-black .text-gray-500 {
+  color: #B9B4A8 !important;
+}
+
+/* Accent texts */
+.theme-black .text-blue-600,
+.theme-black .text-blue-700,
+.theme-black .text-\[\#8065F5\],
+.theme-black .text-violet-600,
+.theme-black .text-violet-700,
+.theme-black .text-indigo-600 {
+  color: #E5C477 !important;
+}
+
+/* 5. Buttons & Interactive Controls */
+.theme-black .neu-button-primary,
+.theme-black button[class*="bg-blue-600"],
+.theme-black button[class*="bg-[#8065F5]"],
+.theme-black button[class*="from-blue-600"] {
+  background: linear-gradient(135deg, #E5C477 0%, #D6B46A 50%, #A88B4F 100%) !important;
+  color: #08090D !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(243, 222, 172, 0.6) !important;
+  box-shadow: 0 4px 15px rgba(214, 180, 106, 0.25) !important;
+}
+.theme-black button[class*="bg-blue-600"]:hover,
+.theme-black button[class*="bg-[#8065F5]"]:hover {
+  background: linear-gradient(135deg, #F3DEAC 0%, #E5C477 50%, #D6B46A 100%) !important;
+  box-shadow: 0 6px 20px rgba(214, 180, 106, 0.35) !important;
+}
+
+/* Secondary / Ghost buttons */
+.theme-black .neu-button,
+.theme-black button[class*="border-slate-200"],
+.theme-black button[class*="border-slate-300"] {
+  background-color: #1C1E26 !important;
+  border-color: rgba(214, 180, 106, 0.3) !important;
+  color: #F3DEAC !important;
+}
+.theme-black button[class*="border-slate-200"]:hover,
+.theme-black button[class*="border-slate-300"]:hover {
+  background-color: #242732 !important;
+  border-color: #D6B46A !important;
+  color: #F7F4EC !important;
+}
+
+/* 6. Inputs, Selects & Forms */
+.theme-black input,
+.theme-black textarea,
+.theme-black select,
+.theme-black .neu-input,
+.theme-black .glass-input {
+  background-color: #101116 !important;
+  border: 1px solid rgba(214, 180, 106, 0.3) !important;
+  color: #F7F4EC !important;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5) !important;
+}
+.theme-black input:focus,
+.theme-black textarea:focus,
+.theme-black select:focus,
+.theme-black .neu-input:focus,
+.theme-black .glass-input:focus {
+  border-color: #D6B46A !important;
+  box-shadow: 0 0 0 3px rgba(214, 180, 106, 0.25), inset 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+  outline: none !important;
+}
+.theme-black input::placeholder,
+.theme-black textarea::placeholder {
+  color: #8A8578 !important;
+}
+
+/* 7. Modals, Drawers & Dropdowns */
+.theme-black .fixed.inset-0.bg-slate-900\/40,
+.theme-black .fixed.inset-0.bg-black\/50,
+.theme-black [class*="backdrop-blur-sm"] {
+  background-color: rgba(8, 9, 13, 0.82) !important;
+}
+
+.theme-black [role="dialog"],
+.theme-black [class*="rounded-3xl bg-white"],
+.theme-black [class*="rounded-2xl bg-white"],
+.theme-black [class*="rounded-xl bg-white"] {
+  background-color: #15171E !important;
+  border-color: rgba(214, 180, 106, 0.3) !important;
+  color: #F7F4EC !important;
+}
+
+/* Dropdown menus (user menu, notifications dropdown) */
+.theme-black div[ref="userMenuRef"] div,
+.theme-black div[ref="notifRef"] div {
+  background-color: #15171E !important;
+  border-color: rgba(214, 180, 106, 0.3) !important;
+  color: #F7F4EC !important;
+}
+
+/* 8. Tables, Borders, Dividers & Tooltips */
+.theme-black table {
+  border-color: rgba(214, 180, 106, 0.2) !important;
+}
+.theme-black th {
+  background-color: #101116 !important;
+  color: #D6B46A !important;
+  border-bottom: 1px solid rgba(214, 180, 106, 0.22) !important;
+}
+.theme-black td {
+  border-bottom: 1px solid rgba(214, 180, 106, 0.15) !important;
+  color: #F7F4EC !important;
+}
+.theme-black tr:hover td {
+  background-color: #1C1E26 !important;
+}
+.theme-black .border-slate-100,
+.theme-black .border-slate-200,
+.theme-black .border-slate-300,
+.theme-black .divide-slate-100,
+.theme-black .divide-slate-200 {
+  border-color: rgba(214, 180, 106, 0.18) !important;
+}
+
+/* 9. Badges, Chips & Progress Bars */
+.theme-black .neu-chip {
+  background: #1C1E26 !important;
+  color: #F3DEAC !important;
+  border: 1px solid rgba(214, 180, 106, 0.25) !important;
+}
+.theme-black .neu-chip.active,
+.theme-black .neu-chip:hover {
+  background: linear-gradient(135deg, rgba(214, 180, 106, 0.25), rgba(214, 180, 106, 0.1)) !important;
+  border-color: #D6B46A !important;
+  color: #F7F4EC !important;
+}
+
+/* Progress bar tracks & fills */
+.theme-black [class*="bg-slate-200"],
+.theme-black [class*="bg-slate-100"] {
+  background-color: #1C1E26 !important;
+}
+.theme-black [class*="bg-blue-600"][style*="width"],
+.theme-black [class*="bg-emerald-500"][style*="width"] {
+  background: linear-gradient(90deg, #D6B46A, #E5C477) !important;
+  box-shadow: 0 0 10px rgba(214, 180, 106, 0.4) !important;
+}
+
+/* 10. Ambient Background Glows */
+.theme-black .blur-\[140px\],
+.theme-black .blur-\[130px\] {
+  background: radial-gradient(circle, rgba(214, 180, 106, 0.08) 0%, transparent 70%) !important;
+}
