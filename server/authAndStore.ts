@@ -265,7 +265,7 @@ export const authAndStore = {
     authAndStore.saveSettings(id, defaultSettings);
 
     authAndStore.addAuditLog(id, 'User Signup', 'ACCOUNT_CREATED', cleanEmail, 'New user registered successfully');
-    authAndStore.addNotification(id, 'Welcome to ApplyWise AI', 'Your account is ready. Upload your resume to start personalized job discovery!', 'system');
+    authAndStore.addNotification(id, 'Welcome to ApplyVise AI', 'Your account is ready. Upload your resume to start personalized job discovery!', 'system');
 
     return {
       id,
@@ -344,6 +344,80 @@ export const authAndStore = {
   logoutSession(token: string): void {
     if (!token) return;
     sqlite.prepare('DELETE FROM user_sessions WHERE token = ?').run(token);
+  },
+
+  getUserByEmail(email: string): AuthUser | null {
+    if (!email) return null;
+    const stmt = sqlite.prepare('SELECT id, email, full_name, role, is_verified, created_at FROM users WHERE email = ?');
+    const row = stmt.get(email.toLowerCase().trim()) as { id: string; email: string; full_name: string; role: string; is_verified: number; created_at: string } | undefined;
+    if (!row) return null;
+    return {
+      id: row.id,
+      email: row.email,
+      fullName: row.full_name,
+      role: row.role,
+      isVerified: !!row.is_verified,
+      createdAt: row.created_at,
+    };
+  },
+
+  loginWithGoogle(email: string, fullName: string, sub: string): { user: AuthUser; token: string } {
+    const cleanEmail = email.toLowerCase().trim();
+    let existing = this.getUserByEmail(cleanEmail);
+    if (!existing) {
+      const id = crypto.randomUUID();
+      const generatedPass = `google_oauth_${sub}_${crypto.randomUUID()}`;
+      const passwordHash = bcrypt.hashSync(generatedPass, 10);
+      const now = new Date().toISOString();
+      sqlite.prepare(`
+        INSERT INTO users (id, email, password_hash, full_name, role, is_verified, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'user', 1, ?, ?)
+      `).run(id, cleanEmail, passwordHash, fullName || cleanEmail.split('@')[0], now, now);
+
+      existing = {
+        id,
+        email: cleanEmail,
+        fullName: fullName || cleanEmail.split('@')[0],
+        role: 'user',
+        isVerified: true,
+        createdAt: now,
+      };
+
+      authAndStore.saveProfile(id, {
+        id: crypto.randomUUID(),
+        fullName: existing.fullName,
+        email: cleanEmail,
+        phone: '',
+        location: '',
+        workAuthorizationCountry: '',
+        workAuthorizationStatus: '',
+        workAuthorization: [],
+        requiresVisaSponsorship: false,
+        currentTitle: '',
+        currentEmployer: '',
+        totalExperienceYears: 0,
+        professionalSummary: '',
+        education: [],
+        certifications: [],
+        skills: [],
+        experiences: [],
+        languages: [],
+        masterResumeLastUpdated: '',
+      });
+      authAndStore.addAuditLog(id, 'User Signup', 'ACCOUNT_CREATED_GOOGLE', cleanEmail, 'User registered via Google OAuth');
+      authAndStore.addNotification(id, 'Welcome to ApplyVise AI', 'Your Google account is connected. Upload your resume to begin!', 'system');
+    }
+
+    const token = crypto.randomUUID() + '-' + crypto.randomUUID();
+    const sessionId = crypto.randomUUID();
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    sqlite.prepare(`
+      INSERT INTO user_sessions (id, user_id, token, expires_at, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(sessionId, existing.id, token, expiresAt, now.toISOString());
+
+    return { user: existing, token };
   },
 
   // --- PER-USER PROFILE ---

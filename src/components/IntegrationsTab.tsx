@@ -98,7 +98,7 @@ export const IntegrationsTab: React.FC<IntegrationsTabProps> = ({
           <span>Terms of Service, Robots.txt & API Rate Policy</span>
         </div>
         <p className="leading-relaxed">
-          ApplyWise AI strictly respects official employer API limits, robots.txt exclusions, and webmaster terms of service. The platform never bypasses access barriers, solves non-permitted CAPTCHAs, or transmits unsolicited duplicate applications.
+          ApplyVise AI strictly respects official employer API limits, robots.txt exclusions, and webmaster terms of service. The platform never bypasses access barriers, solves non-permitted CAPTCHAs, or transmits unsolicited duplicate applications.
         </p>
       </div>
     </div>

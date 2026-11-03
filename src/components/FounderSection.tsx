@@ -85,7 +85,7 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
                   Ayush Prakash
                 </h3>
                 <p className="text-xs font-semibold text-cyan-400 mt-1">
-                  Founder & Product Architect, ApplyWise AI
+                  Founder & Product Architect, ApplyVise AI
                 </p>
                 <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   MBA (Marketing & IT) • Project Management • AI Enthusiast
@@ -130,7 +130,7 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
                   With a background spanning project management, business operations, supply chain, and an MBA in Marketing and IT, he brings together business thinking, operational rigor, and a passion for building AI-powered digital products that respect user authenticity.
                 </p>
                 <p>
-                  ApplyWise AI reflects his vision of making job searching more organized, intelligent, and grounded in reality. His mission is to build software that eliminates repetitive application toil while guaranteeing zero fabrication of work history, employers, or qualifications.
+                  ApplyVise AI reflects his vision of making job searching more organized, intelligent, and grounded in reality. His mission is to build software that eliminates repetitive application toil while guaranteeing zero fabrication of work history, employers, or qualifications.
                 </p>
               </div>
 
@@ -144,7 +144,7 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
                 <p className={`text-xs sm:text-sm italic leading-relaxed ${
                   isDark ? 'text-slate-200' : 'text-slate-700'
                 }`}>
-                  "ApplyWise AI started with a simple conviction: job searching should be more organized, less repetitive, and better supported by technology. Candidates should never have to compromise between ATS optimization and the truth. By bringing verified AI capabilities into one unified platform, we enable applicants to approach their career journey with clarity, confidence, and integrity."
+                  "ApplyVise AI started with a simple conviction: job searching should be more organized, less repetitive, and better supported by technology. Candidates should never have to compromise between ATS optimization and the truth. By bringing verified AI capabilities into one unified platform, we enable applicants to approach their career journey with clarity, confidence, and integrity."
                 </p>
                 <div className="mt-3 text-right">
                   <span className={`text-xs font-semibold ${isDark ? 'text-cyan-400' : 'text-slate-900'}`}>

@@ -290,7 +290,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                 <p className="mt-1 leading-relaxed">{errorMsg}</p>
                 {errorType === 'scanned' && (
                   <p className="mt-2 text-rose-700 font-medium">
-                    ApplyWise AI requires a standard text-based PDF or Microsoft Word (.docx) file to verify your actual employment history without hallucination. Please re-export your resume from Word/Google Docs or upload a DOCX file.
+                    ApplyVise AI requires a standard text-based PDF or Microsoft Word (.docx) file to verify your actual employment history without hallucination. Please re-export your resume from Word/Google Docs or upload a DOCX file.
                   </p>
                 )}
               </div>
@@ -374,7 +374,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                   <span>Privacy & Extraction Guarantee</span>
                 </div>
                 <p className="leading-relaxed">
-                  Your resume document is processed strictly for profile extraction and verified ATS matching. ApplyWise AI guarantees zero fabrication of work history, employers, dates, or credentials.
+                  Your resume document is processed strictly for profile extraction and verified ATS matching. ApplyVise AI guarantees zero fabrication of work history, employers, dates, or credentials.
                 </p>
               </div>
 

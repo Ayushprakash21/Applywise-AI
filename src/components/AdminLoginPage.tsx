@@ -122,7 +122,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="admin@applywise.ai"
+                  placeholder="admin@applyvise.ai"
                   required
                   autoComplete="email"
                   className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)]"
@@ -182,7 +182,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
 
       {/* Footer */}
       <footer className="w-full max-w-6xl mx-auto px-4 py-6 text-center text-xs text-slate-400">
-        ApplyWise AI Internal Control Plane · Cloudflare Edge Runtime · All sessions recorded to security audit log
+        ApplyVise AI Internal Control Plane · Cloudflare Edge Runtime · All sessions recorded to security audit log
       </footer>
     </div>
   );

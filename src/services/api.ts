@@ -83,7 +83,7 @@ export interface AuthUser {
 }
 
 function getAuthHeader(): Record<string, string> {
-  const token = localStorage.getItem('applywise_token');
+  const token = localStorage.getItem('applyvise_token') || localStorage.getItem('applywise_token');
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
@@ -168,7 +168,9 @@ export const api = {
     try {
       await fetchJson<{ success: boolean }>('/api/auth/logout', { method: 'POST' });
     } finally {
+      localStorage.removeItem('applyvise_token');
       localStorage.removeItem('applywise_token');
+      localStorage.removeItem('applyvise_user');
       localStorage.removeItem('applywise_user');
     }
   },
@@ -456,7 +458,7 @@ export const api = {
       formData.append('replace', 'true');
     }
 
-    const token = localStorage.getItem('applywise_token');
+    const token = localStorage.getItem('applyvise_token') || localStorage.getItem('applywise_token');
     const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
     const res = await fetch('/api/resumes/upload', {
@@ -492,7 +494,7 @@ export const api = {
     }),
 
   downloadDocxResume: async (applicationId: string, companyName: string) => {
-    const token = localStorage.getItem('applywise_token');
+    const token = localStorage.getItem('applyvise_token') || localStorage.getItem('applywise_token');
     const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
     const res = await fetch(`/api/resumes/${applicationId}/export/docx`, {

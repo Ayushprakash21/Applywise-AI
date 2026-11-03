@@ -38,7 +38,7 @@ export interface FlowSignupProps {
 
 export const FlowSignup: React.FC<FlowSignupProps> = ({
   title = 'Create your account',
-  subtitle = 'Join ApplyWise AI for truthful job discovery and tailored applications.',
+  subtitle = 'Join ApplyVise AI for truthful job discovery and tailored applications.',
   initialExpanded = true,
   showSocial = true,
   showTerms = true,
@@ -90,7 +90,9 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
 
       try {
         const res = await api.loginWithGoogle(response.credential);
+        localStorage.setItem('applyvise_token', res.token);
         localStorage.setItem('applywise_token', res.token);
+        localStorage.setItem('applyvise_user', JSON.stringify(res.user));
         localStorage.setItem('applywise_user', JSON.stringify(res.user));
         setSuccessMsg('Google registration verified! Redirecting to your dashboard...');
         setTimeout(() => {
@@ -199,7 +201,9 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
         confirmPassword,
       });
 
+      localStorage.setItem('applyvise_token', res.token);
       localStorage.setItem('applywise_token', res.token);
+      localStorage.setItem('applyvise_user', JSON.stringify(res.user));
       localStorage.setItem('applywise_user', JSON.stringify(res.user));
       setSuccessMsg('Account created successfully! Preparing your workspace...');
 
@@ -481,8 +485,8 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || (showTerms && !terms) || (confirmPassword.length > 0 && password !== confirmPassword)}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-button-primary text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-button-primary text-xs font-semibold disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -511,37 +515,36 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
                     <div
                       ref={googleBtnRef}
                       className="w-full flex justify-center items-center min-h-[44px]"
-                      style={{ display: googleButtonRendered ? 'flex' : 'none' }}
-                    />
-
-                    {!googleButtonRendered && (
-                      <div className="w-full max-w-[320px]">
-                        {!authConfig?.googleAuthEnabled ? (
-                          <button
-                            type="button"
-                            onClick={handleGoogleClick}
-                            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-button text-xs font-medium text-slate-700 opacity-60"
-                          >
-                            <GoogleIcon size={16} />
-                            <span>Google Sign-Up (Unconfigured)</span>
-                          </button>
-                        ) : googleInitError ? (
-                          <button
-                            type="button"
-                            onClick={handleGoogleClick}
-                            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-button text-xs font-medium text-slate-700 hover:text-blue-600"
-                          >
-                            <GoogleIcon size={16} />
-                            <span>Retry Loading Google Sign-Up</span>
-                          </button>
-                        ) : (
-                          <div className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-inset text-xs font-medium text-slate-500">
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
-                            <span>Initializing Google Sign-Up...</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    >
+                      {!googleButtonRendered && (
+                        <div className="w-full max-w-[320px]">
+                          {!authConfig?.googleAuthEnabled ? (
+                            <button
+                              type="button"
+                              onClick={handleGoogleClick}
+                              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-button text-xs font-medium text-slate-700 opacity-60"
+                            >
+                              <GoogleIcon size={16} />
+                              <span>Google Sign-Up (Unconfigured)</span>
+                            </button>
+                          ) : googleInitError ? (
+                            <button
+                              type="button"
+                              onClick={handleGoogleClick}
+                              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-button text-xs font-medium text-slate-700 hover:text-blue-600"
+                            >
+                              <GoogleIcon size={16} />
+                              <span>Retry Loading Google Sign-Up</span>
+                            </button>
+                          ) : (
+                            <div className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-inset text-xs font-medium text-slate-500">
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
+                              <span>Initializing Google Sign-Up...</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Apple Button (shown only when configured) */}

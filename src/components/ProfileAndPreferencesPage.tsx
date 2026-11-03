@@ -170,7 +170,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
             </span>
           </div>
           <p className="text-xs text-slate-600 mt-0.5">
-            This verified record is the factual foundation for all tailored applications. ApplyWise AI never fabricates details outside this profile.
+            This verified record is the factual foundation for all tailored applications. ApplyVise AI never fabricates details outside this profile.
           </p>
         </div>
 

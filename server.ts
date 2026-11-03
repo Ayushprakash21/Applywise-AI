@@ -58,8 +58,8 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
     token = authHeader.substring(7).trim();
-  } else if (req.cookies && req.cookies.applywise_token) {
-    token = req.cookies.applywise_token;
+  } else if (req.cookies && (req.cookies.applyvise_token || req.cookies.applywise_token)) {
+    token = req.cookies.applyvise_token || req.cookies.applywise_token;
   }
 
   if (!token) {
@@ -82,8 +82,8 @@ export function optionalAuth(req: AuthenticatedRequest, res: Response, next: Nex
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
     token = authHeader.substring(7).trim();
-  } else if (req.cookies && req.cookies.applywise_token) {
-    token = req.cookies.applywise_token;
+  } else if (req.cookies && (req.cookies.applyvise_token || req.cookies.applywise_token)) {
+    token = req.cookies.applyvise_token || req.cookies.applywise_token;
   }
 
   if (token) {
@@ -138,18 +138,20 @@ app.post('/api/auth/signup', rateLimit(10, 60000), (req: Request, res: Response)
     const newUser = authAndStore.createUser(fullName, email, password);
     const loginResult = authAndStore.verifyLogin(email, password);
 
-    res.cookie('applywise_token', loginResult.token, {
+    const cookieOpts = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'lax' as const,
       maxAge: 14 * 24 * 60 * 60 * 1000,
-    });
+    };
+    res.cookie('applyvise_token', loginResult.token, cookieOpts);
+    res.cookie('applywise_token', loginResult.token, cookieOpts);
 
     res.json({
       success: true,
       user: loginResult.user,
       token: loginResult.token,
-      message: 'Account created successfully! Welcome to ApplyWise AI.',
+      message: 'Account created successfully! Welcome to ApplyVise AI.',
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -166,12 +168,14 @@ app.post('/api/auth/login', rateLimit(15, 60000), (req: Request, res: Response) 
 
     const result = authAndStore.verifyLogin(email, password);
 
-    res.cookie('applywise_token', result.token, {
+    const cookieOpts = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'lax' as const,
       maxAge: 14 * 24 * 60 * 60 * 1000,
-    });
+    };
+    res.cookie('applyvise_token', result.token, cookieOpts);
+    res.cookie('applywise_token', result.token, cookieOpts);
 
     res.json({
       success: true,
@@ -188,12 +192,13 @@ app.post('/api/auth/logout', (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
   const token = (authHeader && authHeader.startsWith('Bearer '))
     ? authHeader.substring(7).trim()
-    : req.cookies?.applywise_token;
+    : (req.cookies?.applyvise_token || req.cookies?.applywise_token);
 
   if (token) {
     authAndStore.logoutSession(token);
   }
 
+  res.clearCookie('applyvise_token');
   res.clearCookie('applywise_token');
   res.json({ success: true, message: 'Logged out successfully.' });
 });
@@ -212,6 +217,89 @@ app.post('/api/auth/recover-password', rateLimit(5, 60000), (req: Request, res: 
     success: true,
     message: 'If an account exists with this email, password reset instructions have been sent.',
   });
+});
+
+app.get('/api/auth/config', (_req: Request, res: Response) => {
+  const googleClientId = process.env.GOOGLE_CLIENT_ID || null;
+  res.json({
+    googleClientId,
+    googleAuthEnabled: Boolean(googleClientId),
+  });
+});
+
+app.post('/api/auth/google', async (req: Request, res: Response) => {
+  try {
+    const { credential } = req.body;
+    if (!credential || typeof credential !== 'string') {
+      return res.status(400).json({ success: false, error: 'Google credential token is required.' });
+    }
+
+    const verifyResp = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!verifyResp.ok) {
+      return res.status(401).json({ success: false, error: 'Invalid or expired Google authentication token.' });
+    }
+
+    const payload = await verifyResp.json() as {
+      iss?: string;
+      sub?: string;
+      email?: string;
+      email_verified?: boolean | string;
+      name?: string;
+      aud?: string;
+      exp?: number;
+    };
+
+    const validIssuers = ['accounts.google.com', 'https://accounts.google.com'];
+    if (!payload.iss || !validIssuers.includes(payload.iss)) {
+      return res.status(401).json({ success: false, error: 'Untrusted Google token issuer.' });
+    }
+
+    const configuredAud = process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.trim() : null;
+    if (!configuredAud) {
+      return res.status(503).json({ success: false, error: 'Google authentication is not configured on this server.' });
+    }
+    if (payload.aud?.trim() !== configuredAud) {
+      return res.status(401).json({ success: false, error: 'Google authentication audience mismatch.' });
+    }
+
+    const isVerified = payload.email_verified === true || payload.email_verified === 'true';
+    if (!isVerified) {
+      return res.status(401).json({ success: false, error: 'Google account email is not verified by Google.' });
+    }
+
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      return res.status(401).json({ success: false, error: 'Google authentication token has expired.' });
+    }
+
+    if (!payload.email) {
+      return res.status(400).json({ success: false, error: 'Google account has no associated email address.' });
+    }
+
+    const authResult = authAndStore.loginWithGoogle(payload.email, payload.name || payload.email.split('@')[0], payload.sub || 'unknown');
+
+    const cookieOpts = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      maxAge: 14 * 24 * 60 * 60 * 1000,
+      path: '/',
+    };
+    res.cookie('applyvise_token', authResult.token, cookieOpts);
+    res.cookie('applywise_token', authResult.token, cookieOpts);
+
+    res.json({
+      success: true,
+      user: authResult.user,
+      token: authResult.token,
+      message: 'Signed in with Google successfully.',
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(400).json({ success: false, error: `Google authentication failed: ${msg}` });
+  }
 });
 
 // ============================================================================
@@ -724,7 +812,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[ApplyWise AI] Server running on http://0.0.0.0:${PORT}`);
+    console.log(`[ApplyVise AI] Server running on http://0.0.0.0:${PORT}`);
   });
 }
 

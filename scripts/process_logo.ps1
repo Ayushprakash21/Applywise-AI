@@ -57,8 +57,9 @@ for ($i = 0; $i -lt $bytes; $i += 4) {
 $src.UnlockBits($srcData)
 $outBadge.UnlockBits($dstData)
 
+$outBadge.Save("$PWD/public/branding/applyvise-logo.png", [System.Drawing.Imaging.ImageFormat]::Png)
 $outBadge.Save("$PWD/public/branding/applywise-logo.png", [System.Drawing.Imaging.ImageFormat]::Png)
-Write-Output "Saved public/branding/applywise-logo.png"
+Write-Output "Saved public/branding/applyvise-logo.png and applywise-logo.png"
 
 # 2. Generate resized favicons & app icons
 $sizes = @(16, 32, 64, 180, 192, 512)

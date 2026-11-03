@@ -1,5 +1,5 @@
 // src/components/AdminConsole.tsx
-// Production Administrator Console for ApplyWise AI
+// Production Administrator Console for ApplyVise AI
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -380,7 +380,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                 <span>Administrator Provisioning & Security Architecture</span>
               </div>
               <p className="leading-relaxed text-indigo-800">
-                Administrative privileges in ApplyWise AI are strictly enforced on the server by verifying the authenticated user's session token against the <code className="bg-indigo-100/90 px-1 py-0.5 rounded font-mono">users.role</code> column in Cloudflare D1. Client-supplied roles or emails are never trusted. To provision new administrators from the command line, use <code className="bg-indigo-100/90 px-1 py-0.5 rounded font-mono">npm run admin:promote &lt;email&gt;</code>.
+                Administrative privileges in ApplyVise AI are strictly enforced on the server by verifying the authenticated user's session token against the <code className="bg-indigo-100/90 px-1 py-0.5 rounded font-mono">users.role</code> column in Cloudflare D1. Client-supplied roles or emails are never trusted. To provision new administrators from the command line, use <code className="bg-indigo-100/90 px-1 py-0.5 rounded font-mono">npm run admin:promote &lt;email&gt;</code>.
               </p>
             </div>
           </div>

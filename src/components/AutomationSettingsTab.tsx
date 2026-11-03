@@ -126,7 +126,7 @@ export const AutomationSettingsTab: React.FC<AutomationSettingsTabProps> = ({
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-4">
         <div>
           <h3 className="text-sm font-bold text-white">Operating Mode Selection</h3>
-          <p className="text-xs text-slate-500">Choose the level of assistance granted to ApplyWise AI</p>
+          <p className="text-xs text-slate-500">Choose the level of assistance granted to ApplyVise AI</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -197,7 +197,7 @@ export const AutomationSettingsTab: React.FC<AutomationSettingsTabProps> = ({
             <span>Human Approval Triggers (Safety Guardrails)</span>
           </h3>
           <p className="text-xs text-slate-400 mt-0.5">
-            Even in Guided Mode, ApplyWise AI pauses and mandates human approval if any of these conditions are met:
+            Even in Guided Mode, ApplyVise AI pauses and mandates human approval if any of these conditions are met:
           </p>
         </div>
 

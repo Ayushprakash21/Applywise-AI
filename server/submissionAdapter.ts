@@ -73,7 +73,7 @@ export const submissionAdapter = {
         portalUrl,
         instructions: [
           'Open the employer portal link below.',
-          'Upload your tailored ATS resume (downloaded from ApplyWise AI).',
+          'Upload your tailored ATS resume (downloaded from ApplyVise AI).',
           'Review pre-filled contact details to paste into the form.',
           'Once submitted, paste your application link or confirmation code here to verify.',
         ],

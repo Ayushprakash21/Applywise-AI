@@ -74,6 +74,8 @@ export interface ExperienceItem {
   description: string;
   achievements: string[];
   verifiedSkillsUsed: string[];
+  isDateUncertain?: boolean;
+  dateWarning?: string;
 }
 
 export interface UserProfile {

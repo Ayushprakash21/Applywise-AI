@@ -1,5 +1,5 @@
 // src/config/freeAccess.ts
-// Centralized Hardcoded Free-Access Allowlist & Entitlement Service for ApplyWise AI
+// Centralized Hardcoded Free-Access Allowlist & Entitlement Service for ApplyVise AI
 
 /**
  * The permanent authorized email accounts granted unrestricted Pro entitlements.
@@ -86,7 +86,7 @@ export function getEffectivePlan(
       isPermanentFreeAccess: true,
       aiQuotaMonthly: 1000, // High operational runaway protection ceiling
       maxDailyApplications: 50,
-      description: 'Permanent unrestricted access to all ApplyWise Pro capabilities, AI Copilot, and automation tools.',
+      description: 'Permanent unrestricted access to all ApplyVise Pro capabilities, AI Copilot, and automation tools.',
       canTailorResume: true,
       canDeepAnalyze: true,
       canInterviewPrep: true,
@@ -100,7 +100,7 @@ export function getEffectivePlan(
   if (isProPaid) {
     return {
       planId: 'pro',
-      planName: 'ApplyWise Pro',
+      planName: 'ApplyVise Pro',
       badge: 'PRO',
       status: 'active',
       billingInterval: (currentSubscription?.billingInterval as any) || 'monthly',
@@ -118,7 +118,7 @@ export function getEffectivePlan(
 
   return {
     planId: 'free',
-    planName: 'ApplyWise Free',
+    planName: 'ApplyVise Free',
     badge: 'FREE',
     status: 'active',
     billingInterval: 'monthly',

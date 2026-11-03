@@ -1,5 +1,5 @@
 -- ============================================================================
--- ApplyWise AI — Production PostgreSQL Relational Schema
+-- ApplyVise AI — Production PostgreSQL Relational Schema
 -- Version: 2.0.0
 -- ============================================================================
 

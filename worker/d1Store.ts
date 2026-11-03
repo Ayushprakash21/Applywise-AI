@@ -1,5 +1,5 @@
 // worker/d1Store.ts
-// Cloudflare D1 Relational Store for ApplyWise AI
+// Cloudflare D1 Relational Store for ApplyVise AI
 
 import {
   UserProfile,
@@ -155,7 +155,7 @@ export class D1Store {
     await this.saveSettings(id, defaultSettings);
 
     await this.addAuditLog(id, 'User Signup', 'ACCOUNT_CREATED', cleanEmail, 'New user registered successfully');
-    await this.addNotification(id, 'Welcome to ApplyWise AI', 'Your account is ready. Upload your resume to start personalized job discovery!', 'system');
+    await this.addNotification(id, 'Welcome to ApplyVise AI', 'Your account is ready. Upload your resume to start personalized job discovery!', 'system');
 
     return {
       id,
@@ -548,22 +548,44 @@ export class D1Store {
   }
 
   async getAdminOverviewStats(): Promise<{ totalUsers: number; totalAdmins: number; totalApplications: number; totalResumes: number; totalVacancies: number; activeSubscriptions: number }> {
-    const [uRow, aRow, appRow, resRow, vacRow, subRow] = await Promise.all([
-      this.db.prepare('SELECT COUNT(*) as count FROM users').first<{ count: number }>(),
-      this.db.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").first<{ count: number }>(),
-      this.db.prepare('SELECT COUNT(*) as count FROM applications').first<{ count: number }>(),
-      this.db.prepare('SELECT COUNT(*) as count FROM resume_documents').first<{ count: number }>(),
-      this.db.prepare('SELECT COUNT(*) as count FROM vacancies').first<{ count: number }>(),
-      this.db.prepare("SELECT COUNT(*) as count FROM user_subscriptions WHERE plan_id = 'pro' AND status = 'active'").first<{ count: number }>(),
+    const safeCount = async (query: string): Promise<number> => {
+      try {
+        const row = await this.db.prepare(query).first<{ count: number }>();
+        return row?.count || 0;
+      } catch (err) {
+        console.error(`[AdminStats] Query failed on "${query}":`, err);
+        return 0;
+      }
+    };
+
+    const getVacanciesCount = async (): Promise<number> => {
+      try {
+        const liveRow = await this.db.prepare('SELECT COUNT(*) as count FROM live_jobs_cache').first<{ count: number }>();
+        if (liveRow && liveRow.count > 0) return liveRow.count;
+      } catch {}
+      try {
+        const cachedRow = await this.db.prepare('SELECT COUNT(*) as count FROM cached_vacancies').first<{ count: number }>();
+        return cachedRow?.count || 0;
+      } catch {}
+      return 0;
+    };
+
+    const [totalUsers, totalAdmins, totalApplications, totalResumes, totalVacancies, activeSubscriptions] = await Promise.all([
+      safeCount('SELECT COUNT(*) as count FROM users'),
+      safeCount("SELECT COUNT(*) as count FROM users WHERE role = 'admin'"),
+      safeCount('SELECT COUNT(*) as count FROM applications'),
+      safeCount('SELECT COUNT(*) as count FROM resume_documents'),
+      getVacanciesCount(),
+      safeCount("SELECT COUNT(*) as count FROM user_subscriptions WHERE plan_id = 'pro' AND status = 'active'"),
     ]);
 
     return {
-      totalUsers: uRow?.count || 0,
-      totalAdmins: aRow?.count || 0,
-      totalApplications: appRow?.count || 0,
-      totalResumes: resRow?.count || 0,
-      totalVacancies: vacRow?.count || 0,
-      activeSubscriptions: subRow?.count || 0,
+      totalUsers,
+      totalAdmins,
+      totalApplications,
+      totalResumes,
+      totalVacancies,
+      activeSubscriptions,
     };
   }
 

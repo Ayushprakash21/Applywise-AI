@@ -72,7 +72,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
-            This profile is the verified foundation for all tailored resumes. ApplyWise AI never hallucinates credentials outside this record.
+            This profile is the verified foundation for all tailored resumes. ApplyVise AI never hallucinates credentials outside this record.
           </p>
         </div>
 
@@ -366,7 +366,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Paste your raw resume text (from PDF or DOCX) below. ApplyWise AI's Resume Intelligence Engine will automatically extract your contact info, total experience, skills, education, certifications, and verified achievements.
+              Paste your raw resume text (from PDF or DOCX) below. ApplyVise AI's Resume Intelligence Engine will automatically extract your contact info, total experience, skills, education, certifications, and verified achievements.
             </p>
 
             <textarea

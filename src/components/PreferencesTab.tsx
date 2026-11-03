@@ -262,7 +262,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
               <span className="text-xs font-mono text-red-400">{formData.excludedCompanies.length}</span>
             </div>
             <p className="text-xs text-slate-400">
-              ApplyWise AI will never recommend or apply to these companies. All matching vacancies are discarded automatically.
+              ApplyVise AI will never recommend or apply to these companies. All matching vacancies are discarded automatically.
             </p>
 
             <div className="flex items-center space-x-2">

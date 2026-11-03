@@ -1,5 +1,5 @@
 // worker/integrityEngine.ts
-// Application Integrity Engine & Transferable Skill Intelligence for ApplyWise AI
+// Application Integrity Engine & Transferable Skill Intelligence for ApplyVise AI
 
 import {
   CareerDigitalTwin,

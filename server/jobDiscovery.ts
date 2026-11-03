@@ -23,7 +23,7 @@ export const jobDiscovery = {
       const searchParam = q ? `search=${encodeURIComponent(q)}&` : '';
       const url = `https://remotive.com/api/remote-jobs?${searchParam}limit=${limitPerSource}`;
       const resp = await fetch(url, {
-        headers: { 'User-Agent': 'ApplyWiseAI/2.0' },
+        headers: { 'User-Agent': 'ApplyViseAI/2.0' },
         signal: AbortSignal.timeout(8000),
       });
 
@@ -80,7 +80,7 @@ export const jobDiscovery = {
     // 2. Arbeitnow API (Tech, Operations, Marketing, Global / EU)
     try {
       const resp = await fetch('https://www.arbeitnow.com/api/job-board-api', {
-        headers: { 'User-Agent': 'ApplyWiseAI/2.0' },
+        headers: { 'User-Agent': 'ApplyViseAI/2.0' },
         signal: AbortSignal.timeout(8000),
       });
 
@@ -143,7 +143,7 @@ export const jobDiscovery = {
     try {
       const tagParam = q ? `&tag=${encodeURIComponent(q.toLowerCase())}` : '';
       const resp = await fetch(`https://jobicy.com/api/v2/remote-jobs?count=${limitPerSource}${tagParam}`, {
-        headers: { 'User-Agent': 'ApplyWiseAI/2.0' },
+        headers: { 'User-Agent': 'ApplyViseAI/2.0' },
         signal: AbortSignal.timeout(8000),
       });
 
@@ -228,7 +228,7 @@ export const jobDiscovery = {
     try {
       const resp = await fetch(vacancy.url, {
         method: 'HEAD',
-        headers: { 'User-Agent': 'ApplyWiseAI/2.0' },
+        headers: { 'User-Agent': 'ApplyViseAI/2.0' },
         signal: AbortSignal.timeout(5000),
       });
       const active = resp.status < 400;

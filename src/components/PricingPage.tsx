@@ -181,7 +181,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             <div>
               <p className="font-extrabold text-sm text-slate-900">Permanent Free Access Active</p>
               <p className="text-slate-600 mt-0.5">
-                Your account ({currentUser?.email}) has lifetime unrestricted access to all ApplyWise Pro features, AI Copilot, and automation tools without subscription charges.
+                Your account ({currentUser?.email}) has lifetime unrestricted access to all ApplyVise Pro features, AI Copilot, and automation tools without subscription charges.
               </p>
             </div>
           </div>
@@ -319,7 +319,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                 <span>Active Pro Subscription</span>
               ) : (
                 <>
-                  <span>Upgrade to ApplyWise Pro</span>
+                  <span>Upgrade to ApplyVise Pro</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </>
               )}
@@ -331,7 +331,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
         <div className="mt-20 space-y-6">
           <div className="text-center space-y-1">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Feature Entitlements Breakdown</h2>
-            <p className="text-xs text-slate-500">Compare what is included in Free versus ApplyWise Pro.</p>
+            <p className="text-xs text-slate-500">Compare what is included in Free versus ApplyVise Pro.</p>
           </div>
 
           <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
@@ -340,8 +340,8 @@ export const PricingPage: React.FC<PricingPageProps> = ({
               <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold">
                 <tr>
                   <th className="py-3.5 px-6">Feature</th>
-                  <th className="py-3.5 px-6 text-center w-36">ApplyWise Free</th>
-                  <th className="py-3.5 px-6 text-center w-36 text-blue-600 font-bold">ApplyWise Pro</th>
+                  <th className="py-3.5 px-6 text-center w-36">ApplyVise Free</th>
+                  <th className="py-3.5 px-6 text-center w-36 text-blue-600 font-bold">ApplyVise Pro</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -390,9 +390,9 @@ export const PricingPage: React.FC<PricingPageProps> = ({
               </p>
             </div>
             <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-1.5">
-              <h4 className="font-bold text-slate-900">Does ApplyWise AI invent fake experience on my resume?</h4>
+              <h4 className="font-bold text-slate-900">Does ApplyVise AI invent fake experience on my resume?</h4>
               <p className="text-slate-600 leading-relaxed">
-                Never. ApplyWise AI enforces a strict zero-hallucination verification engine. Every bullet point and company on tailored documents must provably originate from your verified master profile.
+                Never. ApplyVise AI enforces a strict zero-hallucination verification engine. Every bullet point and company on tailored documents must provably originate from your verified master profile.
               </p>
             </div>
           </div>
@@ -409,7 +409,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             <span>Zero Hallucination Guarantee</span>
           </div>
           <p className="text-slate-500 text-[11px]">
-            © {new Date().getFullYear()} ApplyWise AI. All rights reserved.
+            © {new Date().getFullYear()} ApplyVise AI. All rights reserved.
           </p>
         </div>
       </footer>

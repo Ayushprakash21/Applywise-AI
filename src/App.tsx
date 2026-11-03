@@ -110,20 +110,25 @@ export default function App() {
   // Safe server-validated session boot
   useEffect(() => {
     const initSession = async () => {
-      const token = localStorage.getItem('applywise_token');
+      const token = localStorage.getItem('applyvise_token') || localStorage.getItem('applywise_token');
       if (token) {
         try {
           const meData = await api.getMe();
           if (meData.success && meData.user) {
             setCurrentUser(meData.user);
+            localStorage.setItem('applyvise_user', JSON.stringify(meData.user));
             localStorage.setItem('applywise_user', JSON.stringify(meData.user));
           } else {
+            localStorage.removeItem('applyvise_token');
             localStorage.removeItem('applywise_token');
+            localStorage.removeItem('applyvise_user');
             localStorage.removeItem('applywise_user');
             setCurrentUser(null);
           }
         } catch {
+          localStorage.removeItem('applyvise_token');
           localStorage.removeItem('applywise_token');
+          localStorage.removeItem('applyvise_user');
           localStorage.removeItem('applywise_user');
           setCurrentUser(null);
         }
@@ -144,7 +149,7 @@ export default function App() {
           api.getSettings(),
           api.getVacancies(),
           api.getApplications(),
-          api.getNotifications(),
+          api.getNotifications().catch(() => ({ success: false, notifications: [] as NotificationItem[] })),
           api.getSubscription().catch(() => ({ success: false, subscription: null })),
           api.getUserUsage().catch(() => ({ success: false, stats: null })),
           api.getDashboardSummary().catch(() => ({ success: false, summary: null })),
@@ -154,7 +159,7 @@ export default function App() {
         setSettings(settData.settings);
         setVacancies(vacData.vacancies);
         setApplications(appData.applications);
-        setNotifications(notifData.notifications);
+        setNotifications(notifData.notifications || []);
         if (subData?.subscription) {
           setSubscription(subData.subscription);
         }
@@ -166,7 +171,7 @@ export default function App() {
         }
 
         // Check if newly created account without profile and not previously dismissed
-        const dismissed = localStorage.getItem(`applywise_onboarding_dismissed_${currentUser.id}`);
+        const dismissed = localStorage.getItem(`applyvise_onboarding_dismissed_${currentUser.id}`) || localStorage.getItem(`applywise_onboarding_dismissed_${currentUser.id}`);
         if (!dismissed && (!profData.profile?.fullName || !profData.profile?.experiences || profData.profile.experiences.length === 0)) {
           setOnboardingOpen(true);
         }
@@ -226,7 +231,7 @@ export default function App() {
   const handleLoginSuccess = (user: AuthUser, _token?: string, isNewRegistration = false) => {
     setCurrentUser(user);
     if (isNewRegistration) {
-      showToast(`Welcome to ApplyWise AI, ${user.fullName}! Let's set up your master resume.`);
+      showToast(`Welcome to ApplyVise AI, ${user.fullName}! Let's set up your master resume.`);
       setOnboardingOpen(true);
     } else {
       showToast(`Welcome back, ${user.fullName}!`);
@@ -235,6 +240,7 @@ export default function App() {
 
   const handleOnboardingClose = () => {
     if (currentUser) {
+      localStorage.setItem(`applyvise_onboarding_dismissed_${currentUser.id}`, 'true');
       localStorage.setItem(`applywise_onboarding_dismissed_${currentUser.id}`, 'true');
     }
     setOnboardingOpen(false);
@@ -325,7 +331,7 @@ export default function App() {
           </div>
           <div className="flex items-center space-x-2 text-xs text-slate-400 font-medium">
             <div className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-ping" />
-            <span>Initializing ApplyWise AI...</span>
+            <span>Initializing ApplyVise AI...</span>
           </div>
         </div>
       </div>
@@ -555,7 +561,7 @@ export default function App() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center space-x-2">
                 <BrandLogo size="xs" showWordmark={false} />
-                <span>ApplyWise AI — Unified AI Career Operating System</span>
+                <span>ApplyVise AI — Unified AI Career Operating System</span>
               </div>
               <div className="flex flex-wrap items-center gap-4">
                 <button onClick={() => navigateTo('/about')} className="hover:text-cyan-500 transition">About Us</button>
@@ -631,6 +637,7 @@ export default function App() {
         onProfileUpdated={newProf => {
           setProfile(newProf);
           if (currentUser) {
+            localStorage.setItem(`applyvise_onboarding_dismissed_${currentUser.id}`, 'true');
             localStorage.setItem(`applywise_onboarding_dismissed_${currentUser.id}`, 'true');
           }
           showToast('Master profile verified and updated!');

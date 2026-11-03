@@ -1,4 +1,4 @@
-name: ApplyWise AI CI/CD Pipeline
+name: ApplyVise AI CI/CD Pipeline
 
 on:
   push:

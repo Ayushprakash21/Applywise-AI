@@ -57,8 +57,8 @@ export const AICopilot: React.FC<AICopilotProps> = ({
       id: 'welcome',
       role: 'assistant',
       content: currentUser
-        ? `Hello **${currentUser.fullName}**! I'm **ApplyWise Copilot**, your career strategist. How can I assist your job search today?`
-        : `Welcome! I'm **ApplyWise Copilot**. Sign in to get context-aware career guidance, interview coaching, and ATS resume optimization!`,
+        ? `Hello **${currentUser.fullName}**! I'm **ApplyVise Copilot**, your career strategist. How can I assist your job search today?`
+        : `Welcome! I'm **ApplyVise Copilot**. Sign in to get context-aware career guidance, interview coaching, and ATS resume optimization!`,
       timestamp: new Date().toISOString(),
     },
   ]);
@@ -170,7 +170,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
         ];
       default:
         return [
-          'How does ApplyWise AI ATS tailoring work?',
+          'How does ApplyVise AI ATS tailoring work?',
           'Tell me about Free vs Pro plan benefits',
           'Give me top 3 interview preparation tips',
         ];
@@ -184,7 +184,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
         <button
           onClick={() => setIsOpen(true)}
           className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center space-x-2.5 px-4 py-3 min-h-[44px] rounded-full bg-slate-900 text-white shadow-2xl hover:bg-slate-800 transition-all duration-300 hover:scale-[1.03] group border border-slate-700/80 touch-target"
-          aria-label="Open ApplyWise Copilot"
+          aria-label="Open ApplyVise Copilot"
         >
           <div className="relative">
             <BrandLogo size="xs" showWordmark={false} />
@@ -215,7 +215,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
               <BrandLogo size="xs" showWordmark={false} />
               <div>
                 <div className="flex items-center space-x-1.5">
-                  <span className="text-xs font-bold tracking-tight">ApplyWise Copilot</span>
+                  <span className="text-xs font-bold tracking-tight">ApplyVise Copilot</span>
                   <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-md bg-blue-500/20 text-blue-300 border border-blue-400/30">
                     AI 2.0
                   </span>

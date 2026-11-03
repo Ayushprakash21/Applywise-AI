@@ -113,7 +113,7 @@ export const TrackerTab: React.FC<TrackerTabProps> = ({
           {/* Export CSV */}
           <a
             href="/api/applications/export-csv"
-            download="applywise_applications.csv"
+            download="applyvise_applications.csv"
             className="flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs transition"
           >
             <Download className="h-4 w-4 text-slate-500" />

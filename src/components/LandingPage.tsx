@@ -227,7 +227,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Friendly System Pill */}
           <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full neu-inset text-blue-700 text-xs font-semibold">
             <Sparkles className="h-3.5 w-3.5 text-blue-600" />
-            <span>APPLYWISE AI 2.0 · TRUTHFUL CAREER INTELLIGENCE</span>
+            <span>APPLYVISE AI 2.0 · TRUTHFUL CAREER INTELLIGENCE</span>
           </div>
 
           {/* Main Hero Headline */}
@@ -332,7 +332,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-2.5">
             <span className="text-blue-600 font-semibold text-xs tracking-wider uppercase">
-              Why Job Seekers Choose ApplyWise AI
+              Why Job Seekers Choose ApplyVise AI
             </span>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
               Honest, simple tools to manage your entire search.
@@ -749,7 +749,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               The Zero-Hallucination Standard.
             </h2>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
-              Most AI career tools make up numbers, fabricate employers, and flood ATS portals with toxic spam. ApplyWise AI is engineered with rigorous mathematical verification.
+              Most AI career tools make up numbers, fabricate employers, and flood ATS portals with toxic spam. ApplyVise AI is engineered with rigorous mathematical verification.
             </p>
           </div>
 
@@ -762,7 +762,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
               <div className="p-4 sm:p-5 text-blue-700 bg-blue-50/70 flex items-center space-x-2 border-t sm:border-t-0 sm:border-l border-slate-200">
                 <Check className="h-4 w-4 shrink-0 text-blue-600" />
-                <span>ApplyWise AI Engine</span>
+                <span>ApplyVise AI Engine</span>
               </div>
             </div>
 
@@ -943,7 +943,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           <p className="text-slate-500 font-mono text-[11px]">
-            © {new Date().getFullYear()} ApplyWise AI. All rights reserved.
+            © {new Date().getFullYear()} ApplyVise AI. All rights reserved.
           </p>
         </div>
       </footer>

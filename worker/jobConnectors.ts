@@ -1,5 +1,5 @@
 // worker/jobConnectors.ts
-// Modular Source Connector Registry and Live Job Discovery Engine for ApplyWise AI
+// Modular Source Connector Registry and Live Job Discovery Engine for ApplyVise AI
 
 export type ConnectorType = 'ats_greenhouse' | 'ats_lever' | 'ats_ashby' | 'aggregator_api' | 'json_ld';
 export type WorkArrangement = 'remote' | 'hybrid' | 'onsite';
@@ -149,7 +149,7 @@ async function fetchGreenhouseBoard(boardToken: string, companyName: string): Pr
   if (!isSafePublicUrl(url)) throw new Error('Unsafe URL rejected');
 
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'ApplyWiseAI-JobDiscovery/2.0' },
+    headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
     signal: AbortSignal.timeout(9000),
   });
 
@@ -211,7 +211,7 @@ async function fetchLeverBoard(companyHandle: string, companyName: string): Prom
   if (!isSafePublicUrl(url)) throw new Error('Unsafe URL rejected');
 
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'ApplyWiseAI-JobDiscovery/2.0' },
+    headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
     signal: AbortSignal.timeout(9000),
   });
 
@@ -294,7 +294,7 @@ async function fetchLeverBoard(companyHandle: string, companyName: string): Prom
 async function fetchRemotive(): Promise<LiveJobItem[]> {
   const url = 'https://remotive.com/api/remote-jobs?limit=30';
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'ApplyWiseAI-JobDiscovery/2.0' },
+    headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
     signal: AbortSignal.timeout(9000),
   });
 
@@ -356,7 +356,7 @@ async function fetchRemotive(): Promise<LiveJobItem[]> {
 async function fetchArbeitnow(): Promise<LiveJobItem[]> {
   const url = 'https://www.arbeitnow.com/api/job-board-api';
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'ApplyWiseAI-JobDiscovery/2.0' },
+    headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
     signal: AbortSignal.timeout(9000),
   });
 
@@ -414,7 +414,7 @@ async function fetchArbeitnow(): Promise<LiveJobItem[]> {
 async function fetchJobicy(): Promise<LiveJobItem[]> {
   const url = 'https://jobicy.com/api/v2/remote-jobs?count=30';
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'ApplyWiseAI-JobDiscovery/2.0' },
+    headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
     signal: AbortSignal.timeout(9000),
   });
 

@@ -1,5 +1,5 @@
 // worker/usageEnforcement.ts
-// Authoritative Quota and Access Limits Enforcement for ApplyWise AI
+// Authoritative Quota and Access Limits Enforcement for ApplyVise AI
 
 import { D1Store } from './d1Store.ts';
 import { isPermanentFreeAccessEmail } from '../src/config/freeAccess.ts';

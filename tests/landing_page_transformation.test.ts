@@ -29,7 +29,7 @@ test('Landing Page Light-Theme Restoration & Architectural Integrity', async (t)
 
   await t.test('Hero Section Narrative and Copy Requirements', () => {
     // System pill
-    assert.match(landingSource, /APPLYWISE AI 2\.0 · TRUTHFUL CAREER INTELLIGENCE/, 'Must feature system pill');
+    assert.match(landingSource, /APPLYVISE AI 2\.0 · TRUTHFUL CAREER INTELLIGENCE/, 'Must feature system pill');
     // Primary headline: Your next career move starts with clarity.
     assert.match(landingSource, /Your next career move/, 'Hero headline part 1');
     assert.match(landingSource, /starts with clarity\./, 'Hero headline part 2');
@@ -70,7 +70,7 @@ test('Landing Page Light-Theme Restoration & Architectural Integrity', async (t)
 
   await t.test('Integrity Comparison Matrix (Zero Hallucination Standard)', () => {
     assert.match(landingSource, /Generic Generative AI/, 'Comparison header for generic AI tools');
-    assert.match(landingSource, /ApplyWise AI Engine/, 'Comparison header for ApplyWise AI');
+    assert.match(landingSource, /ApplyVise AI Engine/, 'Comparison header for ApplyVise AI');
     assert.match(landingSource, /The Zero-Hallucination Standard/, 'Section title');
   });
 

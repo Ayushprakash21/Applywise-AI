@@ -95,7 +95,7 @@ export const CareerIntelligenceReport: React.FC<CareerIntelligenceReportProps> =
       <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 flex items-start space-x-3 text-xs text-emerald-800 dark:text-emerald-300">
         <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
         <div>
-          <strong className="font-bold">Zero-Hallucination Factual Guarantee:</strong> All strengths, verified competencies, and experiences evaluated in this report originate exclusively from your verified profile and master resume. ApplyWise AI never invents achievements or fabricates employment credentials.
+          <strong className="font-bold">Zero-Hallucination Factual Guarantee:</strong> All strengths, verified competencies, and experiences evaluated in this report originate exclusively from your verified profile and master resume. ApplyVise AI never invents achievements or fabricates employment credentials.
         </div>
       </div>
 

@@ -42,11 +42,11 @@ export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({ isOpen, 
 
         <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs text-slate-600 leading-relaxed flex-1">
           <p className="font-semibold text-slate-800 text-sm">
-            ApplyWise AI Privacy & Data Protection Commitment
+            ApplyVise AI Privacy & Data Protection Commitment
           </p>
 
           <p>
-            At ApplyWise AI, we believe your professional history, resume, and job applications are strictly your private property.
+            At ApplyVise AI, we believe your professional history, resume, and job applications are strictly your private property.
           </p>
 
           <div className="space-y-2">
@@ -128,27 +128,27 @@ export const TermsOfUseModal: React.FC<TermsOfUseModalProps> = ({ isOpen, onClos
 
         <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs text-slate-600 leading-relaxed flex-1">
           <p className="font-semibold text-slate-800 text-sm">
-            ApplyWise AI Terms of Service
+            ApplyVise AI Terms of Service
           </p>
 
           <div className="space-y-2">
             <h3 className="font-bold text-slate-800">1. Truthful Candidate Representation</h3>
             <p>
-              ApplyWise AI enforces zero-hallucination document optimization. By using this service, you certify that all master profile details provided represent your truthful employment and educational history.
+              ApplyVise AI enforces zero-hallucination document optimization. By using this service, you certify that all master profile details provided represent your truthful employment and educational history.
             </p>
           </div>
 
           <div className="space-y-2">
             <h3 className="font-bold text-slate-800">2. Free Public Platform</h3>
             <p>
-              ApplyWise AI provides core job search, match calculation, and resume optimization free of charge. We do not enforce payment gates or hidden subscription fees for standard application preparation.
+              ApplyVise AI provides core job search, match calculation, and resume optimization free of charge. We do not enforce payment gates or hidden subscription fees for standard application preparation.
             </p>
           </div>
 
           <div className="space-y-2">
             <h3 className="font-bold text-slate-800">3. Application Submissions & Verification</h3>
             <p>
-              ApplyWise AI does not fabricate confirmation codes or misrepresent employer submission status. Automated portal interaction is subject to employer terms of service and access controls. You are responsible for reviewing and verifying all final submissions.
+              ApplyVise AI does not fabricate confirmation codes or misrepresent employer submission status. Automated portal interaction is subject to employer terms of service and access controls. You are responsible for reviewing and verifying all final submissions.
             </p>
           </div>
 
@@ -309,7 +309,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
               }}
               className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500 min-h-[40px]"
             />
-            <p className="text-[10px] text-slate-400">ApplyWise AI will never prepare or submit applications to these employers.</p>
+            <p className="text-[10px] text-slate-400">ApplyVise AI will never prepare or submit applications to these employers.</p>
           </div>
 
           {/* Auto-Apply Explicit Consent Gate */}
@@ -330,7 +330,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
               </span>
             </label>
             <p className="text-[11px] text-slate-600 leading-relaxed pl-6">
-              I authorize ApplyWise AI to generate ATS-tailored materials strictly from my verified profile and submit applications to employers matching my criteria. Legal declarations, salary commitments, and sensitive disclosures will always pause for manual review.
+              I authorize ApplyVise AI to generate ATS-tailored materials strictly from my verified profile and submit applications to employers matching my criteria. Legal declarations, salary commitments, and sensitive disclosures will always pause for manual review.
             </p>
           </div>
 

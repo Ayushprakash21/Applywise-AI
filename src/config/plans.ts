@@ -56,7 +56,7 @@ export interface SubscriptionPlan {
 export const SUBSCRIPTION_PLANS: Record<PlanId, SubscriptionPlan> = {
   free: {
     id: 'free',
-    name: 'ApplyWise Free',
+    name: 'ApplyVise Free',
     tagline: 'For individuals getting started',
     description: 'Essential job tracking, factual resume extraction, and core career discovery tools.',
     price: {
@@ -77,7 +77,7 @@ export const SUBSCRIPTION_PLANS: Record<PlanId, SubscriptionPlan> = {
   },
   pro: {
     id: 'pro',
-    name: 'ApplyWise Pro',
+    name: 'ApplyVise Pro',
     badge: 'MOST POPULAR',
     tagline: 'For job seekers who want a more powerful career toolkit',
     description: 'Advanced AI tailoring, in-depth job analysis, interview preparation, and high-volume intelligence.',

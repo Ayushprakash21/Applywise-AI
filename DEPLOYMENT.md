@@ -1,8 +1,8 @@
-# ApplyWise AI — Production Deployment & Architecture Guide
+# ApplyVise AI — Production Deployment & Architecture Guide
 
 ## 1. System Architecture Overview
 
-ApplyWise AI is an enterprise-grade full-stack web application designed for public deployment:
+ApplyVise AI is an enterprise-grade full-stack web application designed for public deployment:
 
 ```mermaid
 graph TD
@@ -44,7 +44,7 @@ cp .env.example .env
 ## 3. Database Setup & Migrations
 
 ### Embedded Relational Database (Default)
-ApplyWise AI includes an embedded SQLite relational database powered by Node's built-in `node:sqlite` engine (`applywise.sqlite`). It automatically creates all relational tables, indexes, and constraints upon startup with write-ahead logging (WAL) and foreign keys enabled.
+ApplyVise AI includes an embedded SQLite relational database powered by Node's built-in `node:sqlite` engine (`applywise.sqlite`). It automatically creates all relational tables, indexes, and constraints upon startup with write-ahead logging (WAL) and foreign keys enabled.
 
 ### Production PostgreSQL
 To deploy with PostgreSQL:

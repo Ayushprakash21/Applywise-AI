@@ -1,5 +1,5 @@
 // scripts/promote-admin.ts
-// Secure Administrator Provisioning Script for ApplyWise AI Cloudflare D1
+// Secure Administrator Provisioning Script for ApplyVise AI Cloudflare D1
 
 import { execSync } from 'child_process';
 
@@ -11,7 +11,7 @@ if (!email || !email.includes('@')) {
   process.exit(1);
 }
 
-console.log(`[ApplyWise AI] Provisioning administrator privileges for: ${email}...`);
+console.log(`[ApplyVise AI] Provisioning administrator privileges for: ${email}...`);
 
 try {
   // Execute remote D1 role update

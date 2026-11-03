@@ -1,5 +1,5 @@
 // worker/auth.ts
-// Secure cryptographic authentication helpers for ApplyWise AI on Cloudflare Workers
+// Secure cryptographic authentication helpers for ApplyVise AI on Cloudflare Workers
 
 import bcrypt from 'bcryptjs';
 

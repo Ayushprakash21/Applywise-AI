@@ -46,8 +46,8 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
   onNavigateHome,
 }) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [remember, setRemember] = useState(() => localStorage.getItem('applywise_remember') === 'true');
-  const [email, setEmail] = useState(() => localStorage.getItem('applywise_saved_email') || '');
+  const [remember, setRemember] = useState(() => localStorage.getItem('applyvise_remember') === 'true' || localStorage.getItem('applywise_remember') === 'true');
+  const [email, setEmail] = useState(() => localStorage.getItem('applyvise_saved_email') || localStorage.getItem('applywise_saved_email') || '');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState(false);
@@ -84,7 +84,9 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
 
       try {
         const res = await api.loginWithGoogle(response.credential);
+        localStorage.setItem('applyvise_token', res.token);
         localStorage.setItem('applywise_token', res.token);
+        localStorage.setItem('applyvise_user', JSON.stringify(res.user));
         localStorage.setItem('applywise_user', JSON.stringify(res.user));
         setSuccessMsg('Authenticated via Google! Loading your dashboard...');
         setTimeout(() => {
@@ -160,14 +162,20 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
 
       // Handle Remember Me
       if (remember) {
+        localStorage.setItem('applyvise_remember', 'true');
         localStorage.setItem('applywise_remember', 'true');
+        localStorage.setItem('applyvise_saved_email', cleanEmail);
         localStorage.setItem('applywise_saved_email', cleanEmail);
       } else {
+        localStorage.removeItem('applyvise_remember');
         localStorage.removeItem('applywise_remember');
+        localStorage.removeItem('applyvise_saved_email');
         localStorage.removeItem('applywise_saved_email');
       }
 
+      localStorage.setItem('applyvise_token', res.token);
       localStorage.setItem('applywise_token', res.token);
+      localStorage.setItem('applyvise_user', JSON.stringify(res.user));
       localStorage.setItem('applywise_user', JSON.stringify(res.user));
       setSuccessMsg('Welcome back! Loading your dashboard...');
 
@@ -477,37 +485,36 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
                       <div
                         ref={googleBtnRef}
                         className="w-full flex justify-center items-center min-h-[44px]"
-                        style={{ display: googleButtonRendered ? 'flex' : 'none' }}
-                      />
-
-                      {!googleButtonRendered && (
-                        <div className="w-full max-w-[320px]">
-                          {!authConfig?.googleAuthEnabled ? (
-                            <button
-                              type="button"
-                              onClick={handleGoogleClick}
-                              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-button text-xs font-medium text-slate-700 opacity-60"
-                            >
-                              <GoogleIcon size={16} />
-                              <span>Google Sign-In (Unconfigured)</span>
-                            </button>
-                          ) : googleInitError ? (
-                            <button
-                              type="button"
-                              onClick={handleGoogleClick}
-                              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-button text-xs font-medium text-slate-700 hover:text-blue-600"
-                            >
-                              <GoogleIcon size={16} />
-                              <span>Retry Loading Google Sign-In</span>
-                            </button>
-                          ) : (
-                            <div className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-inset text-xs font-medium text-slate-500">
-                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
-                              <span>Initializing Google Sign-In...</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      >
+                        {!googleButtonRendered && (
+                          <div className="w-full max-w-[320px]">
+                            {!authConfig?.googleAuthEnabled ? (
+                              <button
+                                type="button"
+                                onClick={handleGoogleClick}
+                                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-button text-xs font-medium text-slate-700 opacity-60"
+                              >
+                                <GoogleIcon size={16} />
+                                <span>Google Sign-In (Unconfigured)</span>
+                              </button>
+                            ) : googleInitError ? (
+                              <button
+                                type="button"
+                                onClick={handleGoogleClick}
+                                className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-button text-xs font-medium text-slate-700 hover:text-blue-600"
+                              >
+                                <GoogleIcon size={16} />
+                                <span>Retry Loading Google Sign-In</span>
+                              </button>
+                            ) : (
+                              <div className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-inset text-xs font-medium text-slate-500">
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
+                                <span>Initializing Google Sign-In...</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Apple Button (shown only when configured) */}

@@ -200,7 +200,7 @@ describe('New-User Onboarding & Data Isolation Tests', () => {
       isNewRegistration: boolean
     ) => {
       if (isNewRegistration) return true;
-      if (dismissedMap.get(`applywise_onboarding_dismissed_${userId}`)) return false;
+      if (dismissedMap.get(`applyvise_onboarding_dismissed_${userId}`) || dismissedMap.get(`applywise_onboarding_dismissed_${userId}`)) return false;
       const hasCompletedProfile = !!(profile?.fullName && profile.experiences && profile.experiences.length > 0);
       return !hasCompletedProfile;
     };
@@ -218,7 +218,7 @@ describe('New-User Onboarding & Data Isolation Tests', () => {
     assert.strictEqual(shouldShowOnboarding('user_existing_1', completedProfile, dismissed, false), false);
 
     // User dismissed onboarding
-    dismissed.set('applywise_onboarding_dismissed_user_new_2', true);
+    dismissed.set('applyvise_onboarding_dismissed_user_new_2', true);
     assert.strictEqual(shouldShowOnboarding('user_new_2', null, dismissed, false), false);
   });
 

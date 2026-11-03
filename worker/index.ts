@@ -1,5 +1,5 @@
 // worker/index.ts
-// Production Cloudflare Workers API Backend for ApplyWise AI
+// Production Cloudflare Workers API Backend for ApplyVise AI
 
 import './polyfills.ts';
 import { Hono } from 'hono';
@@ -70,7 +70,7 @@ function getRequestToken(c: any): string {
   if (auth && auth.startsWith('Bearer ')) {
     return auth.substring(7).trim();
   }
-  return getCookie(c, 'applywise_token') || '';
+  return getCookie(c, 'applyvise_token') || getCookie(c, 'applywise_token') || '';
 }
 
 // Auth Middleware: Mandatory
@@ -148,20 +148,22 @@ app.post('/api/auth/signup', async (c) => {
     const token = generateSessionToken();
     await store.createSession(user.id, token);
 
-    setCookie(c, 'applywise_token', token, {
+    const cookieOpts = {
       httpOnly: true,
       secure: true,
-      sameSite: 'Lax',
+      sameSite: 'Lax' as const,
       maxAge: 14 * 24 * 60 * 60,
       path: '/',
-    });
+    };
+    setCookie(c, 'applyvise_token', token, cookieOpts);
+    setCookie(c, 'applywise_token', token, cookieOpts);
 
     return c.json({
       success: true,
       user,
       token,
       isNewUser: true,
-      message: 'Account created successfully! Welcome to ApplyWise AI.',
+      message: 'Account created successfully! Welcome to ApplyVise AI.',
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -199,13 +201,15 @@ app.post('/api/auth/login', async (c) => {
       createdAt: userRow.created_at,
     };
 
-    setCookie(c, 'applywise_token', token, {
+    const cookieOpts = {
       httpOnly: true,
       secure: true,
-      sameSite: 'Lax',
+      sameSite: 'Lax' as const,
       maxAge: 14 * 24 * 60 * 60,
       path: '/',
-    });
+    };
+    setCookie(c, 'applyvise_token', token, cookieOpts);
+    setCookie(c, 'applywise_token', token, cookieOpts);
 
     return c.json({
       success: true,
@@ -224,6 +228,7 @@ app.post('/api/auth/logout', async (c) => {
     const store: D1Store = c.get('store');
     await store.logoutSession(token);
   }
+  deleteCookie(c, 'applyvise_token', { path: '/' });
   deleteCookie(c, 'applywise_token', { path: '/' });
   return c.json({ success: true, message: 'Logged out successfully.' });
 });
@@ -284,7 +289,10 @@ app.post('/api/auth/google', async (c) => {
     }
 
     const configuredAud = c.env.GOOGLE_CLIENT_ID ? c.env.GOOGLE_CLIENT_ID.trim() : null;
-    if (configuredAud && payload.aud?.trim() !== configuredAud) {
+    if (!configuredAud) {
+      return c.json({ success: false, error: 'Google authentication is not configured on this server.' }, 503);
+    }
+    if (payload.aud?.trim() !== configuredAud) {
       return c.json({ success: false, error: 'Google authentication audience mismatch.' }, 401);
     }
 
@@ -325,13 +333,15 @@ app.post('/api/auth/google', async (c) => {
     const token = generateSessionToken();
     await store.createSession(authUser.id, token);
 
-    setCookie(c, 'applywise_token', token, {
+    const cookieOpts = {
       httpOnly: true,
       secure: true,
-      sameSite: 'Lax',
+      sameSite: 'Lax' as const,
       maxAge: 14 * 24 * 60 * 60,
       path: '/',
-    });
+    };
+    setCookie(c, 'applyvise_token', token, cookieOpts);
+    setCookie(c, 'applywise_token', token, cookieOpts);
 
     return c.json({
       success: true,
@@ -685,13 +695,13 @@ app.post('/api/subscription/upgrade', requireAuth, async (c) => {
 
     await store.updateUserSubscription(user.id, planId, billingInterval);
     await store.addAuditLog(user.id, 'User manual', 'SUBSCRIPTION_UPGRADED', `Plan: ${planId} (${billingInterval})`, 'Upgraded account to Pro tier');
-    await store.addNotification(user.id, 'Welcome to ApplyWise Pro!', 'Your account has been upgraded. You now have access to high-volume AI intelligence, advanced ATS tailoring, and deep gap analysis.', 'system');
+    await store.addNotification(user.id, 'Welcome to ApplyVise Pro!', 'Your account has been upgraded. You now have access to high-volume AI intelligence, advanced ATS tailoring, and deep gap analysis.', 'system');
 
     const updatedSub = await store.getUserSubscription(user.id);
     return c.json({
       success: true,
       subscription: updatedSub,
-      message: 'Welcome to ApplyWise Pro! All premium capabilities are now active.',
+      message: 'Welcome to ApplyVise Pro! All premium capabilities are now active.',
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -772,7 +782,7 @@ app.post('/api/ai/copilot', requireAuth, async (c) => {
         return c.json({
           success: false,
           code: 'QUOTA_EXCEEDED',
-          error: `Monthly AI Copilot limit reached (${used}/${allowance.limit}). Upgrade to ApplyWise Pro for 300 AI queries/month and advanced career intelligence.`,
+          error: `Monthly AI Copilot limit reached (${used}/${allowance.limit}). Upgrade to ApplyVise Pro for 300 AI queries/month and advanced career intelligence.`,
           usage: { used, limit: allowance.limit, remaining: 0 },
         }, 403);
       }
@@ -782,7 +792,7 @@ app.post('/api/ai/copilot', requireAuth, async (c) => {
     const pageContext = context.page || 'general';
     const profile = await store.getProfile(user.id);
 
-    const systemPrompt = `You are ApplyWise Copilot, an elite AI career strategist and job application assistant for ApplyWise AI.
+    const systemPrompt = `You are ApplyVise Copilot, an elite AI career strategist and job application assistant for ApplyVise AI.
 Candidate Name: ${user.fullName}
 Candidate Title: ${profile?.currentTitle || 'Professional'}
 Current Page: ${pageContext}
@@ -824,13 +834,13 @@ Guidelines:
     if (!reply) {
       const qLower = message.toLowerCase();
       if (qLower.includes('resume') || qLower.includes('tailor') || qLower.includes('cv')) {
-        reply = `**Resume Optimization Strategy for ${user.fullName}:**\n\n1. **Lead with quantifiable achievements:** Rephrase task descriptions into *Action Verb + Context + Result (e.g. Improved cycle time by 22%)*.\n2. **Align core keywords:** Ensure the target skills from the job listing are explicitly reflected in your experience bullets.\n3. **Preserve factual accuracy:** Use ApplyWise AI's built-in ATS Document Studio to generate a tailored DOCX resume with 100% truthfulness verification.`;
+        reply = `**Resume Optimization Strategy for ${user.fullName}:**\n\n1. **Lead with quantifiable achievements:** Rephrase task descriptions into *Action Verb + Context + Result (e.g. Improved cycle time by 22%)*.\n2. **Align core keywords:** Ensure the target skills from the job listing are explicitly reflected in your experience bullets.\n3. **Preserve factual accuracy:** Use ApplyVise AI's built-in ATS Document Studio to generate a tailored DOCX resume with 100% truthfulness verification.`;
       } else if (qLower.includes('interview') || qLower.includes('question') || qLower.includes('prep')) {
         reply = `**Role-Specific Interview Preparation:**\n\n• **STAR Framework:** Structure your situational answers with *Situation, Task, Action, and Result*.\n• **High-Impact Questions to Expect:**\n  - "Tell me about a project where scope changed unexpectedly. How did you adapt?"\n  - "How do you align stakeholders with competing priorities?"\n• **Ask the Interviewer:** "What does success look like in the first 90 days for this role?"`;
       } else if (qLower.includes('follow up') || qLower.includes('email') || qLower.includes('recruiter') || qLower.includes('cover letter')) {
         reply = `**Professional Recruiter Communication Template:**\n\n*Subject:* Application Follow-Up — ${profile?.currentTitle || 'Candidate'} — ${user.fullName}\n\nDear [Hiring Manager / Recruiter Name],\n\nI hope you are having a productive week. I recently submitted my application for the role and wanted to reiterate my enthusiasm for joining your team.\n\nWith my background in ${profile?.currentTitle || 'my field'} and hands-on experience delivering key operational outcomes, I am excited about the opportunity to contribute immediately.\n\nThank you for your time and consideration,\n${user.fullName}`;
       } else {
-        reply = `**ApplyWise Career Advisor:**\n\nI am here to assist your job search workflow across:\n\n• **Application Tracking:** Organizing opportunities across all interview stages.\n• **ATS Resume Tailoring:** Creating factually verified DOCX resumes tailored to specific vacancy descriptions.\n• **Interview Readiness:** Practicing behavioral and technical interview questions.\n\nHow can I help you advance your search today?`;
+        reply = `**ApplyVise Career Advisor:**\n\nI am here to assist your job search workflow across:\n\n• **Application Tracking:** Organizing opportunities across all interview stages.\n• **ATS Resume Tailoring:** Creating factually verified DOCX resumes tailored to specific vacancy descriptions.\n• **Interview Readiness:** Practicing behavioral and technical interview questions.\n\nHow can I help you advance your search today?`;
       }
     }
 
@@ -1540,7 +1550,7 @@ app.post('/api/jobs/:id/apply-assisted', requireAuth, async (c) => {
         'Review your factually tailored ATS resume and cover letter.',
         'Click the official direct application portal link.',
         'Attach the exported tailored document package.',
-        'Submit directly on the employer website and update your status in ApplyWise AI.',
+        'Submit directly on the employer website and update your status in ApplyVise AI.',
       ],
       prefilledFields: {
         fullName: profile.fullName || '',
@@ -1987,6 +1997,15 @@ app.patch('/api/notifications/:id/read', requireAuth, async (c) => {
   return c.json({ success: true, notifications });
 });
 
+app.post('/api/notifications/:id/read', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const id = c.req.param('id');
+  await store.markNotificationsRead(user.id, id);
+  const notifications = await store.getNotifications(user.id);
+  return c.json({ success: true, notifications });
+});
+
 app.post('/api/notifications/mark-all-read', requireAuth, async (c) => {
   const user: AuthUser = c.get('user')!;
   const store: D1Store = c.get('store');
@@ -2003,7 +2022,7 @@ app.get('/api/integrations', async (c) => {
 app.get('/api/health', async (c) => {
   return c.json({
     status: 'ok',
-    product: 'ApplyWise AI',
+    product: 'ApplyVise AI',
     timestamp: new Date().toISOString(),
   });
 });
@@ -2168,9 +2187,15 @@ app.get('/api/admin/me', requireAdmin, async (c) => {
 });
 
 app.get('/api/admin/overview', requireAdmin, async (c) => {
-  const store: D1Store = c.get('store');
-  const stats = await store.getAdminOverviewStats();
-  return c.json({ success: true, stats });
+  try {
+    const store: D1Store = c.get('store');
+    const stats = await store.getAdminOverviewStats();
+    return c.json({ success: true, stats });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[AdminOverview Error]:', msg);
+    return c.json({ success: false, error: `Failed to load admin overview: ${msg}` }, 500);
+  }
 });
 
 app.get('/api/admin/users', requireAdmin, async (c) => {

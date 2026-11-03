@@ -1,5 +1,5 @@
 -- Migration: 0001_initial_schema.sql
--- ApplyWise AI D1 Database Schema
+-- ApplyVise AI D1 Database Schema
 
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,

@@ -27,7 +27,7 @@ test('Worker Auth: Token generation and input validation', () => {
   assert.equal(token1.length, 64, 'Token must be 64-char hex string (32 bytes)');
   assert.notEqual(token1, token2, 'Generated tokens must be distinct');
 
-  assert.equal(validateEmail('test@applywise.ai'), true);
+  assert.equal(validateEmail('test@applyvise.ai'), true);
   assert.equal(validateEmail('invalid-email'), false);
   assert.equal(validateEmail(''), false);
 

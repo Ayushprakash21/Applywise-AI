@@ -67,7 +67,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold shadow-xs">
             <Sparkles className="h-3.5 w-3.5 text-blue-600" />
-            <span>About ApplyWise AI</span>
+            <span>About ApplyVise AI</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
@@ -78,7 +78,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
           </h1>
 
           <p className="max-w-2xl mx-auto text-sm sm:text-base text-slate-600 leading-relaxed">
-            ApplyWise AI is designed to bring job-search organization, career preparation, and practical AI assistance together in one experience.
+            ApplyVise AI is designed to bring job-search organization, career preparation, and practical AI assistance together in one experience.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
@@ -86,7 +86,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
               onClick={onGetStarted}
               className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-md shadow-blue-500/20 transition flex items-center space-x-2"
             >
-              <span>Explore ApplyWise AI</span>
+              <span>Explore ApplyVise AI</span>
               <ArrowRight className="h-4 w-4" />
             </button>
             <button
@@ -110,10 +110,10 @@ export const AboutPage: React.FC<AboutPageProps> = ({
             </div>
             <div className="md:col-span-8 space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed">
               <p>
-                ApplyWise AI was created around the real-world friction of modern job searching: repetitive applications, scattered tracking spreadsheets, inconsistent resume adjustments, and the overwhelming effort involved in presenting oneself effectively across different opportunities.
+                ApplyVise AI was created around the real-world friction of modern job searching: repetitive applications, scattered tracking spreadsheets, inconsistent resume adjustments, and the overwhelming effort involved in presenting oneself effectively across different opportunities.
               </p>
               <p>
-                Rather than treating AI as a superficial gimmick or an engine for generating fictional claims, ApplyWise AI was founded on the belief that career technology should be grounded in truthfulness, structured organization, and disciplined assistance.
+                Rather than treating AI as a superficial gimmick or an engine for generating fictional claims, ApplyVise AI was founded on the belief that career technology should be grounded in truthfulness, structured organization, and disciplined assistance.
               </p>
               <p>
                 Today, the platform is an evolving career ecosystem where candidates can discover verified vacancies across global aggregators, match their authentic experience, and prepare tailored documents with zero-hallucination verification.
@@ -183,7 +183,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
             </div>
             <h3 className="text-base font-bold text-slate-900">2. AI Career Assistance</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Context-aware ApplyWise Copilot delivers intelligent advice, resume critiques, interview preparation, and recruiter message drafting.
+              Context-aware ApplyVise Copilot delivers intelligent advice, resume critiques, interview preparation, and recruiter message drafting.
             </p>
           </div>
 
@@ -296,7 +296,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
             Your next career move deserves a smarter approach.
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
-            Join ApplyWise AI today to experience truthful resume intelligence, verified vacancy discovery, and AI career assistance.
+            Join ApplyVise AI today to experience truthful resume intelligence, verified vacancy discovery, and AI career assistance.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <button
@@ -327,7 +327,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
             <span>Zero Hallucination Guarantee</span>
           </div>
           <p className="text-slate-500 text-[11px]">
-            © {new Date().getFullYear()} ApplyWise AI. All rights reserved.
+            © {new Date().getFullYear()} ApplyVise AI. All rights reserved.
           </p>
         </div>
       </footer>

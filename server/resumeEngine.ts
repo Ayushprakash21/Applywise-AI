@@ -11,7 +11,7 @@ import mammoth from 'mammoth';
 import crypto from 'crypto';
 import { GoogleGenAI } from '@google/genai';
 import { Document, Paragraph, TextRun, HeadingLevel, Packer, AlignmentType } from 'docx';
-import { UserProfile, TailoredResumeContent } from '../src/types/index.ts';
+import { UserProfile, TailoredResumeContent, VerifiedSkill } from '../src/types/index.ts';
 import { detectJobFamily } from './matchingEngine.ts';
 
 const ai = new GoogleGenAI({
@@ -30,6 +30,158 @@ export interface TruthfulnessValidationResult {
   passed: boolean;
   score: number;
   issues: string[];
+}
+
+export interface ParsedEmploymentDates {
+  startDate: string;
+  endDate: string;
+  current: boolean;
+  isDateUncertain: boolean;
+  dateWarning?: string;
+  durationMonths: number;
+}
+
+export function parseEmploymentDates(rawDateStr?: string | null): ParsedEmploymentDates {
+  if (!rawDateStr || typeof rawDateStr !== 'string') {
+    return {
+      startDate: '',
+      endDate: '',
+      current: false,
+      isDateUncertain: true,
+      dateWarning: 'No employment dates found; requires confirmation.',
+      durationMonths: 0,
+    };
+  }
+
+  const cleaned = rawDateStr.replace(/[\r\n\t]+/g, ' ').trim();
+  if (!cleaned) {
+    return {
+      startDate: '',
+      endDate: '',
+      current: false,
+      isDateUncertain: true,
+      dateWarning: 'Empty date string.',
+      durationMonths: 0,
+    };
+  }
+
+  const cleanToken = (s: string) => s.replace(/^[-–—\s/]+|[-–—\s/]+$/g, '').trim();
+  const isCurrentToken = (s: string) => /^(present|current|ongoing|now|till\s*date|to\s*date)$/i.test(s.trim());
+  const hasCurrentAnywhere = /\b(present|current|ongoing|now)\b/i.test(cleaned);
+  const hasTrailingSeparator = /[-–—]\s*$/.test(cleaned);
+  const hasLeadingSeparator = /^\s*[-–—]/.test(cleaned);
+
+  let parts: string[] = [];
+  if (hasTrailingSeparator) {
+    parts = [cleanToken(cleaned.replace(/[-–—]\s*$/, '')), ''];
+  } else if (hasLeadingSeparator) {
+    parts = ['', cleanToken(cleaned.replace(/^\s*[-–—]/, ''))];
+  } else if (/[–—]/.test(cleaned)) {
+    parts = cleaned.split(/[–—]/).map(cleanToken);
+  } else if (/\s+[-–—]\s+/.test(cleaned)) {
+    parts = cleaned.split(/\s+[-–—]\s+/).map(cleanToken);
+  } else if (/\s+(?:to|until|through)\s+/i.test(cleaned)) {
+    parts = cleaned.split(/\s+(?:to|until|through)\s+/i).map(cleanToken);
+  } else if (cleaned.includes('-')) {
+    const hyphenSplit = cleaned.split('-').map(cleanToken);
+    parts = hyphenSplit;
+  } else {
+    parts = [cleanToken(cleaned)];
+  }
+
+  const nowYear = new Date().getFullYear();
+  const nowMonth = new Date().getMonth() + 1;
+
+  if (parts.length === 1) {
+    const singleToken = cleanToken(parts[0]);
+    if (isCurrentToken(singleToken) || hasCurrentAnywhere) {
+      return {
+        startDate: '',
+        endDate: 'Present',
+        current: true,
+        isDateUncertain: true,
+        dateWarning: 'Role explicitly marked current, but start date is missing.',
+        durationMonths: 0,
+      };
+    }
+
+    const yearMatch = singleToken.match(/\b(19\d\d|20\d\d)\b/);
+    if (yearMatch) {
+      return {
+        startDate: singleToken,
+        endDate: '',
+        current: false,
+        isDateUncertain: true,
+        dateWarning: 'Single date detected; end date missing and not assumed to be Present.',
+        durationMonths: 12,
+      };
+    }
+
+    return {
+      startDate: singleToken,
+      endDate: '',
+      current: false,
+      isDateUncertain: true,
+      dateWarning: 'Ambiguous OCR text; requires candidate confirmation.',
+      durationMonths: 0,
+    };
+  }
+
+  const rawStart = cleanToken(parts[0]);
+  const rawEnd = cleanToken(parts[1]);
+  const isCurrent = isCurrentToken(rawEnd) || hasCurrentAnywhere;
+  const finalEnd = isCurrent ? 'Present' : rawEnd;
+  const finalStart = rawStart;
+
+  let isDateUncertain = false;
+  let dateWarning: string | undefined;
+
+  if (!finalStart) {
+    isDateUncertain = true;
+    dateWarning = 'Start date is missing.';
+  }
+
+  if (!finalEnd) {
+    isDateUncertain = true;
+    dateWarning = 'End date is missing and not assumed to be Present.';
+  }
+
+  const startYearMatch = finalStart.match(/\b(19\d\d|20\d\d)\b/);
+  const endYearMatch = !isCurrent ? finalEnd.match(/\b(19\d\d|20\d\d)\b/) : null;
+
+  let durationMonths = 0;
+
+  if (startYearMatch) {
+    const startYear = parseInt(startYearMatch[1], 10);
+    if (startYear > nowYear + 1) {
+      isDateUncertain = true;
+      dateWarning = `Invalid future start year: ${startYear}`;
+    }
+
+    if (endYearMatch) {
+      const endYear = parseInt(endYearMatch[1], 10);
+      if (startYear > endYear) {
+        isDateUncertain = true;
+        dateWarning = `Chronological error: Start date (${finalStart}) is after end date (${finalEnd}).`;
+      } else {
+        durationMonths = Math.max(1, (endYear - startYear) * 12);
+      }
+    } else if (isCurrent) {
+      durationMonths = Math.max(1, (nowYear - startYear) * 12 + nowMonth);
+    }
+  } else {
+    isDateUncertain = true;
+    dateWarning = dateWarning || 'Could not parse start year.';
+  }
+
+  return {
+    startDate: finalStart,
+    endDate: finalEnd,
+    current: isCurrent,
+    isDateUncertain,
+    dateWarning,
+    durationMonths,
+  };
 }
 
 export const resumeEngine = {
@@ -142,7 +294,7 @@ export const resumeEngine = {
       return resumeEngine.heuristicParse(text, existingProfile);
     }
 
-    const systemPrompt = `You are ApplyWise AI's expert ATS Resume Parser.
+    const systemPrompt = `You are ApplyVise AI's expert ATS Resume Parser.
 Analyze the following resume text and extract candidate profile details into STRICT JSON matching this schema:
 {
   "fullName": string,
@@ -293,6 +445,58 @@ CRITICAL RULES:
       new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text)
     );
 
+    // Heuristic experience extraction from text if available
+    const parsedExperiences = existingProfile?.experiences ? [...existingProfile.experiences] : [];
+    if (parsedExperiences.length === 0) {
+      const expSectionMatch = text.match(/(?:EXPERIENCE|WORK HISTORY|EMPLOYMENT)[\s\S]*?(?=(?:EDUCATION|SKILLS|CERTIFICATIONS|$))/i);
+      if (expSectionMatch) {
+        const expBlock = expSectionMatch[0];
+        const expLines = expBlock.split('\n').map(l => l.trim()).filter(Boolean);
+
+        for (const line of expLines) {
+          if (/^(?:experience|work history|employment|education|skills|certifications)/i.test(line)) continue;
+          const atMatch = line.match(/^([^—–\n]+?)\s+(?:at|@)\s+([^(\n]+?)(?:\s*\((.*?)\))?$/i);
+          const dashMatch = line.match(/^([A-Za-z0-9\s]+?)\s+[-–—]\s+([^(\n]+?)(?:\s*\((.*?)\))?$/i);
+          const match = atMatch || dashMatch;
+
+        if (match) {
+          const part1 = match[1].trim();
+          const part2 = match[2].trim();
+          const dates = match[3] ? match[3].trim() : '';
+          const isAt = Boolean(atMatch);
+          const role = isAt ? part1 : part2;
+          const company = isAt ? part2 : part1;
+
+          if (company.length > 1 && role.length > 1 && company.length < 50 && role.length < 60) {
+            const parsedDates = parseEmploymentDates(dates);
+            parsedExperiences.push({
+              id: crypto.randomUUID(),
+              company,
+              role,
+              startDate: parsedDates.startDate,
+              endDate: parsedDates.endDate,
+              current: parsedDates.current,
+              isDateUncertain: parsedDates.isDateUncertain,
+              dateWarning: parsedDates.dateWarning,
+              location: '',
+              description: '',
+              achievements: [],
+              verifiedSkillsUsed: [],
+            });
+          }
+        }
+      }
+    }
+  }
+
+    // Dynamic experience duration calculation
+    const totalMonths = parsedExperiences.reduce((sum, exp) => {
+      const d = parseEmploymentDates(exp.startDate ? `${exp.startDate} - ${exp.endDate || (exp.current ? 'Present' : '')}` : '');
+      return sum + d.durationMonths;
+    }, 0);
+    const calculatedExpYears = Math.round(totalMonths / 12);
+    const totalExperienceYears = existingProfile?.totalExperienceYears || calculatedExpYears || 0;
+
     return {
       id: existingProfile?.id || crypto.randomUUID(),
       fullName: existingProfile?.fullName || (firstLine.length < 40 ? firstLine : 'Verified Candidate'),
@@ -303,23 +507,21 @@ CRITICAL RULES:
       workAuthorizationStatus: existingProfile?.workAuthorizationStatus || '',
       workAuthorization: existingProfile?.workAuthorization || [],
       requiresVisaSponsorship: existingProfile?.requiresVisaSponsorship || false,
-      currentTitle: existingProfile?.currentTitle || 'Professional',
-      currentEmployer: existingProfile?.currentEmployer || '',
-      totalExperienceYears: existingProfile?.totalExperienceYears || 3,
-      professionalSummary: lines.slice(1, 4).join(' ').slice(0, 350) || 'Experienced professional with demonstrated background.',
-      education: existingProfile?.education || [
-        { id: crypto.randomUUID(), degree: 'Bachelor Degree', institution: 'University', fieldOfStudy: 'General Studies', graduationYear: '2020' }
-      ],
+      currentTitle: existingProfile?.currentTitle || (parsedExperiences[0]?.role || ''),
+      currentEmployer: existingProfile?.currentEmployer || (parsedExperiences[0]?.company || ''),
+      totalExperienceYears,
+      professionalSummary: existingProfile?.professionalSummary || lines.slice(1, 4).join(' ').slice(0, 350) || '',
+      education: existingProfile?.education || [],
       certifications: existingProfile?.certifications || [],
-      skills: skillsFound.map(s => ({
+      skills: skillsFound.map((s): VerifiedSkill => ({
         name: s,
         category: 'general',
         proficiency: 'proficient',
         yearsExperience: 2,
         verified: true,
       })),
-      experiences: existingProfile?.experiences || [],
-      languages: ['English'],
+      experiences: parsedExperiences,
+      languages: existingProfile?.languages || ['English'],
       masterResumeLastUpdated: new Date().toISOString(),
     };
   },
@@ -388,7 +590,7 @@ CRITICAL RULES:
 
     if (process.env.GEMINI_API_KEY) {
       try {
-        const prompt = `You are ApplyWise AI's Zero-Hallucination ATS Resume Tailoring Engine.
+        const prompt = `You are ApplyVise AI's Zero-Hallucination ATS Resume Tailoring Engine.
 Task: Align the candidate's verified profile to this vacancy WITHOUT INVENTING ANY FACTS.
 
 TARGET JOB VACANCY:

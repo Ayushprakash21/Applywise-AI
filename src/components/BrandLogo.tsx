@@ -38,8 +38,8 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         style={{ width: dim.icon, height: dim.icon }}
       >
         <img
-          src="/branding/applywise-logo.png"
-          alt="ApplyWise AI logo"
+          src="/branding/applyvise-logo.png"
+          alt="ApplyVise AI logo"
           width={dim.icon}
           height={dim.icon}
           className="w-full h-full object-contain filter drop-shadow-sm select-none"
@@ -56,7 +56,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
               isDarkBg ? 'text-white' : 'text-slate-900'
             }`}
           >
-            ApplyWise
+            ApplyVise
           </span>
           <span className="font-semibold text-blue-600">AI</span>
           {badge && (
@@ -77,7 +77,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
   if (href) {
     return (
-      <a href={href} className="inline-block cursor-pointer focus:outline-hidden" aria-label="ApplyWise AI Home">
+      <a href={href} className="inline-block cursor-pointer focus:outline-hidden" aria-label="ApplyVise AI Home">
         {content}
       </a>
     );
@@ -89,7 +89,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         type="button"
         onClick={onClick}
         className="inline-block cursor-pointer bg-transparent border-none p-0 focus:outline-hidden text-left"
-        aria-label="ApplyWise AI Home"
+        aria-label="ApplyVise AI Home"
       >
         {content}
       </button>

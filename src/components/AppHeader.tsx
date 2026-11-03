@@ -320,7 +320,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         className="w-full px-3.5 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-2 transition"
                       >
                         <Info className="h-4 w-4 text-slate-400" />
-                        <span>About ApplyWise AI</span>
+                        <span>About ApplyVise AI</span>
                       </button>
                     )}
 
