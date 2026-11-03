@@ -38,22 +38,126 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), inset 0 1px 2px 0 rgba(15, 23, 42, 0.02);
   }
 
-  /* Neumorphic subtle depth */
+  /* Neumorphic Design System (Light Tactile UI) */
+  :root {
+    --neu-bg: #E9EDF3;
+    --neu-surface: #EEF2F7;
+    --neu-shadow-dark: #C5CEDA;
+    --neu-shadow-light: #FFFFFF;
+    --neu-text-primary: #1E293B;
+    --neu-text-secondary: #64748B;
+    --neu-accent: #2563EB;
+    --neu-accent-hover: #1D4ED8;
+  }
+
+  .neu-bg {
+    background-color: #E9EDF3;
+  }
+
+  .neu-surface {
+    background-color: #EEF2F7;
+    color: #1E293B;
+  }
+
   .neu-raised {
-    box-shadow: 3px 3px 6px #e2e8f0, -3px -3px 6px #ffffff;
+    background: #EEF2F7;
+    box-shadow: 8px 8px 16px #C5CEDA, -8px -8px 16px #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .neu-raised-hover {
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .neu-raised-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 10px 10px 20px #C5CEDA, -10px -10px 20px #FFFFFF;
+    border-color: rgba(255, 255, 255, 0.9);
   }
 
   .neu-inset {
-    box-shadow: inset 2px 2px 5px #e2e8f0, inset -2px -2px 5px #ffffff;
+    background: #E9EDF3;
+    box-shadow: inset 4px 4px 8px #C5CEDA, inset -4px -4px 8px #FFFFFF;
+    border: 1px solid rgba(197, 206, 218, 0.5);
+    transition: all 0.2s ease;
+  }
+
+  .neu-card {
+    background: #EEF2F7;
+    box-shadow: 8px 8px 16px #C5CEDA, -8px -8px 16px #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 1.25rem;
+  }
+
+  .neu-panel {
+    background: #EEF2F7;
+    box-shadow: 6px 6px 14px #C5CEDA, -6px -6px 14px #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 1.5rem;
   }
 
   .neu-button {
-    background: #ffffff;
-    box-shadow: 2px 2px 5px #e2e8f0, -2px -2px 5px #ffffff;
-    transition: all 0.15s ease;
+    background: #EEF2F7;
+    color: #1E293B;
+    box-shadow: 5px 5px 10px #C5CEDA, -5px -5px 10px #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .neu-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 6px 6px 12px #C5CEDA, -6px -6px 12px #FFFFFF;
+    color: #2563EB;
   }
   .neu-button:active {
-    box-shadow: inset 2px 2px 4px #e2e8f0, inset -2px -2px 4px #ffffff;
+    transform: translateY(0);
+    box-shadow: inset 3px 3px 6px #C5CEDA, inset -3px -3px 6px #FFFFFF;
+  }
+
+  .neu-button-primary {
+    background: #2563EB;
+    color: #FFFFFF;
+    box-shadow: 4px 4px 10px rgba(37, 99, 235, 0.35), -3px -3px 8px #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .neu-button-primary:hover {
+    background: #1D4ED8;
+    transform: translateY(-1px);
+    box-shadow: 6px 6px 14px rgba(37, 99, 235, 0.45), -4px -4px 10px #FFFFFF;
+  }
+  .neu-button-primary:active {
+    transform: translateY(0);
+    box-shadow: inset 3px 3px 6px rgba(15, 23, 42, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.2);
+  }
+
+  .neu-input {
+    background: #E9EDF3;
+    color: #1E293B;
+    box-shadow: inset 4px 4px 8px #C5CEDA, inset -4px -4px 8px #FFFFFF;
+    border: 1px solid rgba(197, 206, 218, 0.6);
+    transition: all 0.2s ease;
+  }
+  .neu-input:focus {
+    outline: none;
+    border-color: #2563EB;
+    box-shadow: inset 3px 3px 6px #C5CEDA, inset -3px -3px 6px #FFFFFF, 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+
+  .neu-chip {
+    background: #EEF2F7;
+    color: #64748B;
+    box-shadow: 3px 3px 6px #C5CEDA, -3px -3px 6px #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: all 0.2s ease;
+  }
+  .neu-chip:hover {
+    color: #2563EB;
+    box-shadow: 4px 4px 8px #C5CEDA, -4px -4px 8px #FFFFFF;
+  }
+  .neu-chip.active, .neu-chip:active {
+    color: #2563EB;
+    font-weight: 600;
+    box-shadow: inset 2px 2px 4px #C5CEDA, inset -2px -2px 4px #FFFFFF;
   }
 
   /* Cinematic Dark / Daoism aesthetic styles */

@@ -35,6 +35,8 @@ import { AICopilot } from './components/AICopilot.tsx';
 import { CareerTwinPage } from './components/CareerTwinPage.tsx';
 import { AdminConsole } from './components/AdminConsole.tsx';
 import { AdminLoginPage } from './components/AdminLoginPage.tsx';
+import { FlowLogin } from './components/FlowLogin.tsx';
+import { FlowSignup } from './components/FlowSignup.tsx';
 import { UserSubscription } from './config/plans.ts';
 import { isPermanentFreeAccessAccount } from './config/freeAccess.ts';
 import { DashboardSummary } from './services/api.ts';
@@ -97,6 +99,13 @@ export default function App() {
     setCurrentRoute(path);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Redirect authenticated users away from standalone auth pages to overview
+  useEffect(() => {
+    if (currentUser && (currentRoute === '/login' || currentRoute === '/signin' || currentRoute === '/signup' || currentRoute === '/register')) {
+      navigateTo('/');
+    }
+  }, [currentUser, currentRoute]);
 
   // Safe server-validated session boot
   useEffect(() => {
@@ -324,7 +333,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 antialiased flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
+    <div className="min-h-screen bg-[#E9EDF3] neu-bg text-slate-800 antialiased flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold shadow-xl border border-slate-700 animate-in fade-in slide-in-from-bottom duration-200">
@@ -382,6 +391,26 @@ export default function App() {
             setCurrentUser(adminUser);
             navigateTo('/admin');
           }}
+          onNavigateHome={() => navigateTo('/')}
+        />
+      ) : (currentRoute === '/signup' || currentRoute === '/register') && !currentUser ? (
+        <FlowSignup
+          onSuccess={(user, token) => {
+            handleLoginSuccess(user, token, true);
+            navigateTo('/');
+          }}
+          onNavigateToLogin={() => navigateTo('/login')}
+          onNavigateHome={() => navigateTo('/')}
+          onOpenTerms={() => setTermsModalOpen(true)}
+          onOpenPrivacy={() => setPrivacyModalOpen(true)}
+        />
+      ) : (currentRoute === '/login' || currentRoute === '/signin') && !currentUser ? (
+        <FlowLogin
+          onSuccess={(user, token) => {
+            handleLoginSuccess(user, token, false);
+            navigateTo('/');
+          }}
+          onNavigateToSignup={() => navigateTo('/signup')}
           onNavigateHome={() => navigateTo('/')}
         />
       ) : currentUser ? (
@@ -592,6 +621,8 @@ export default function App() {
         initialMode={authModalMode}
         onClose={() => setAuthModalOpen(false)}
         onSuccess={handleLoginSuccess}
+        onOpenTerms={() => setTermsModalOpen(true)}
+        onOpenPrivacy={() => setPrivacyModalOpen(true)}
       />
 
       <ResumeOnboardingModal

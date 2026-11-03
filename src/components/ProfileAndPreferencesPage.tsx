@@ -160,7 +160,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="glass-card rounded-2xl p-6 shadow-sm border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="neu-panel p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2">
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">Profile & Career Preferences</h1>
@@ -169,14 +169,14 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
               <span>ATS Source of Truth</span>
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-600 mt-0.5">
             This verified record is the factual foundation for all tailored applications. ApplyWise AI never fabricates details outside this profile.
           </p>
         </div>
 
         <button
           onClick={onOpenOnboarding}
-          className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-semibold shadow-xs transition flex items-center space-x-1.5 shrink-0"
+          className="px-4 py-2 neu-button rounded-xl text-xs font-semibold transition flex items-center space-x-1.5 shrink-0"
         >
           <Upload className="h-3.5 w-3.5" />
           <span>Upload / Replace Resume</span>
@@ -189,8 +189,8 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
           onClick={() => setActiveSubTab('profile')}
           className={`px-4 py-2.5 rounded-xl font-semibold transition min-h-[40px] touch-target ${
             activeSubTab === 'profile'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'glass-card text-slate-600 hover:text-slate-900'
+              ? 'neu-button-primary'
+              : 'neu-chip'
           }`}
         >
           Verified Career Profile
@@ -199,8 +199,8 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
           onClick={() => setActiveSubTab('preferences')}
           className={`px-4 py-2.5 rounded-xl font-semibold transition min-h-[40px] touch-target ${
             activeSubTab === 'preferences'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'glass-card text-slate-600 hover:text-slate-900'
+              ? 'neu-button-primary'
+              : 'neu-chip'
           }`}
         >
           Career Preferences & Targets
@@ -211,7 +211,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
       {activeSubTab === 'profile' && (
         <div className="space-y-6">
           {/* Identity & Contact Card */}
-          <div className="glass-card rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+          <div className="neu-panel p-6 space-y-4">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Personal & Contact Info</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div>
@@ -220,7 +220,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   type="text"
                   value={profileData.fullName}
                   onChange={e => setProfileData({ ...profileData, fullName: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl neu-input text-slate-900"
                 />
               </div>
 
@@ -230,7 +230,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   type="text"
                   value={profileData.currentTitle}
                   onChange={e => setProfileData({ ...profileData, currentTitle: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl neu-input text-slate-900"
                 />
               </div>
 
@@ -240,7 +240,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   type="email"
                   value={profileData.email}
                   onChange={e => setProfileData({ ...profileData, email: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl neu-input text-slate-900"
                 />
               </div>
 
@@ -250,7 +250,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   type="text"
                   value={profileData.phone}
                   onChange={e => setProfileData({ ...profileData, phone: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl neu-input text-slate-900"
                 />
               </div>
 
@@ -260,7 +260,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   type="text"
                   value={profileData.location}
                   onChange={e => setProfileData({ ...profileData, location: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl neu-input text-slate-900"
                 />
               </div>
 
@@ -270,7 +270,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   type="number"
                   value={profileData.totalExperienceYears}
                   onChange={e => setProfileData({ ...profileData, totalExperienceYears: Number(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl neu-input text-slate-900"
                 />
               </div>
             </div>
@@ -281,13 +281,13 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                 rows={3}
                 value={profileData.professionalSummary}
                 onChange={e => setProfileData({ ...profileData, professionalSummary: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-900 focus:border-blue-500 outline-none leading-relaxed"
+                className="w-full px-3.5 py-2.5 rounded-xl neu-input text-xs text-slate-900 leading-relaxed"
               />
             </div>
           </div>
 
           {/* Verified Skills */}
-          <div className="glass-card rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+          <div className="neu-panel p-6 space-y-4">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
               Verified Technical & Core Skills ({profileData.skills.length})
             </h2>
@@ -299,22 +299,22 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                 onChange={e => setNewSkill(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSkill())}
                 placeholder="Add verified skill (e.g. TypeScript, Docker, SQL)..."
-                className="min-w-0 flex-1 px-3 py-2 min-h-[44px] rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
+                className="min-w-0 flex-1 px-3.5 py-2 min-h-[44px] rounded-xl neu-input text-slate-900"
               />
               <button
                 type="button"
                 onClick={addSkill}
-                className="shrink-0 px-4 py-2 min-h-[44px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold transition touch-target"
+                className="shrink-0 px-4 py-2 min-h-[44px] neu-button rounded-xl font-semibold transition touch-target"
               >
                 Add Skill
               </button>
             </div>
 
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {profileData.skills.map((s, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-800 rounded-lg text-xs font-medium shadow-2xs"
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 neu-chip text-slate-800 rounded-xl text-xs font-medium"
                 >
                   <span>{s.name}</span>
                   <button
@@ -340,7 +340,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
             <button
               onClick={handleSaveProfile}
               disabled={isSaving}
-              className="px-6 py-3 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs disabled:opacity-50 transition flex items-center justify-center space-x-1.5 touch-target"
+              className="px-6 py-3 min-h-[44px] neu-button-primary rounded-xl text-xs font-semibold disabled:opacity-50 transition flex items-center justify-center space-x-1.5 touch-target"
             >
               <Save className="h-4 w-4" />
               <span>{isSaving ? 'Saving...' : 'Save Profile Changes'}</span>
@@ -353,7 +353,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
       {activeSubTab === 'preferences' && (
         <div className="space-y-6">
           {/* Target Roles & Countries */}
-          <div className="glass-card rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-5">
+          <div className="neu-panel p-6 space-y-5">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Career Targeting</h2>
 
             {/* Target Roles */}
@@ -366,28 +366,28 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   onChange={e => setNewRole(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTargetRole())}
                   placeholder="e.g. Senior Software Engineer, Technical Lead..."
-                  className="min-w-0 flex-1 px-3 py-2 min-h-[44px] rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
+                  className="min-w-0 flex-1 px-3.5 py-2 min-h-[44px] rounded-xl neu-input text-slate-900"
                 />
                 <button
                   type="button"
                   onClick={addTargetRole}
-                  className="shrink-0 px-4 py-2 min-h-[44px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold transition touch-target"
+                  className="shrink-0 px-4 py-2 min-h-[44px] neu-button rounded-xl font-semibold transition touch-target"
                 >
                   Add Role
                 </button>
               </div>
 
-              <div className="flex flex-wrap gap-1.5 pt-1">
+              <div className="flex flex-wrap gap-2 pt-1">
                 {(prefData.targetRoles || prefData.preferredTitles || []).map(r => (
                   <span
                     key={r}
-                    className="inline-flex items-center space-x-1.5 px-3 py-1 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-xs font-medium"
+                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 neu-chip text-blue-700 rounded-xl text-xs font-medium"
                   >
                     <span>{r}</span>
                     <button
                       type="button"
                       onClick={() => removeTargetRole(r)}
-                      className="text-blue-400 hover:text-red-500 transition"
+                      className="text-blue-400 hover:text-red-500 transition ml-1"
                     >
                       ✕
                     </button>
@@ -397,16 +397,16 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
             </div>
 
             {/* Salary & Visa */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2 border-t border-slate-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-3 border-t border-slate-200/60">
               <div>
                 <label className="font-semibold text-slate-700 mb-1 block">Minimum Annual Salary Floor ($USD)</label>
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <input
                     type="number"
                     value={prefData.minSalaryUSD || 80000}
                     onChange={e => setPrefData({ ...prefData, minSalaryUSD: Number(e.target.value) || 0 })}
-                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl neu-input text-slate-900"
                   />
                 </div>
               </div>
@@ -414,7 +414,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
               <div>
                 <label className="font-semibold text-slate-700 mb-1 block">Visa Sponsorship Requirement</label>
                 <div className="flex items-center space-x-3 pt-2">
-                  <label className="flex items-center space-x-2 cursor-pointer">
+                  <label className="flex items-center space-x-2 cursor-pointer neu-chip px-3 py-2 rounded-xl">
                     <input
                       type="checkbox"
                       checked={!!prefData.requiresVisaSponsorship || !!prefData.visaSponsorshipRequired}
@@ -423,7 +423,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                         requiresVisaSponsorship: e.target.checked,
                         visaSponsorshipRequired: e.target.checked,
                       })}
-                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded text-blue-600 focus:ring-0"
                     />
                     <span className="text-slate-700 font-medium">I require visa sponsorship for international roles</span>
                   </label>
@@ -432,7 +432,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
             </div>
 
             {/* Excluded Companies & Keywords */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2 border-t border-slate-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-3 border-t border-slate-200/60">
               <div className="space-y-2">
                 <label className="font-semibold text-slate-700 block">Excluded Companies</label>
                 <div className="flex gap-2">
@@ -442,19 +442,19 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                     onChange={e => setNewExcludedCompany(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addExcludedCompany())}
                     placeholder="e.g. Unwanted Employer..."
-                    className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
+                    className="flex-1 px-3.5 py-2 rounded-xl neu-input text-slate-900"
                   />
                   <button
                     type="button"
                     onClick={addExcludedCompany}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl"
+                    className="px-3.5 py-2 neu-button rounded-xl text-xs font-semibold"
                   >
                     Add
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {prefData.excludedCompanies.map(c => (
-                    <span key={c} className="px-2.5 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-md text-[11px] inline-flex items-center space-x-1">
+                    <span key={c} className="px-2.5 py-1 neu-chip text-red-700 rounded-lg text-[11px] inline-flex items-center space-x-1">
                       <span>{c}</span>
                       <button onClick={() => removeExcludedCompany(c)}>✕</button>
                     </span>
@@ -471,19 +471,19 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                     onChange={e => setNewExcludedKeyword(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addExcludedKeyword())}
                     placeholder="e.g. internship, unpaid..."
-                    className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
+                    className="flex-1 px-3.5 py-2 rounded-xl neu-input text-slate-900"
                   />
                   <button
                     type="button"
                     onClick={addExcludedKeyword}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl"
+                    className="px-3.5 py-2 neu-button rounded-xl text-xs font-semibold"
                   >
                     Add
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {prefData.excludedKeywords.map(k => (
-                    <span key={k} className="px-2.5 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-md text-[11px] inline-flex items-center space-x-1">
+                    <span key={k} className="px-2.5 py-1 neu-chip text-red-700 rounded-lg text-[11px] inline-flex items-center space-x-1">
                       <span>{k}</span>
                       <button onClick={() => removeExcludedKeyword(k)}>✕</button>
                     </span>
@@ -504,7 +504,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
             <button
               onClick={handleSavePreferences}
               disabled={isSaving}
-              className="px-6 py-3 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs disabled:opacity-50 transition flex items-center justify-center space-x-1.5 touch-target"
+              className="px-6 py-3 min-h-[44px] neu-button-primary rounded-xl text-xs font-semibold disabled:opacity-50 transition flex items-center justify-center space-x-1.5 touch-target"
             >
               <Save className="h-4 w-4" />
               <span>{isSaving ? 'Saving...' : 'Save Preferences'}</span>

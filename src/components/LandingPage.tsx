@@ -65,9 +65,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#E9EDF3] neu-bg text-slate-800 flex flex-col font-sans">
       {/* Top Navigation - Clean Consumer SaaS Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-colors shadow-xs">
+      <header className="sticky top-0 z-50 bg-[#EEF2F7]/95 backdrop-blur-md border-b border-slate-300/60 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <BrandLogo
             variant="light"
@@ -114,13 +114,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="hidden sm:flex items-center space-x-3">
             <button
               onClick={() => onOpenAuth('login')}
-              className="px-4 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-slate-700 hover:text-blue-600 transition-colors"
             >
               Sign In
             </button>
             <button
               onClick={() => onOpenAuth('signup')}
-              className="group px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-500/20 transition-all flex items-center space-x-1.5"
+              className="group px-5 py-2.5 rounded-xl text-xs font-semibold text-white neu-button-primary transition-all flex items-center space-x-1.5"
             >
               <span>Get Started Free</span>
               <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -139,7 +139,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         {/* Mobile dropdown drawer */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-white border-b border-slate-200 px-6 py-6 space-y-4 text-xs font-semibold text-slate-700 shadow-xl animate-in fade-in slide-in-from-top-2">
+          <div className="lg:hidden neu-panel border-b border-slate-300 px-6 py-6 space-y-4 text-xs font-semibold text-slate-700 animate-in fade-in slide-in-from-top-2">
             <a
               href="#network"
               onClick={() => setMobileMenuOpen(false)}
@@ -197,13 +197,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 About Us
               </button>
             )}
-            <div className="pt-4 border-t border-slate-100 flex flex-col space-y-2">
+            <div className="pt-4 border-t border-slate-200/80 flex flex-col space-y-2">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onOpenAuth('login');
                 }}
-                className="w-full py-2.5 rounded-xl border border-slate-200 text-center font-semibold text-slate-700 hover:bg-slate-50"
+                className="w-full py-2.5 rounded-xl neu-button text-center font-semibold text-slate-700"
               >
                 Sign In
               </button>
@@ -212,7 +212,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenAuth('signup');
                 }}
-                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-center shadow-xs"
+                className="w-full py-2.5 rounded-xl neu-button-primary text-white font-semibold text-center"
               >
                 Get Started Free
               </button>
@@ -222,10 +222,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-16 md:pt-20 md:pb-24 bg-white border-b border-slate-200/80">
+      <section className="relative overflow-hidden pt-12 pb-16 md:pt-20 md:pb-24 border-b border-slate-300/60">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-6 sm:space-y-7">
           {/* Friendly System Pill */}
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold shadow-xs">
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full neu-inset text-blue-700 text-xs font-semibold">
             <Sparkles className="h-3.5 w-3.5 text-blue-600" />
             <span>APPLYWISE AI 2.0 · TRUTHFUL CAREER INTELLIGENCE</span>
           </div>
@@ -245,14 +245,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <button
               onClick={() => onOpenAuth('signup')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl shadow-sm shadow-blue-500/20 transition-all flex items-center justify-center space-x-2"
+              className="w-full sm:w-auto px-8 py-3.5 neu-button-primary text-white font-semibold text-sm rounded-xl transition-all flex items-center justify-center space-x-2"
             >
               <span>Get Started Free</span>
               <ArrowRight className="h-4 w-4" />
             </button>
             <a
               href="#cockpit"
-              className="w-full sm:w-auto px-8 py-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 font-semibold text-sm rounded-xl transition-colors flex items-center justify-center space-x-2 shadow-xs"
+              className="w-full sm:w-auto px-8 py-3.5 neu-button text-slate-700 font-semibold text-sm rounded-xl transition-colors flex items-center justify-center space-x-2"
             >
               <span>Explore Job Match</span>
               <ChevronRight className="h-4 w-4 text-slate-400" />
@@ -263,29 +263,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="max-w-2xl mx-auto pt-4 px-2 sm:px-0">
             <form
               onSubmit={handleSearchSubmit}
-              className="relative flex flex-col sm:flex-row items-stretch sm:items-center p-1.5 sm:p-2 rounded-2xl bg-white border border-slate-200 shadow-md focus-within:border-blue-500 transition-all gap-2"
+              className="relative flex flex-col sm:flex-row items-stretch sm:items-center p-2 rounded-2xl neu-panel gap-2"
             >
-              <div className="flex items-center min-w-0 flex-1">
-                <Search className="h-5 w-5 text-slate-400 ml-2.5 sm:ml-3 shrink-0" />
+              <div className="flex items-center min-w-0 flex-1 neu-inset rounded-xl px-3 py-1.5">
+                <Search className="h-5 w-5 text-slate-400 shrink-0" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Search by title, skill, or role (e.g. Product Manager, Go, Staff Frontend)..."
-                  className="w-full min-w-0 px-2.5 sm:px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none bg-transparent"
+                  className="w-full min-w-0 px-2.5 py-1.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none bg-transparent"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-xs shrink-0 transition"
+                className="w-full sm:w-auto px-6 py-2.5 neu-button-primary rounded-xl text-xs sm:text-sm font-semibold shrink-0 transition"
               >
                 Find Jobs
               </button>
             </form>
 
             {/* Popular Filter Pills */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-3 text-xs text-slate-600">
-              <span className="font-semibold text-slate-400">Popular:</span>
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs text-slate-600">
+              <span className="font-semibold text-slate-500">Popular:</span>
               {[
                 'Software Engineer',
                 'Product Manager',
@@ -301,7 +301,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     setSearchQuery(tag);
                     onSearch(tag);
                   }}
-                  className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-700 text-xs font-medium transition shadow-xs"
+                  className="px-3 py-1.5 neu-chip rounded-xl text-slate-700 text-xs font-medium"
                 >
                   {tag}
                 </button>
@@ -312,7 +312,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         {/* Visual Graph Section Anchor */}
         <div id="network" className="mt-12 max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="rounded-2xl bg-white border border-slate-200/90 p-4 sm:p-6 shadow-xs">
+          <div className="neu-panel p-4 sm:p-6">
             <div className="mb-3 text-left">
               <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
                 <Network className="h-4 w-4 text-blue-600" />
@@ -328,7 +328,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* Section A: 3 Core Product Pillars */}
-      <section className="py-16 sm:py-20 bg-white border-b border-slate-200/80">
+      <section className="py-16 sm:py-20 border-b border-slate-300/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-2.5">
             <span className="text-blue-600 font-semibold text-xs tracking-wider uppercase">
@@ -344,9 +344,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {/* Pillar 1 */}
-            <div className="p-6 sm:p-7 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition">
+            <div className="p-6 sm:p-7 neu-card neu-raised-hover flex flex-col justify-between space-y-4">
               <div className="space-y-3">
-                <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+                <div className="w-12 h-12 rounded-xl neu-inset flex items-center justify-center text-blue-600">
                   <FileText className="h-5 w-5" />
                 </div>
                 <div>
@@ -356,16 +356,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </p>
                 </div>
               </div>
-              <div className="pt-3 border-t border-slate-200 flex items-center space-x-2 text-blue-600 text-xs font-semibold">
+              <div className="pt-3 border-t border-slate-200/80 flex items-center space-x-2 text-blue-600 text-xs font-semibold">
                 <CheckCircle2 className="h-4 w-4" />
                 <span>Zero AI hallucinations</span>
               </div>
             </div>
 
             {/* Pillar 2 */}
-            <div className="p-6 sm:p-7 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition">
+            <div className="p-6 sm:p-7 neu-card neu-raised-hover flex flex-col justify-between space-y-4">
               <div className="space-y-3">
-                <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                <div className="w-12 h-12 rounded-xl neu-inset flex items-center justify-center text-emerald-600">
                   <Globe className="h-5 w-5" />
                 </div>
                 <div>
@@ -375,16 +375,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </p>
                 </div>
               </div>
-              <div className="pt-3 border-t border-slate-200 flex items-center space-x-2 text-emerald-600 text-xs font-semibold">
+              <div className="pt-3 border-t border-slate-200/80 flex items-center space-x-2 text-emerald-600 text-xs font-semibold">
                 <CheckCircle2 className="h-4 w-4" />
                 <span>Real active listings</span>
               </div>
             </div>
 
             {/* Pillar 3 */}
-            <div className="p-6 sm:p-7 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition">
+            <div className="p-6 sm:p-7 neu-card neu-raised-hover flex flex-col justify-between space-y-4">
               <div className="space-y-3">
-                <div className="w-11 h-11 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600">
+                <div className="w-12 h-12 rounded-xl neu-inset flex items-center justify-center text-indigo-600">
                   <Briefcase className="h-5 w-5" />
                 </div>
                 <div>
@@ -394,7 +394,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </p>
                 </div>
               </div>
-              <div className="pt-3 border-t border-slate-200 flex items-center space-x-2 text-indigo-600 text-xs font-semibold">
+              <div className="pt-3 border-t border-slate-200/80 flex items-center space-x-2 text-indigo-600 text-xs font-semibold">
                 <CheckCircle2 className="h-4 w-4" />
                 <span>Clear interview tracking</span>
               </div>
@@ -404,7 +404,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* Section B: How It Works (The 6-Stage Journey) */}
-      <section id="journey" className="py-16 sm:py-20 bg-[#F8FAFC] border-b border-slate-200/80">
+      <section id="journey" className="py-16 sm:py-20 border-b border-slate-300/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-2.5">
             <span className="text-blue-600 font-semibold text-xs tracking-wider uppercase">
@@ -465,14 +465,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             ].map(stage => (
               <div
                 key={stage.num}
-                className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-blue-300 hover:shadow-md transition-all flex flex-col justify-between"
+                className="p-6 neu-card neu-raised-hover flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80">
                     <span className="font-mono text-2xl font-black text-blue-600">
                       {stage.num}
                     </span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg neu-inset text-blue-700">
                       {stage.badge}
                     </span>
                   </div>
@@ -487,7 +487,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* Section C: Phase 3 Redesigned Match Experience */}
-      <section id="cockpit" className="py-16 sm:py-20 bg-white border-b border-slate-200/80">
+      <section id="cockpit" className="py-16 sm:py-20 border-b border-slate-300/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10">
           {/* Phase 3 Required Page Heading and Supporting Text */}
           <div className="text-center max-w-3xl mx-auto space-y-2.5">
@@ -500,19 +500,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Interactive Consumer-Facing Job Match Card */}
-          <div className="max-w-4xl mx-auto rounded-2xl bg-white border border-slate-200 shadow-md overflow-hidden">
+          <div className="max-w-4xl mx-auto neu-panel overflow-hidden">
             {/* Clean Tab Switcher */}
-            <div className="px-6 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
-              <div className="text-xs font-bold text-slate-700">
+            <div className="px-6 py-4 border-b border-slate-300/60 flex flex-wrap items-center justify-between gap-4">
+              <div className="text-xs font-bold text-slate-800">
                 Sample Role Evaluation
               </div>
 
-              <div className="flex items-center space-x-1 p-1 bg-slate-200/70 rounded-xl border border-slate-200 text-xs font-semibold overflow-x-auto max-w-full">
+              <div className="flex items-center space-x-1.5 p-1 neu-inset rounded-xl text-xs font-semibold overflow-x-auto max-w-full">
                 <button
                   onClick={() => setActiveTab('fit')}
-                  className={`px-3 py-1.5 rounded-lg transition-all shrink-0 ${
+                  className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 ${
                     activeTab === 'fit'
-                      ? 'bg-white text-blue-700 font-bold shadow-xs'
+                      ? 'neu-raised text-blue-700 font-bold'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -520,9 +520,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </button>
                 <button
                   onClick={() => setActiveTab('audit')}
-                  className={`px-3 py-1.5 rounded-lg transition-all shrink-0 ${
+                  className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 ${
                     activeTab === 'audit'
-                      ? 'bg-white text-blue-700 font-bold shadow-xs'
+                      ? 'neu-raised text-blue-700 font-bold'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -530,9 +530,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </button>
                 <button
                   onClick={() => setActiveTab('tailor')}
-                  className={`px-3 py-1.5 rounded-lg transition-all shrink-0 ${
+                  className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 ${
                     activeTab === 'tailor'
-                      ? 'bg-white text-blue-700 font-bold shadow-xs'
+                      ? 'neu-raised text-blue-700 font-bold'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -542,17 +542,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             {/* Tab Contents */}
-            <div className="p-6 sm:p-8 bg-white">
+            <div className="p-6 sm:p-8">
               {activeTab === 'fit' && (
                 <div className="space-y-6">
                   {/* Phase 3 Job Summary Card */}
-                  <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="p-5 neu-card flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center space-x-2">
-                        <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-semibold uppercase">
+                        <span className="px-2 py-0.5 rounded-md neu-inset text-blue-700 text-[10px] font-semibold uppercase">
                           Full-Time
                         </span>
-                        <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
                           Remote
                         </span>
                       </div>
@@ -568,7 +568,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                     <button
                       onClick={() => onOpenAuth('signup')}
-                      className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shrink-0 shadow-xs"
+                      className="px-4 py-2 rounded-xl neu-button-primary text-xs font-semibold shrink-0"
                     >
                       View or Apply for Role
                     </button>
@@ -806,7 +806,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* Section E: Live Job Discovery */}
-      <section id="jobs" className="py-16 sm:py-20 bg-white border-b border-slate-200/80">
+      <section id="jobs" className="py-16 sm:py-20 border-b border-slate-300/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
@@ -822,7 +822,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <button
               onClick={() => onOpenAuth('signup')}
-              className="px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-semibold flex items-center space-x-1.5 w-fit transition-colors"
+              className="px-4 py-2 rounded-xl neu-button text-blue-700 text-xs font-semibold flex items-center space-x-1.5 w-fit transition-colors"
             >
               <span>Explore All Live Listings</span>
               <ChevronRight className="h-4 w-4" />
@@ -834,11 +834,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div
                 key={v.id}
                 onClick={() => onSelectVacancy(v)}
-                className="group p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between space-y-4 shadow-xs"
+                className="group p-5 sm:p-6 neu-card neu-raised-hover cursor-pointer flex flex-col justify-between space-y-4"
               >
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] uppercase font-semibold">
+                    <span className="px-2 py-0.5 rounded-lg neu-inset text-slate-600 text-[10px] uppercase font-semibold">
                       {v.source}
                     </span>
                     {v.remote && (
@@ -858,7 +858,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-500">
                   <div className="flex items-center space-x-1 truncate max-w-[170px]">
                     <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
                     <span className="truncate">{v.location}</span>

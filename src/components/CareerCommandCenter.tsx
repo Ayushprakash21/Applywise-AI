@@ -122,13 +122,13 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-200">
       {/* 1. Welcoming Consumer SaaS Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-7 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 neu-panel p-6 sm:p-7">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight flex items-center space-x-2">
             <span>Welcome back, {user.fullName ? user.fullName.split(' ')[0] : 'Job Seeker'}!</span>
             <span className="text-2xl">👋</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
             {profile?.currentTitle
               ? `${profile.currentTitle} ${profile.currentEmployer ? `at ${profile.currentEmployer}` : ''} · ${relevantMatchesCount} opportunities aligned with your background.`
               : "Here is what's happening with your job applications and recommended next steps."}
@@ -144,11 +144,11 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search jobs, skills, or companies..."
-              className="w-full pl-10 pr-20 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 shadow-inner"
+              className="w-full pl-10 pr-20 py-2.5 rounded-xl neu-input text-xs text-slate-900 placeholder:text-slate-400"
             />
             <button
               type="submit"
-              className="absolute right-1.5 px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition shadow-xs"
+              className="absolute right-1.5 px-3 py-1.5 rounded-lg neu-button-primary text-xs font-semibold"
             >
               Search
             </button>
@@ -161,11 +161,11 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
         {/* Metric 1: Active Applications */}
         <div
           onClick={() => onNavigateTab('applications')}
-          className="group p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-300 hover:shadow-md transition cursor-pointer flex flex-col justify-between shadow-xs"
+          className="group p-5 neu-card neu-raised-hover cursor-pointer flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Active Applications</span>
-            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl neu-inset text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
               <Briefcase className="h-4 w-4" />
             </div>
           </div>
@@ -186,11 +186,11 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
         {/* Metric 2: Relevant Job Matches */}
         <div
           onClick={() => onNavigateTab('matches')}
-          className="group p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-300 hover:shadow-md transition cursor-pointer flex flex-col justify-between shadow-xs"
+          className="group p-5 neu-card neu-raised-hover cursor-pointer flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Relevant Job Matches</span>
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl neu-inset text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
               <Sparkles className="h-4 w-4" />
             </div>
           </div>
@@ -211,11 +211,11 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
         {/* Metric 3: Upcoming Interviews */}
         <div
           onClick={() => onNavigateTab('interviews')}
-          className="group p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-300 hover:shadow-md transition cursor-pointer flex flex-col justify-between shadow-xs"
+          className="group p-5 neu-card neu-raised-hover cursor-pointer flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Upcoming Interviews</span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl neu-inset text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform">
               <Calendar className="h-4 w-4" />
             </div>
           </div>
@@ -236,11 +236,11 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
         {/* Metric 4: Profile Completion */}
         <div
           onClick={() => onNavigateTab('profile')}
-          className="group p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-300 hover:shadow-md transition cursor-pointer flex flex-col justify-between shadow-xs"
+          className="group p-5 neu-card neu-raised-hover cursor-pointer flex flex-col justify-between"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Profile Completion</span>
-            <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl neu-inset text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform">
               <UserCheck className="h-4 w-4" />
             </div>
           </div>
@@ -248,7 +248,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
             <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono">
               {profileScore}%
             </div>
-            <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+            <div className="w-full h-2 rounded-full mt-2 neu-inset overflow-hidden p-0.5">
               <div
                 className="h-full bg-blue-600 rounded-full transition-all duration-500"
                 style={{ width: `${profileScore}%` }}
@@ -270,7 +270,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
         {/* Left Column (2 Cols): Applications & Jobs */}
         <div className="lg:col-span-2 space-y-6 sm:space-y-8">
           {/* Recent Applications Card (JobHuntly style) */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+          <div className="neu-panel p-5 sm:p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Recent Applications</h3>
@@ -286,27 +286,27 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
             </div>
 
             {recentApplications.length === 0 ? (
-              <div className="p-8 text-center border border-dashed border-slate-200 rounded-xl space-y-2">
+              <div className="p-8 text-center neu-inset rounded-2xl space-y-2">
                 <Briefcase className="h-8 w-8 text-slate-400 mx-auto" />
-                <p className="text-xs text-slate-600 font-medium">No applications saved yet.</p>
-                <p className="text-xs text-slate-400">Discover suitable roles and save or tailor applications here.</p>
+                <p className="text-xs text-slate-700 font-medium">No applications saved yet.</p>
+                <p className="text-xs text-slate-500">Discover suitable roles and save or tailor applications here.</p>
                 <button
                   onClick={() => onNavigateTab('jobs')}
-                  className="mt-2 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold"
+                  className="mt-2 px-4 py-2 rounded-xl neu-button-primary text-xs font-semibold"
                 >
                   Find Jobs
                 </button>
               </div>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="space-y-2.5">
                 {recentApplications.map(app => (
                   <div
                     key={app.id}
                     onClick={() => onNavigateTab('applications')}
-                    className="py-3 flex items-center justify-between gap-3 hover:bg-slate-50/70 p-2 rounded-xl transition cursor-pointer"
+                    className="p-3.5 rounded-xl neu-surface hover:neu-raised transition cursor-pointer flex items-center justify-between gap-3 border border-white/60"
                   >
                     <div className="flex items-center space-x-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-slate-700 shrink-0 text-sm">
+                      <div className="w-10 h-10 rounded-xl neu-inset flex items-center justify-center font-bold text-slate-700 shrink-0 text-sm">
                         {app.company ? app.company[0].toUpperCase() : 'C'}
                       </div>
                       <div className="min-w-0">
@@ -365,20 +365,20 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
                 <div
                   key={v.id}
                   onClick={() => onSelectVacancy(v)}
-                  className="p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-blue-400 hover:shadow-md transition cursor-pointer flex flex-col justify-between space-y-3 shadow-xs"
+                  className="p-5 neu-card neu-raised-hover cursor-pointer flex flex-col justify-between space-y-3"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] uppercase font-semibold">
+                      <span className="px-2 py-0.5 rounded-lg neu-inset text-slate-600 text-[10px] uppercase font-semibold">
                         {v.source}
                       </span>
                       <div className="flex items-center space-x-1.5">
                         {v.remote && (
-                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
                             Remote
                           </span>
                         )}
-                        <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[11px] font-semibold">
+                        <span className="px-2.5 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[11px] font-semibold">
                           {v.matchEvaluation?.matchScore || 85}% match
                         </span>
                       </div>
@@ -398,7 +398,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
                     <span className="text-[11px] text-slate-500 truncate max-w-[180px]">
                       {v.requirements?.[0] || 'Aligned with your skills'}
                     </span>
@@ -416,7 +416,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
         {/* Right Column (1 Col): Next Step, Status & Assistant */}
         <div className="space-y-6">
           {/* Your Recommended Action Card */}
-          <div className="rounded-2xl p-5 sm:p-6 bg-white border border-slate-200/80 shadow-xs space-y-3">
+          <div className="neu-panel p-5 sm:p-6 space-y-3">
             <div className="flex items-center space-x-2">
               <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-semibold uppercase tracking-wider">
                 Priority: {nextAction.priority}
@@ -441,7 +441,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
 
             <button
               onClick={() => handleExecuteAction(nextAction.actionType)}
-              className="w-full mt-2 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition flex items-center justify-center space-x-1.5"
+              className="w-full mt-2 py-2.5 rounded-xl neu-button-primary font-semibold text-xs flex items-center justify-center space-x-1.5"
             >
               <span>{nextAction.actionLabel}</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -449,11 +449,11 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
           </div>
 
           {/* Application Pipeline & Status Lifecycle */}
-          <div className="rounded-2xl p-5 sm:p-6 bg-white border border-slate-200/80 shadow-xs space-y-4">
+          <div className="neu-panel p-5 sm:p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
                 <TrendingUp className="h-4 w-4 text-blue-600" />
-                <span>Application Pipeline & Status Lifecycle</span>
+                <span>Application Pipeline</span>
               </h3>
               <button
                 onClick={() => onNavigateTab('applications')}
@@ -465,7 +465,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
 
             <div className="grid grid-cols-2 gap-2 text-xs">
               {[
-                { label: 'Draft', count: summary?.pipeline.draft ?? 0, bg: 'bg-slate-50', text: 'text-slate-700' },
+                { label: 'Draft', count: summary?.pipeline.draft ?? 0, bg: 'bg-slate-100', text: 'text-slate-700' },
                 { label: 'Ready to Apply', count: summary?.pipeline.ready ?? 0, bg: 'bg-cyan-50', text: 'text-cyan-800' },
                 { label: 'Applied', count: summary?.pipeline.applied ?? 0, bg: 'bg-blue-50', text: 'text-blue-800' },
                 { label: 'Interview', count: summary?.pipeline.interview ?? 0, bg: 'bg-purple-50', text: 'text-purple-800' },
@@ -475,7 +475,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
                 <div
                   key={st.label}
                   onClick={() => onNavigateTab('applications')}
-                  className={`p-2.5 rounded-xl ${st.bg} border border-slate-200/60 cursor-pointer flex items-center justify-between`}
+                  className={`p-2.5 rounded-xl neu-surface hover:neu-raised border border-white/60 cursor-pointer flex items-center justify-between transition`}
                 >
                   <span className="text-[11px] font-medium text-slate-600">{st.label}</span>
                   <span className={`font-mono font-bold ${st.text}`}>{st.count}</span>
@@ -485,9 +485,9 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
           </div>
 
           {/* AI Career Copilot Assistance */}
-          <div className="rounded-2xl p-5 sm:p-6 bg-white border border-slate-200/80 shadow-xs space-y-3">
+          <div className="neu-panel p-5 sm:p-6 space-y-3">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg neu-inset text-blue-600 flex items-center justify-center">
                 <Bot className="h-4 w-4" />
               </div>
               <div>
@@ -496,7 +496,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
               </div>
             </div>
 
-            <div className="space-y-1.5 pt-1">
+            <div className="space-y-2 pt-1">
               {[
                 'Explain my best job matches and skill alignment',
                 'Help me prepare for my next interview with STAR stories',
@@ -505,7 +505,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
                 <button
                   key={idx}
                   onClick={() => onAskCopilotPrompt(prompt)}
-                  className="w-full text-left p-2 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200/70 hover:border-blue-200 text-xs text-slate-700 hover:text-blue-700 transition flex items-center justify-between group"
+                  className="w-full text-left p-2.5 rounded-xl neu-surface hover:neu-raised border border-white/60 text-xs text-slate-700 hover:text-blue-600 transition flex items-center justify-between group"
                 >
                   <span className="truncate pr-2">{prompt}</span>
                   <ArrowRight className="h-3 w-3 text-slate-400 group-hover:text-blue-600 shrink-0" />
@@ -515,7 +515,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
           </div>
 
           {/* Verified Career Twin Status */}
-          <div className="rounded-2xl p-5 sm:p-6 bg-white border border-slate-200/80 shadow-xs space-y-3">
+          <div className="neu-panel p-5 sm:p-6 space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-slate-900 flex items-center space-x-1.5">
                 <ShieldCheck className="h-4 w-4 text-emerald-600" />
@@ -529,7 +529,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
               </button>
             </div>
 
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               Your profile is verified with zero-hallucination grounding. Resumes only use authentic career facts.
             </p>
 
@@ -550,7 +550,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
 
             <button
               onClick={() => onNavigateTab('career_report')}
-              className="w-full mt-2 py-2 rounded-xl border border-slate-200 hover:border-blue-400 text-xs font-semibold text-slate-700 hover:text-blue-600 transition"
+              className="w-full mt-2 py-2 rounded-xl neu-button text-xs font-semibold text-slate-700 hover:text-blue-600 transition"
             >
               Generate Full Gap Report
             </button>

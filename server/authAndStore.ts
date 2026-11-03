@@ -161,7 +161,11 @@ export interface AuthUser {
 export const authAndStore = {
   // --- AUTHENTICATION ---
   createUser(fullName: string, email: string, passwordPlain: string): AuthUser {
-    const cleanEmail = email.toLowerCase().trim();
+    const cleanName = fullName ? fullName.trim() : '';
+    if (!cleanName || cleanName.length < 2) {
+      throw new Error('Full name is required (minimum 2 characters)');
+    }
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
     if (!cleanEmail || !cleanEmail.includes('@')) {
       throw new Error('Valid email required');
     }
