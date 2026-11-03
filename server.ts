@@ -8,6 +8,8 @@ import multer from 'multer';
 import cookieParser from 'cookie-parser';
 import { authAndStore, AuthUser } from './server/authAndStore.ts';
 import { resumeEngine } from './server/resumeEngine.ts';
+import { buildFactsFromProfile, auditTailoredResume } from './src/utils/candidateFactRegistry.ts';
+import { generateCopilotResponse } from './src/utils/copilotEngine.ts';
 import { jobDiscovery } from './server/jobDiscovery.ts';
 import { matchingEngine } from './server/matchingEngine.ts';
 import { careerIntelligenceEngine } from './server/careerIntelligenceEngine.ts';
@@ -399,6 +401,64 @@ app.post('/api/ai/parse-resume', requireAuth, async (req: AuthenticatedRequest, 
   }
 });
 
+
+// Candidate Fact Registry APIs
+app.get('/api/candidate-facts', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const facts = authAndStore.getCandidateFacts(req.user!.id);
+  res.json({ success: true, facts });
+});
+
+app.post('/api/candidate-facts', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const fact = req.body;
+  authAndStore.saveCandidateFact(req.user!.id, fact);
+  res.json({ success: true, fact });
+});
+
+app.delete('/api/candidate-facts/:id', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  authAndStore.deleteCandidateFact(req.user!.id, req.params.id);
+  res.json({ success: true });
+});
+
+// Grounded AI Copilot API
+app.post('/api/ai/copilot', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { message, context = {}, conversationId = `conv_${Date.now()}` } = req.body;
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return res.status(400).json({ success: false, error: 'A valid query message is required.' });
+    }
+
+    const profile = authAndStore.getProfile(req.user!.id);
+    const facts = authAndStore.getCandidateFacts(req.user!.id);
+    const preferences = authAndStore.getPreferences(req.user!.id);
+    const applications = authAndStore.getApplications(req.user!.id);
+    let targetJob = null;
+    if (context.jobId) {
+      targetJob = authAndStore.getVacancyById(context.jobId);
+    }
+
+    const reply = await generateCopilotResponse({
+      message,
+      context,
+      user: { id: req.user!.id, fullName: req.user!.fullName || 'Ayush Prakash', email: req.user!.email },
+      profile,
+      preferences,
+      applications,
+      facts,
+      job: targetJob,
+      apiKey: process.env.GEMINI_API_KEY
+    });
+
+    res.json({
+      success: true,
+      reply,
+      conversationId
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ success: false, error: `Copilot error: ${msg}` });
+  }
+});
+
 // Resume Document Export (ATS DOCX download)
 app.get('/api/resumes/:appId/export/docx', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -410,6 +470,18 @@ app.get('/api/resumes/:appId/export/docx', requireAuth, async (req: Authenticate
     const profile = authAndStore.getProfile(req.user!.id);
     if (!profile) {
       return res.status(404).json({ success: false, error: 'Profile not found.' });
+    }
+
+    // Pre-export claim validation
+    const facts = authAndStore.getCandidateFacts(req.user!.id);
+    const profileFacts = facts.length > 0 ? facts : buildFactsFromProfile(profile);
+    const audit = auditTailoredResume(application.tailoredResume, profileFacts);
+    if (!audit.isValid) {
+      return res.status(422).json({
+        success: false,
+        error: 'Resume export blocked by AI Integrity Engine. Unsupported candidate claims detected.',
+        unsupportedClaims: audit.unsupportedClaims
+      });
     }
 
     const docBuffer = await resumeEngine.generateDocx(profile, application.tailoredResume);

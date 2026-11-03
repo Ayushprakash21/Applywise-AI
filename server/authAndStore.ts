@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import {
+  CandidateFact,
   UserProfile,
   CareerPreferences,
   AutomationSettings,
@@ -163,6 +164,23 @@ sqlite.exec(`
   CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(token);
   CREATE INDEX IF NOT EXISTS idx_apps_user ON applications(user_id);
   CREATE INDEX IF NOT EXISTS idx_vacancies_active ON cached_vacancies(is_active);
+
+  
+  CREATE TABLE IF NOT EXISTS candidate_facts (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    category TEXT NOT NULL,
+    field TEXT NOT NULL,
+    value TEXT NOT NULL,
+    original_source TEXT NOT NULL,
+    source_document_id TEXT,
+    evidence_text TEXT,
+    verification_status TEXT NOT NULL DEFAULT 'EXTRACTED',
+    confidence REAL NOT NULL DEFAULT 1.0,
+    last_updated TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_candidate_facts_user ON candidate_facts(user_id);
+  CREATE INDEX IF NOT EXISTS idx_candidate_facts_category ON candidate_facts(user_id, category);
 
   CREATE TABLE IF NOT EXISTS founder_profile (
     id TEXT PRIMARY KEY,
@@ -1014,6 +1032,69 @@ export const authAndStore = {
   removeFounderPhoto(): void {
     const { draft } = this.getAdminFounderProfile();
     this.updateFounderProfileDraft({ ...draft, photoUrl: null, photoAssetId: null });
+  },
+
+  // --- CANDIDATE FACTS REGISTRY ---
+  getCandidateFacts(userId: string): CandidateFact[] {
+    try {
+      const rows = sqlite.prepare('SELECT * FROM candidate_facts WHERE user_id = ? ORDER BY category, field').all(userId) as any[];
+      return rows.map(r => ({
+        id: r.id,
+        userId: r.user_id,
+        category: r.category,
+        field: r.field,
+        value: r.value,
+        originalSource: r.original_source,
+        sourceDocumentId: r.source_document_id || undefined,
+        evidenceText: r.evidence_text || undefined,
+        verificationStatus: r.verification_status,
+        confidence: r.confidence,
+        lastUpdated: r.last_updated
+      }));
+    } catch {
+      return [];
+    }
+  },
+
+  saveCandidateFact(userId: string, fact: CandidateFact): void {
+    const id = fact.id || ('fact_' + crypto.randomUUID().replace(/-/g, '').slice(0, 16));
+    const now = fact.lastUpdated || new Date().toISOString();
+    sqlite.prepare(`
+      INSERT INTO candidate_facts (id, user_id, category, field, value, original_source, source_document_id, evidence_text, verification_status, confidence, last_updated)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        category = excluded.category,
+        field = excluded.field,
+        value = excluded.value,
+        original_source = excluded.original_source,
+        source_document_id = excluded.source_document_id,
+        evidence_text = excluded.evidence_text,
+        verification_status = excluded.verification_status,
+        confidence = excluded.confidence,
+        last_updated = excluded.last_updated
+    `).run(
+      id,
+      userId,
+      fact.category,
+      fact.field,
+      fact.value,
+      fact.originalSource,
+      fact.sourceDocumentId || null,
+      fact.evidenceText || null,
+      fact.verificationStatus || 'EXTRACTED',
+      fact.confidence ?? 1.0,
+      now
+    );
+  },
+
+  saveCandidateFacts(userId: string, facts: CandidateFact[]): void {
+    for (const fact of facts) {
+      this.saveCandidateFact(userId, fact);
+    }
+  },
+
+  deleteCandidateFact(userId: string, factId: string): void {
+    sqlite.prepare('DELETE FROM candidate_facts WHERE user_id = ? AND id = ?').run(userId, factId);
   },
 
   cacheInitialVacanciesIfEmpty(vacancies?: JobVacancy[]) {

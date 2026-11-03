@@ -618,3 +618,157 @@ body.theme-black {
 .theme-black .blur-\[130px\] {
   background: radial-gradient(circle, rgba(214, 180, 106, 0.08) 0%, transparent 70%) !important;
 }
+
+/* ==========================================================================
+   11. Cinematic Glassmorphism Authentication System
+   ========================================================================== */
+@keyframes authOrbFloat1 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(50px, -65px, 0) scale(1.08);
+  }
+  66% {
+    transform: translate3d(-35px, 45px, 0) scale(0.94);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes authOrbFloat2 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(-60px, 50px, 0) scale(0.92);
+  }
+  66% {
+    transform: translate3d(40px, -45px, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes authOrbFloat3 {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(35px, 40px, 0) scale(1.07);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes authGlowPulse {
+  0%, 100% {
+    opacity: 0.6;
+    filter: drop-shadow(0 0 16px rgba(128, 101, 245, 0.25));
+  }
+  50% {
+    opacity: 0.9;
+    filter: drop-shadow(0 0 28px rgba(128, 101, 245, 0.45));
+  }
+}
+
+.auth-orb-1 {
+  animation: authOrbFloat1 18s ease-in-out infinite;
+  will-change: transform;
+}
+
+.auth-orb-2 {
+  animation: authOrbFloat2 22s ease-in-out infinite;
+  will-change: transform;
+}
+
+.auth-orb-3 {
+  animation: authOrbFloat3 16s ease-in-out infinite;
+  will-change: transform;
+}
+
+.glass-auth-surface {
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 
+    0 24px 60px -12px rgba(99, 102, 241, 0.18),
+    0 10px 24px -4px rgba(15, 23, 42, 0.08),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1px 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.theme-black .glass-auth-surface {
+  background: rgba(14, 16, 23, 0.65);
+  backdrop-filter: blur(30px) saturate(160%);
+  -webkit-backdrop-filter: blur(30px) saturate(160%);
+  border: 1px solid rgba(214, 180, 106, 0.3);
+  box-shadow: 
+    0 24px 60px -12px rgba(0, 0, 0, 0.7),
+    0 0 40px -8px rgba(214, 180, 106, 0.12),
+    inset 0 1px 1px 0 rgba(214, 180, 106, 0.4),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.glass-auth-input {
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.04), 0 2px 6px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-auth-input:focus-within,
+.glass-auth-input:focus {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(128, 101, 245, 0.75);
+  box-shadow: 
+    0 0 0 3px rgba(128, 101, 245, 0.22),
+    0 4px 12px rgba(128, 101, 245, 0.12),
+    inset 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+.theme-black .glass-auth-input {
+  background: rgba(22, 24, 33, 0.65);
+  border: 1px solid rgba(214, 180, 106, 0.25);
+  color: #F7F4EC;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.theme-black .glass-auth-input:focus-within,
+.theme-black .glass-auth-input:focus {
+  background: rgba(28, 30, 42, 0.85);
+  border-color: #D6B46A;
+  box-shadow: 0 0 0 3px rgba(214, 180, 106, 0.22), 0 0 16px rgba(214, 180, 106, 0.15);
+}
+
+.btn-bouncy {
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translate3d(0, 0, 0);
+}
+
+.btn-bouncy:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.btn-bouncy:active:not(:disabled) {
+  transform: translateY(0px) scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-orb-1,
+  .auth-orb-2,
+  .auth-orb-3 {
+    animation: none !important;
+    transform: none !important;
+  }
+  .btn-bouncy:hover:not(:disabled),
+  .btn-bouncy:active:not(:disabled) {
+    transform: none !important;
+  }
+}

@@ -4,6 +4,7 @@ import { FounderProfile } from '../src/types/index.ts';
 // Cloudflare D1 Relational Store for ApplyVise AI
 
 import {
+  CandidateFact,
   UserProfile,
   CareerPreferences,
   AutomationSettings,
@@ -2212,5 +2213,72 @@ export class D1Store {
     const { draft } = await this.getAdminFounderProfile();
     await this.updateFounderProfileDraft({ ...draft, photoUrl: null, photoAssetId: null });
   }
+
+  // --- CANDIDATE FACTS REGISTRY ---
+  async getCandidateFacts(userId: string): Promise<CandidateFact[]> {
+    try {
+      const { results } = await this.db.prepare(
+        'SELECT * FROM candidate_facts WHERE user_id = ? ORDER BY category, field'
+      ).bind(userId).all<any>();
+      return (results || []).map((r: any) => ({
+        id: r.id,
+        userId: r.user_id,
+        category: r.category,
+        field: r.field,
+        value: r.value,
+        originalSource: r.original_source,
+        sourceDocumentId: r.source_document_id || undefined,
+        evidenceText: r.evidence_text || undefined,
+        verificationStatus: r.verification_status,
+        confidence: r.confidence,
+        lastUpdated: r.last_updated
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  async saveCandidateFact(userId: string, fact: CandidateFact): Promise<void> {
+    const id = fact.id || ('fact_' + crypto.randomUUID().replace(/-/g, '').slice(0, 16));
+    const now = fact.lastUpdated || new Date().toISOString();
+    await this.db.prepare(`
+      INSERT INTO candidate_facts (id, user_id, category, field, value, original_source, source_document_id, evidence_text, verification_status, confidence, last_updated)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        category = excluded.category,
+        field = excluded.field,
+        value = excluded.value,
+        original_source = excluded.original_source,
+        source_document_id = excluded.source_document_id,
+        evidence_text = excluded.evidence_text,
+        verification_status = excluded.verification_status,
+        confidence = excluded.confidence,
+        last_updated = excluded.last_updated
+    `).bind(
+      id,
+      userId,
+      fact.category,
+      fact.field,
+      fact.value,
+      fact.originalSource,
+      fact.sourceDocumentId || null,
+      fact.evidenceText || null,
+      fact.verificationStatus || 'EXTRACTED',
+      fact.confidence ?? 1.0,
+      now
+    ).run();
+  }
+
+  async saveCandidateFacts(userId: string, facts: CandidateFact[]): Promise<void> {
+    for (const fact of facts) {
+      await this.saveCandidateFact(userId, fact);
+    }
+  }
+
+  async deleteCandidateFact(userId: string, factId: string): Promise<void> {
+    await this.db.prepare('DELETE FROM candidate_facts WHERE user_id = ? AND id = ?')
+      .bind(userId, factId).run();
+  }
+
 
 }

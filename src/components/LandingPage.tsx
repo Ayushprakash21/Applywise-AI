@@ -30,6 +30,7 @@ import { BrandLogo } from './BrandLogo.tsx';
 import { JobVacancy } from '../types/index.ts';
 import { FounderSection } from './FounderSection.tsx';
 import { CareerNetworkVisual } from './CareerNetworkVisual.tsx';
+import { JobMatchExperience } from './JobMatchExperience.tsx';
 
 interface LandingPageProps {
   onOpenAuth: (mode: 'login' | 'signup') => void;
@@ -56,7 +57,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'fit' | 'audit' | 'tailor'>('fit');
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -486,10 +486,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* Section C: Phase 3 Redesigned Match Experience */}
+      {/* Section C: Three-Tab Evidence & Match Verification Experience */}
       <section id="cockpit" className="py-16 sm:py-20 border-b border-slate-300/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10">
-          {/* Phase 3 Required Page Heading and Supporting Text */}
           <div className="text-center max-w-3xl mx-auto space-y-2.5">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
               Your job match
@@ -499,242 +498,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </p>
           </div>
 
-          {/* Interactive Consumer-Facing Job Match Card */}
-          <div className="max-w-4xl mx-auto neu-panel overflow-hidden">
-            {/* Clean Tab Switcher */}
-            <div className="px-6 py-4 border-b border-slate-300/60 flex flex-wrap items-center justify-between gap-4">
-              <div className="text-xs font-bold text-slate-800">
-                Sample Role Evaluation
-              </div>
-
-              <div className="flex items-center space-x-1.5 p-1 neu-inset rounded-xl text-xs font-semibold overflow-x-auto max-w-full">
-                <button
-                  onClick={() => setActiveTab('fit')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 ${
-                    activeTab === 'fit'
-                      ? 'neu-raised text-blue-700 font-bold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Job Match & Fit
-                </button>
-                <button
-                  onClick={() => setActiveTab('audit')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 ${
-                    activeTab === 'audit'
-                      ? 'neu-raised text-blue-700 font-bold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Profile Evidence
-                </button>
-                <button
-                  onClick={() => setActiveTab('tailor')}
-                  className={`px-3.5 py-1.5 rounded-lg transition-all shrink-0 ${
-                    activeTab === 'tailor'
-                      ? 'neu-raised text-blue-700 font-bold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Tailored Resume
-                </button>
-              </div>
-            </div>
-
-            {/* Tab Contents */}
-            <div className="p-6 sm:p-8">
-              {activeTab === 'fit' && (
-                <div className="space-y-6">
-                  {/* Phase 3 Job Summary Card */}
-                  <div className="p-5 neu-card flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="px-2 py-0.5 rounded-md neu-inset text-blue-700 text-[10px] font-semibold uppercase">
-                          Full-Time
-                        </span>
-                        <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
-                          Remote
-                        </span>
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900">Staff Distributed Systems Engineer</h3>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                        <span className="font-semibold text-slate-700">Stripe</span>
-                        <span>·</span>
-                        <span>United States & Canada (Remote)</span>
-                        <span>·</span>
-                        <span className="text-emerald-700 font-semibold">$240,000 – $295,000 / year (Verified listing)</span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => onOpenAuth('signup')}
-                      className="px-4 py-2 rounded-xl neu-button-primary text-xs font-semibold shrink-0"
-                    >
-                      View or Apply for Role
-                    </button>
-                  </div>
-
-                  {/* Phase 3 Match Summary */}
-                  <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-200 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-blue-800 uppercase tracking-wider">
-                        Match Assessment
-                      </span>
-                      <span className="text-xs font-bold text-blue-700 px-2.5 py-0.5 rounded-full bg-blue-100">
-                        Strong Fit · 88% Alignment
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-700 leading-relaxed">
-                      Calculated from your verified background: 4 of 5 core competencies (distributed consensus, Go services, edge computing, cross-functional leadership) match the published job spec.
-                    </p>
-                  </div>
-
-                  {/* Phase 3 Why This Job May Fit */}
-                  <div className="space-y-2.5">
-                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                      Why this job may fit
-                    </h4>
-                    <div className="space-y-2 text-xs">
-                      {[
-                        { title: 'Relevant experience', detail: '7+ years engineering scalable cloud services and high-throughput systems.' },
-                        { title: 'Matching skills', detail: 'Go, Raft consensus protocols, low-latency KV data stores, and edge platforms.' },
-                        { title: 'Related responsibilities', detail: 'Led distributed infrastructure teams and partnered with product teams on system reliability.' },
-                      ].map((item, idx) => (
-                        <div key={idx} className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-start space-x-2.5">
-                          <Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                          <div>
-                            <span className="font-bold text-slate-900">{item.title}: </span>
-                            <span className="text-slate-600">{item.detail}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Phase 3 Areas to Improve */}
-                  <div className="space-y-2.5">
-                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                      Areas to improve
-                    </h4>
-                    <div className="space-y-2 text-xs">
-                      {[
-                        'This role requests experience with a skill that isn\'t listed on your profile: eBPF monitoring.',
-                        'Your resume doesn\'t yet provide evidence for this requirement: multi-region failover testing.',
-                        'Consider adding a relevant project if you have this experience.',
-                      ].map((gap, idx) => (
-                        <div key={idx} className="p-3 rounded-lg bg-amber-50/60 border border-amber-200 flex items-start space-x-2.5 text-amber-900">
-                          <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                          <span>{gap}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Phase 3 Next Steps Actions */}
-                  <div className="pt-2 border-t border-slate-100">
-                    <div className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
-                      Next steps
-                    </div>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <button
-                        onClick={() => onOpenAuth('signup')}
-                        className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                      >
-                        Tailor my resume
-                      </button>
-                      <button
-                        onClick={() => onOpenAuth('signup')}
-                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium"
-                      >
-                        Review my experience
-                      </button>
-                      <button
-                        onClick={() => onOpenAuth('signup')}
-                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium"
-                      >
-                        Create a cover letter
-                      </button>
-                      <button
-                        onClick={() => onOpenAuth('signup')}
-                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium"
-                      >
-                        Save this job
-                      </button>
-                      <button
-                        onClick={() => onOpenAuth('signup')}
-                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium"
-                      >
-                        Track my application
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'audit' && (
-                <div className="space-y-6">
-                  <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center space-x-3 text-xs text-emerald-800 font-medium">
-                    <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0" />
-                    <span>AUDIT PASS: Zero fabricated credentials, metrics, or false employer statements detected.</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-                    <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="font-semibold text-blue-700 uppercase tracking-wider flex items-center space-x-2">
-                        <Terminal className="h-4 w-4" />
-                        <span>Candidate Master Fact-Sheet</span>
-                      </div>
-                      <div className="p-3 bg-white rounded-lg border border-slate-200 text-slate-700 space-y-1.5 leading-relaxed text-[11px] font-mono">
-                        <div>• Company: Cloudflare (2021 - 2024)</div>
-                        <div>• Role: Senior Infrastructure Engineer</div>
-                        <div>• Impact: Reduced tail latency by 38% across edge clusters</div>
-                        <div>• Tech: Go, Rust, Raft consensus</div>
-                      </div>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-blue-50/40 border border-blue-200 space-y-3">
-                      <div className="font-semibold text-blue-700 uppercase tracking-wider flex items-center space-x-2">
-                        <FileText className="h-4 w-4" />
-                        <span>Tailored Output Bullet</span>
-                      </div>
-                      <div className="p-3 bg-white rounded-lg border border-blue-200 text-slate-800 space-y-1.5 leading-relaxed text-[11px] font-mono">
-                        <div className="text-emerald-700 font-bold">// Grounded in Fact #1 & #3:</div>
-                        <div>"Architected low-latency distributed edge synchronization services in Go, cutting tail latency 38% using Raft consensus protocols."</div>
-                        <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-100">Audit Trail Matched (No Hallucination)</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'tailor' && (
-                <div className="p-6 rounded-xl bg-slate-50 border border-slate-200 space-y-4 text-xs font-mono">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-                    <div className="text-blue-700 font-bold uppercase tracking-wider">
-                      ATS DOCX EXPORT ENGINE · STRIPE-ALIGNED
-                    </div>
-                    <span className="text-[11px] text-slate-500 font-sans">Format: Standard ATS-12 Compliant</span>
-                  </div>
-                  <div className="space-y-3 text-slate-700 text-[11px] leading-relaxed font-sans">
-                    <p className="text-slate-900 font-bold text-sm">AYUSH PRAKASH — LEAD PRODUCT & SYSTEMS ARCHITECT</p>
-                    <p className="text-slate-500">San Francisco, CA · ayush@example.com · github.com/Ayushprakash21</p>
-                    <div className="pt-2">
-                      <span className="text-blue-700 font-bold text-xs uppercase tracking-wider">PROFESSIONAL SUMMARY</span>
-                      <p className="text-slate-600 mt-1 leading-relaxed">
-                        High-integrity software engineer and product architect with verified expertise building edge-scale distributed applications and fault-tolerant cloud systems.
-                      </p>
-                    </div>
-                    <div className="pt-2">
-                      <span className="text-blue-700 font-bold text-xs uppercase tracking-wider">TARGETED COMPETENCIES</span>
-                      <p className="text-slate-600 mt-1 leading-relaxed">
-                        Distributed Systems · Edge Computing · Go · TypeScript · Cloudflare Workers · Consensus Algorithms
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <JobMatchExperience
+            isLandingPage={true}
+            onOpenAuth={onOpenAuth}
+          />
         </div>
       </section>
 

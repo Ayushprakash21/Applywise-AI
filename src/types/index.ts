@@ -57,30 +57,76 @@ export interface CertificationItem {
 
 export interface VerifiedSkill {
   name: string;
-  category: 'frontend' | 'backend' | 'cloud' | 'ai' | 'database' | 'architecture' | 'leadership' | 'devops' | 'general';
-  proficiency: 'expert' | 'proficient' | 'familiar';
-  yearsExperience: number;
-  verified: boolean;
+  category?: 'frontend' | 'backend' | 'cloud' | 'ai' | 'database' | 'architecture' | 'leadership' | 'devops' | 'general' | (string & {});
+  proficiency?: 'expert' | 'proficient' | 'familiar' | 'advanced' | 'intermediate' | (string & {});
+  yearsExperience?: number;
+  verified?: boolean;
 }
 
 export interface ExperienceItem {
-  id: string;
+  id?: string;
   company: string;
   role: string;
-  startDate: string;
-  endDate: string;
-  current: boolean;
-  location: string;
-  description: string;
-  achievements: string[];
-  verifiedSkillsUsed: string[];
+  startDate?: string;
+  endDate?: string;
+  current?: boolean;
+  location?: string;
+  description?: string;
+  achievements?: string[];
+  verifiedSkillsUsed?: string[];
   isDateUncertain?: boolean;
+  duration?: string;
   dateWarning?: string;
   originalDateText?: string;
   confidence?: number;
   needsVerification?: boolean;
   sourceText?: string;
   employmentType?: string | null;
+}
+
+export type FactCategory =
+  | 'identity' | 'IDENTITY'
+  | 'employment' | 'EMPLOYMENT'
+  | 'skill' | 'SKILL'
+  | 'achievement' | 'ACHIEVEMENT'
+  | 'education' | 'EDUCATION'
+  | 'certification' | 'CERTIFICATION'
+  | 'location' | 'LOCATION'
+  | 'contact' | 'CONTACT'
+  | 'title' | 'TITLE'
+  | 'email' | 'EMAIL';
+
+export type FactVerificationStatus =
+  | 'EXTRACTED'
+  | 'NEEDS_VERIFICATION'
+  | 'USER_CONFIRMED'
+  | 'USER_CORRECTED';
+
+export interface CandidateFact {
+  id: string;
+  userId: string;
+  category: FactCategory;
+  field: string;
+  value: string;
+  originalSource: 'resume_upload' | 'user_input' | 'job_application' | 'system_verification';
+  sourceDocumentId?: string;
+  evidenceText?: string;
+  evidenceLocation?: string;
+  verificationStatus: FactVerificationStatus;
+  confidence: number;
+  lastUpdated: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ProfileEvidenceItem {
+  id: string;
+  requirement: string;
+  category: 'mandatory' | 'preferred';
+  candidateEvidence: string;
+  source: string;
+  status: 'SUPPORTED' | 'TRANSFERABLE' | 'UNVERIFIED' | 'NOT_FOUND';
+  assessment: string;
+  confidence: number;
 }
 
 export interface UserProfile {
@@ -109,6 +155,9 @@ export interface UserProfile {
   languages?: string[];
   masterResumeFileName?: string;
   masterResumeLastUpdated?: string;
+  candidateFacts?: CandidateFact[];
+  employmentHistory?: ExperienceItem[];
+  summary?: string;
 }
 
 export interface CareerPreferences {
@@ -200,6 +249,23 @@ export interface JobMatchEvaluation {
   sponsorshipStatus: 'supported' | 'unsupported' | 'unspecified';
   recommendation: 'STRONG_APPLY' | 'CONSIDER' | 'MARGINAL' | 'DO_NOT_APPLY';
   evaluatedAt: string;
+  insufficientData?: boolean;
+  scoreMessage?: string;
+  profileEvidence?: ProfileEvidenceItem[];
+  transferableSkills?: string[];
+  mandatoryRequirements?: string[];
+  preferredRequirements?: string[];
+  unverifiedQualifications?: string[];
+  jobId?: string;
+  skillScore?: number;
+  titleScore?: number;
+  locationScore?: number;
+  salaryScore?: number;
+  matchedCompetencies?: string[];
+  missingMandatory?: string[];
+  missingPreferred?: string[];
+  fitVerdict?: 'strong' | 'moderate' | 'weak';
+  recommendations?: string[];
 }
 
 // ============================================================================
@@ -467,6 +533,13 @@ export interface JobVacancy {
   isActive: boolean;
   lastCheckedAt?: string;
   matchEvaluation?: JobMatchEvaluation;
+  mandatoryRequirements?: string[];
+  preferredRequirements?: string[];
+  requiredSkills?: string[];
+  preferredSkills?: string[];
+  workArrangement?: WorkArrangement | string;
+  sourceUrl?: string;
+  postedDate?: string;
 }
 
 export interface TailoredResumeContent {
@@ -474,20 +547,22 @@ export interface TailoredResumeContent {
   generatedAt?: string;
   targetJobTitle?: string;
   targetCompany?: string;
-  headline: string;
-  professionalSummary: string;
-  targetedSkills: string[];
-  tailoredExperiences: Array<{
+  headline?: string;
+  professionalSummary?: string;
+  targetedSkills?: string[];
+  tailoredExperiences?: Array<{
     company: string;
     role: string;
     period: string;
     bulletPoints: string[];
   }>;
-  education: string[];
-  certifications: string[];
+  education?: string[];
+  certifications?: string[];
   truthfulnessAuditPassed?: boolean;
-  truthfulnessScore: number;
+  truthfulnessScore?: number;
   auditNotes?: string[];
+  summary?: string;
+  tailoredBullets?: string[];
 }
 
 export interface ApplicationTimelineEvent {

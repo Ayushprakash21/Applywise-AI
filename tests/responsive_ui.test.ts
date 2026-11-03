@@ -37,7 +37,8 @@ test('Responsive UI: Landing Page and Career Network Canvas', () => {
   // Hero search capsule responsive layout
   assert.ok(landingSrc.includes('flex flex-col sm:flex-row items-stretch sm:items-center'), 'Hero search capsule must stack on mobile');
   assert.ok(landingSrc.includes('min-w-0 flex-1'), 'Hero input must use min-w-0 to prevent Blink flex-child overflow');
-  assert.ok(landingSrc.includes('overflow-x-auto max-w-full'), 'Hero cockpit tabs must be scrollable on mobile');
+  const cockpitSrc = fs.readFileSync(path.resolve('src/components/JobMatchExperience.tsx'), 'utf-8');
+  assert.ok(landingSrc.includes('overflow-x-auto max-w-full') || cockpitSrc.includes('overflow-x-auto max-w-full'), 'Hero cockpit tabs must be scrollable on mobile');
 
   // Network visual container responsiveness
   assert.ok(canvasSrc.includes('h-[400px] sm:h-[480px] md:h-[580px]'), 'Canvas container must adjust height for mobile');

@@ -8,6 +8,8 @@ import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { D1Store, AuthUser } from './d1Store.ts';
 import { hashPassword, verifyPassword, generateSessionToken, validateEmail, validatePassword } from './auth.ts';
 import { workerResumeEngine } from './resumeEngine.ts';
+import { buildFactsFromProfile, auditTailoredResume } from '../src/utils/candidateFactRegistry.ts';
+import { generateCopilotResponse } from '../src/utils/copilotEngine.ts';
 import { workerJobDiscovery } from './jobDiscovery.ts';
 import { workerMatchingEngine } from './matchingEngine.ts';
 import { workerSubmissionAdapter } from './submissionAdapter.ts';
@@ -843,61 +845,28 @@ app.post('/api/ai/copilot', requireAuth, async (c) => {
       }
     }
 
-    // 2. Build Context-Aware Prompt
+    // 2. Controlled Grounded AI Copilot
     const pageContext = context.page || 'general';
     const profile = await store.getProfile(user.id);
-
-    const systemPrompt = `You are ApplyVise Copilot, an elite AI career strategist and job application assistant for ApplyVise AI.
-Candidate Name: ${user.fullName}
-Candidate Title: ${profile?.currentTitle || 'Professional'}
-Current Page: ${pageContext}
-Context Details: ${JSON.stringify(context.details || {})}
-
-Guidelines:
-- Provide high-value, concise, practical career guidance, interview preparation, resume optimization, or recruiter messaging.
-- Maintain a warm, encouraging, highly professional tone.
-- Keep responses readable with bullet points and bold highlights.
-- Ground advice in real career best practices. Never invent fake credentials or false statistics.`;
-
-    let reply = '';
-    const apiKey = c.env.GEMINI_API_KEY;
-
-    if (apiKey) {
-      try {
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [
-              { role: 'user', parts: [{ text: `${systemPrompt}\n\nUser Question:\n${message}` }] }
-            ],
-            generationConfig: { maxOutputTokens: 1024, temperature: 0.7 },
-          }),
-          signal: AbortSignal.timeout(15000),
-        });
-
-        if (geminiRes.ok) {
-          const gData = await geminiRes.json() as any;
-          reply = gData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        }
-      } catch {
-        // Fallback to deterministic AI assistant below
-      }
+    const facts = await store.getCandidateFacts(user.id);
+    const preferences = await store.getPreferences(user.id);
+    const applications = await store.getApplications(user.id);
+    let targetJob = null;
+    if (context.jobId) {
+      targetJob = await store.getVacancyById(context.jobId);
     }
 
-    // Deterministic Intelligent Fallback if API key missing or external timeout
-    if (!reply) {
-      const qLower = message.toLowerCase();
-      if (qLower.includes('resume') || qLower.includes('tailor') || qLower.includes('cv')) {
-        reply = `**Resume Optimization Strategy for ${user.fullName}:**\n\n1. **Lead with quantifiable achievements:** Rephrase task descriptions into *Action Verb + Context + Result (e.g. Improved cycle time by 22%)*.\n2. **Align core keywords:** Ensure the target skills from the job listing are explicitly reflected in your experience bullets.\n3. **Preserve factual accuracy:** Use ApplyVise AI's built-in ATS Document Studio to generate a tailored DOCX resume with 100% truthfulness verification.`;
-      } else if (qLower.includes('interview') || qLower.includes('question') || qLower.includes('prep')) {
-        reply = `**Role-Specific Interview Preparation:**\n\n• **STAR Framework:** Structure your situational answers with *Situation, Task, Action, and Result*.\n• **High-Impact Questions to Expect:**\n  - "Tell me about a project where scope changed unexpectedly. How did you adapt?"\n  - "How do you align stakeholders with competing priorities?"\n• **Ask the Interviewer:** "What does success look like in the first 90 days for this role?"`;
-      } else if (qLower.includes('follow up') || qLower.includes('email') || qLower.includes('recruiter') || qLower.includes('cover letter')) {
-        reply = `**Professional Recruiter Communication Template:**\n\n*Subject:* Application Follow-Up — ${profile?.currentTitle || 'Candidate'} — ${user.fullName}\n\nDear [Hiring Manager / Recruiter Name],\n\nI hope you are having a productive week. I recently submitted my application for the role and wanted to reiterate my enthusiasm for joining your team.\n\nWith my background in ${profile?.currentTitle || 'my field'} and hands-on experience delivering key operational outcomes, I am excited about the opportunity to contribute immediately.\n\nThank you for your time and consideration,\n${user.fullName}`;
-      } else {
-        reply = `**ApplyVise Career Advisor:**\n\nI am here to assist your job search workflow across:\n\n• **Application Tracking:** Organizing opportunities across all interview stages.\n• **ATS Resume Tailoring:** Creating factually verified DOCX resumes tailored to specific vacancy descriptions.\n• **Interview Readiness:** Practicing behavioral and technical interview questions.\n\nHow can I help you advance your search today?`;
-      }
-    }
+    const reply = await generateCopilotResponse({
+      message,
+      context,
+      user,
+      profile,
+      preferences,
+      applications,
+      facts,
+      job: targetJob,
+      apiKey: c.env.GEMINI_API_KEY
+    });
 
     // 3. Record Usage & Conversation History
     await store.recordAIUsage(user.id, `copilot_${pageContext}`, message.length, reply.length);
@@ -1029,6 +998,30 @@ app.post('/api/ai/parse-resume', requireAuth, async (c) => {
   }
 });
 
+
+app.get('/api/candidate-facts', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const facts = await store.getCandidateFacts(user.id);
+  return c.json({ success: true, facts });
+});
+
+app.post('/api/candidate-facts', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const fact = await c.req.json();
+  await store.saveCandidateFact(user.id, fact);
+  return c.json({ success: true, fact });
+});
+
+app.delete('/api/candidate-facts/:id', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const factId = c.req.param('id');
+  await store.deleteCandidateFact(user.id, factId);
+  return c.json({ success: true });
+});
+
 app.get('/api/resumes/:appId/export/docx', requireAuth, async (c) => {
   try {
     const user: AuthUser = c.get('user')!;
@@ -1043,6 +1036,18 @@ app.get('/api/resumes/:appId/export/docx', requireAuth, async (c) => {
     const profile = await store.getProfile(user.id);
     if (!profile) {
       return c.json({ success: false, error: 'Profile not found.' }, 404);
+    }
+
+    // Pre-export claim validation
+    const facts = await store.getCandidateFacts(user.id);
+    const profileFacts = facts.length > 0 ? facts : buildFactsFromProfile(profile);
+    const audit = auditTailoredResume(application.tailoredResume, profileFacts);
+    if (!audit.isValid) {
+      return c.json({
+        success: false,
+        error: 'Resume export blocked by AI Integrity Engine. Unsupported candidate claims detected.',
+        unsupportedClaims: audit.unsupportedClaims
+      }, 422);
     }
 
     const docBytes = await workerResumeEngine.generateDocx(profile, application.tailoredResume);

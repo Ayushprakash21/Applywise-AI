@@ -18,6 +18,7 @@ test('Landing Page Light-Theme Restoration & Architectural Integrity', async (t)
   const careerSource = fs.readFileSync(careerVisualPath, 'utf8');
   const founderSource = fs.readFileSync(founderSectionPath, 'utf8');
   const cssSource = fs.readFileSync(indexCssPath, 'utf8');
+  const cockpitSource = fs.readFileSync(path.resolve(process.cwd(), 'src/components/JobMatchExperience.tsx'), 'utf8');
 
   await t.test('Visual Styling & Theme Architecture (Light-Theme Aesthetic)', () => {
     // Light background #F8FAFC and #FFFFFF
@@ -62,10 +63,10 @@ test('Landing Page Light-Theme Restoration & Architectural Integrity', async (t)
   });
 
   await t.test('Interactive Cockpit Demonstration & Truth Audit', () => {
-    assert.match(landingSource, /activeTab === 'fit'/, 'Cockpit supports fit evaluation view');
-    assert.match(landingSource, /activeTab === 'audit'/, 'Cockpit supports truth audit view');
-    assert.match(landingSource, /activeTab === 'tailor'/, 'Cockpit supports ATS preview');
-    assert.match(landingSource, /AUDIT PASS: Zero fabricated credentials/, 'Truth audit emphasizes zero hallucinations');
+    assert.ok(landingSource.includes('JobMatchExperience') && cockpitSource.includes("activeTab === 'fit'"), 'Cockpit supports fit evaluation view');
+    assert.ok(cockpitSource.includes("activeTab === 'audit'"), 'Cockpit supports truth audit view');
+    assert.ok(cockpitSource.includes("activeTab === 'tailor'"), 'Cockpit supports ATS preview');
+    assert.ok(cockpitSource.includes('AUDIT PASS: Zero fabricated credentials'), 'Truth audit emphasizes zero hallucinations');
   });
 
   await t.test('Integrity Comparison Matrix (Zero Hallucination Standard)', () => {
