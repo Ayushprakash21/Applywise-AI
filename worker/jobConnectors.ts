@@ -105,20 +105,62 @@ export function isSafePublicUrl(urlString: string): boolean {
   }
 }
 
-// Clean HTML tags safely
-export function stripHtml(html: string): string {
-  if (!html) return '';
-  return html
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+/**
+ * Safely sanitizes incoming provider job descriptions while preserving
+ * semantic HTML structure: headings, paragraphs, lists, bold, emphasis, links, and tables.
+ * Blocks XSS, event handlers, styles, scripts, iframes, and dangerous attributes.
+ */
+export function sanitizeIngestedDescription(rawHtml: string): string {
+  if (!rawHtml || typeof rawHtml !== 'string') return '';
+
+  let html = rawHtml.trim();
+
+  // 1. Remove dangerous blocks and their contents completely
+  html = html.replace(/<(?:script|style|iframe|object|embed|svg|math|applet|form|input|button|textarea|select|link|meta)\b[^>]*>[\s\S]*?<\/(?:script|style|iframe|object|embed|svg|math|applet|form|input|button|textarea|select|link|meta)>/gi, '');
+  
+  // 2. Remove remaining dangerous orphan opening or closing tags
+  html = html.replace(/<\/?(?:script|iframe|style|object|embed|form|input|button|textarea|select|link|meta|applet|svg|math)[^>]*>/gi, '');
+
+  // 3. Remove inline event handlers (onload, onerror, onclick, etc.)
+  html = html.replace(/\s+on\w+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi, '');
+
+  // 4. Sanitize dangerous link protocols
+  html = html.replace(/href\s*=\s*['"]\s*(?:javascript|data|vbscript):[^'"]*['"]/gi, 'href="#"');
+
+  // 5. Enforce target="_blank" and rel="noopener noreferrer nofollow" on links
+  html = html.replace(/<a\s+([^>]*?)>/gi, (_match, attrs) => {
+    let cleanAttrs = attrs.replace(/\b(target|rel)\s*=\s*['"][^'"]*['"]/gi, '').trim();
+    return `<a ${cleanAttrs} target="_blank" rel="noopener noreferrer nofollow">`;
+  });
+
+  return html.trim();
+}
+
+/**
+ * Extracts clean plain text specifically for keyword scoring, title inference, and search indexing
+ * without mutating or flattening the preserved structured HTML document.
+ */
+export function extractPlainTextForMatching(htmlOrText: string): string {
+  if (!htmlOrText || typeof htmlOrText !== 'string') return '';
+  return htmlOrText
+    .replace(/<\/(?:p|h[1-6]|div|tr)>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<li[^>]*>/gi, ' • ')
     .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/\s+/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n\s*\n\s*\n+/g, '\n\n')
     .trim();
+}
+
+// Clean HTML tags safely (maintained for backwards compatibility)
+export function stripHtml(html: string): string {
+  return extractPlainTextForMatching(html);
 }
 
 // Heuristic experience level detector
@@ -341,7 +383,8 @@ export class LeverAdapter implements JobProviderAdapter {
         }
 
         const loc = j.categories?.location || 'Remote';
-        const cleanDesc = (j.descriptionPlain || stripHtml(j.description || '')).slice(0, 2500);
+        const structuredDesc = sanitizeIngestedDescription(j.description || j.descriptionPlain || '');
+        const cleanDesc = extractPlainTextForMatching(structuredDesc);
         const arrangement = inferWorkArrangement(loc, j.text, cleanDesc);
         const exp = inferExperienceLevel(j.text, cleanDesc);
 
@@ -376,7 +419,7 @@ export class LeverAdapter implements JobProviderAdapter {
           salaryMax,
           salaryCurrency: j.salaryRange?.currency || '$',
           url: j.hostedUrl,
-          description: cleanDesc,
+          description: structuredDesc,
           requirements: [j.categories?.department, j.categories?.team].filter(Boolean) as string[],
           tags: [this.companyHandle, this.company, arrangement],
           publishedAt: j.createdAt ? new Date(j.createdAt).toISOString() : now,

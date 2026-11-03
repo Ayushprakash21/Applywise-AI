@@ -1,3 +1,4 @@
+import { sanitizeIngestedDescription } from './jobConnectors.ts';
 // worker/jobDiscovery.ts
 // Real Multi-Aggregator Job Discovery for Cloudflare Workers
 
@@ -49,7 +50,7 @@ export const workerJobDiscovery = {
 
         if (data.jobs && Array.isArray(data.jobs)) {
           for (const item of data.jobs) {
-            const cleanDesc = (item.description || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+            const cleanDesc = sanitizeIngestedDescription(item.description || '');
             const location = item.candidate_required_location || 'Worldwide Remote';
             vacancies.push({
               id: `remotive_${item.id}`,
@@ -62,7 +63,7 @@ export const workerJobDiscovery = {
               remote: true,
               arrangement: 'remote',
               url: item.url,
-              description: cleanDesc.slice(0, 4000),
+              description: cleanDesc,
               requirements: item.tags && item.tags.length > 0 ? item.tags : [item.category || 'General'],
               tags: item.tags || [],
               publishedAt: item.publication_date || new Date().toISOString(),
@@ -111,7 +112,7 @@ export const workerJobDiscovery = {
               if (!matchesQ) continue;
             }
 
-            const cleanDesc = (item.description || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+            const cleanDesc = sanitizeIngestedDescription(item.description || '');
             vacancies.push({
               id: `arbeitnow_${item.slug}`,
               source: 'arbeitnow',
@@ -122,7 +123,7 @@ export const workerJobDiscovery = {
               remote: !!item.remote,
               arrangement: item.remote ? 'remote' : 'hybrid',
               url: item.url,
-              description: cleanDesc.slice(0, 4000),
+              description: cleanDesc,
               requirements: item.tags || [],
               tags: item.tags || [],
               publishedAt: new Date(item.created_at * 1000).toISOString(),
@@ -170,7 +171,7 @@ export const workerJobDiscovery = {
 
         if (data.jobs && Array.isArray(data.jobs)) {
           for (const item of data.jobs) {
-            const cleanDesc = (item.jobDescription || item.jobExcerpt || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+            const cleanDesc = sanitizeIngestedDescription(item.jobDescription || item.jobExcerpt || '');
             const salaryRaw = item.annualSalaryMin && item.annualSalaryMax
               ? `${item.salaryCurrency || '$'}${item.annualSalaryMin} - ${item.annualSalaryMax}`
               : undefined;
@@ -186,7 +187,7 @@ export const workerJobDiscovery = {
               remote: true,
               arrangement: 'remote',
               url: item.url,
-              description: cleanDesc.slice(0, 4000),
+              description: cleanDesc,
               requirements: item.jobIndustry || ['Remote'],
               tags: item.jobIndustry || [],
               publishedAt: item.pubDate || new Date().toISOString(),

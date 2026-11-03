@@ -47,6 +47,7 @@ import { ApplicationCopilotView } from './ApplicationCopilotView.tsx';
 import { CareerFitLens } from './CareerFitLens.tsx';
 import { ApplicationJourneyView, JourneyStage } from './ApplicationJourneyView.tsx';
 import { SafeHtmlRenderer } from './SafeHtmlRenderer.tsx';
+import { JobDescriptionRenderer } from './JobDescriptionRenderer.tsx';
 import { classifyJobSkills, ClassifiedSkillsSummary } from '../utils/skillClassifier.ts';
 import { extractSemanticSections } from '../utils/sanitizeHtml.ts';
 
