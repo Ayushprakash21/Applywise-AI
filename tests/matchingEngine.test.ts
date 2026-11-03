@@ -152,7 +152,7 @@ test('Matching Engine: Cross-Industry Evaluation (Business, Supply Chain, and Te
   };
   const blockedMatch = await matchingEngine.evaluateMatch(supplyChainProfile, supplyChainPrefs, excludedVacancy);
   assert.equal(blockedMatch.isEligible, false);
-  assert.ok(blockedMatch.eligibilityConcerns.some(c => c.includes('excluded companies')));
+  assert.ok(blockedMatch.eligibilityConcerns.some((c: string) => c.toLowerCase().includes('excluded company')));
   assert.ok(blockedMatch.score <= 35, 'Ineligible application score must be clamped');
 
   // 4. Unknown Qualifications: Must NOT award positive points

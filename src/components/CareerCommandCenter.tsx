@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   ShieldCheck,
@@ -21,16 +21,21 @@ import {
   Zap,
   Bot,
   Activity,
-  FileText
+  FileText,
+  BookOpen
 } from 'lucide-react';
 import {
   UserProfile,
   CareerPreferences,
   JobVacancy,
   ApplicationRecord,
-  AuditLogEntry
+  AuditLogEntry,
+  CareerRoadmap
 } from '../types/index.ts';
-import { DashboardSummary } from '../services/api.ts';
+import { DashboardSummary, api } from '../services/api.ts';
+import { CareerMomentumCard } from './CareerMomentumCard.tsx';
+import { OpportunityRadar } from './OpportunityRadar.tsx';
+import { PersonalCareerIntelligenceView } from './PersonalCareerIntelligenceView.tsx';
 
 interface CareerCommandCenterProps {
   user: { fullName: string; email: string };
@@ -60,6 +65,21 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
   onSearchJobs,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [careerRoadmap, setCareerRoadmap] = useState<CareerRoadmap | null>(null);
+
+  useEffect(() => {
+    const loadRoadmap = async () => {
+      try {
+        const res = await api.getCareerRoadmap(profile?.currentTitle);
+        if (res.success) {
+          setCareerRoadmap(res.roadmap);
+        }
+      } catch (err) {
+        console.error('Failed to load career roadmap:', err);
+      }
+    };
+    loadRoadmap();
+  }, [profile?.currentTitle]);
 
   // Fallback calculations
   const profileScore = summary?.profileCompletion ?? (
@@ -155,6 +175,44 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
           </form>
         </div>
       </div>
+
+      {/* Next Best Action Banner: "What should I do next to improve my job search?" */}
+      <div className="p-4 sm:p-5 rounded-2xl neu-surface border border-blue-200/80 dark:border-blue-800/80 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-start space-x-3.5">
+          <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-xs shrink-0 mt-0.5">
+            <Zap className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <span className="text-[10px] font-mono uppercase font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded border border-blue-200">
+                Recommended Priority Action
+              </span>
+              <span className="text-xs text-slate-400 font-mono">Answers: "What should I do next?"</span>
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+              {nextAction.title}
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+              {nextAction.description}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => handleExecuteAction(nextAction.actionType)}
+          className="px-5 py-2.5 rounded-xl neu-button-primary text-xs font-bold flex items-center justify-center space-x-2 shrink-0 self-start md:self-auto shadow-sm"
+        >
+          <span>{nextAction.actionLabel || 'Take Action'}</span>
+          <ArrowRight className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Career Momentum: Real Ground Truth Progress Over Time */}
+      <CareerMomentumCard
+        applications={applications}
+        profile={profile}
+        onNavigateTab={onNavigateTab}
+      />
 
       {/* 2. Key Metrics Row (Matching JobHuntly / Flashjobs / My Job Trackr) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -264,6 +322,12 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Opportunity Radar: Live Verified Ingestion from Company Career APIs */}
+      <OpportunityRadar
+        vacancies={vacancies}
+        onSelectVacancy={onSelectVacancy}
+      />
 
       {/* 3. Main Two-Column Layout (Matching JobHuntly / Flashjobs) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
@@ -411,6 +475,12 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
               ))}
             </div>
           </div>
+
+          {/* Personal Career Intelligence: Strengths, Market Gaps, Roadmap & Grounded Advice */}
+          <PersonalCareerIntelligenceView
+            profile={profile}
+            preferences={preferences}
+          />
         </div>
 
         {/* Right Column (1 Col): Next Step, Status & Assistant */}
@@ -447,6 +517,46 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
+
+          {/* Career Improvement Roadmap (Requirement 10) */}
+          {careerRoadmap && careerRoadmap.prioritizedGaps.length > 0 && (
+            <div className="neu-panel p-5 sm:p-6 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
+                  <BookOpen className="h-4 w-4 text-purple-600" />
+                  <span>Career Improvement Roadmap</span>
+                </h3>
+                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-bold">
+                  {careerRoadmap.targetRole}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Prioritized skill gaps derived from active market demands and your verified background.
+              </p>
+
+              <div className="space-y-2 pt-1">
+                {careerRoadmap.prioritizedGaps.slice(0, 3).map(gap => (
+                  <div key={gap.id} className="p-3 rounded-xl neu-surface border border-white/60 space-y-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-800">{gap.skill}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                        gap.isEssential ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        {gap.isEssential ? 'Essential Qualification' : 'Optional Growth'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 leading-relaxed">{gap.recommendedAction}</p>
+                    {gap.realisticCoursesOrProjects[0] && (
+                      <div className="text-[10px] text-purple-700 bg-purple-50/60 p-1.5 rounded-lg border border-purple-100/60 mt-1 flex items-center justify-between">
+                        <span className="font-semibold">{gap.realisticCoursesOrProjects[0].title}</span>
+                        <span className="font-mono">{gap.realisticCoursesOrProjects[0].estimatedTime}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Application Pipeline & Status Lifecycle */}
           <div className="neu-panel p-5 sm:p-6 space-y-4">

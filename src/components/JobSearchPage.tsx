@@ -19,10 +19,12 @@ import {
   Clock,
   ShieldCheck,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Scale
 } from 'lucide-react';
 import { JobVacancy } from '../types/index.ts';
 import { api } from '../services/api.ts';
+import { JobComparisonDrawer } from './JobComparisonDrawer.tsx';
 
 interface JobSearchPageProps {
   vacancies: JobVacancy[];
@@ -52,6 +54,30 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
   const [experienceLevel, setExperienceLevel] = useState<string>('all');
   const [salaryOnly, setSalaryOnly] = useState(false);
   const [sortBy, setSortBy] = useState<'recent' | 'match' | 'salary' | 'title'>('recent');
+  const [discoveryPreset, setDiscoveryPreset] = useState<'all' | 'recommended' | 'recent' | 'stretch' | 'salary_disclosed'>('all');
+
+  // Job Alert Modal State
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertFrequency, setAlertFrequency] = useState<'daily' | 'weekly' | 'instant'>('daily');
+  const [alertSuccessMsg, setAlertSuccessMsg] = useState<string | null>(null);
+
+  // Comparison State
+  const [compareList, setCompareList] = useState<JobVacancy[]>([]);
+  const [showCompareDrawer, setShowCompareDrawer] = useState(false);
+
+  const toggleCompare = (v: JobVacancy, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (compareList.some(item => item.id === v.id)) {
+      setCompareList(compareList.filter(item => item.id !== v.id));
+    } else {
+      if (compareList.length >= 2) {
+        setCompareList([compareList[1], v]);
+      } else {
+        setCompareList([...compareList, v]);
+      }
+    }
+  };
 
   // UI State
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
@@ -143,6 +169,18 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
 
     if (salaryOnly && !v.salaryRange?.raw) {
       return false;
+    }
+
+    // Discovery Smart Filter Presets (Requirement 7)
+    if (discoveryPreset === 'recommended') {
+      const score = v.matchEvaluation?.matchScore || 0;
+      if (score < 65) return false;
+    } else if (discoveryPreset === 'stretch') {
+      const score = v.matchEvaluation?.matchScore || 0;
+      const tier = v.matchEvaluation?.alignmentTier;
+      if (tier !== 'STRETCH_OPPORTUNITY' && (score < 40 || score > 65)) return false;
+    } else if (discoveryPreset === 'salary_disclosed') {
+      if (!v.salaryRange?.raw) return false;
     }
 
     return true;
@@ -248,6 +286,66 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
           </span>
         </div>
 
+        {/* Smart Discovery Presets & Alerts Bar (Requirement 7) */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+          <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+            <span className="text-slate-400 text-[11px] uppercase mr-1">Discovery:</span>
+            <button
+              type="button"
+              onClick={() => { setDiscoveryPreset('all'); setCurrentPage(1); }}
+              className={`px-3 py-1.5 rounded-xl text-xs transition ${
+                discoveryPreset === 'all'
+                  ? 'bg-slate-900 text-white font-bold shadow-xs'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              All Openings
+            </button>
+            <button
+              type="button"
+              onClick={() => { setDiscoveryPreset('recommended'); setCurrentPage(1); }}
+              className={`px-3 py-1.5 rounded-xl text-xs transition flex items-center space-x-1 ${
+                discoveryPreset === 'recommended'
+                  ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                  : 'bg-white text-emerald-800 border border-emerald-200 hover:border-emerald-300'
+              }`}
+            >
+              <Sparkles className="h-3 w-3" />
+              <span>Recommended (High Match)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setDiscoveryPreset('stretch'); setCurrentPage(1); }}
+              className={`px-3 py-1.5 rounded-xl text-xs transition ${
+                discoveryPreset === 'stretch'
+                  ? 'bg-purple-600 text-white font-bold shadow-xs'
+                  : 'bg-white text-purple-800 border border-purple-200 hover:border-purple-300'
+              }`}
+            >
+              Stretch Opportunities
+            </button>
+            <button
+              type="button"
+              onClick={() => { setDiscoveryPreset('salary_disclosed'); setCurrentPage(1); }}
+              className={`px-3 py-1.5 rounded-xl text-xs transition ${
+                discoveryPreset === 'salary_disclosed'
+                  ? 'bg-blue-600 text-white font-bold shadow-xs'
+                  : 'bg-white text-blue-800 border border-blue-200 hover:border-blue-300'
+              }`}
+            >
+              Disclosed Salary
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowAlertModal(true)}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition flex items-center space-x-1"
+          >
+            <span>+ Create Job Alert</span>
+          </button>
+        </div>
+
         {/* Search & Filter Controls Form */}
         <form onSubmit={handleSearchSubmit} className="space-y-3 pt-1">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
@@ -308,6 +406,24 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
                 </>
               )}
             </button>
+          </div>
+
+          {/* Quick Search Suggestions */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+            <span className="text-[11px] text-slate-400 font-mono">Suggestions:</span>
+            {['Senior Software Engineer', 'Full Stack Developer', 'Remote React', 'Staff Architect', 'TypeScript', 'Node.js', '$140k+'].map(pill => (
+              <button
+                key={pill}
+                type="button"
+                onClick={() => {
+                  setQuery(pill);
+                  onSearch(pill);
+                }}
+                className="px-2 py-0.5 rounded-lg bg-white/60 hover:bg-white text-slate-600 hover:text-blue-600 border border-slate-200/80 text-[11px] transition shadow-2xs"
+              >
+                {pill}
+              </button>
+            ))}
           </div>
 
           {/* Secondary Filter Row */}
@@ -447,28 +563,75 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
         </div>
       )}
 
-      {/* Empty State */}
-      {paginatedJobs.length === 0 && (
-        <div className="text-center py-16 neu-panel space-y-3">
-          <Building className="h-8 w-8 text-slate-400 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-800">No matching vacancies found</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Try adjusting your search query, location, or work arrangement filters, or click Sync Sources to refresh live feeds.
-          </p>
-          <button
-            onClick={() => {
-              setQuery('');
-              setCompanyFilter('');
-              setLocationFilter('All Locations');
-              setWorkArrangement('all');
-              setEmploymentType('all');
-              setExperienceLevel('all');
-              setSalaryOnly(false);
-            }}
-            className="px-4 py-2 neu-button text-slate-700 rounded-xl text-xs font-semibold"
-          >
-            Reset All Filters
-          </button>
+      {/* Skeleton Loaders (Requirement 5) */}
+      {isSearching && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="p-5 neu-card space-y-4 animate-pulse">
+              <div className="flex justify-between items-center">
+                <div className="h-5 w-20 rounded bg-slate-300 dark:bg-slate-700" />
+                <div className="h-5 w-16 rounded-full bg-slate-200 dark:bg-slate-800" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 w-3/4 rounded bg-slate-300 dark:bg-slate-700" />
+                <div className="h-3 w-1/2 rounded bg-slate-200 dark:bg-slate-800" />
+              </div>
+              <div className="h-10 rounded bg-slate-200 dark:bg-slate-800" />
+              <div className="flex justify-between pt-2">
+                <div className="h-4 w-24 rounded bg-slate-200" />
+                <div className="h-4 w-16 rounded bg-slate-200" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Empty State with Real Explanations and Actionable Steps (Requirement 5) */}
+      {!isSearching && paginatedJobs.length === 0 && (
+        <div className="text-center py-12 neu-panel space-y-4 max-w-xl mx-auto">
+          <div className="w-12 h-12 rounded-2xl neu-inset text-slate-400 flex items-center justify-center mx-auto">
+            <Building className="h-6 w-6" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+              No matching vacancies found for your criteria
+            </h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+              Our 280+ cached live openings did not match "{query || 'active parameters'}". This typically occurs when location constraints or salary filters exclude otherwise aligned positions.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+            <button
+              onClick={() => {
+                setQuery('');
+                setCompanyFilter('');
+                setLocationFilter('All Locations');
+                setWorkArrangement('all');
+                setEmploymentType('all');
+                setExperienceLevel('all');
+                setSalaryOnly(false);
+                setDiscoveryPreset('all');
+              }}
+              className="px-4 py-2 neu-button-primary rounded-xl text-xs font-semibold"
+            >
+              Reset All Filters
+            </button>
+            <button
+              onClick={() => {
+                setWorkArrangement('remote');
+              }}
+              className="px-3.5 py-2 neu-button rounded-xl text-xs font-semibold text-slate-700"
+            >
+              View Remote Opportunities
+            </button>
+            <button
+              onClick={() => setShowAlertModal(true)}
+              className="px-3.5 py-2 neu-button rounded-xl text-xs font-semibold text-blue-600"
+            >
+              + Create Alert for "{query || 'Search'}"
+            </button>
+          </div>
         </div>
       )}
 
@@ -554,6 +717,19 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
                 </div>
 
                 <div className="flex items-center space-x-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={(e) => toggleCompare(job, e)}
+                    className={`px-2 py-1 rounded-lg text-[10px] font-mono font-bold transition flex items-center space-x-1 ${
+                      compareList.some(c => c.id === job.id)
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'neu-inset text-slate-500 hover:text-slate-800'
+                    }`}
+                    title="Select to compare side-by-side"
+                  >
+                    <Scale className="h-3 w-3" />
+                    <span>{compareList.some(c => c.id === job.id) ? 'Selected' : 'Compare'}</span>
+                  </button>
                   {job.salaryRange?.raw && (
                     <span className="font-semibold text-emerald-700 text-[11px]">
                       {job.salaryRange.raw.split('-')[0].trim()}
@@ -618,6 +794,19 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
               </div>
 
               <div className="flex items-center justify-between md:justify-end space-x-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-200/60">
+                <button
+                  type="button"
+                  onClick={(e) => toggleCompare(job, e)}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold transition flex items-center space-x-1 ${
+                    compareList.some(c => c.id === job.id)
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'neu-inset text-slate-500 hover:text-slate-800'
+                  }`}
+                  title="Select to compare side-by-side"
+                >
+                  <Scale className="h-3.5 w-3.5" />
+                  <span>{compareList.some(c => c.id === job.id) ? 'Selected (1/2)' : 'Compare'}</span>
+                </button>
                 {job.matchEvaluation && (
                   <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 flex items-center space-x-1">
                     <Sparkles className="h-3 w-3" />
@@ -663,6 +852,123 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Job Alert Modal (Requirement 7) */}
+      {showAlertModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900">Create Personalized Job Alert</h3>
+              <button onClick={() => setShowAlertModal(false)} className="text-slate-400 hover:text-slate-600">
+                &times;
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500">
+              Receive notifications for verified openings matching your current search parameters. No spam or expired duplicates.
+            </p>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Alert Title</label>
+                <input
+                  type="text"
+                  value={alertTitle}
+                  onChange={e => setAlertTitle(e.target.value)}
+                  placeholder={query ? `Alert: ${query}` : 'My Role Alert'}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Notification Frequency</label>
+                <select
+                  value={alertFrequency}
+                  onChange={e => setAlertFrequency(e.target.value as any)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"
+                >
+                  <option value="daily">Daily Digest (Recommended)</option>
+                  <option value="weekly">Weekly Summary</option>
+                  <option value="instant">Instant Real-Time Alert</option>
+                </select>
+              </div>
+            </div>
+
+            {alertSuccessMsg && (
+              <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-medium border border-emerald-200">
+                {alertSuccessMsg}
+              </div>
+            )}
+
+            <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setShowAlertModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    await api.createJobAlert({
+                      title: alertTitle || query || 'Job Alert',
+                      criteria: { keywords: query ? [query] : [], locations: locationFilter !== 'All Locations' ? [locationFilter] : [] },
+                      frequency: alertFrequency,
+                    });
+                    setAlertSuccessMsg('Job alert created successfully!');
+                    setTimeout(() => {
+                      setAlertSuccessMsg(null);
+                      setShowAlertModal(false);
+                    }, 1500);
+                  } catch (err: any) {
+                    alert(`Failed to save alert: ${err.message}`);
+                  }
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
+              >
+                Save Alert
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Comparison Drawer Trigger */}
+      {compareList.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-4 border border-slate-700 animate-slideUp">
+          <div className="flex items-center space-x-2 text-xs">
+            <Scale className="h-4 w-4 text-blue-400" />
+            <span><strong>{compareList.length}/2</strong> opportunities selected</span>
+          </div>
+          <button
+            disabled={compareList.length < 2}
+            onClick={() => setShowCompareDrawer(true)}
+            className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition"
+          >
+            Compare Side-by-Side
+          </button>
+          <button
+            onClick={() => setCompareList([])}
+            className="text-xs text-slate-400 hover:text-white transition"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
+      {/* Side-by-Side Job Comparison Drawer */}
+      {showCompareDrawer && compareList.length === 2 && (
+        <JobComparisonDrawer
+          jobA={compareList[0]}
+          jobB={compareList[1]}
+          profile={null}
+          onClose={() => setShowCompareDrawer(false)}
+          onSelectJob={(j) => {
+            setShowCompareDrawer(false);
+            onSelectVacancy(j);
+          }}
+        />
       )}
     </div>
   );

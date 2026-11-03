@@ -134,10 +134,33 @@ export interface ScoringWeights {
   seniorityWeight: number; // default 10%
   locationWeight: number; // default 10%
   salaryWeight: number; // default 10%
+  educationWeight?: number;
+  certificationsWeight?: number;
+  industryWeight?: number;
+  locationWorkAuthWeight?: number;
+}
+
+export type OpportunityAlignmentTier =
+  | 'STRONG_ALIGNMENT'
+  | 'GOOD_ALIGNMENT_WITH_GAPS'
+  | 'STRETCH_OPPORTUNITY'
+  | 'LOW_ALIGNMENT';
+
+export interface HonestAssessment {
+  alignmentTier: OpportunityAlignmentTier;
+  summary: string;
+  whatMakesYouRelevant: string[];
+  whatMayReduceCompetitiveness: string[];
+  whatYouShouldImprove: string[];
+  questionsToClarifyBeforeApplying: string[];
+  unverifiedInformation: string[];
+  disclaimer: string;
 }
 
 export interface JobMatchEvaluation {
   matchScore: number;
+  alignmentTier?: OpportunityAlignmentTier;
+  honestAssessment?: HonestAssessment;
   breakdown: {
     skills: number;
     experience: number;
@@ -148,9 +171,19 @@ export interface JobMatchEvaluation {
     titleAlignment?: number;
     locationWorkAuth?: number;
     salaryPreferences?: number;
+    industry?: number;
+    certifications?: number;
   };
   matchedSkills: string[];
   missingSkills: string[];
+  essentialRequirementsMatched?: string[];
+  preferredRequirementsMatched?: string[];
+  missingEssentialRequirements?: string[];
+  missingPreferredRequirements?: string[];
+  relevantExperienceYears?: number;
+  requiredExperienceYears?: number;
+  potentialConcerns?: string[];
+  unverifiedInformation?: string[];
   reasons: string[];
   eligibilityIssues: string[];
   missingRequirements?: string[];
@@ -164,6 +197,243 @@ export interface JobMatchEvaluation {
   evaluatedAt: string;
 }
 
+// ============================================================================
+// FIT EVIDENCE MAP (SIGNATURE FEATURE)
+// ============================================================================
+
+export type EvidenceConfidence =
+  | 'VERIFIED_EVIDENCE'
+  | 'INFERRED_RELEVANCE'
+  | 'USER_CONFIRMED'
+  | 'MISSING_EVIDENCE';
+
+export interface FitEvidenceNode {
+  id: string;
+  requirement: string;
+  category: 'essential_skill' | 'preferred_skill' | 'experience' | 'education' | 'certification' | 'responsibility' | 'domain';
+  candidateEvidence?: string;
+  sourceType: 'resume_parsed' | 'user_profile' | 'certification_record' | 'none';
+  sourceReference?: string;
+  skillGap?: string;
+  confidence: EvidenceConfidence;
+  assessmentNotes: string;
+  isUserConfirmed?: boolean;
+}
+
+export interface FitEvidenceMap {
+  jobId: string;
+  userId: string;
+  overallConfidence: 'high' | 'medium' | 'low';
+  nodes: FitEvidenceNode[];
+  totalRequirements: number;
+  verifiedCount: number;
+  inferredCount: number;
+  userConfirmedCount: number;
+  missingCount: number;
+  evaluatedAt: string;
+  modelVersion?: string;
+}
+
+// ============================================================================
+// RESUME INTELLIGENCE & ATS BENCHMARKING
+// ============================================================================
+
+export interface ResumeIssue {
+  type: 'missing_info' | 'inconsistent_dates' | 'duplicate_experience' | 'unsupported_claim' | 'formatting_issue';
+  severity: 'critical' | 'warning' | 'suggestion';
+  field?: string;
+  description: string;
+  recommendation: string;
+  requiresUserConfirmation: boolean;
+}
+
+export interface ResumeToJobComparison {
+  jobId: string;
+  existingRelevantContent: string[];
+  missingRelevantKeywords: string[];
+  skillsRequiringClarification: string[];
+  suggestionsToImproveRelevance: string[];
+  atsReadability: {
+    parserCompatibility: 'high' | 'moderate' | 'limited';
+    structuralFeedback: string[];
+    unsupportedFormatsDetected: string[];
+    methodologyExplanation: string;
+  };
+}
+
+export interface ResumeIntelligenceReport {
+  extracted: {
+    employmentHistory: any[];
+    skills: string[];
+    education: any[];
+    certifications: string[];
+    achievements: string[];
+    toolsAndTechnologies: string[];
+  };
+  issues: ResumeIssue[];
+  comparisonsByJobId?: Record<string, ResumeToJobComparison>;
+  analyzedAt: string;
+}
+
+// ============================================================================
+// APPLICATION READINESS STUDIO
+// ============================================================================
+
+export interface ReadinessChecklistItem {
+  id: string;
+  category: 'resume_relevance' | 'required_qualifications' | 'location_suitability' | 'salary_suitability' | 'work_authorization' | 'required_documents' | 'missing_information';
+  label: string;
+  status: 'pass' | 'warning' | 'fail';
+  detail: string;
+  actionableStep?: string;
+}
+
+export interface ApplicationReadinessAssessment {
+  jobId: string;
+  status: 'READY_TO_APPLY' | 'REVIEW_FIRST';
+  overallSummary: string;
+  items: ReadinessChecklistItem[];
+  questionsToAskEmployer: string[];
+  evaluatedAt: string;
+}
+
+// ============================================================================
+// APPLICATION COPILOT ARTIFACTS
+// ============================================================================
+
+export interface CopilotJobArtifacts {
+  jobId: string;
+  tailoredResumeVersion?: {
+    headline: string;
+    professionalSummary: string;
+    highlightedExperiences: Array<{
+      company: string;
+      role: string;
+      bulletPoints: string[];
+    }>;
+    verifiedSkillsOnly: string[];
+  };
+  coverLetter?: {
+    salutation: string;
+    opening: string;
+    bodyParagraphs: string[];
+    callToAction: string;
+    closing: string;
+  };
+  recruiterMessage?: {
+    platform: 'linkedin' | 'email';
+    subject?: string;
+    message: string;
+  };
+  applicationAnswers?: Array<{
+    question: string;
+    draftAnswer: string;
+    basedOnEvidence: string[];
+  }>;
+  skillsGapImprovementPlan?: {
+    targetSkills: string[];
+    learningPath: Array<{
+      skill: string;
+      suggestedAction: string;
+      estimatedHours: number;
+      priority: 'high' | 'medium' | 'low';
+    }>;
+  };
+  userReviewed: boolean;
+  reviewedAt?: string;
+}
+
+// ============================================================================
+// INTERVIEW INTELLIGENCE
+// ============================================================================
+
+export interface StarQuestion {
+  question: string;
+  category: 'competency' | 'role_specific' | 'technical_functional' | 'situational';
+  starFramework: {
+    situationGuidance: string;
+    taskGuidance: string;
+    actionGuidance: string;
+    resultGuidance: string;
+  };
+  candidateRelevantExperienceRef?: string;
+  skillGapsAddressed?: string[];
+}
+
+export interface InterviewIntelligenceReport {
+  jobId: string;
+  competencyAreas: string[];
+  roleSpecificQuestions: StarQuestion[];
+  technicalFunctionalQuestions: StarQuestion[];
+  questionsToAskEmployer: string[];
+  qualityRubricFeedback: {
+    clarityAdvice: string;
+    evidenceGroundingAdvice: string;
+    humilityAndTransparencyAdvice: string;
+  };
+  disclaimer: string;
+  generatedAt: string;
+}
+
+// ============================================================================
+// CAREER IMPROVEMENT ROADMAP
+// ============================================================================
+
+export interface CareerRoadmapItem {
+  id: string;
+  skill: string;
+  isEssential: boolean;
+  learningEffort: 'low' | 'moderate' | 'high';
+  relevanceScore: number;
+  recommendedAction: string;
+  realisticCoursesOrProjects: Array<{
+    title: string;
+    type: 'course' | 'hands_on_project' | 'open_source_contribution' | 'practice_task';
+    description: string;
+    estimatedTime: string;
+  }>;
+}
+
+export interface CareerRoadmap {
+  userId: string;
+  targetRole: string;
+  prioritizedGaps: CareerRoadmapItem[];
+  updatedAt: string;
+}
+
+// ============================================================================
+// JOB ALERTS & APPLICATION ACTIVITIES
+// ============================================================================
+
+export interface JobAlertRule {
+  id: string;
+  userId: string;
+  title: string;
+  criteria: {
+    keywords?: string[];
+    locations?: string[];
+    remoteOnly?: boolean;
+    minSalary?: number;
+    experienceLevels?: string[];
+  };
+  frequency: 'instant' | 'daily' | 'weekly';
+  isActive: boolean;
+  lastTriggeredAt?: string;
+  createdAt: string;
+}
+
+export interface ApplicationActivityEvent {
+  id: string;
+  applicationId: string;
+  stage: ApplicationStatus;
+  note: string;
+  actor: 'user' | 'system' | 'recruiter';
+  timestamp: string;
+  followUpDate?: string;
+  recruiterContact?: string;
+  notes?: string;
+}
+
 export interface JobVacancy {
   id: string;
   source: 'remotive' | 'jobicy' | 'arbeitnow' | 'direct_feed' | 'manual';
@@ -174,6 +444,7 @@ export interface JobVacancy {
   country: string;
   remote: boolean;
   arrangement: WorkArrangement;
+  employmentType?: string;
   url: string;
   description: string;
   requirements: string[];

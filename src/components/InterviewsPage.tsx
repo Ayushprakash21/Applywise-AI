@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar,
   Building,
@@ -13,9 +13,11 @@ import {
   ExternalLink,
   MessageSquare,
   Award,
-  Zap
+  Zap,
+  BookOpen
 } from 'lucide-react';
-import { ApplicationRecord, UserProfile } from '../types/index.ts';
+import { ApplicationRecord, UserProfile, InterviewIntelligenceReport } from '../types/index.ts';
+import { api } from '../services/api.ts';
 
 interface InterviewsPageProps {
   applications: ApplicationRecord[];
@@ -36,8 +38,28 @@ export const InterviewsPage: React.FC<InterviewsPageProps> = ({
 }) => {
   const interviewApps = applications.filter(a => ['INTERVIEW', 'INTERVIEWING'].includes(a.status));
   const [selectedAppId, setSelectedAppId] = useState<string>(interviewApps[0]?.id || '');
+  const [interviewPrep, setInterviewPrep] = useState<InterviewIntelligenceReport | null>(null);
+  const [isLoadingPrep, setIsLoadingPrep] = useState<boolean>(false);
 
   const activeApp = interviewApps.find(a => a.id === selectedAppId) || interviewApps[0];
+
+  useEffect(() => {
+    if (!activeApp?.vacancyId) return;
+    const fetchPrep = async () => {
+      try {
+        setIsLoadingPrep(true);
+        const res = await api.getInterviewPrep(activeApp.vacancyId);
+        if (res.success) {
+          setInterviewPrep(res.interviewPrep);
+        }
+      } catch (err) {
+        console.error('Failed to load interview intelligence:', err);
+      } finally {
+        setIsLoadingPrep(false);
+      }
+    };
+    fetchPrep();
+  }, [activeApp?.vacancyId]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -157,44 +179,88 @@ export const InterviewsPage: React.FC<InterviewsPageProps> = ({
                   </div>
                 </div>
 
-                {/* Strategy Pillar 1: Verified STAR Talking Points */}
+                {/* Strategy Pillar 1: Verified STAR Practice Questions (Requirement 9) */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-mono uppercase tracking-wider text-cyan-600 dark:text-cyan-400 font-bold flex items-center space-x-1.5">
-                    <Award className="h-4 w-4" />
-                    <span>Verified STAR Talking Points</span>
-                  </h4>
-                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-2 text-xs text-slate-600 dark:text-slate-300">
-                    <p>
-                      Highlight real achievements from your verified profile:
-                    </p>
-                    <ul className="list-disc pl-5 space-y-1.5 text-[11px] leading-relaxed">
-                      {profile?.experiences?.[0]?.achievements?.map((ach, i) => (
-                        <li key={i}>{ach}</li>
-                      )) || (
-                        <li>Architected production workflows with verified latency reductions and high-availability outcomes.</li>
-                      )}
-                    </ul>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-mono uppercase tracking-wider text-cyan-600 dark:text-cyan-400 font-bold flex items-center space-x-1.5">
+                      <Award className="h-4 w-4" />
+                      <span>Verified STAR Talking Points & Practice Questions</span>
+                    </h4>
+                    {isLoadingPrep && <span className="text-[10px] text-slate-400">Loading coaching...</span>}
                   </div>
+
+                  {interviewPrep?.roleSpecificQuestions && interviewPrep.roleSpecificQuestions.length > 0 ? (
+                    <div className="space-y-3">
+                      {interviewPrep.roleSpecificQuestions.map((q, idx) => (
+                        <div key={idx} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+                          <p className="font-bold text-slate-900 dark:text-white flex items-start space-x-1.5">
+                            <span className="text-cyan-500 font-mono">Q{idx + 1}.</span>
+                            <span>{q.question}</span>
+                          </p>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-300 pt-1">
+                            <div className="p-2.5 rounded bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                              <strong className="text-cyan-600 dark:text-cyan-400 block mb-0.5">Situation & Task:</strong>
+                              <span>{q.starFramework.situationGuidance} {q.starFramework.taskGuidance}</span>
+                            </div>
+                            <div className="p-2.5 rounded bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                              <strong className="text-emerald-600 dark:text-emerald-400 block mb-0.5">Action & Result:</strong>
+                              <span>{q.starFramework.actionGuidance} {q.starFramework.resultGuidance}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-2 text-xs text-slate-600 dark:text-slate-300">
+                      <p>Highlight real achievements from your verified profile:</p>
+                      <ul className="list-disc pl-5 space-y-1.5 text-[11px] leading-relaxed">
+                        {profile?.experiences?.[0]?.achievements?.map((ach, i) => (
+                          <li key={i}>{ach}</li>
+                        )) || (
+                          <li>Architected production workflows with verified latency reductions and high-availability outcomes.</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
-                {/* Strategy Pillar 2: High-Impact Questions for the Interviewer */}
+                {/* Strategy Pillar 2: Answer Quality Rubric */}
+                {interviewPrep?.qualityRubricFeedback && (
+                  <div className="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900 space-y-2 text-xs">
+                    <span className="font-bold text-indigo-900 dark:text-indigo-300 flex items-center space-x-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                      <span>Answer Quality Evaluation Rubric</span>
+                    </span>
+                    <p className="text-[11px] text-indigo-950/80 dark:text-indigo-300/80 leading-relaxed">
+                      {interviewPrep.qualityRubricFeedback.clarityAdvice} {interviewPrep.qualityRubricFeedback.evidenceGroundingAdvice} {interviewPrep.qualityRubricFeedback.humilityAndTransparencyAdvice}
+                    </p>
+                  </div>
+                )}
+
+                {/* Strategy Pillar 3: High-Impact Questions for the Interviewer */}
                 <div className="space-y-3">
                   <h4 className="text-xs font-mono uppercase tracking-wider text-cyan-600 dark:text-cyan-400 font-bold flex items-center space-x-1.5">
                     <MessageSquare className="h-4 w-4" />
                     <span>Inquisitive Questions to Ask {activeApp.company}</span>
                   </h4>
                   <div className="space-y-2">
-                    {[
+                    {(interviewPrep?.questionsToAskEmployer && interviewPrep.questionsToAskEmployer.length > 0 ? interviewPrep.questionsToAskEmployer : [
                       `What does success look like in the first 90 days for this ${activeApp.role} position?`,
                       `How does the engineering and product team resolve architectural trade-offs between speed and resilience?`,
                       `What is the biggest operational challenge the team is solving right now?`,
-                    ].map((q, idx) => (
+                    ]).map((q, idx) => (
                       <div key={idx} className="p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80 text-xs text-slate-700 dark:text-slate-200 flex items-start space-x-2">
                         <CheckCircle2 className="h-3.5 w-3.5 text-cyan-500 mt-0.5 shrink-0" />
                         <span>{q}</span>
                       </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Disclaimer */}
+                <div className="text-[10px] text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-2 italic">
+                  {interviewPrep?.disclaimer || 'These practice questions are inferred from published role competencies and candidate experiences; actual interview formats are set entirely by the hiring team.'}
                 </div>
               </div>
             </div>

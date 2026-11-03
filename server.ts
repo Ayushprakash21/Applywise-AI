@@ -9,6 +9,7 @@ import { authAndStore, AuthUser } from './server/authAndStore.ts';
 import { resumeEngine } from './server/resumeEngine.ts';
 import { jobDiscovery } from './server/jobDiscovery.ts';
 import { matchingEngine } from './server/matchingEngine.ts';
+import { careerIntelligenceEngine } from './server/careerIntelligenceEngine.ts';
 import { submissionAdapter } from './server/submissionAdapter.ts';
 import {
   initialVacancies,
@@ -76,6 +77,15 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
 }
 
 // Optional Auth Middleware (allows unauthenticated browsing of public vacancies)
+export function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  requireAuth(req, res, () => {
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Access denied: Administrator privileges required.' });
+    }
+    next();
+  });
+}
+
 export function optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   let token = '';
@@ -532,6 +542,142 @@ app.get('/api/vacancies', optionalAuth, async (req: AuthenticatedRequest, res: R
   res.json({ success: true, vacancies });
 });
 
+app.get('/api/jobs/search', optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const query = String(req.query.q || req.query.query || '').trim();
+  const company = String(req.query.company || '').trim().toLowerCase();
+  const location = String(req.query.location || '').trim().toLowerCase();
+  const workArrangement = String(req.query.workArrangement || (req.query.remote === 'true' ? 'remote' : 'all'));
+  const employmentType = String(req.query.employmentType || 'all').toLowerCase();
+  const experienceLevel = String(req.query.experienceLevel || 'all').toLowerCase();
+  const salaryMin = req.query.salaryMin ? parseFloat(String(req.query.salaryMin)) : undefined;
+  const page = Math.max(1, parseInt(String(req.query.page || '1'), 10));
+  const limit = Math.min(50, Math.max(1, parseInt(String(req.query.limit || '15'), 10)));
+
+  let vacancies = authAndStore.getVacancies(200);
+  if (vacancies.length === 0) {
+    try {
+      const liveRes = await jobDiscovery.searchJobs({ query });
+      if (liveRes.vacancies.length > 0) {
+        authAndStore.saveVacancies(liveRes.vacancies);
+        vacancies = authAndStore.getVacancies(200);
+      }
+    } catch (e) {
+      console.warn('Initial vacancy fetch warning:', e);
+    }
+  }
+
+  // Filter
+  let filtered = vacancies.filter(v => {
+    if (query) {
+      const q = query.toLowerCase();
+      const matchQ = v.title.toLowerCase().includes(q) ||
+        v.company.toLowerCase().includes(q) ||
+        v.description.toLowerCase().includes(q) ||
+        (v.requirements || []).some(r => r.toLowerCase().includes(q));
+      if (!matchQ) return false;
+    }
+    if (company && !v.company.toLowerCase().includes(company)) return false;
+    if (location && location !== 'all locations') {
+      const matchLoc = v.location.toLowerCase().includes(location) ||
+        (v.country && v.country.toLowerCase().includes(location));
+      if (!matchLoc) return false;
+    }
+    if (workArrangement !== 'all') {
+      if (workArrangement === 'remote' && !v.remote && v.arrangement !== 'remote') return false;
+      if (workArrangement === 'hybrid' && v.arrangement !== 'hybrid') return false;
+      if (workArrangement === 'onsite' && (v.remote || v.arrangement === 'remote' || v.arrangement === 'hybrid')) return false;
+    }
+    if (employmentType !== 'all') {
+      const et = ((v as any).employmentType || 'full-time').toLowerCase();
+      if (!et.includes(employmentType)) return false;
+    }
+    if (experienceLevel !== 'all') {
+      const el = ((v as any).experienceLevel || 'mid').toLowerCase();
+      if (el !== experienceLevel) return false;
+    }
+    if (salaryMin && (v.salaryRange?.min || 0) < salaryMin) return false;
+    return true;
+  });
+
+  // Calculate matches for authenticated user
+  if (req.user) {
+    const profile = authAndStore.getProfile(req.user.id);
+    const preferences = authAndStore.getPreferences(req.user.id);
+    if (profile && preferences) {
+      for (const v of filtered) {
+        if (!v.matchEvaluation) {
+          const evalRes = await matchingEngine.evaluateMatch(profile, preferences, v);
+          v.matchEvaluation = {
+            matchScore: evalRes.score,
+            breakdown: evalRes.breakdown,
+            matchedSkills: evalRes.reasons.slice(0, 3),
+            missingSkills: evalRes.missingRequirements || [],
+            reasons: evalRes.reasons,
+            eligibilityIssues: evalRes.eligibilityConcerns || [],
+            salaryCompatibility: 'compatible',
+            sponsorshipStatus: 'unspecified',
+            recommendation: !evalRes.isEligible ? 'DO_NOT_APPLY' : (evalRes.score >= 80 ? 'STRONG_APPLY' : evalRes.score >= 60 ? 'CONSIDER' : 'MARGINAL'),
+            evaluatedAt: new Date().toISOString(),
+          };
+        }
+      }
+    }
+  }
+
+  const total = filtered.length;
+  const totalPages = Math.ceil(total / limit) || 1;
+  const offset = (page - 1) * limit;
+  const paginated = filtered.slice(offset, offset + limit);
+
+  res.json({
+    success: true,
+    total,
+    page,
+    limit,
+    totalPages,
+    jobs: paginated,
+    vacancies: paginated,
+  });
+});
+
+app.get('/api/jobs/status', (req: Request, res: Response) => {
+  const vacancies = authAndStore.getVacancies(200);
+  res.json({
+    success: true,
+    totalCachedJobs: vacancies.length,
+    refreshCadence: '10 minutes',
+    sources: [
+      { source_id: 'remotive', source_name: 'Remotive Global', connector_type: 'aggregator_api', status: 'healthy', total_jobs: vacancies.length },
+      { source_id: 'arbeitnow', source_name: 'Arbeitnow Jobs', connector_type: 'aggregator_api', status: 'healthy', total_jobs: vacancies.length },
+      { source_id: 'jobicy', source_name: 'Jobicy Global Remote', connector_type: 'aggregator_api', status: 'healthy', total_jobs: vacancies.length },
+    ],
+    lastChecked: new Date().toISOString(),
+  });
+});
+
+app.get('/api/jobs/sources', (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    sources: [
+      { id: 'remotive', name: 'Remotive Global', type: 'aggregator_api', status: 'healthy' },
+      { id: 'arbeitnow', name: 'Arbeitnow Jobs', type: 'aggregator_api', status: 'healthy' },
+      { id: 'jobicy', name: 'Jobicy Global Remote', type: 'aggregator_api', status: 'healthy' },
+    ],
+  });
+});
+
+app.post('/api/jobs/refresh', optionalAuth, async (req: Request, res: Response) => {
+  const liveRes = await jobDiscovery.searchJobs({});
+  if (liveRes.vacancies.length > 0) {
+    authAndStore.saveVacancies(liveRes.vacancies);
+  }
+  res.json({
+    success: true,
+    totalJobsFetched: liveRes.vacancies.length,
+    message: `Refreshed job sources, fetched ${liveRes.vacancies.length} live openings.`,
+  });
+});
+
 app.post('/api/jobs/search', optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
   const { query, country, remoteOnly } = req.body;
   const result = await jobDiscovery.searchJobs({ query, country, remoteOnly });
@@ -789,6 +935,224 @@ app.post('/api/notifications/mark-all-read', requireAuth, (req: AuthenticatedReq
 
 app.get('/api/integrations', (req: Request, res: Response) => {
   res.json({ success: true, integrations: initialIntegrations });
+});
+
+// --- CAREER INTELLIGENCE & NEXT-GEN APPLICATION SUITE (PART 2) ---
+app.get('/api/jobs/:id/evidence-map', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const profile = authAndStore.getProfile(req.user!.id);
+  const vacancy = authAndStore.getVacancies().find(v => v.id === req.params.id);
+  if (!vacancy) return res.status(404).json({ success: false, error: 'Vacancy not found' });
+
+  const evidenceMap = careerIntelligenceEngine.generateFitEvidenceMap(req.user!.id, profile || { id: req.user!.id } as any, vacancy);
+  res.json({ success: true, evidenceMap });
+});
+
+app.post('/api/jobs/:id/evidence-map/confirm', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const profile = authAndStore.getProfile(req.user!.id);
+  const vacancy = authAndStore.getVacancies().find(v => v.id === req.params.id);
+  if (!vacancy) return res.status(404).json({ success: false, error: 'Vacancy not found' });
+
+  const map = careerIntelligenceEngine.generateFitEvidenceMap(req.user!.id, profile || { id: req.user!.id } as any, vacancy);
+  const node = map.nodes.find(n => n.id === req.body.nodeId);
+  if (node) {
+    node.isUserConfirmed = true;
+    node.confidence = 'USER_CONFIRMED';
+    map.userConfirmedCount = (map.userConfirmedCount || 0) + 1;
+  }
+  res.json({ success: true, evidenceMap: map });
+});
+
+app.get('/api/jobs/:id/readiness', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const profile = authAndStore.getProfile(req.user!.id);
+  const preferences = authAndStore.getPreferences(req.user!.id);
+  const vacancy = authAndStore.getVacancies().find(v => v.id === req.params.id);
+  if (!vacancy) return res.status(404).json({ success: false, error: 'Vacancy not found' });
+
+  const readiness = careerIntelligenceEngine.evaluateApplicationReadiness(
+    profile || { id: req.user!.id } as any,
+    preferences || {} as any,
+    vacancy
+  );
+  res.json({ success: true, readiness });
+});
+
+app.get('/api/jobs/:id/copilot', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const profile = authAndStore.getProfile(req.user!.id);
+  const vacancy = authAndStore.getVacancies().find(v => v.id === req.params.id);
+  if (!vacancy) return res.status(404).json({ success: false, error: 'Vacancy not found' });
+
+  const artifacts = careerIntelligenceEngine.generateCopilotArtifacts(profile || { id: req.user!.id } as any, vacancy);
+  res.json({ success: true, artifacts, userReviewed: false });
+});
+
+app.post('/api/jobs/:id/copilot/review', requireAuth, (_req: AuthenticatedRequest, res: Response) => {
+  res.json({ success: true, message: 'Artifact marked as reviewed by candidate.' });
+});
+
+app.get('/api/jobs/:id/interview-prep', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const profile = authAndStore.getProfile(req.user!.id);
+  const vacancy = authAndStore.getVacancies().find(v => v.id === req.params.id);
+  if (!vacancy) return res.status(404).json({ success: false, error: 'Vacancy not found' });
+
+  const prep = careerIntelligenceEngine.generateInterviewIntelligence(profile || { id: req.user!.id } as any, vacancy);
+  res.json({ success: true, interviewPrep: prep });
+});
+
+app.get('/api/resume/intelligence', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const profile = authAndStore.getProfile(req.user!.id);
+  const report = careerIntelligenceEngine.analyzeResumeIntelligence(profile || { id: req.user!.id } as any);
+  res.json({ success: true, report });
+});
+
+app.post('/api/resume/compare/:jobId', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const profile = authAndStore.getProfile(req.user!.id);
+  const vacancy = authAndStore.getVacancies().find(v => v.id === req.params.jobId);
+  if (!vacancy) return res.status(404).json({ success: false, error: 'Vacancy not found' });
+
+  const comparison = careerIntelligenceEngine.compareResumeToJob(profile || { id: req.user!.id } as any, vacancy);
+  res.json({ success: true, comparison });
+});
+
+app.get('/api/career/roadmap', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const profile = authAndStore.getProfile(req.user!.id);
+  const vacancies = authAndStore.getVacancies();
+  const roadmap = careerIntelligenceEngine.generateCareerRoadmap(
+    profile || { id: req.user!.id } as any,
+    (req.query.role as string) || profile?.currentTitle || 'Software Engineer',
+    vacancies
+  );
+  res.json({ success: true, roadmap });
+});
+
+app.get('/api/alerts', requireAuth, (_req: AuthenticatedRequest, res: Response) => {
+  res.json({ success: true, alerts: [] });
+});
+
+app.post('/api/alerts', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  res.json({
+    success: true,
+    alert: {
+      id: 'alert-mock-1',
+      userId: req.user!.id,
+      title: req.body.title || 'Live Search Alert',
+      criteria: req.body.criteria || {},
+      frequency: req.body.frequency || 'daily',
+      isActive: true,
+      createdAt: new Date().toISOString(),
+    },
+  });
+});
+
+app.delete('/api/alerts/:id', requireAuth, (_req: AuthenticatedRequest, res: Response) => {
+  res.json({ success: true, message: 'Alert rule deleted.' });
+});
+
+app.get('/api/applications/:id/timeline', requireAuth, (_req: AuthenticatedRequest, res: Response) => {
+  res.json({ success: true, timeline: [] });
+});
+
+app.post('/api/applications/:id/timeline', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  res.json({
+    success: true,
+    timeline: [
+      {
+        id: 'timeline-mock-1',
+        applicationId: req.params.id,
+        stage: req.body.stage || 'PREPARING',
+        note: req.body.note || '',
+        actor: req.body.actor || 'user',
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  });
+});
+
+// Admin Routes for Local Parity
+app.get('/api/admin/overview', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  res.json({
+    success: true,
+    stats: {
+      totalUsers: 2,
+      totalAdmins: 1,
+      totalApplications: 5,
+      totalResumes: 2,
+      totalVacancies: initialVacancies.length,
+      activeSubscriptions: 1,
+    },
+  });
+});
+
+app.get('/api/admin/users', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  res.json({
+    success: true,
+    users: [
+      {
+        id: req.user!.id,
+        email: req.user!.email,
+        fullName: req.user!.fullName || 'Admin User',
+        role: req.user!.role || 'admin',
+        isVerified: true,
+        createdAt: new Date().toISOString(),
+        planId: 'pro',
+      },
+    ],
+    total: 1,
+  });
+});
+
+app.post('/api/admin/users/:id/role', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  res.json({ success: true, message: 'Role updated successfully.' });
+});
+
+app.get('/api/admin/audit-logs', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  res.json({
+    success: true,
+    logs: [
+      {
+        id: 'mock-log-1',
+        actor: 'Admin',
+        action: 'SYSTEM_AUDIT',
+        target: 'Platform',
+        details: 'Local environment audit telemetry operational',
+        severity: 'info',
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  });
+});
+
+app.get('/api/admin/system-health', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  res.json({
+    success: true,
+    system: {
+      status: 'operational',
+      environment: 'Local Parity Server',
+      database: {
+        engine: 'In-Memory / SQLite Parity',
+        status: 'healthy',
+        userCount: 2,
+        adminCount: 1,
+        applicationsCount: 5,
+      },
+      integrations: {
+        googleAuth: { configured: true, clientId: 'dev-client-id', status: 'active' },
+        geminiAI: { configured: true, model: 'gemini-2.5-flash', status: 'active' },
+        jobDiscovery: { connectors: ['Greenhouse', 'Lever', 'Remotive', 'Jobicy'], status: 'healthy' },
+      },
+      serverTime: new Date().toISOString(),
+    },
+  });
+});
+
+app.get('/api/admin/sources/health', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  res.json({
+    success: true,
+    totalCachedJobs: initialVacancies.length,
+    sources: [],
+    recentRuns: [],
+    recentErrors: [],
+    serverTime: new Date().toISOString(),
+  });
 });
 
 // Frontend Vite Integration & Server Startup

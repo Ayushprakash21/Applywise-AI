@@ -1,13 +1,28 @@
-import { GoogleGenAI } from '@google/genai';
-import { UserProfile, CareerPreferences, JobVacancy } from '../src/types/index.ts';
+// worker/matchingEngine.ts
+// Structured 6-Dimension Weighted Scoring & Cross-Industry Evaluation for Cloudflare Workers
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || '',
-});
+import {
+  UserProfile,
+  CareerPreferences,
+  JobVacancy,
+  OpportunityAlignmentTier,
+  HonestAssessment,
+} from '../src/types/index.ts';
+import { careerIntelligenceEngine } from './careerIntelligenceEngine.ts';
 
 export interface MatchAnalysis {
   score: number;
   isEligible: boolean;
+  alignmentTier?: OpportunityAlignmentTier;
+  honestAssessment?: HonestAssessment;
+  essentialRequirementsMatched?: string[];
+  preferredRequirementsMatched?: string[];
+  missingEssentialRequirements?: string[];
+  missingPreferredRequirements?: string[];
+  relevantExperienceYears?: number;
+  requiredExperienceYears?: number;
+  potentialConcerns?: string[];
+  unverifiedInformation?: string[];
   breakdown: {
     skills: number; // 25% max
     experience: number; // 25% max
@@ -25,7 +40,6 @@ export interface MatchAnalysis {
   salaryCompatible?: boolean;
 }
 
-// Common job family definitions for cross-industry matching
 export const JOB_FAMILIES: Record<string, string[]> = {
   'supply_chain': ['supply chain', 'procurement', 'logistics', 'inventory', 'warehouse', 'sourcing', 'buyer'],
   'project_management': ['project manager', 'program manager', 'scrum master', 'agile coach', 'delivery manager', 'pmo'],
@@ -48,7 +62,7 @@ export function detectJobFamily(title: string, desc: string): string {
   return 'general';
 }
 
-export const matchingEngine = {
+export const workerMatchingEngine = {
   /**
    * Evaluates candidate suitability against job vacancy using structured weighted scoring:
    * - Skills: 25%
@@ -57,13 +71,12 @@ export const matchingEngine = {
    * - Qualifications: 10%
    * - Location & Work Authorization: 10%
    * - Salary & Preferences: 10%
-   *
-   * Enforces mandatory eligibility separately. Does NOT award positive evidence points to unknown info.
    */
   async evaluateMatch(
     profile: UserProfile,
     preferences: CareerPreferences,
-    vacancy: JobVacancy
+    vacancy: JobVacancy,
+    apiKey?: string
   ): Promise<MatchAnalysis> {
     const reasons: string[] = [];
     const missingRequirements: string[] = [];
@@ -71,233 +84,210 @@ export const matchingEngine = {
     const reasonsToConsider: string[] = [];
     const dataQualityNotes: string[] = [];
 
-    // --- 1. MANDATORY ELIGIBILITY (Gate check) ---
     let isEligible = true;
 
-    // A. Excluded companies
-    if (preferences.excludedCompanies && preferences.excludedCompanies.length > 0) {
-      const lowerCompany = vacancy.company.toLowerCase();
-      if (preferences.excludedCompanies.some(exc => exc.trim() && lowerCompany.includes(exc.toLowerCase().trim()))) {
-        isEligible = false;
-        eligibilityConcerns.push(`Company "${vacancy.company}" is in your excluded companies list.`);
-      }
-    }
+    // 1. Mandatory Exclusions
+    const companyLower = (vacancy.company || '').toLowerCase();
+    const titleLower = (vacancy.title || '').toLowerCase();
+    const descLower = (vacancy.description || '').toLowerCase();
 
-    // B. Excluded keywords
-    if (preferences.excludedKeywords && preferences.excludedKeywords.length > 0) {
-      const lowerText = `${vacancy.title} ${vacancy.description}`.toLowerCase();
-      for (const kw of preferences.excludedKeywords) {
-        if (kw.trim() && lowerText.includes(kw.toLowerCase().trim())) {
+    if (preferences.excludedCompanies && preferences.excludedCompanies.length > 0) {
+      for (const exc of preferences.excludedCompanies) {
+        if (exc && companyLower.includes(exc.toLowerCase().trim())) {
           isEligible = false;
-          eligibilityConcerns.push(`Listing contains excluded keyword: "${kw}".`);
-          break;
+          eligibilityConcerns.push(`Excluded company: "${vacancy.company}" matches candidate exclusion.`);
         }
       }
     }
 
-    // C. Visa sponsorship requirement
-    const requiresVisa = preferences.requiresVisaSponsorship || preferences.visaSponsorshipRequired;
-    if (requiresVisa) {
-      if (vacancy.visaSponsorship === 'unsupported' || vacancy.visaSponsorship === 'not_supported') {
+    if (preferences.excludedKeywords && preferences.excludedKeywords.length > 0) {
+      for (const kw of preferences.excludedKeywords) {
+        if (kw && (titleLower.includes(kw.toLowerCase().trim()) || descLower.includes(kw.toLowerCase().trim()))) {
+          isEligible = false;
+          eligibilityConcerns.push(`Excluded keyword: "${kw}" found in job listing.`);
+        }
+      }
+    }
+
+    // 2. Visa Sponsorship Check
+    if (preferences.requiresVisaSponsorship || preferences.visaSponsorshipRequired) {
+      if (vacancy.visaSponsorship === 'not_supported' || vacancy.visaSponsorship === 'unsupported') {
         isEligible = false;
-        eligibilityConcerns.push('Employer explicitly does not provide visa sponsorship.');
+        eligibilityConcerns.push('Visa sponsorship required by candidate, but vacancy explicitly states no sponsorship.');
       } else if (vacancy.visaSponsorship === 'unknown' || !vacancy.visaSponsorship) {
-        eligibilityConcerns.push('Visa sponsorship status is unconfirmed by employer.');
-      } else {
-        reasons.push('Employer explicitly supports visa sponsorship.');
+        eligibilityConcerns.push('Visa sponsorship requirement unverified in listing.');
       }
     }
 
-    // --- 2. STRUCTURED WEIGHTED SCORING ---
+    // 3. Skills Scoring (25% max)
+    let skillsScore = 0;
+    const candidateSkills = (profile.skills || []).map(s => s.name.toLowerCase().trim());
+    const jobRequirements = (vacancy.requirements || []).map(r => r.toLowerCase().trim());
 
-    // Dimension 1: Skills Alignment (25% weight, max 25 points)
-    let skillsPoints = 0;
-    const candidateSkills = profile.skills.map(s => s.name.toLowerCase().trim());
-    const lowerDesc = vacancy.description.toLowerCase();
-    const vacancyReqs = vacancy.requirements.map(r => r.toLowerCase().trim());
-
-    const matchedSkillsList: string[] = [];
-    const unverifiedSkillsList: string[] = [];
-
-    // Check vacancy requirements against candidate skills
-    for (const req of vacancyReqs) {
-      const hasSkill = candidateSkills.some(cs => cs.includes(req) || req.includes(cs));
-      if (hasSkill) {
-        matchedSkillsList.push(req);
-      } else {
-        unverifiedSkillsList.push(req);
+    if (jobRequirements.length > 0) {
+      let matchedCount = 0;
+      for (const req of jobRequirements) {
+        const found = candidateSkills.some(cs => cs.includes(req) || req.includes(cs) || descLower.includes(cs));
+        if (found) {
+          matchedCount++;
+          reasons.push(`Matched required skill: ${req}`);
+        } else {
+          missingRequirements.push(req);
+        }
       }
-    }
-
-    // Also check candidate skills in job description
-    for (const cs of candidateSkills) {
-      if (lowerDesc.includes(cs) && !matchedSkillsList.includes(cs)) {
-        matchedSkillsList.push(cs);
-      }
-    }
-
-    if (candidateSkills.length > 0) {
-      const skillRatio = matchedSkillsList.length / Math.max(1, vacancyReqs.length || 5);
-      skillsPoints = Math.min(25, Math.round(Math.min(1, skillRatio) * 25));
-      if (matchedSkillsList.length > 0) {
-        reasons.push(`Matched ${matchedSkillsList.length} verified candidate skills (${matchedSkillsList.slice(0, 4).join(', ')}).`);
-      }
+      skillsScore = Math.min(25, Math.round((matchedCount / jobRequirements.length) * 25));
     } else {
-      dataQualityNotes.push('Candidate profile has no verified skills listed.');
+      // Evaluate skills present in description
+      let matchedInDesc = 0;
+      for (const skill of candidateSkills) {
+        if (skill.length > 2 && descLower.includes(skill)) {
+          matchedInDesc++;
+          if (matchedInDesc <= 3) reasons.push(`Demonstrated skill match: ${skill}`);
+        }
+      }
+      skillsScore = Math.min(25, matchedInDesc * 5);
+      dataQualityNotes.push('Job listing did not include structured requirements list.');
     }
 
-    if (unverifiedSkillsList.length > 0) {
-      missingRequirements.push(...unverifiedSkillsList.slice(0, 5));
-    }
-
-    // Dimension 2: Experience & Responsibilities (25% weight, max 25 points)
-    let experiencePoints = 0;
+    // 4. Experience & Responsibilities Scoring (25% max)
+    let experienceScore = 0;
     const candidateYears = profile.totalExperienceYears || 0;
+    const expMatch = descLower.match(/(\d+)\+?\s*years?(?:\s+of)?\s+experience/);
+    const requiredYears = expMatch ? parseInt(expMatch[1], 10) : 0;
 
-    // Detect requested years of experience from description (e.g. "5+ years", "3-5 years")
-    const yearsMatch = lowerDesc.match(/(\d+)\+?\s*years?(?:\s+of)?\s+experience/i);
-    const requiredYears = yearsMatch ? parseInt(yearsMatch[1], 10) : 3;
-
-    if (candidateYears >= requiredYears) {
-      experiencePoints = 25;
-      reasons.push(`Meets experience criteria (${candidateYears} yrs vs ${requiredYears} yrs requested).`);
-    } else if (candidateYears > 0) {
-      experiencePoints = Math.round((candidateYears / Math.max(1, requiredYears)) * 20);
-      missingRequirements.push(`Role requests ${requiredYears}+ yrs experience (profile has ${candidateYears} yrs).`);
-    } else {
-      experiencePoints = 0;
-      dataQualityNotes.push('No verified years of experience on candidate profile.');
-    }
-
-    // Dimension 3: Job-Title & Family Alignment (20% weight, max 20 points)
-    let titlePoints = 0;
-    const targetRoles = (preferences.targetRoles && preferences.targetRoles.length > 0)
-      ? preferences.targetRoles
-      : (preferences.preferredTitles || []);
-
-    const lowerTitle = vacancy.title.toLowerCase();
-    const vacancyFamily = detectJobFamily(vacancy.title, vacancy.description);
-
-    const directTitleMatch = targetRoles.some(tr =>
-      lowerTitle.includes(tr.toLowerCase()) || tr.toLowerCase().includes(lowerTitle)
-    );
-
-    if (directTitleMatch) {
-      titlePoints = 20;
-      reasons.push(`Job title directly matches target role preference.`);
-    } else {
-      // Check family match
-      const candidateFamilyMatches = targetRoles.some(tr => detectJobFamily(tr, '') === vacancyFamily);
-      if (candidateFamilyMatches) {
-        titlePoints = 14;
-        reasons.push(`Job belongs to preferred ${vacancyFamily.replace('_', ' ')} career family.`);
-      } else if (targetRoles.length === 0) {
-        titlePoints = 10;
-        dataQualityNotes.push('No target roles configured in candidate preferences.');
+    if (requiredYears > 0) {
+      if (candidateYears >= requiredYears) {
+        experienceScore = 25;
+        reasons.push(`Meets experience threshold: ${candidateYears} years versus ${requiredYears} required`);
+      } else if (candidateYears >= requiredYears * 0.7) {
+        experienceScore = 15;
+        missingRequirements.push(`Candidate has ${candidateYears} years experience; role mentions ${requiredYears}+ years`);
       } else {
-        titlePoints = 4;
-        missingRequirements.push(`Role family (${vacancyFamily}) differs from preferred target titles.`);
-      }
-    }
-
-    // Dimension 4: Qualifications & Education (10% weight, max 10 points)
-    // CRITICAL: Do NOT award positive points to unknown qualifications
-    let qualPoints = 0;
-    const hasDegreeReq = lowerDesc.includes('bachelor') || lowerDesc.includes('degree') || lowerDesc.includes('master');
-
-    if (profile.education && profile.education.length > 0) {
-      if (hasDegreeReq) {
-        qualPoints = 10;
-        reasons.push(`Verified education (${profile.education[0].degree}) satisfies degree qualification.`);
-      } else {
-        qualPoints = 7;
+        experienceScore = 5;
+        missingRequirements.push(`Significant experience gap: ${candidateYears} years vs ${requiredYears}+ required`);
       }
     } else {
-      // No positive points awarded to missing/unknown qualifications
-      qualPoints = 0;
-      if (hasDegreeReq) {
-        missingRequirements.push('Degree required by vacancy but not present on verified profile.');
-      }
+      experienceScore = candidateYears >= 5 ? 20 : (candidateYears >= 2 ? 15 : 10);
+      dataQualityNotes.push('Years of experience requirement not explicitly quantified in listing.');
     }
 
-    // Dimension 5: Location & Work Arrangement (10% weight, max 10 points)
-    let locationPoints = 0;
-    const preferredArrangements = preferences.workArrangements || preferences.workArrangement || ['remote'];
+    // 5. Job Title & Family Alignment (20% max)
+    let titleScore = 0;
+    const targetRoles = preferences.targetRoles || preferences.preferredTitles || [];
+    const candidateTitle = (profile.currentTitle || '').toLowerCase();
+    const candidateJobFamily = detectJobFamily(candidateTitle, (profile.experiences || []).map(e => e.role).join(' '));
+    const vacancyJobFamily = detectJobFamily(titleLower, descLower);
 
-    if (vacancy.remote && preferredArrangements.includes('remote')) {
-      locationPoints = 10;
-      reasonsToConsider.push('100% remote arrangement aligns with your preferences.');
-    } else if (preferences.targetCountries && preferences.targetCountries.length > 0) {
-      const countryMatch = preferences.targetCountries.some(tc =>
-        vacancy.location.toLowerCase().includes(tc.toLowerCase()) ||
-        vacancy.country.toLowerCase().includes(tc.toLowerCase())
-      );
-      if (countryMatch) {
-        locationPoints = 10;
-        reasons.push(`Location (${vacancy.location}) matches preferred target country.`);
+    const titleExact = targetRoles.some(tr => titleLower.includes(tr.toLowerCase()) || tr.toLowerCase().includes(titleLower));
+    if (titleExact || (candidateTitle && titleLower.includes(candidateTitle))) {
+      titleScore = 20;
+      reasons.push(`Target role alignment: "${vacancy.title}" aligns with candidate title targets.`);
+    } else if (candidateJobFamily !== 'general' && candidateJobFamily === vacancyJobFamily) {
+      titleScore = 14;
+      reasons.push(`Cross-industry domain alignment in ${candidateJobFamily.replace('_', ' ')}.`);
+    } else {
+      titleScore = 5;
+      dataQualityNotes.push(`Title not an exact match to target roles (${targetRoles.join(', ')}).`);
+    }
+
+    // 6. Qualifications & Education (10% max)
+    let qualificationsScore = 0;
+    const degreeRequired = descLower.includes("bachelor's") || descLower.includes("master's") || descLower.includes('degree') || descLower.includes('bs ') || descLower.includes('ms ');
+    if (degreeRequired) {
+      const hasDegree = (profile.education || []).length > 0;
+      if (hasDegree) {
+        qualificationsScore = 10;
+        reasons.push('Candidate holds verified post-secondary educational degree.');
       } else {
-        locationPoints = 3;
-        missingRequirements.push(`Location (${vacancy.location}) outside preferred target countries.`);
+        qualificationsScore = 0;
+        missingRequirements.push('Degree mentioned in vacancy; none recorded in profile.');
       }
     } else {
-      locationPoints = 5;
+      qualificationsScore = (profile.education && profile.education.length > 0) ? 10 : 0;
     }
 
-    // Dimension 6: Salary & Preferences (10% weight, max 10 points)
-    let salaryPoints = 0;
+    // 7. Location & Work Authorization (10% max)
+    let locationScore = 0;
+    const targetCountries = (preferences.targetCountries || []).map(c => c.toLowerCase());
+    const isRemote = vacancy.remote || (vacancy.arrangement === 'remote') || descLower.includes('remote');
+    const candWantsRemote = (preferences.workArrangement || []).includes('remote') || (preferences.workArrangements || []).includes('remote');
+
+    if (isRemote && candWantsRemote) {
+      locationScore = 10;
+      reasons.push('Remote work arrangement matches candidate preferences.');
+    } else if (targetCountries.some(tc => (vacancy.country || '').toLowerCase().includes(tc) || (vacancy.location || '').toLowerCase().includes(tc))) {
+      locationScore = 10;
+      reasons.push(`Location matches candidate target country: ${vacancy.country || vacancy.location}`);
+    } else {
+      locationScore = 4;
+      dataQualityNotes.push('Location unconfirmed or outside primary country target.');
+    }
+
+    // 8. Salary & Preferences (10% max)
+    let salaryScore = 10;
+    let salaryCompatible = true;
     const minSalary = preferences.minSalaryUSD || 0;
-
-    if (vacancy.salaryRange?.min) {
-      if (minSalary === 0 || vacancy.salaryRange.min >= minSalary) {
-        salaryPoints = 10;
-        reasons.push(`Advertised compensation meets minimum salary floor.`);
-      } else {
-        salaryPoints = 2;
-        eligibilityConcerns.push(`Salary range (${vacancy.salaryRange.raw}) is below target floor.`);
+    if (minSalary > 0 && vacancy.salaryRange?.raw) {
+      const salaryNums = vacancy.salaryRange.raw.match(/\d+[\d,.]*/g);
+      if (salaryNums && salaryNums.length > 0) {
+        const topNum = parseInt(salaryNums[salaryNums.length - 1].replace(/,/g, ''), 10);
+        if (topNum > 1000 && topNum < minSalary * 0.8) {
+          salaryScore = 2;
+          salaryCompatible = false;
+          missingRequirements.push(`Posted salary range (${vacancy.salaryRange.raw}) below candidate threshold ($${minSalary.toLocaleString()}).`);
+        } else {
+          salaryScore = 10;
+          reasons.push(`Compensation matches or exceeds expectation: ${vacancy.salaryRange.raw}`);
+        }
       }
-    } else {
-      // Salary unspecified by employer: neutral 5 points, not full points
-      salaryPoints = 5;
-      dataQualityNotes.push('Compensation not disclosed by employer.');
     }
 
-    // Total Score Calculation
-    let rawScore = skillsPoints + experiencePoints + titlePoints + qualPoints + locationPoints + salaryPoints;
-
-    // If candidate has zero skills and zero experience, clamp to prevent false high score
-    if (candidateSkills.length === 0 && candidateYears === 0) {
-      rawScore = Math.min(rawScore, 20);
-    }
-
-    // If hard ineligible, clamp score
+    let totalScore = Math.min(100, skillsScore + experienceScore + titleScore + qualificationsScore + locationScore + salaryScore);
     if (!isEligible) {
-      rawScore = Math.min(rawScore, 35);
+      totalScore = Math.min(25, totalScore);
     }
 
-    const finalScore = Math.max(5, Math.min(98, rawScore));
+    if (totalScore >= 75) {
+      reasonsToConsider.push('Strong composite score across skills, experience, and domain alignment.');
+    } else if (totalScore >= 60) {
+      reasonsToConsider.push('Solid foundational match with opportunities for growth.');
+    }
 
-    // Data quality rating
     const dataQuality: 'high' | 'moderate' | 'limited' =
-      dataQualityNotes.length === 0 ? 'high' : dataQualityNotes.length <= 2 ? 'moderate' : 'limited';
+      dataQualityNotes.length === 0 ? 'high' : (dataQualityNotes.length <= 2 ? 'moderate' : 'limited');
+
+    const multiDim = careerIntelligenceEngine.evaluateMultiDimensionalMatch(profile, preferences, vacancy);
 
     return {
-      score: finalScore,
+      score: totalScore,
       isEligible,
+      alignmentTier: multiDim.alignmentTier,
+      honestAssessment: multiDim.honestAssessment,
+      essentialRequirementsMatched: multiDim.essentialRequirementsMatched,
+      preferredRequirementsMatched: multiDim.preferredRequirementsMatched,
+      missingEssentialRequirements: multiDim.missingEssentialRequirements,
+      missingPreferredRequirements: multiDim.missingPreferredRequirements,
+      relevantExperienceYears: multiDim.relevantExperienceYears,
+      requiredExperienceYears: multiDim.requiredExperienceYears,
+      potentialConcerns: multiDim.potentialConcerns,
+      unverifiedInformation: multiDim.unverifiedInformation,
       breakdown: {
-        skills: skillsPoints,
-        experience: experiencePoints,
-        titleAlignment: titlePoints,
-        qualifications: qualPoints,
-        locationWorkAuth: locationPoints,
-        salaryPreferences: salaryPoints,
+        skills: skillsScore,
+        experience: experienceScore,
+        titleAlignment: titleScore,
+        qualifications: qualificationsScore,
+        locationWorkAuth: locationScore,
+        salaryPreferences: salaryScore,
       },
-      reasons: reasons.length > 0 ? reasons : ['General baseline match.'],
-      missingRequirements: Array.from(new Set(missingRequirements)),
+      reasons,
+      missingRequirements,
       eligibilityConcerns,
-      reasonsToConsider: reasonsToConsider.length > 0 ? reasonsToConsider : ['Career progression opportunity.'],
+      reasonsToConsider,
       dataQuality,
       dataQualityNotes,
-      salaryCompatible: salaryPoints >= 5,
+      salaryCompatible,
     };
   },
 };
+
+export const matchingEngine = workerMatchingEngine;

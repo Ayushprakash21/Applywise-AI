@@ -150,4 +150,22 @@ export const COMPARISON_FEATURES: PlanFeature[] = [
     includedInFree: false,
     includedInPro: true,
   },
+  {
+    name: 'Advanced Fit Evidence Map',
+    description: 'Requirement-by-requirement audit connecting verified facts, inferred relevance, and missing gaps',
+    includedInFree: false,
+    includedInPro: true,
+  },
+  {
+    name: 'Side-by-Side Opportunity Comparison',
+    description: 'Compare 2 vacancies simultaneously against your profile with suitability recommendations',
+    includedInFree: false,
+    includedInPro: true,
+  },
+  {
+    name: 'Career Improvement Roadmap',
+    description: 'Prioritized learning projects with estimated hours to bridge verified market gaps',
+    includedInFree: false,
+    includedInPro: true,
+  },
 ];

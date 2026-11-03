@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "applywise-ai",
+  "name": "applyvise-ai",
   "account_id": "dd579baef921a84503c3989aa829d7d3",
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-19",

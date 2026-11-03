@@ -1,5 +1,5 @@
 // worker/jobConnectors.ts
-// Modular Source Connector Registry and Live Job Discovery Engine for ApplyVise AI
+// Dedicated Provider Adapter Architecture & Live Job Ingestion Engine for ApplyVise AI
 
 export type ConnectorType = 'ats_greenhouse' | 'ats_lever' | 'ats_ashby' | 'aggregator_api' | 'json_ld';
 export type WorkArrangement = 'remote' | 'hybrid' | 'onsite';
@@ -28,9 +28,26 @@ export interface LiveJobItem {
   tags: string[];
   publishedAt: string;
   retrievedAt: string;
+  firstSeenAt?: string;
+  lastVerifiedAt?: string;
   expiresAt: string;
   isActive: boolean;
   lastCheckedAt: string;
+}
+
+export interface IngestionMetrics {
+  totalFetched: number;
+  totalAccepted: number;
+  totalRejected: number;
+  totalDuplicated: number;
+}
+
+export interface AdapterFetchResult {
+  jobs: LiveJobItem[];
+  metrics: IngestionMetrics;
+  status: 'healthy' | 'empty' | 'degraded' | 'rate_limited' | 'offline';
+  error?: string;
+  statusCode?: number;
 }
 
 export interface SourceHealth {
@@ -38,21 +55,21 @@ export interface SourceHealth {
   sourceName: string;
   connectorType: ConnectorType;
   endpoint: string;
-  status: 'healthy' | 'degraded' | 'offline';
+  status: 'healthy' | 'empty' | 'degraded' | 'rate_limited' | 'offline';
   totalJobs: number;
   latencyMs: number;
   lastRefreshedAt: string;
   lastError?: string;
 }
 
-export interface ConnectorDefinition {
+export interface JobProviderAdapter {
   id: string;
   name: string;
   company: string;
   type: ConnectorType;
   endpoint: string;
   rateLimitSeconds: number;
-  fetchFn: () => Promise<LiveJobItem[]>;
+  fetchJobs(): Promise<AdapterFetchResult>;
 }
 
 // SSRF Protection: Ensure external URLs strictly target public HTTPS endpoints
@@ -88,36 +105,6 @@ export function isSafePublicUrl(urlString: string): boolean {
   }
 }
 
-// Heuristic experience level detector
-export function inferExperienceLevel(title: string, desc: string): ExperienceLevel {
-  const t = (title + ' ' + desc.slice(0, 500)).toLowerCase();
-  if (t.includes('intern') || t.includes('entry level') || t.includes('junior') || t.includes('associate')) {
-    return 'entry';
-  }
-  if (t.includes('principal') || t.includes('director') || t.includes('vp') || t.includes('head of')) {
-    return 'executive';
-  }
-  if (t.includes('lead') || t.includes('staff') || t.includes('architect')) {
-    return 'lead';
-  }
-  if (t.includes('senior') || t.includes('sr.') || t.includes('sr ')) {
-    return 'senior';
-  }
-  return 'mid';
-}
-
-// Work arrangement detector
-export function inferWorkArrangement(location: string, title: string, desc: string): WorkArrangement {
-  const combined = (location + ' ' + title + ' ' + desc.slice(0, 500)).toLowerCase();
-  if (combined.includes('remote') || combined.includes('anywhere') || combined.includes('work from home')) {
-    return 'remote';
-  }
-  if (combined.includes('hybrid')) {
-    return 'hybrid';
-  }
-  return 'onsite';
-}
-
 // Clean HTML tags safely
 export function stripHtml(html: string): string {
   if (!html) return '';
@@ -134,455 +121,634 @@ export function stripHtml(html: string): string {
     .trim();
 }
 
-// Standard 60-minute TTL for temporary cache
-function calculateTtlIso(): string {
-  return new Date(Date.now() + 60 * 60 * 1000).toISOString();
+// Heuristic experience level detector
+export function inferExperienceLevel(title: string, desc: string): ExperienceLevel {
+  const t = (title + ' ' + desc.slice(0, 500)).toLowerCase();
+  if (t.includes('intern') || t.includes('entry level') || t.includes('junior') || t.includes('associate') || t.includes('graduate')) {
+    return 'entry';
+  }
+  if (t.includes('principal') || t.includes('director') || t.includes('vp') || t.includes('head of') || t.includes('chief') || t.includes('executive')) {
+    return 'executive';
+  }
+  if (t.includes('lead') || t.includes('staff') || t.includes('architect')) {
+    return 'lead';
+  }
+  if (t.includes('senior') || t.includes('sr.') || t.includes('sr ')) {
+    return 'senior';
+  }
+  return 'mid';
+}
+
+// Work arrangement detector
+export function inferWorkArrangement(location: string, title: string, desc: string): WorkArrangement {
+  const combined = (location + ' ' + title + ' ' + desc.slice(0, 500)).toLowerCase();
+  if (combined.includes('remote') || combined.includes('anywhere') || combined.includes('work from home') || combined.includes('telecommute')) {
+    return 'remote';
+  }
+  if (combined.includes('hybrid') || combined.includes('flexible')) {
+    return 'hybrid';
+  }
+  return 'onsite';
+}
+
+// 14-day TTL default for active live job records
+export function calculateDefaultTtlIso(): string {
+  return new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 }
 
 // ============================================================================
-// OFFICIAL CONNECTOR IMPLEMENTATIONS
+// DEDICATED PROVIDER ADAPTER IMPLEMENTATIONS
 // ============================================================================
 
-// 1. Greenhouse ATS Connector
-async function fetchGreenhouseBoard(boardToken: string, companyName: string): Promise<LiveJobItem[]> {
-  const url = `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(boardToken)}/jobs?content=true`;
-  if (!isSafePublicUrl(url)) throw new Error('Unsafe URL rejected');
+export class GreenhouseAdapter implements JobProviderAdapter {
+  constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly company: string,
+    public readonly boardToken: string,
+    public readonly rateLimitSeconds: number = 600
+  ) {}
 
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
-    signal: AbortSignal.timeout(9000),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Greenhouse API responded with HTTP ${res.status}`);
+  public readonly type: ConnectorType = 'ats_greenhouse';
+  public get endpoint(): string {
+    return `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(this.boardToken)}/jobs`;
   }
 
-  const data = (await res.json()) as {
-    jobs?: Array<{
-      id: number;
-      title: string;
-      absolute_url: string;
-      location?: { name: string };
-      updated_at?: string;
-      content?: string;
-      departments?: Array<{ name: string }>;
-    }>;
-  };
-
-  const results: LiveJobItem[] = [];
-  const now = new Date().toISOString();
-  const ttl = calculateTtlIso();
-
-  for (const j of (data.jobs || []).slice(0, 40)) {
-    const loc = j.location?.name || 'Remote / Unspecified';
-    const cleanDesc = stripHtml(j.content || '').slice(0, 3500);
-    const arrangement = inferWorkArrangement(loc, j.title, cleanDesc);
-    const exp = inferExperienceLevel(j.title, cleanDesc);
-
-    results.push({
-      id: `gh_${boardToken}_${j.id}`,
-      source: `greenhouse_${boardToken}`,
-      sourceJobId: String(j.id),
-      title: j.title.trim(),
-      company: companyName,
-      location: loc,
-      country: loc.toLowerCase().includes('united states') || loc.toLowerCase().includes('usa') ? 'United States' : 'Global',
-      workArrangement: arrangement,
-      employmentType: 'full-time',
-      experienceLevel: exp,
-      url: j.absolute_url,
-      description: cleanDesc,
-      requirements: j.departments?.map(d => d.name) || [],
-      tags: [boardToken, companyName, arrangement],
-      publishedAt: j.updated_at || now,
-      retrievedAt: now,
-      expiresAt: ttl,
-      isActive: true,
-      lastCheckedAt: now,
-    });
-  }
-
-  return results;
-}
-
-// 2. Lever ATS Connector
-async function fetchLeverBoard(companyHandle: string, companyName: string): Promise<LiveJobItem[]> {
-  const url = `https://api.lever.co/v0/postings/${encodeURIComponent(companyHandle)}?mode=json`;
-  if (!isSafePublicUrl(url)) throw new Error('Unsafe URL rejected');
-
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
-    signal: AbortSignal.timeout(9000),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Lever API responded with HTTP ${res.status}`);
-  }
-
-  const data = (await res.json()) as Array<{
-    id: string;
-    text: string;
-    hostedUrl: string;
-    descriptionPlain?: string;
-    description?: string;
-    categories?: {
-      location?: string;
-      commitment?: string;
-      department?: string;
-      team?: string;
-    };
-    createdAt?: number;
-    salaryRange?: { min?: number; max?: number; currency?: string; interval?: string };
-  }>;
-
-  const results: LiveJobItem[] = [];
-  const now = new Date().toISOString();
-  const ttl = calculateTtlIso();
-
-  for (const j of (Array.isArray(data) ? data : []).slice(0, 40)) {
-    const loc = j.categories?.location || 'Remote';
-    const cleanDesc = (j.descriptionPlain || stripHtml(j.description || '')).slice(0, 3500);
-    const arrangement = inferWorkArrangement(loc, j.text, cleanDesc);
-    const exp = inferExperienceLevel(j.text, cleanDesc);
-
-    let empType: EmploymentType = 'full-time';
-    const commit = (j.categories?.commitment || '').toLowerCase();
-    if (commit.includes('part-time')) empType = 'part-time';
-    else if (commit.includes('contract')) empType = 'contract';
-    else if (commit.includes('intern')) empType = 'internship';
-
-    let salaryRaw: string | undefined;
-    let salaryMin: number | undefined;
-    let salaryMax: number | undefined;
-    if (j.salaryRange?.min && j.salaryRange?.max) {
-      salaryMin = j.salaryRange.min;
-      salaryMax = j.salaryRange.max;
-      salaryRaw = `${j.salaryRange.currency || '$'}${salaryMin.toLocaleString()} - ${salaryMax.toLocaleString()}${j.salaryRange.interval ? ` / ${j.salaryRange.interval}` : ''}`;
+  async fetchJobs(): Promise<AdapterFetchResult> {
+    const metrics: IngestionMetrics = { totalFetched: 0, totalAccepted: 0, totalRejected: 0, totalDuplicated: 0 };
+    // Fetch board listing without ?content=true to prevent 10MB memory-exhaustion payloads on Cloudflare Workers
+    const url = this.endpoint;
+    if (!isSafePublicUrl(url)) {
+      return { jobs: [], metrics, status: 'offline', error: 'Unsafe URL rejected' };
     }
 
-    results.push({
-      id: `lever_${companyHandle}_${j.id}`,
-      source: `lever_${companyHandle}`,
-      sourceJobId: j.id,
-      title: j.text.trim(),
-      company: companyName,
-      location: loc,
-      country: loc.toLowerCase().includes('us') || loc.toLowerCase().includes('united states') ? 'United States' : 'Global',
-      workArrangement: arrangement,
-      employmentType: empType,
-      experienceLevel: exp,
-      salaryRaw,
-      salaryMin,
-      salaryMax,
-      salaryCurrency: j.salaryRange?.currency || '$',
-      url: j.hostedUrl,
-      description: cleanDesc,
-      requirements: [j.categories?.department, j.categories?.team].filter(Boolean) as string[],
-      tags: [companyHandle, companyName, arrangement],
-      publishedAt: j.createdAt ? new Date(j.createdAt).toISOString() : now,
-      retrievedAt: now,
-      expiresAt: ttl,
-      isActive: true,
-      lastCheckedAt: now,
-    });
-  }
+    try {
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
+        signal: AbortSignal.timeout(9000),
+      });
 
-  return results;
+      if (res.status === 429) {
+        return { jobs: [], metrics, status: 'rate_limited', statusCode: 429, error: 'Rate limit exceeded (HTTP 429)' };
+      }
+      if (res.status === 404) {
+        return { jobs: [], metrics, status: 'offline', statusCode: 404, error: 'Job board not found (HTTP 404)' };
+      }
+      if (!res.ok) {
+        return { jobs: [], metrics, status: 'degraded', statusCode: res.status, error: `Greenhouse returned HTTP ${res.status}` };
+      }
+
+      const data = (await res.json()) as {
+        jobs?: Array<{
+          id: number;
+          title?: string;
+          absolute_url?: string;
+          location?: { name?: string };
+          updated_at?: string;
+          departments?: Array<{ name?: string }>;
+        }>;
+      };
+
+      if (!data?.jobs || !Array.isArray(data.jobs)) {
+        return { jobs: [], metrics, status: 'empty', error: 'Invalid response schema: missing jobs array' };
+      }
+
+      metrics.totalFetched = data.jobs.length;
+      if (metrics.totalFetched === 0) {
+        return { jobs: [], metrics, status: 'empty' };
+      }
+
+      const results: LiveJobItem[] = [];
+      const now = new Date().toISOString();
+      const ttl = calculateDefaultTtlIso();
+
+      for (const j of data.jobs.slice(0, 50)) {
+        if (!j.title || !j.absolute_url || !j.id) {
+          metrics.totalRejected++;
+          continue;
+        }
+
+        const loc = j.location?.name?.trim() || 'Remote / Unspecified';
+        const depts = (j.departments || []).map(d => d.name?.trim()).filter(Boolean) as string[];
+        const summaryDesc = `${j.title.trim()} at ${this.company}. Location: ${loc}. Departments: ${depts.join(', ') || 'General'}. Apply directly at ${j.absolute_url}`;
+        const arrangement = inferWorkArrangement(loc, j.title, summaryDesc);
+        const exp = inferExperienceLevel(j.title, summaryDesc);
+
+        results.push({
+          id: `gh_${this.boardToken}_${j.id}`,
+          source: `greenhouse_${this.boardToken}`,
+          sourceJobId: String(j.id),
+          title: j.title.trim(),
+          company: this.company,
+          location: loc,
+          country: loc.toLowerCase().includes('united states') || loc.toLowerCase().includes('usa') ? 'United States' : 'Global',
+          workArrangement: arrangement,
+          employmentType: 'full-time',
+          experienceLevel: exp,
+          url: j.absolute_url,
+          description: summaryDesc,
+          requirements: depts.length > 0 ? depts : ['General'],
+          tags: [this.boardToken, this.company, arrangement],
+          publishedAt: j.updated_at || now,
+          retrievedAt: now,
+          firstSeenAt: now,
+          lastVerifiedAt: now,
+          expiresAt: ttl,
+          isActive: true,
+          lastCheckedAt: now,
+        });
+        metrics.totalAccepted++;
+      }
+
+      return { jobs: results, metrics, status: 'healthy', statusCode: 200 };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { jobs: [], metrics, status: 'offline', error: msg };
+    }
+  }
 }
 
-// 3. Remotive Public Aggregator
-async function fetchRemotive(): Promise<LiveJobItem[]> {
-  const url = 'https://remotive.com/api/remote-jobs?limit=30';
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
-    signal: AbortSignal.timeout(9000),
-  });
+export class LeverAdapter implements JobProviderAdapter {
+  constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly company: string,
+    public readonly companyHandle: string,
+    public readonly rateLimitSeconds: number = 600
+  ) {}
 
-  if (!res.ok) throw new Error(`Remotive returned HTTP ${res.status}`);
-
-  const data = (await res.json()) as {
-    jobs?: Array<{
-      id: number;
-      title: string;
-      company_name: string;
-      company_logo?: string;
-      candidate_required_location?: string;
-      url: string;
-      description: string;
-      tags?: string[];
-      category?: string;
-      publication_date?: string;
-      salary?: string;
-    }>;
-  };
-
-  const results: LiveJobItem[] = [];
-  const now = new Date().toISOString();
-  const ttl = calculateTtlIso();
-
-  for (const j of (data.jobs || []).slice(0, 30)) {
-    const loc = j.candidate_required_location || 'Worldwide Remote';
-    const cleanDesc = stripHtml(j.description || '').slice(0, 3500);
-
-    results.push({
-      id: `remotive_${j.id}`,
-      source: 'remotive',
-      sourceJobId: String(j.id),
-      title: j.title.trim(),
-      company: j.company_name.trim(),
-      companyLogo: j.company_logo,
-      location: loc,
-      country: loc.includes('USA') ? 'United States' : (loc.includes('UK') ? 'United Kingdom' : 'Remote Worldwide'),
-      workArrangement: 'remote',
-      employmentType: 'full-time',
-      experienceLevel: inferExperienceLevel(j.title, cleanDesc),
-      salaryRaw: j.salary || undefined,
-      url: j.url,
-      description: cleanDesc,
-      requirements: j.tags && j.tags.length > 0 ? j.tags : [j.category || 'General'],
-      tags: j.tags || [],
-      publishedAt: j.publication_date || now,
-      retrievedAt: now,
-      expiresAt: ttl,
-      isActive: true,
-      lastCheckedAt: now,
-    });
+  public readonly type: ConnectorType = 'ats_lever';
+  public get endpoint(): string {
+    return `https://api.lever.co/v0/postings/${encodeURIComponent(this.companyHandle)}?mode=json`;
   }
 
-  return results;
+  async fetchJobs(): Promise<AdapterFetchResult> {
+    const metrics: IngestionMetrics = { totalFetched: 0, totalAccepted: 0, totalRejected: 0, totalDuplicated: 0 };
+    const url = this.endpoint;
+    if (!isSafePublicUrl(url)) {
+      return { jobs: [], metrics, status: 'offline', error: 'Unsafe URL rejected' };
+    }
+
+    try {
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
+        signal: AbortSignal.timeout(9000),
+      });
+
+      if (res.status === 429) {
+        return { jobs: [], metrics, status: 'rate_limited', statusCode: 429, error: 'Rate limit exceeded (HTTP 429)' };
+      }
+      if (res.status === 404) {
+        return { jobs: [], metrics, status: 'offline', statusCode: 404, error: 'Lever board not found (HTTP 404)' };
+      }
+      if (!res.ok) {
+        return { jobs: [], metrics, status: 'degraded', statusCode: res.status, error: `Lever returned HTTP ${res.status}` };
+      }
+
+      const data = (await res.json()) as Array<{
+        id: string;
+        text?: string;
+        hostedUrl?: string;
+        descriptionPlain?: string;
+        description?: string;
+        categories?: {
+          location?: string;
+          commitment?: string;
+          department?: string;
+          team?: string;
+        };
+        createdAt?: number;
+        salaryRange?: { min?: number; max?: number; currency?: string; interval?: string };
+      }>;
+
+      if (!Array.isArray(data)) {
+        return { jobs: [], metrics, status: 'empty', error: 'Invalid response schema: expected array' };
+      }
+
+      metrics.totalFetched = data.length;
+      if (metrics.totalFetched === 0) {
+        return { jobs: [], metrics, status: 'empty' };
+      }
+
+      const results: LiveJobItem[] = [];
+      const now = new Date().toISOString();
+      const ttl = calculateDefaultTtlIso();
+
+      for (const j of data.slice(0, 50)) {
+        if (!j.text || !j.hostedUrl || !j.id) {
+          metrics.totalRejected++;
+          continue;
+        }
+
+        const loc = j.categories?.location || 'Remote';
+        const cleanDesc = (j.descriptionPlain || stripHtml(j.description || '')).slice(0, 2500);
+        const arrangement = inferWorkArrangement(loc, j.text, cleanDesc);
+        const exp = inferExperienceLevel(j.text, cleanDesc);
+
+        let empType: EmploymentType = 'full-time';
+        const commit = (j.categories?.commitment || '').toLowerCase();
+        if (commit.includes('part-time')) empType = 'part-time';
+        else if (commit.includes('contract')) empType = 'contract';
+        else if (commit.includes('intern')) empType = 'internship';
+
+        let salaryRaw: string | undefined;
+        let salaryMin: number | undefined;
+        let salaryMax: number | undefined;
+        if (j.salaryRange?.min && j.salaryRange?.max) {
+          salaryMin = j.salaryRange.min;
+          salaryMax = j.salaryRange.max;
+          salaryRaw = `${j.salaryRange.currency || '$'}${salaryMin.toLocaleString()} - ${salaryMax.toLocaleString()}${j.salaryRange.interval ? ` / ${j.salaryRange.interval}` : ''}`;
+        }
+
+        results.push({
+          id: `lever_${this.companyHandle}_${j.id}`,
+          source: `lever_${this.companyHandle}`,
+          sourceJobId: j.id,
+          title: j.text.trim(),
+          company: this.company,
+          location: loc,
+          country: loc.toLowerCase().includes('us') || loc.toLowerCase().includes('united states') ? 'United States' : 'Global',
+          workArrangement: arrangement,
+          employmentType: empType,
+          experienceLevel: exp,
+          salaryRaw,
+          salaryMin,
+          salaryMax,
+          salaryCurrency: j.salaryRange?.currency || '$',
+          url: j.hostedUrl,
+          description: cleanDesc,
+          requirements: [j.categories?.department, j.categories?.team].filter(Boolean) as string[],
+          tags: [this.companyHandle, this.company, arrangement],
+          publishedAt: j.createdAt ? new Date(j.createdAt).toISOString() : now,
+          retrievedAt: now,
+          firstSeenAt: now,
+          lastVerifiedAt: now,
+          expiresAt: ttl,
+          isActive: true,
+          lastCheckedAt: now,
+        });
+        metrics.totalAccepted++;
+      }
+
+      return { jobs: results, metrics, status: 'healthy', statusCode: 200 };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { jobs: [], metrics, status: 'offline', error: msg };
+    }
+  }
 }
 
-// 4. Arbeitnow Public Aggregator
-async function fetchArbeitnow(): Promise<LiveJobItem[]> {
-  const url = 'https://www.arbeitnow.com/api/job-board-api';
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
-    signal: AbortSignal.timeout(9000),
-  });
+export class RemotiveAdapter implements JobProviderAdapter {
+  public readonly id = 'remotive';
+  public readonly name = 'Remotive Global';
+  public readonly company = 'Remotive';
+  public readonly type: ConnectorType = 'aggregator_api';
+  public readonly endpoint = 'https://remotive.com/api/remote-jobs?limit=50';
+  public readonly rateLimitSeconds = 300;
 
-  if (!res.ok) throw new Error(`Arbeitnow returned HTTP ${res.status}`);
+  async fetchJobs(): Promise<AdapterFetchResult> {
+    const metrics: IngestionMetrics = { totalFetched: 0, totalAccepted: 0, totalRejected: 0, totalDuplicated: 0 };
+    try {
+      const res = await fetch(this.endpoint, {
+        headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
+        signal: AbortSignal.timeout(9000),
+      });
 
-  const data = (await res.json()) as {
-    data?: Array<{
-      slug: string;
-      title: string;
-      company_name: string;
-      location: string;
-      remote: boolean;
-      url: string;
-      description: string;
-      tags: string[];
-      created_at: number;
-    }>;
-  };
+      if (res.status === 429) {
+        return { jobs: [], metrics, status: 'rate_limited', statusCode: 429, error: 'Remotive rate limit reached' };
+      }
+      if (!res.ok) {
+        return { jobs: [], metrics, status: 'degraded', statusCode: res.status, error: `Remotive HTTP ${res.status}` };
+      }
 
-  const results: LiveJobItem[] = [];
-  const now = new Date().toISOString();
-  const ttl = calculateTtlIso();
+      const data = (await res.json()) as {
+        jobs?: Array<{
+          id: number;
+          title?: string;
+          company_name?: string;
+          company_logo?: string;
+          candidate_required_location?: string;
+          url?: string;
+          description?: string;
+          tags?: string[];
+          category?: string;
+          publication_date?: string;
+          salary?: string;
+        }>;
+      };
 
-  for (const j of (data.data || []).slice(0, 30)) {
-    const cleanDesc = stripHtml(j.description || '').slice(0, 3500);
-    const loc = j.location || 'Remote, Global';
+      if (!data?.jobs || !Array.isArray(data.jobs)) {
+        return { jobs: [], metrics, status: 'empty', error: 'Remotive schema missing jobs array' };
+      }
 
-    results.push({
-      id: `arbeitnow_${j.slug}`,
-      source: 'arbeitnow',
-      sourceJobId: j.slug,
-      title: j.title.trim(),
-      company: j.company_name.trim(),
-      location: loc,
-      country: j.remote ? 'Remote' : (j.location || 'European Union'),
-      workArrangement: j.remote ? 'remote' : 'hybrid',
-      employmentType: 'full-time',
-      experienceLevel: inferExperienceLevel(j.title, cleanDesc),
-      url: j.url,
-      description: cleanDesc,
-      requirements: j.tags || [],
-      tags: j.tags || [],
-      publishedAt: new Date(j.created_at * 1000).toISOString(),
-      retrievedAt: now,
-      expiresAt: ttl,
-      isActive: true,
-      lastCheckedAt: now,
-    });
+      metrics.totalFetched = data.jobs.length;
+      if (metrics.totalFetched === 0) {
+        return { jobs: [], metrics, status: 'empty' };
+      }
+
+      const results: LiveJobItem[] = [];
+      const now = new Date().toISOString();
+      const ttl = calculateDefaultTtlIso();
+
+      for (const j of data.jobs.slice(0, 50)) {
+        if (!j.title || !j.company_name || !j.url || !j.id) {
+          metrics.totalRejected++;
+          continue;
+        }
+
+        const loc = j.candidate_required_location?.trim() || 'Worldwide Remote';
+        const cleanDesc = stripHtml(j.description || '').slice(0, 2500);
+
+        results.push({
+          id: `remotive_${j.id}`,
+          source: 'remotive',
+          sourceJobId: String(j.id),
+          title: j.title.trim(),
+          company: j.company_name.trim(),
+          companyLogo: j.company_logo,
+          location: loc,
+          country: loc.includes('USA') ? 'United States' : (loc.includes('UK') ? 'United Kingdom' : 'Remote Worldwide'),
+          workArrangement: 'remote',
+          employmentType: 'full-time',
+          experienceLevel: inferExperienceLevel(j.title, cleanDesc),
+          salaryRaw: j.salary || undefined,
+          url: j.url,
+          description: cleanDesc,
+          requirements: j.tags && j.tags.length > 0 ? j.tags : [j.category || 'General'],
+          tags: j.tags || [],
+          publishedAt: j.publication_date || now,
+          retrievedAt: now,
+          firstSeenAt: now,
+          lastVerifiedAt: now,
+          expiresAt: ttl,
+          isActive: true,
+          lastCheckedAt: now,
+        });
+        metrics.totalAccepted++;
+      }
+
+      return { jobs: results, metrics, status: 'healthy', statusCode: 200 };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { jobs: [], metrics, status: 'offline', error: msg };
+    }
   }
-
-  return results;
 }
 
-// 5. Jobicy Public Aggregator
-async function fetchJobicy(): Promise<LiveJobItem[]> {
-  const url = 'https://jobicy.com/api/v2/remote-jobs?count=30';
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
-    signal: AbortSignal.timeout(9000),
-  });
+export class ArbeitnowAdapter implements JobProviderAdapter {
+  public readonly id = 'arbeitnow';
+  public readonly name = 'Arbeitnow Jobs';
+  public readonly company = 'Arbeitnow';
+  public readonly type: ConnectorType = 'aggregator_api';
+  public readonly endpoint = 'https://www.arbeitnow.com/api/job-board-api';
+  public readonly rateLimitSeconds = 300;
 
-  if (!res.ok) throw new Error(`Jobicy returned HTTP ${res.status}`);
+  async fetchJobs(): Promise<AdapterFetchResult> {
+    const metrics: IngestionMetrics = { totalFetched: 0, totalAccepted: 0, totalRejected: 0, totalDuplicated: 0 };
+    try {
+      const res = await fetch(this.endpoint, {
+        headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
+        signal: AbortSignal.timeout(9000),
+      });
 
-  const data = (await res.json()) as {
-    jobs?: Array<{
-      id: number;
-      url: string;
-      jobTitle: string;
-      companyName: string;
-      companyLogo?: string;
-      jobIndustry?: string[];
-      jobType?: string[];
-      jobGeo?: string;
-      jobLevel?: string;
-      jobDescription?: string;
-      pubDate?: string;
-      annualSalaryMin?: string;
-      annualSalaryMax?: string;
-      salaryCurrency?: string;
-    }>;
-  };
+      if (res.status === 429) {
+        return { jobs: [], metrics, status: 'rate_limited', statusCode: 429, error: 'Arbeitnow rate limit reached' };
+      }
+      if (!res.ok) {
+        return { jobs: [], metrics, status: 'degraded', statusCode: res.status, error: `Arbeitnow HTTP ${res.status}` };
+      }
 
-  const results: LiveJobItem[] = [];
-  const now = new Date().toISOString();
-  const ttl = calculateTtlIso();
+      const data = (await res.json()) as {
+        data?: Array<{
+          slug?: string;
+          title?: string;
+          company_name?: string;
+          location?: string;
+          remote?: boolean;
+          url?: string;
+          description?: string;
+          tags?: string[];
+          created_at?: number;
+        }>;
+      };
 
-  for (const j of (data.jobs || []).slice(0, 30)) {
-    const cleanDesc = stripHtml(j.jobDescription || '').slice(0, 3500);
-    const salaryRaw = j.annualSalaryMin && j.annualSalaryMax
-      ? `${j.salaryCurrency || '$'}${j.annualSalaryMin} - ${j.annualSalaryMax}`
-      : undefined;
+      if (!data?.data || !Array.isArray(data.data)) {
+        return { jobs: [], metrics, status: 'empty', error: 'Arbeitnow schema missing data array' };
+      }
 
-    results.push({
-      id: `jobicy_${j.id}`,
-      source: 'jobicy',
-      sourceJobId: String(j.id),
-      title: j.jobTitle.trim(),
-      company: j.companyName.trim(),
-      companyLogo: j.companyLogo,
-      location: j.jobGeo || 'Anywhere (Remote)',
-      country: j.jobGeo?.includes('USA') ? 'United States' : (j.jobGeo || 'Remote'),
-      workArrangement: 'remote',
-      employmentType: 'full-time',
-      experienceLevel: inferExperienceLevel(j.jobTitle, cleanDesc),
-      salaryRaw,
-      salaryMin: j.annualSalaryMin ? parseFloat(j.annualSalaryMin) : undefined,
-      salaryMax: j.annualSalaryMax ? parseFloat(j.annualSalaryMax) : undefined,
-      salaryCurrency: j.salaryCurrency || '$',
-      url: j.url,
-      description: cleanDesc,
-      requirements: j.jobIndustry || ['Remote'],
-      tags: j.jobIndustry || [],
-      publishedAt: j.pubDate || now,
-      retrievedAt: now,
-      expiresAt: ttl,
-      isActive: true,
-      lastCheckedAt: now,
-    });
+      metrics.totalFetched = data.data.length;
+      if (metrics.totalFetched === 0) {
+        return { jobs: [], metrics, status: 'empty' };
+      }
+
+      const results: LiveJobItem[] = [];
+      const now = new Date().toISOString();
+      const ttl = calculateDefaultTtlIso();
+
+      for (const j of data.data.slice(0, 50)) {
+        if (!j.title || !j.company_name || !j.url || !j.slug) {
+          metrics.totalRejected++;
+          continue;
+        }
+
+        const cleanDesc = stripHtml(j.description || '').slice(0, 2500);
+        const loc = j.location?.trim() || 'Remote, Global';
+
+        results.push({
+          id: `arbeitnow_${j.slug}`,
+          source: 'arbeitnow',
+          sourceJobId: j.slug,
+          title: j.title.trim(),
+          company: j.company_name.trim(),
+          location: loc,
+          country: j.remote ? 'Remote' : (j.location || 'European Union'),
+          workArrangement: j.remote ? 'remote' : 'hybrid',
+          employmentType: 'full-time',
+          experienceLevel: inferExperienceLevel(j.title, cleanDesc),
+          url: j.url,
+          description: cleanDesc,
+          requirements: j.tags || [],
+          tags: j.tags || [],
+          publishedAt: j.created_at ? new Date(j.created_at * 1000).toISOString() : now,
+          retrievedAt: now,
+          firstSeenAt: now,
+          lastVerifiedAt: now,
+          expiresAt: ttl,
+          isActive: true,
+          lastCheckedAt: now,
+        });
+        metrics.totalAccepted++;
+      }
+
+      return { jobs: results, metrics, status: 'healthy', statusCode: 200 };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { jobs: [], metrics, status: 'offline', error: msg };
+    }
   }
+}
 
-  return results;
+export class JobicyAdapter implements JobProviderAdapter {
+  public readonly id = 'jobicy';
+  public readonly name = 'Jobicy Global Remote';
+  public readonly company = 'Jobicy';
+  public readonly type: ConnectorType = 'aggregator_api';
+  public readonly endpoint = 'https://jobicy.com/api/v2/remote-jobs?count=50';
+  public readonly rateLimitSeconds = 300;
+
+  async fetchJobs(): Promise<AdapterFetchResult> {
+    const metrics: IngestionMetrics = { totalFetched: 0, totalAccepted: 0, totalRejected: 0, totalDuplicated: 0 };
+    try {
+      const res = await fetch(this.endpoint, {
+        headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
+        signal: AbortSignal.timeout(9000),
+      });
+
+      if (res.status === 429) {
+        return { jobs: [], metrics, status: 'rate_limited', statusCode: 429, error: 'Jobicy rate limit reached' };
+      }
+      if (!res.ok) {
+        return { jobs: [], metrics, status: 'degraded', statusCode: res.status, error: `Jobicy HTTP ${res.status}` };
+      }
+
+      const data = (await res.json()) as {
+        jobs?: Array<{
+          id?: number;
+          url?: string;
+          jobTitle?: string;
+          companyName?: string;
+          companyLogo?: string;
+          jobIndustry?: string[];
+          jobGeo?: string;
+          jobDescription?: string;
+          pubDate?: string;
+          annualSalaryMin?: string;
+          annualSalaryMax?: string;
+          salaryCurrency?: string;
+        }>;
+      };
+
+      if (!data?.jobs || !Array.isArray(data.jobs)) {
+        return { jobs: [], metrics, status: 'empty', error: 'Jobicy schema missing jobs array' };
+      }
+
+      metrics.totalFetched = data.jobs.length;
+      if (metrics.totalFetched === 0) {
+        return { jobs: [], metrics, status: 'empty' };
+      }
+
+      const results: LiveJobItem[] = [];
+      const now = new Date().toISOString();
+      const ttl = calculateDefaultTtlIso();
+
+      for (const j of data.jobs.slice(0, 50)) {
+        if (!j.jobTitle || !j.companyName || !j.url || !j.id) {
+          metrics.totalRejected++;
+          continue;
+        }
+
+        const cleanDesc = stripHtml(j.jobDescription || '').slice(0, 2500);
+        const salaryRaw = j.annualSalaryMin && j.annualSalaryMax
+          ? `${j.salaryCurrency || '$'}${j.annualSalaryMin} - ${j.annualSalaryMax}`
+          : undefined;
+
+        results.push({
+          id: `jobicy_${j.id}`,
+          source: 'jobicy',
+          sourceJobId: String(j.id),
+          title: j.jobTitle.trim(),
+          company: j.companyName.trim(),
+          companyLogo: j.companyLogo,
+          location: j.jobGeo || 'Anywhere (Remote)',
+          country: j.jobGeo?.includes('USA') ? 'United States' : (j.jobGeo || 'Remote'),
+          workArrangement: 'remote',
+          employmentType: 'full-time',
+          experienceLevel: inferExperienceLevel(j.jobTitle, cleanDesc),
+          salaryRaw,
+          salaryMin: j.annualSalaryMin ? parseFloat(j.annualSalaryMin) : undefined,
+          salaryMax: j.annualSalaryMax ? parseFloat(j.annualSalaryMax) : undefined,
+          salaryCurrency: j.salaryCurrency || '$',
+          url: j.url,
+          description: cleanDesc,
+          requirements: j.jobIndustry || ['Remote'],
+          tags: j.jobIndustry || [],
+          publishedAt: j.pubDate || now,
+          retrievedAt: now,
+          firstSeenAt: now,
+          lastVerifiedAt: now,
+          expiresAt: ttl,
+          isActive: true,
+          lastCheckedAt: now,
+        });
+        metrics.totalAccepted++;
+      }
+
+      return { jobs: results, metrics, status: 'healthy', statusCode: 200 };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { jobs: [], metrics, status: 'offline', error: msg };
+    }
+  }
 }
 
 // ============================================================================
-// CONNECTOR REGISTRY
+// CANONICAL SOURCE REGISTRY
 // ============================================================================
 
-export const SOURCE_REGISTRY: ConnectorDefinition[] = [
-  // 1. Official Greenhouse ATS Connectors
-  {
-    id: 'gh_cloudflare',
-    name: 'Cloudflare Careers',
-    company: 'Cloudflare',
-    type: 'ats_greenhouse',
-    endpoint: 'https://boards-api.greenhouse.io/v1/boards/cloudflare/jobs',
-    rateLimitSeconds: 600,
-    fetchFn: () => fetchGreenhouseBoard('cloudflare', 'Cloudflare'),
-  },
-  {
-    id: 'gh_figma',
-    name: 'Figma Careers',
-    company: 'Figma',
-    type: 'ats_greenhouse',
-    endpoint: 'https://boards-api.greenhouse.io/v1/boards/figma/jobs',
-    rateLimitSeconds: 600,
-    fetchFn: () => fetchGreenhouseBoard('figma', 'Figma'),
-  },
-  {
-    id: 'gh_gitlab',
-    name: 'GitLab Careers',
-    company: 'GitLab',
-    type: 'ats_greenhouse',
-    endpoint: 'https://boards-api.greenhouse.io/v1/boards/gitlab/jobs',
-    rateLimitSeconds: 600,
-    fetchFn: () => fetchGreenhouseBoard('gitlab', 'GitLab'),
-  },
-  {
-    id: 'gh_databricks',
-    name: 'Databricks Careers',
-    company: 'Databricks',
-    type: 'ats_greenhouse',
-    endpoint: 'https://boards-api.greenhouse.io/v1/boards/databricks/jobs',
-    rateLimitSeconds: 600,
-    fetchFn: () => fetchGreenhouseBoard('databricks', 'Databricks'),
-  },
+export const SOURCE_ADAPTERS: JobProviderAdapter[] = [
+  // 1. Authorized Aggregators (High Volume, Verified Openings)
+  new RemotiveAdapter(),
+  new ArbeitnowAdapter(),
+  new JobicyAdapter(),
 
-  // 2. Official Lever ATS Connectors
-  {
-    id: 'lever_spotify',
-    name: 'Spotify Careers',
-    company: 'Spotify',
-    type: 'ats_lever',
-    endpoint: 'https://api.lever.co/v0/postings/spotify',
-    rateLimitSeconds: 600,
-    fetchFn: () => fetchLeverBoard('spotify', 'Spotify'),
-  },
-  {
-    id: 'lever_palantir',
-    name: 'Palantir Careers',
-    company: 'Palantir Technologies',
-    type: 'ats_lever',
-    endpoint: 'https://api.lever.co/v0/postings/palantir',
-    rateLimitSeconds: 600,
-    fetchFn: () => fetchLeverBoard('palantir', 'Palantir Technologies'),
-  },
+  // 2. Official Greenhouse ATS Connectors (Direct Company Boards)
+  new GreenhouseAdapter('gh_cloudflare', 'Cloudflare Careers', 'Cloudflare', 'cloudflare', 600),
+  new GreenhouseAdapter('gh_figma', 'Figma Careers', 'Figma', 'figma', 600),
+  new GreenhouseAdapter('gh_gitlab', 'GitLab Careers', 'GitLab', 'gitlab', 600),
+  new GreenhouseAdapter('gh_databricks', 'Databricks Careers', 'Databricks', 'databricks', 600),
 
-  // 3. Official Aggregator Connectors
-  {
-    id: 'remotive',
-    name: 'Remotive Global',
-    company: 'Remotive',
-    type: 'aggregator_api',
-    endpoint: 'https://remotive.com/api/remote-jobs',
-    rateLimitSeconds: 600,
-    fetchFn: fetchRemotive,
-  },
-  {
-    id: 'arbeitnow',
-    name: 'Arbeitnow Jobs',
-    company: 'Arbeitnow',
-    type: 'aggregator_api',
-    endpoint: 'https://www.arbeitnow.com/api/job-board-api',
-    rateLimitSeconds: 600,
-    fetchFn: fetchArbeitnow,
-  },
-  {
-    id: 'jobicy',
-    name: 'Jobicy Global Remote',
-    company: 'Jobicy',
-    type: 'aggregator_api',
-    endpoint: 'https://jobicy.com/api/v2/remote-jobs',
-    rateLimitSeconds: 600,
-    fetchFn: fetchJobicy,
-  },
+  // 3. Official Lever ATS Connectors (Direct Company Boards)
+  new LeverAdapter('lever_spotify', 'Spotify Careers', 'Spotify', 'spotify', 600),
+  new LeverAdapter('lever_palantir', 'Palantir Careers', 'Palantir Technologies', 'palantir', 600),
 ];
+
+// Backward-compatible registry format
+export interface ConnectorDefinition {
+  id: string;
+  name: string;
+  company: string;
+  type: ConnectorType;
+  endpoint: string;
+  rateLimitSeconds: number;
+  fetchFn: () => Promise<LiveJobItem[]>;
+}
+
+export const SOURCE_REGISTRY: ConnectorDefinition[] = SOURCE_ADAPTERS.map(adapter => ({
+  id: adapter.id,
+  name: adapter.name,
+  company: adapter.company || adapter.name,
+  type: adapter.type,
+  endpoint: adapter.endpoint,
+  rateLimitSeconds: adapter.rateLimitSeconds,
+  fetchFn: async () => {
+    const res = await adapter.fetchJobs();
+    if (res.status === 'offline' && res.error) {
+      throw new Error(res.error);
+    }
+    return res.jobs;
+  },
+}));
 
 // ============================================================================
 // DEDUPLICATION & NORMALIZATION
 // ============================================================================
 
-export function deduplicateJobs(jobs: LiveJobItem[]): LiveJobItem[] {
+export function deduplicateJobs(jobs: LiveJobItem[]): { unique: LiveJobItem[]; duplicatedCount: number } {
   const seenKeys = new Set<string>();
   const deduplicated: LiveJobItem[] = [];
+  let duplicatedCount = 0;
 
   for (const job of jobs) {
-    // Normalization fingerprint: strip corporate suffixes (inc, llc, ltd, etc.)
     const normCompany = job.company
       .toLowerCase()
       .replace(/\b(inc|incorporated|llc|ltd|limited|corp|corporation|co)\b/gi, '')
@@ -597,8 +763,10 @@ export function deduplicateJobs(jobs: LiveJobItem[]): LiveJobItem[] {
     if (!seenKeys.has(key)) {
       seenKeys.add(key);
       deduplicated.push(job);
+    } else {
+      duplicatedCount++;
     }
   }
 
-  return deduplicated;
+  return { unique: deduplicated, duplicatedCount };
 }

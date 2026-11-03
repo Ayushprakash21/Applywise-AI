@@ -108,9 +108,10 @@ test('Deduplication: Merges duplicate postings from different sources', () => {
   ];
 
   const deduped = deduplicateJobs(mockJobs);
-  assert.equal(deduped.length, 2, 'Duplicate Cloudflare Senior Frontend Engineer should be merged into 1');
-  assert.equal(deduped[0].company, 'Cloudflare');
-  assert.equal(deduped[1].company, 'Spotify');
+  assert.equal(deduped.unique.length, 2, 'Duplicate Cloudflare Senior Frontend Engineer should be merged into 1');
+  assert.equal(deduped.unique[0].company, 'Cloudflare');
+  assert.equal(deduped.unique[1].company, 'Spotify');
+  assert.equal(deduped.duplicatedCount, 1);
 });
 
 test('Connector Registry: Verified source definitions and endpoints', () => {

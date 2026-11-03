@@ -1,11 +1,28 @@
 // worker/matchingEngine.ts
 // Structured 6-Dimension Weighted Scoring & Cross-Industry Evaluation for Cloudflare Workers
 
-import { UserProfile, CareerPreferences, JobVacancy } from '../src/types/index.ts';
+import {
+  UserProfile,
+  CareerPreferences,
+  JobVacancy,
+  OpportunityAlignmentTier,
+  HonestAssessment,
+} from '../src/types/index.ts';
+import { careerIntelligenceEngine } from './careerIntelligenceEngine.ts';
 
 export interface MatchAnalysis {
   score: number;
   isEligible: boolean;
+  alignmentTier?: OpportunityAlignmentTier;
+  honestAssessment?: HonestAssessment;
+  essentialRequirementsMatched?: string[];
+  preferredRequirementsMatched?: string[];
+  missingEssentialRequirements?: string[];
+  missingPreferredRequirements?: string[];
+  relevantExperienceYears?: number;
+  requiredExperienceYears?: number;
+  potentialConcerns?: string[];
+  unverifiedInformation?: string[];
   breakdown: {
     skills: number; // 25% max
     experience: number; // 25% max
@@ -186,7 +203,7 @@ export const workerMatchingEngine = {
         missingRequirements.push('Degree mentioned in vacancy; none recorded in profile.');
       }
     } else {
-      qualificationsScore = (profile.education && profile.education.length > 0) ? 10 : 5;
+      qualificationsScore = (profile.education && profile.education.length > 0) ? 10 : 0;
     }
 
     // 7. Location & Work Authorization (10% max)
@@ -225,7 +242,10 @@ export const workerMatchingEngine = {
       }
     }
 
-    const totalScore = Math.min(100, skillsScore + experienceScore + titleScore + qualificationsScore + locationScore + salaryScore);
+    let totalScore = Math.min(100, skillsScore + experienceScore + titleScore + qualificationsScore + locationScore + salaryScore);
+    if (!isEligible) {
+      totalScore = Math.min(25, totalScore);
+    }
 
     if (totalScore >= 75) {
       reasonsToConsider.push('Strong composite score across skills, experience, and domain alignment.');
@@ -236,9 +256,21 @@ export const workerMatchingEngine = {
     const dataQuality: 'high' | 'moderate' | 'limited' =
       dataQualityNotes.length === 0 ? 'high' : (dataQualityNotes.length <= 2 ? 'moderate' : 'limited');
 
+    const multiDim = careerIntelligenceEngine.evaluateMultiDimensionalMatch(profile, preferences, vacancy);
+
     return {
       score: totalScore,
       isEligible,
+      alignmentTier: multiDim.alignmentTier,
+      honestAssessment: multiDim.honestAssessment,
+      essentialRequirementsMatched: multiDim.essentialRequirementsMatched,
+      preferredRequirementsMatched: multiDim.preferredRequirementsMatched,
+      missingEssentialRequirements: multiDim.missingEssentialRequirements,
+      missingPreferredRequirements: multiDim.missingPreferredRequirements,
+      relevantExperienceYears: multiDim.relevantExperienceYears,
+      requiredExperienceYears: multiDim.requiredExperienceYears,
+      potentialConcerns: multiDim.potentialConcerns,
+      unverifiedInformation: multiDim.unverifiedInformation,
       breakdown: {
         skills: skillsScore,
         experience: experienceScore,
@@ -257,3 +289,5 @@ export const workerMatchingEngine = {
     };
   },
 };
+
+export const matchingEngine = workerMatchingEngine;

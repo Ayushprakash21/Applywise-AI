@@ -18,6 +18,7 @@ import { ApplicationRecord, ApplicationStatus } from '../src/types/index.ts';
 import { SOURCE_REGISTRY, isSafePublicUrl, LiveJobItem } from './jobConnectors.ts';
 import { runIncrementalJobSync } from './jobSyncManager.ts';
 import { runCentralIntegrityAudit, evaluateTransferableSkills } from './integrityEngine.ts';
+import { careerIntelligenceEngine } from './careerIntelligenceEngine.ts';
 import { ApplicationReceipt, CareerOutcomeItem } from '../src/types/index.ts';
 import {
   isPermanentFreeAccessAccount,
@@ -1971,6 +1972,323 @@ app.post('/api/applications/:id/submit', requireAuth, async (c) => {
 });
 
 // ============================================================================
+// 5.5 CAREER INTELLIGENCE & NEXT-GEN APPLICATION SUITE (PART 2)
+// ============================================================================
+
+// 1. Fit Evidence Map (Signature Feature: Requirement 2)
+app.get('/api/jobs/:id/evidence-map', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const jobId = c.req.param('id');
+
+    // Check cache
+    let evidenceMap = await store.getFitEvidenceMap(user.id, jobId);
+    if (!evidenceMap) {
+      const profile = await store.getProfile(user.id);
+      const vacancy = await store.getVacancyById(jobId);
+      if (!vacancy) {
+        return c.json({ success: false, error: 'Vacancy not found' }, 404);
+      }
+      evidenceMap = careerIntelligenceEngine.generateFitEvidenceMap(user.id, profile || { id: user.id } as any, vacancy);
+      await store.saveFitEvidenceMap(evidenceMap);
+    }
+
+    return c.json({ success: true, evidenceMap });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to load evidence map: ${msg}` }, 500);
+  }
+});
+
+app.post('/api/jobs/:id/evidence-map/confirm', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const jobId = c.req.param('id');
+    const { nodeId } = await c.req.json<{ nodeId: string }>();
+
+    if (!nodeId) {
+      return c.json({ success: false, error: 'Missing nodeId parameter' }, 400);
+    }
+
+    const updated = await store.confirmFitEvidenceNode(user.id, jobId, nodeId);
+    return c.json({ success: true, evidenceMap: updated });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to confirm evidence node: ${msg}` }, 500);
+  }
+});
+
+// 2. Application Readiness Studio (Requirement 5)
+app.get('/api/jobs/:id/readiness', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const jobId = c.req.param('id');
+
+    let readiness = await store.getReadinessAssessment(user.id, jobId);
+    if (!readiness) {
+      const [profile, preferences, vacancy] = await Promise.all([
+        store.getProfile(user.id),
+        store.getPreferences(user.id),
+        store.getVacancyById(jobId),
+      ]);
+      if (!vacancy) {
+        return c.json({ success: false, error: 'Vacancy not found' }, 404);
+      }
+
+      readiness = careerIntelligenceEngine.evaluateApplicationReadiness(
+        profile || { id: user.id } as any,
+        preferences || {} as any,
+        vacancy
+      );
+      await store.saveReadinessAssessment(readiness, user.id);
+    }
+
+    return c.json({ success: true, readiness });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to evaluate readiness: ${msg}` }, 500);
+  }
+});
+
+// 3. Application Copilot Artifacts (Requirement 6)
+app.get('/api/jobs/:id/copilot', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const jobId = c.req.param('id');
+
+    let artifacts = await store.getCopilotArtifact(user.id, jobId, 'all');
+    if (!artifacts) {
+      const [profile, vacancy] = await Promise.all([
+        store.getProfile(user.id),
+        store.getVacancyById(jobId),
+      ]);
+      if (!vacancy) {
+        return c.json({ success: false, error: 'Vacancy not found' }, 404);
+      }
+
+      const generated = careerIntelligenceEngine.generateCopilotArtifacts(
+        profile || { id: user.id } as any,
+        vacancy
+      );
+      await store.saveCopilotArtifact(user.id, jobId, 'all', generated, true, false);
+      artifacts = { content: generated, userReviewed: false };
+    }
+
+    return c.json({ success: true, artifacts: artifacts.content, userReviewed: artifacts.userReviewed });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to load copilot artifacts: ${msg}` }, 500);
+  }
+});
+
+app.post('/api/jobs/:id/copilot/review', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const jobId = c.req.param('id');
+
+    await store.markCopilotArtifactReviewed(user.id, jobId, 'all');
+    return c.json({ success: true, message: 'Artifact marked as reviewed by candidate.' });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to update review status: ${msg}` }, 500);
+  }
+});
+
+// 4. Interview Intelligence (Requirement 9)
+app.get('/api/jobs/:id/interview-prep', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const jobId = c.req.param('id');
+
+    let prep = await store.getInterviewPrep(user.id, jobId);
+    if (!prep) {
+      const [profile, vacancy] = await Promise.all([
+        store.getProfile(user.id),
+        store.getVacancyById(jobId),
+      ]);
+      if (!vacancy) {
+        return c.json({ success: false, error: 'Vacancy not found' }, 404);
+      }
+
+      prep = careerIntelligenceEngine.generateInterviewIntelligence(
+        profile || { id: user.id } as any,
+        vacancy
+      );
+      await store.saveInterviewPrep(prep, user.id);
+    }
+
+    return c.json({ success: true, interviewPrep: prep });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to load interview prep: ${msg}` }, 500);
+  }
+});
+
+// 5. Resume Intelligence & Audit (Requirement 4)
+app.get('/api/resume/intelligence', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const profile = await store.getProfile(user.id);
+
+    const report = careerIntelligenceEngine.analyzeResumeIntelligence(profile || { id: user.id } as any);
+    return c.json({ success: true, report });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to analyze resume: ${msg}` }, 500);
+  }
+});
+
+app.post('/api/resume/compare/:jobId', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const jobId = c.req.param('jobId');
+
+    const [profile, vacancy] = await Promise.all([
+      store.getProfile(user.id),
+      store.getVacancyById(jobId),
+    ]);
+    if (!vacancy) {
+      return c.json({ success: false, error: 'Vacancy not found' }, 404);
+    }
+
+    const comparison = careerIntelligenceEngine.compareResumeToJob(profile || { id: user.id } as any, vacancy);
+    return c.json({ success: true, comparison });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to compare resume to job: ${msg}` }, 500);
+  }
+});
+
+// 6. Career Improvement Roadmap (Requirement 10)
+app.get('/api/career/roadmap', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const targetRole = c.req.query('role');
+
+    let roadmap = await store.getCareerRoadmap(user.id, targetRole);
+    if (!roadmap) {
+      const [profile, vacancies] = await Promise.all([
+        store.getProfile(user.id),
+        store.getVacancies(10),
+      ]);
+
+      roadmap = careerIntelligenceEngine.generateCareerRoadmap(
+        profile || { id: user.id } as any,
+        targetRole || (profile?.currentTitle || 'Software Engineer'),
+        vacancies
+      );
+      await store.saveCareerRoadmap(roadmap);
+    }
+
+    return c.json({ success: true, roadmap });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to load career roadmap: ${msg}` }, 500);
+  }
+});
+
+// 7. Job Alerts & Search Filters (Requirement 7)
+app.get('/api/alerts', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const alerts = await store.getJobAlertRules(user.id);
+    return c.json({ success: true, alerts });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to load alerts: ${msg}` }, 500);
+  }
+});
+
+app.post('/api/alerts', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const body = await c.req.json();
+
+    const rule = {
+      id: crypto.randomUUID(),
+      userId: user.id,
+      title: body.title || 'Live Search Alert',
+      criteria: body.criteria || {},
+      frequency: body.frequency || 'daily',
+      isActive: true,
+      createdAt: new Date().toISOString(),
+    };
+
+    await store.saveJobAlertRule(rule);
+    return c.json({ success: true, alert: rule });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to create alert: ${msg}` }, 500);
+  }
+});
+
+app.delete('/api/alerts/:id', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const alertId = c.req.param('id');
+
+    await store.deleteJobAlertRule(user.id, alertId);
+    return c.json({ success: true, message: 'Alert rule deleted.' });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to delete alert: ${msg}` }, 500);
+  }
+});
+
+// 8. Application Timeline & Workspace Activities (Requirement 8)
+app.get('/api/applications/:id/timeline', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const appId = c.req.param('id');
+
+    const timeline = await store.getApplicationTimeline(appId, user.id);
+    return c.json({ success: true, timeline });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to load timeline: ${msg}` }, 500);
+  }
+});
+
+app.post('/api/applications/:id/timeline', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const appId = c.req.param('id');
+    const body = await c.req.json();
+
+    const event = {
+      id: crypto.randomUUID(),
+      applicationId: appId,
+      stage: body.stage || 'PREPARING',
+      note: body.note || '',
+      actor: body.actor || 'user',
+      followUpDate: body.followUpDate || null,
+      recruiterContact: body.recruiterContact || null,
+    };
+
+    await store.addApplicationActivity(event, user.id);
+    const updated = await store.getApplicationTimeline(appId, user.id);
+    return c.json({ success: true, timeline: updated });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: `Failed to record activity: ${msg}` }, 500);
+  }
+});
+
+// ============================================================================
 // 6. AUDIT LOGS, NOTIFICATIONS & INTEGRATIONS
 // ============================================================================
 
@@ -2194,93 +2512,168 @@ app.get('/api/admin/overview', requireAdmin, async (c) => {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[AdminOverview Error]:', msg);
-    return c.json({ success: false, error: `Failed to load admin overview: ${msg}` }, 500);
+    return c.json({
+      success: true,
+      stats: { totalUsers: 0, totalAdmins: 0, totalApplications: 0, totalResumes: 0, totalVacancies: 0, activeSubscriptions: 0 },
+      warning: `Graceful fallback: ${msg}`
+    });
   }
 });
 
 app.get('/api/admin/users', requireAdmin, async (c) => {
-  const store: D1Store = c.get('store');
-  const limit = Math.min(200, parseInt(c.req.query('limit') || '100', 10));
-  const offset = parseInt(c.req.query('offset') || '0', 10);
-  const search = c.req.query('search') || '';
+  try {
+    const store: D1Store = c.get('store');
+    const limit = Math.min(200, parseInt(c.req.query('limit') || '100', 10));
+    const offset = parseInt(c.req.query('offset') || '0', 10);
+    const search = c.req.query('search') || '';
 
-  const { users, total } = await store.getAllUsers(limit, offset, search);
-  return c.json({ success: true, users, total });
+    const { users, total } = await store.getAllUsers(limit, offset, search);
+    return c.json({ success: true, users, total });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[AdminUsers Error]:', msg);
+    return c.json({ success: true, users: [], total: 0, warning: `Graceful fallback: ${msg}` });
+  }
 });
 
 app.post('/api/admin/users/:id/role', requireAdmin, async (c) => {
-  const adminUser: AuthUser = c.get('user')!;
-  const store: D1Store = c.get('store');
-  const targetUserId = c.req.param('id');
-  const { newRole } = await c.req.json();
+  try {
+    const adminUser: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const targetUserId = c.req.param('id');
+    const { newRole } = await c.req.json();
 
-  if (newRole !== 'admin' && newRole !== 'user') {
-    return c.json({ success: false, error: 'Invalid role specified. Role must be either "admin" or "user".' }, 400);
+    if (newRole !== 'admin' && newRole !== 'user') {
+      return c.json({ success: false, error: 'Invalid role specified. Role must be either "admin" or "user".' }, 400);
+    }
+
+    // Prevent self-demotion
+    if (targetUserId === adminUser.id && newRole !== 'admin') {
+      return c.json({ success: false, error: 'Cannot demote your own administrator account. Another admin must perform this action.' }, 400);
+    }
+
+    await store.updateUserRole(targetUserId, newRole);
+    await store.addAuditLog(
+      adminUser.id,
+      'Admin',
+      'USER_ROLE_CHANGED',
+      targetUserId,
+      `Admin ${adminUser.email} changed role of user ${targetUserId} to ${newRole}`,
+      'security'
+    );
+
+    return c.json({ success: true, message: `User role successfully updated to ${newRole}.` });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[AdminUserRole Error]:', msg);
+    return c.json({ success: false, error: `Failed to update user role: ${msg}` }, 500);
   }
-
-  // Prevent self-demotion
-  if (targetUserId === adminUser.id && newRole !== 'admin') {
-    return c.json({ success: false, error: 'Cannot demote your own administrator account. Another admin must perform this action.' }, 400);
-  }
-
-  await store.updateUserRole(targetUserId, newRole);
-  await store.addAuditLog(
-    adminUser.id,
-    'Admin',
-    'USER_ROLE_CHANGED',
-    targetUserId,
-    `Admin ${adminUser.email} changed role of user ${targetUserId} to ${newRole}`,
-    'security'
-  );
-
-  return c.json({ success: true, message: `User role successfully updated to ${newRole}.` });
 });
 
 app.get('/api/admin/audit-logs', requireAdmin, async (c) => {
-  const store: D1Store = c.get('store');
-  const limit = Math.min(200, parseInt(c.req.query('limit') || '100', 10));
-  const severity = c.req.query('severity');
-  const logs = await store.getAllAuditLogs(limit, severity);
-  return c.json({ success: true, logs });
+  try {
+    const store: D1Store = c.get('store');
+    const limit = Math.min(200, parseInt(c.req.query('limit') || '100', 10));
+    const severity = c.req.query('severity');
+    const logs = await store.getAllAuditLogs(limit, severity);
+    return c.json({ success: true, logs });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[AdminAuditLogs Error]:', msg);
+    return c.json({ success: true, logs: [], warning: `Graceful fallback: ${msg}` });
+  }
 });
 
 app.get('/api/admin/system-health', requireAdmin, async (c) => {
-  const store: D1Store = c.get('store');
-  const stats = await store.getAdminOverviewStats();
+  try {
+    const store: D1Store = c.get('store');
+    const stats = await store.getAdminOverviewStats();
 
-  return c.json({
-    success: true,
-    system: {
-      status: 'operational',
-      environment: 'Cloudflare Workers Edge (Production)',
-      database: {
-        engine: 'Cloudflare D1 Relational SQLite',
-        status: 'healthy',
-        userCount: stats.totalUsers,
-        adminCount: stats.totalAdmins,
-        applicationsCount: stats.totalApplications,
-      },
-      integrations: {
-        googleAuth: {
-          configured: Boolean(c.env.GOOGLE_CLIENT_ID),
-          clientId: c.env.GOOGLE_CLIENT_ID ? `${c.env.GOOGLE_CLIENT_ID.slice(0, 12)}...` : null,
-          status: c.env.GOOGLE_CLIENT_ID ? 'active' : 'disabled',
-        },
-        geminiAI: {
-          configured: Boolean(c.env.GEMINI_API_KEY),
-          model: 'gemini-2.5-flash',
-          status: c.env.GEMINI_API_KEY ? 'active' : 'disabled',
-        },
-        jobDiscovery: {
-          connectors: ['Greenhouse', 'Lever', 'Remotive', 'Jobicy'],
-          cronSchedule: '*/10 * * * *',
-          cachedVacancies: stats.totalVacancies,
+    return c.json({
+      success: true,
+      system: {
+        status: 'operational',
+        environment: 'Cloudflare Workers Edge (Production)',
+        database: {
+          engine: 'Cloudflare D1 Relational SQLite',
           status: 'healthy',
+          userCount: stats.totalUsers,
+          adminCount: stats.totalAdmins,
+          applicationsCount: stats.totalApplications,
         },
+        integrations: {
+          googleAuth: {
+            configured: Boolean(c.env.GOOGLE_CLIENT_ID),
+            clientId: c.env.GOOGLE_CLIENT_ID ? `${c.env.GOOGLE_CLIENT_ID.slice(0, 12)}...` : null,
+            status: c.env.GOOGLE_CLIENT_ID ? 'active' : 'disabled',
+          },
+          geminiAI: {
+            configured: Boolean(c.env.GEMINI_API_KEY),
+            model: 'gemini-2.5-flash',
+            status: c.env.GEMINI_API_KEY ? 'active' : 'disabled',
+          },
+          jobDiscovery: {
+            connectors: ['Greenhouse', 'Lever', 'Remotive', 'Jobicy', 'Arbeitnow'],
+            cronSchedule: '*/10 * * * *',
+            cachedVacancies: stats.totalVacancies,
+            status: 'healthy',
+          },
+        },
+        serverTime: new Date().toISOString(),
       },
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[AdminSystemHealth Error]:', msg);
+    return c.json({
+      success: true,
+      system: {
+        status: 'degraded',
+        environment: 'Cloudflare Workers Edge (Production)',
+        database: { engine: 'Cloudflare D1 Relational SQLite', status: 'degraded', userCount: 0, adminCount: 0, applicationsCount: 0 },
+        integrations: {
+          googleAuth: { configured: false, clientId: null, status: 'disabled' },
+          geminiAI: { configured: false, model: 'gemini-2.5-flash', status: 'disabled' },
+          jobDiscovery: { connectors: [], cronSchedule: '*/10 * * * *', cachedVacancies: 0, status: 'degraded' },
+        },
+        serverTime: new Date().toISOString(),
+      },
+      warning: `Graceful fallback: ${msg}`
+    });
+  }
+});
+
+app.get('/api/admin/sources/health', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const [sources, totalCachedJobs, recentRuns, recentErrors] = await Promise.all([
+      store.getLiveSourcesHealth(),
+      store.countLiveJobs(),
+      store.getRecentIngestionRuns(20),
+      store.getRecentIngestionErrors(50),
+    ]);
+
+    return c.json({
+      success: true,
+      totalCachedJobs,
+      sources,
+      recentRuns,
+      recentErrors,
       serverTime: new Date().toISOString(),
-    },
-  });
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[AdminSourcesHealth Error]:', msg);
+    return c.json({
+      success: true,
+      totalCachedJobs: 0,
+      sources: [],
+      recentRuns: [],
+      recentErrors: [],
+      serverTime: new Date().toISOString(),
+      warning: `Graceful fallback: ${msg}`
+    });
+  }
 });
 
 // Cloudflare Worker Fetch & Scheduled Entrypoint

@@ -14,7 +14,16 @@ import {
   ApplicationReceipt,
   CareerOutcomeItem,
   TransferableSkillBridge,
-  AccountUsageStats
+  AccountUsageStats,
+  FitEvidenceMap,
+  ApplicationReadinessAssessment,
+  CopilotJobArtifacts,
+  InterviewIntelligenceReport,
+  ResumeIntelligenceReport,
+  ResumeToJobComparison,
+  CareerRoadmap,
+  JobAlertRule,
+  ApplicationActivityEvent
 } from '../types/index.ts';
 
 export interface DashboardSummary {
@@ -251,6 +260,16 @@ export const api = {
   getAdminSystemHealth: () =>
     fetchJson<{ success: boolean; system: any }>('/api/admin/system-health'),
 
+  getAdminSourcesHealth: () =>
+    fetchJson<{
+      success: boolean;
+      totalCachedJobs: number;
+      sources: any[];
+      recentRuns: any[];
+      recentErrors: any[];
+      serverTime: string;
+    }>('/api/admin/sources/health'),
+
   // --- PROFILE ---
   getProfile: () => fetchJson<{ success: boolean; profile: UserProfile }>('/api/profile'),
   updateProfile: (profile: Partial<UserProfile>) =>
@@ -348,6 +367,64 @@ export const api = {
       }>;
       lastChecked: string;
     }>('/api/jobs/status'),
+
+  // --- CAREER INTELLIGENCE & NEXT-GEN APPLICATION SUITE (PART 2) ---
+  getFitEvidenceMap: (jobId: string) =>
+    fetchJson<{ success: boolean; evidenceMap: FitEvidenceMap }>(`/api/jobs/${jobId}/evidence-map`),
+
+  confirmFitEvidenceNode: (jobId: string, nodeId: string) =>
+    fetchJson<{ success: boolean; evidenceMap: FitEvidenceMap }>(`/api/jobs/${jobId}/evidence-map/confirm`, {
+      method: 'POST',
+      body: JSON.stringify({ nodeId }),
+    }),
+
+  getApplicationReadiness: (jobId: string) =>
+    fetchJson<{ success: boolean; readiness: ApplicationReadinessAssessment }>(`/api/jobs/${jobId}/readiness`),
+
+  getCopilotArtifacts: (jobId: string) =>
+    fetchJson<{ success: boolean; artifacts: CopilotJobArtifacts; userReviewed: boolean }>(`/api/jobs/${jobId}/copilot`),
+
+  reviewCopilotArtifacts: (jobId: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/api/jobs/${jobId}/copilot/review`, {
+      method: 'POST',
+    }),
+
+  getInterviewPrep: (jobId: string) =>
+    fetchJson<{ success: boolean; interviewPrep: InterviewIntelligenceReport }>(`/api/jobs/${jobId}/interview-prep`),
+
+  getResumeIntelligence: () =>
+    fetchJson<{ success: boolean; report: ResumeIntelligenceReport }>('/api/resume/intelligence'),
+
+  compareResumeToJob: (jobId: string) =>
+    fetchJson<{ success: boolean; comparison: ResumeToJobComparison }>(`/api/resume/compare/${jobId}`, {
+      method: 'POST',
+    }),
+
+  getCareerRoadmap: (role?: string) =>
+    fetchJson<{ success: boolean; roadmap: CareerRoadmap }>(`/api/career/roadmap${role ? `?role=${encodeURIComponent(role)}` : ''}`),
+
+  getJobAlerts: () =>
+    fetchJson<{ success: boolean; alerts: JobAlertRule[] }>('/api/alerts'),
+
+  createJobAlert: (alert: Partial<JobAlertRule>) =>
+    fetchJson<{ success: boolean; alert: JobAlertRule }>('/api/alerts', {
+      method: 'POST',
+      body: JSON.stringify(alert),
+    }),
+
+  deleteJobAlert: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/api/alerts/${id}`, {
+      method: 'DELETE',
+    }),
+
+  getApplicationTimeline: (appId: string) =>
+    fetchJson<{ success: boolean; timeline: ApplicationActivityEvent[] }>(`/api/applications/${appId}/timeline`),
+
+  addApplicationActivity: (appId: string, event: Partial<ApplicationActivityEvent>) =>
+    fetchJson<{ success: boolean; timeline: ApplicationActivityEvent[] }>(`/api/applications/${appId}/timeline`, {
+      method: 'POST',
+      body: JSON.stringify(event),
+    }),
   getLiveJobsSources: () =>
     fetchJson<{
       success: boolean;

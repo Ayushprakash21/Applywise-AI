@@ -263,6 +263,7 @@ export default function App() {
         q: query,
         location: country,
         workArrangement: remoteOnly ? 'remote' : undefined,
+        limit: 50,
       });
       setVacancies(res.jobs);
       showToast(`Discovered ${res.total} live opportunities.`);

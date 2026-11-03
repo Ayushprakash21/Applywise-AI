@@ -11,6 +11,7 @@ import {
   Cpu,
   Layers,
   Network,
+  Compass,
   Activity,
   Check,
   X,
@@ -311,15 +312,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
 
         {/* Visual Graph Section Anchor */}
-        <div id="network" className="mt-12 max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="neu-panel p-4 sm:p-6">
-            <div className="mb-3 text-left">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
-                <Network className="h-4 w-4 text-blue-600" />
-                <span>Interactive Skill Alignment</span>
+        <div id="network" className="mt-12 max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="neu-panel p-4 sm:p-6 bg-slate-950 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+            <div className="mb-4 text-left">
+              <h3 className="text-base font-bold text-white flex items-center space-x-2">
+                <Compass className="h-5 w-5 text-blue-400" />
+                <span>Career Opportunity Universe</span>
               </h3>
-              <p className="text-xs text-slate-500">
-                Visualize how verified skills map directly to live market opportunities.
+              <p className="text-xs text-slate-400">
+                Explore where your verified experience connects with real career opportunities.
               </p>
             </div>
             <CareerNetworkVisual theme="light" />
