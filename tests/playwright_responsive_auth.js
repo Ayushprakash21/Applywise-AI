@@ -42,7 +42,7 @@ async function runTests() {
         const nameRect = nameInput ? nameInput.getBoundingClientRect() : null;
         const emailInput = document.querySelector('#signup-email');
         const emailRect = emailInput ? emailInput.getBoundingClientRect() : null;
-        const googleBtn = Array.from(document.querySelectorAll('button')).find(b => (b.innerText || '').includes('Google'));
+        const googleBtn = document.querySelector('.glass-google-btn') || Array.from(document.querySelectorAll('button')).find(b => (b.innerText || '').includes('Google'));
         const googleRect = googleBtn ? googleBtn.getBoundingClientRect() : null;
         const h1 = document.querySelector('h1');
         const h1Rect = h1 ? h1.getBoundingClientRect() : null;

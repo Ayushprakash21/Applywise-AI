@@ -129,6 +129,8 @@ export function renderGoogleButton(
     theme?: 'outline' | 'filled_blue' | 'filled_black';
     size?: 'large' | 'medium' | 'small';
     width?: number;
+    shape?: 'rectangular' | 'pill' | 'circle' | 'square';
+    logo_alignment?: 'left' | 'center';
   } = {}
 ): void {
   if (typeof window === 'undefined') return;
@@ -137,14 +139,18 @@ export function renderGoogleButton(
 
   try {
     container.innerHTML = '';
+    // Calculate stable, responsive width clamped between Google's allowed min (200px) and max (400px)
+    const containerWidth = container.clientWidth || container.parentElement?.clientWidth || 0;
+    const computedWidth = options.width || (containerWidth > 0 ? Math.max(200, Math.min(400, containerWidth)) : 380);
+
     google.accounts.id.renderButton(container, {
       type: 'standard',
       theme: options.theme || 'outline',
       size: options.size || 'large',
       text: options.mode === 'signup' ? 'signup_with' : 'signin_with',
-      shape: 'pill',
-      logo_alignment: 'left',
-      width: options.width || 360,
+      shape: options.shape || 'rectangular',
+      logo_alignment: options.logo_alignment || 'left',
+      width: computedWidth,
     });
   } catch (err) {
     console.warn('Google Identity button rendering notice:', err);

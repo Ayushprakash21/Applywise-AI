@@ -29,10 +29,11 @@ export const GoogleIcon: React.FC<{ size?: number; className?: string }> = ({ si
 
 export interface GoogleAuthButtonProps {
   mode: 'signin' | 'signup';
-  onClick: () => void;
+  onClick?: () => void;
   loading?: boolean;
   disabled?: boolean;
   className?: string;
+  children?: React.ReactNode;
 }
 
 export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
@@ -41,16 +42,14 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
   loading = false,
   disabled = false,
   className = '',
+  children,
 }) => {
   const label = mode === 'signin' ? 'Sign in with Google' : 'Sign up with Google';
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled || loading}
-      aria-label={label}
-      className={`glass-google-btn group relative w-full h-[50px] min-h-[50px] px-5 rounded-[14px] 
+    <div
+      data-testid="google-auth-button"
+      className={`glass-google-btn group relative w-full h-[50px] min-h-[50px] px-2 rounded-[14px] 
         bg-white/35 hover:bg-white/55 active:bg-white/40
         backdrop-blur-xl -webkit-backdrop-blur-xl
         border border-white/65 hover:border-violet-300/80 active:border-white/70
@@ -59,9 +58,9 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
         hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]
         focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#8065F5]/60 focus-visible:ring-offset-2
         text-[#0F172A] font-semibold text-sm tracking-tight
-        flex items-center justify-center space-x-3
+        flex items-center justify-center
         transition-all duration-200 cubic-bezier(0.34, 1.56, 0.64, 1)
-        touch-manipulation cursor-pointer select-none disabled:opacity-50 disabled:pointer-events-none ${className}`}
+        overflow-hidden ${className}`}
     >
       {/* Specular glass reflection line at top */}
       <span
@@ -70,16 +69,24 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
       />
 
       {loading ? (
-        <div className="flex items-center space-x-2.5 text-slate-700">
+        <div className="flex items-center space-x-2.5 text-[#0F172A]">
           <div className="w-4 h-4 border-2 border-[#8065F5]/30 border-t-[#8065F5] rounded-full animate-spin" />
           <span className="text-xs font-medium">Connecting to Google...</span>
         </div>
+      ) : children ? (
+        children
       ) : (
-        <>
+        <button
+          type="button"
+          onClick={onClick}
+          disabled={disabled || loading}
+          aria-label={label}
+          className="w-full h-full flex items-center justify-center space-x-3 cursor-pointer select-none"
+        >
           <GoogleIcon size={20} className="transition-transform duration-200 group-hover:scale-105" />
           <span className="truncate">{label}</span>
-        </>
+        </button>
       )}
-    </button>
+    </div>
   );
 };

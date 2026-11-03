@@ -11,7 +11,6 @@ import {
   loadGoogleScript,
   initGoogleIdentity,
   renderGoogleButton,
-  triggerGooglePrompt,
   unregisterGoogleCallback,
 } from '../services/googleAuth.ts';
 
@@ -118,9 +117,10 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
 
           if (googleBtnRef.current) {
             renderGoogleButton(googleBtnRef.current, {
+              mode: 'signup',
               theme: 'outline',
               size: 'large',
-              width: 400,
+              width: 380,
             });
           }
         }
@@ -235,12 +235,6 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
       setError('Google authentication script is still loading. If you are using an adblocker, please allow accounts.google.com, or sign up with email and password.');
       return;
     }
-    setSocialLoading(true);
-    triggerGooglePrompt((notification) => {
-      if (notification.isNotDisplayed || notification.isDismissed) {
-        setSocialLoading(false);
-      }
-    });
   };
 
   const handleAppleClick = () => {
@@ -452,19 +446,28 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
 
             {/* Google Auth Container */}
             <div className="mt-2.5 relative">
-              {/* Mounted GSI Target */}
-              <div
-                ref={googleBtnRef}
-                className={`w-full flex justify-center min-h-[44px] hidden`}
-              />
-
-              {/* Stable Glass Google Button */}
               <GoogleAuthButton
                 mode="signup"
                 onClick={handleGoogleClick}
                 disabled={socialLoading}
                 loading={socialLoading}
-              />
+              >
+                <div
+                  ref={googleBtnRef}
+                  className={`w-full flex justify-center items-center min-h-[44px]`}
+                />
+              </GoogleAuthButton>
+
+              {authConfig && !authConfig.googleAuthEnabled && (
+                <p className="mt-2 text-center text-xs text-slate-500">
+                  Google Sign-Up is not configured for this deployment. Please register using the form below.
+                </p>
+              )}
+              {googleInitError && (
+                <p className="mt-2 text-center text-xs text-amber-600">
+                  {googleInitError}. Please register using the form below.
+                </p>
+              )}
             </div>
           </div>
         )}

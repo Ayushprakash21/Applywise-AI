@@ -20,6 +20,10 @@ test('Auth Runtime Stability: 1. Zero DOM Swapping between GoogleAuthButton and 
   const isolatedMount = /<div\s+ref=\{googleBtnRef\}\s+className=\{`[^`]*min-h-\[44px\][^`]*`\}\s*\/>/;
   assert.ok(isolatedMount.test(loginSrc), 'FlowLogin must isolate googleBtnRef');
   assert.ok(isolatedMount.test(signupSrc), 'FlowSignup must isolate googleBtnRef');
+
+  // googleBtnRef must NOT be hidden — official button is the visible click target
+  assert.ok(!loginSrc.includes('min-h-[44px] hidden'), 'FlowLogin must not hide googleBtnRef');
+  assert.ok(!signupSrc.includes('min-h-[44px] hidden'), 'FlowSignup must not hide googleBtnRef');
 });
 
 test('Auth Runtime Stability: 2. Single lifecycle execution without re-rendering loops', () => {
@@ -32,9 +36,11 @@ test('Auth Runtime Stability: 2. Single lifecycle execution without re-rendering
   assert.ok(loginSrc.includes('}, []);'), 'FlowLogin useEffect must have stable empty dependency array');
   assert.ok(signupSrc.includes('}, []);'), 'FlowSignup useEffect must have stable empty dependency array');
 
-  // Must call triggerGooglePrompt on user action
-  assert.ok(loginSrc.includes('triggerGooglePrompt'), 'FlowLogin must invoke triggerGooglePrompt');
-  assert.ok(signupSrc.includes('triggerGooglePrompt'), 'FlowSignup must invoke triggerGooglePrompt');
+  // Must configure official renderGoogleButton with designated modes and remove One Tap trigger
+  assert.ok(loginSrc.includes("mode: 'signin'"), 'FlowLogin must configure official signin button');
+  assert.ok(signupSrc.includes("mode: 'signup'"), 'FlowSignup must configure official signup button');
+  assert.ok(!loginSrc.includes('triggerGooglePrompt'), 'FlowLogin must not call triggerGooglePrompt on button click');
+  assert.ok(!signupSrc.includes('triggerGooglePrompt'), 'FlowSignup must not call triggerGooglePrompt on button click');
 });
 
 test('Auth Runtime Stability: 3. Deterministic button dimensions and no layout jump across 7 viewport breakpoints', () => {
