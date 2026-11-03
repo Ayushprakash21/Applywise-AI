@@ -14,7 +14,8 @@ test('3D Career Opportunity Universe & Real-Time Intelligence Architecture', asy
 
   const journeyPath = path.resolve(process.cwd(), 'src/components/CareerDiscoveryJourney.tsx');
   assert.ok(fs.existsSync(journeyPath), 'CareerDiscoveryJourney.tsx signature component must exist');
-  const universeSrc = fs.readFileSync(universePath, 'utf8') + '\n' + fs.readFileSync(journeyPath, 'utf8');
+  const showcasePath = path.resolve(process.cwd(), 'src/components/CinematicProductShowcase.tsx');
+  const universeSrc = fs.readFileSync(universePath, 'utf8') + '\n' + fs.readFileSync(journeyPath, 'utf8') + '\n' + (fs.existsSync(showcasePath) ? fs.readFileSync(showcasePath, 'utf8') : '');
   const visualSrc = fs.readFileSync(networkVisualPath, 'utf8');
   const landingSrc = fs.readFileSync(landingPagePath, 'utf8');
 
