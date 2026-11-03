@@ -37,6 +37,56 @@ import { AdminConsole } from './components/AdminConsole.tsx';
 import { AdminLoginPage } from './components/AdminLoginPage.tsx';
 import { FlowLogin } from './components/FlowLogin.tsx';
 import { FlowSignup } from './components/FlowSignup.tsx';
+import { NotFoundPage } from './components/NotFoundPage.tsx';
+
+const normalizePath = (rawPath: string): string => {
+  const path = (rawPath || '/').split('?')[0].split('#')[0] || '/';
+  if (path.length > 1 && path.endsWith('/')) {
+    return path.slice(0, -1);
+  }
+  return path || '/';
+};
+
+const PROTECTED_ROUTES = new Set([
+  '/dashboard',
+  '/overview',
+  '/jobs',
+  '/matches',
+  '/applications',
+  '/interviews',
+  '/profile',
+  '/career_twin',
+  '/twin',
+  '/career_report',
+  '/resume_studio',
+  '/resume_intelligence',
+  '/settings',
+]);
+
+const KNOWN_ROUTES = new Set([
+  '/',
+  '/about',
+  '/pricing',
+  '/admin',
+  '/admin/login',
+  '/login',
+  '/signin',
+  '/signup',
+  '/register',
+  '/dashboard',
+  '/overview',
+  '/jobs',
+  '/matches',
+  '/applications',
+  '/interviews',
+  '/profile',
+  '/career_twin',
+  '/twin',
+  '/career_report',
+  '/resume_studio',
+  '/resume_intelligence',
+  '/settings',
+]);
 import { UserSubscription } from './config/plans.ts';
 import { isPermanentFreeAccessAccount } from './config/freeAccess.ts';
 import { DashboardSummary } from './services/api.ts';
@@ -47,7 +97,7 @@ export default function App() {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
 
   // Client-side URL routing state ('/' | '/about' | '/pricing')
-  const [currentRoute, setCurrentRoute] = useState<string>(() => window.location.pathname || '/');
+  const [currentRoute, setCurrentRoute] = useState<string>(() => normalizePath(window.location.pathname || '/'));
 
   // Navigation: signed-in tabs (Career Command Center is default overview)
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
@@ -88,7 +138,7 @@ export default function App() {
   // Client-side URL history synchronization
   useEffect(() => {
     const handlePopState = () => {
-      setCurrentRoute(window.location.pathname || '/');
+      setCurrentRoute(normalizePath(window.location.pathname || '/'));
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -106,6 +156,13 @@ export default function App() {
       navigateTo('/');
     }
   }, [currentUser, currentRoute]);
+
+  // Redirect unauthenticated users away from protected routes to login
+  useEffect(() => {
+    if (!isCheckingSession && !currentUser && PROTECTED_ROUTES.has(currentRoute)) {
+      navigateTo('/login');
+    }
+  }, [currentUser, isCheckingSession, currentRoute]);
 
   // Safe server-validated session boot
   useEffect(() => {
@@ -349,12 +406,16 @@ export default function App() {
       )}
 
       {/* Main Signed-In Header OR Landing Page OR Dedicated Pages */}
-      {currentRoute === '/about' ? (
+      {!KNOWN_ROUTES.has(currentRoute) ? (
+        <NotFoundPage
+          onNavigateHome={() => navigateTo('/')}
+          onNavigateLogin={() => navigateTo('/login')}
+        />
+      ) : currentRoute === '/about' ? (
         <AboutPage
           onGetStarted={() => {
             if (!currentUser) {
-              setAuthModalMode('signup');
-              setAuthModalOpen(true);
+              navigateTo('/signup');
             } else {
               navigateTo('/');
             }
@@ -367,8 +428,11 @@ export default function App() {
           currentUser={currentUser}
           currentPlanId={isPermanentFreeAccessAccount(currentUser) ? 'pro' : (subscription?.planId || subscription?.plan || 'free')}
           onOpenAuth={mode => {
-            setAuthModalMode(mode);
-            setAuthModalOpen(true);
+            if (mode === 'signup') {
+              navigateTo('/signup');
+            } else {
+              navigateTo('/login');
+            }
           }}
           onNavigateHome={() => navigateTo('/')}
           onSubscriptionUpdated={loadUserData}
@@ -411,7 +475,7 @@ export default function App() {
           onOpenTerms={() => setTermsModalOpen(true)}
           onOpenPrivacy={() => setPrivacyModalOpen(true)}
         />
-      ) : (currentRoute === '/login' || currentRoute === '/signin') && !currentUser ? (
+      ) : ((currentRoute === '/login' || currentRoute === '/signin') || PROTECTED_ROUTES.has(currentRoute)) && !currentUser ? (
         <FlowLogin
           onSuccess={(user, token) => {
             handleLoginSuccess(user, token, false);
@@ -578,7 +642,13 @@ export default function App() {
       </div>
       ) : (
         <LandingPage
-          onOpenAuth={mode => { setAuthModalMode(mode); setAuthModalOpen(true); }}
+          onOpenAuth={mode => {
+            if (mode === 'signup') {
+              navigateTo('/signup');
+            } else {
+              navigateTo('/login');
+            }
+          }}
           onOpenPrivacy={() => setPrivacyModalOpen(true)}
           onOpenTerms={() => setTermsModalOpen(true)}
           onOpenAbout={() => navigateTo('/about')}
@@ -588,8 +658,7 @@ export default function App() {
           onSelectVacancy={v => { setSelectedVacancy(v); }}
           onSearch={q => {
             handleSearchJobs(q);
-            setAuthModalMode('signup');
-            setAuthModalOpen(true);
+            navigateTo('/signup');
           }}
         />
       )}

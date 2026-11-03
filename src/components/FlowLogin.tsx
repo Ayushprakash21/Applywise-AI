@@ -482,11 +482,7 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
                   <div className="space-y-2.5 pt-1">
                     {/* Google Official Button Container - Real, Clickable, No Hidden Duplicate */}
                     <div className="w-full flex flex-col items-center justify-center min-h-[44px]">
-                      <div
-                        ref={googleBtnRef}
-                        className="w-full flex justify-center items-center min-h-[44px]"
-                      >
-                        {!googleButtonRendered && (
+                      {!googleButtonRendered && (
                           <div className="w-full max-w-[320px]">
                             {!authConfig?.googleAuthEnabled ? (
                               <button
@@ -514,7 +510,12 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
                             )}
                           </div>
                         )}
-                      </div>
+
+                      {/* Pure mounting target for Google GSI script - React never renders children inside */}
+                      <div
+                        ref={googleBtnRef}
+                        className={`w-full flex justify-center items-center min-h-[44px] ${!googleButtonRendered ? 'hidden' : ''}`}
+                      />
                     </div>
 
                     {/* Apple Button (shown only when configured) */}

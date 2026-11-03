@@ -135,16 +135,20 @@ export function renderGoogleButton(
   const google = (window as any).google;
   if (!google?.accounts?.id || !container) return;
 
-  container.innerHTML = '';
-  google.accounts.id.renderButton(container, {
-    type: 'standard',
-    theme: options.theme || 'outline',
-    size: options.size || 'large',
-    text: options.mode === 'signup' ? 'signup_with' : 'signin_with',
-    shape: 'rectangular',
-    logo_alignment: 'left',
-    width: options.width || 320,
-  });
+  try {
+    container.innerHTML = '';
+    google.accounts.id.renderButton(container, {
+      type: 'standard',
+      theme: options.theme || 'outline',
+      size: options.size || 'large',
+      text: options.mode === 'signup' ? 'signup_with' : 'signin_with',
+      shape: 'rectangular',
+      logo_alignment: 'left',
+      width: options.width || 320,
+    });
+  } catch (err) {
+    console.warn('Google Identity button rendering notice:', err);
+  }
 }
 
 /**

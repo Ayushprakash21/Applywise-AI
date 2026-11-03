@@ -115,12 +115,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="hidden sm:flex items-center space-x-3">
             <button
               onClick={() => onOpenAuth('login')}
+              aria-label="Sign In"
+              data-testid="sign-in-button"
               className="px-4 py-2 text-xs font-semibold text-slate-700 hover:text-blue-600 transition-colors"
             >
               Sign In
             </button>
             <button
               onClick={() => onOpenAuth('signup')}
+              aria-label="Getting Started"
+              data-testid="getting-started-button"
               className="group px-5 py-2.5 rounded-xl text-xs font-semibold text-white neu-button-primary transition-all flex items-center space-x-1.5"
             >
               <span>Get Started Free</span>
