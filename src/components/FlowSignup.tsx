@@ -116,9 +116,8 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
               mode: 'signup',
               theme: 'outline',
               size: 'large',
-              width: 320,
+              width: 360,
             });
-            setGoogleButtonRendered(true);
             setGoogleInitError(null);
           }
         }
@@ -235,10 +234,18 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
       setError('Google authentication script is still loading. If you are using an adblocker, please allow accounts.google.com, or sign up with email and password.');
       return;
     }
-    if (googleBtnRef.current) {
-      renderGoogleButton(googleBtnRef.current, { mode: 'signup', width: 320 });
-      setGoogleButtonRendered(true);
-    }
+    setSocialLoading(true);
+    google.accounts.id.prompt((notification: any) => {
+      if (notification.isNotDisplayed()) {
+        if (googleBtnRef.current) {
+          renderGoogleButton(googleBtnRef.current, { mode: 'signup', width: 360 });
+          setGoogleButtonRendered(true);
+        }
+        setSocialLoading(false);
+      } else if (notification.isDismissedMoment()) {
+        setSocialLoading(false);
+      }
+    });
   };
 
   const handleAppleClick = () => {

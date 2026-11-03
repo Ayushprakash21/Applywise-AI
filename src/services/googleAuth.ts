@@ -142,9 +142,9 @@ export function renderGoogleButton(
       theme: options.theme || 'outline',
       size: options.size || 'large',
       text: options.mode === 'signup' ? 'signup_with' : 'signin_with',
-      shape: 'rectangular',
+      shape: 'pill',
       logo_alignment: 'left',
-      width: options.width || 320,
+      width: options.width || 360,
     });
   } catch (err) {
     console.warn('Google Identity button rendering notice:', err);
