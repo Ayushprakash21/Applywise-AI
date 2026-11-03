@@ -3,6 +3,12 @@ import { motion } from 'framer-motion';
 import { User, Mail, Lock, Eye, EyeOff, Check, Apple, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { api, AuthUser } from '../services/api.ts';
 import { BrandLogo } from './BrandLogo.tsx';
+import {
+  loadGoogleScript,
+  initGoogleIdentity,
+  renderGoogleButton,
+  unregisterGoogleCallback,
+} from '../services/googleAuth.ts';
 
 const ease: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -68,81 +74,72 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
   } | null>(null);
   const googleBtnRef = useRef<HTMLDivElement>(null);
   const [googleButtonRendered, setGoogleButtonRendered] = useState(false);
+  const [googleInitError, setGoogleInitError] = useState<string | null>(null);
 
-  // Check auth configuration on mount
+  // Check auth configuration and initialize Google Identity Services
   useEffect(() => {
     let isMounted = true;
-    const fetchConfig = async () => {
+    const isSubmittingRef = { current: false };
+
+    const handleCredentialResponse = async (response: any) => {
+      if (!response?.credential) return;
+      if (isSubmittingRef.current) return;
+      isSubmittingRef.current = true;
+      setSocialLoading(true);
+      setError(null);
+
+      try {
+        const res = await api.loginWithGoogle(response.credential);
+        localStorage.setItem('applywise_token', res.token);
+        localStorage.setItem('applywise_user', JSON.stringify(res.user));
+        setSuccessMsg('Google registration verified! Redirecting to your dashboard...');
+        setTimeout(() => {
+          if (onSuccess) onSuccess(res.user, res.token);
+        }, 500);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(`Google Sign-In failed: ${msg}`);
+        isSubmittingRef.current = false;
+      } finally {
+        if (isMounted) setSocialLoading(false);
+      }
+    };
+
+    const setupGoogle = async () => {
       try {
         const cfg = await api.getAuthConfig();
         if (!isMounted) return;
         setAuthConfig(cfg);
 
         if (cfg.googleClientId && cfg.googleAuthEnabled) {
-          const attachGsi = () => {
-            if (!isMounted) return;
-            const google = (window as any).google;
-            if (google?.accounts?.id && googleBtnRef.current) {
-              google.accounts.id.initialize({
-                client_id: cfg.googleClientId,
-                callback: async (response: any) => {
-                  if (!response?.credential) return;
-                  setSocialLoading(true);
-                  setError(null);
-                  try {
-                    const res = await api.loginWithGoogle(response.credential);
-                    localStorage.setItem('applywise_token', res.token);
-                    localStorage.setItem('applywise_user', JSON.stringify(res.user));
-                    setSuccessMsg('Google registration verified! Redirecting...');
-                    setTimeout(() => {
-                      if (onSuccess) onSuccess(res.user, res.token);
-                    }, 500);
-                  } catch (err: unknown) {
-                    const msg = err instanceof Error ? err.message : String(err);
-                    setError(`Google Sign-In failed: ${msg}`);
-                  } finally {
-                    setSocialLoading(false);
-                  }
-                },
-                auto_select: false,
-                cancel_on_tap_outside: true,
-              });
+          await loadGoogleScript();
+          if (!isMounted) return;
 
-              googleBtnRef.current.innerHTML = '';
-              google.accounts.id.renderButton(googleBtnRef.current, {
-                type: 'standard',
-                theme: 'outline',
-                size: 'large',
-                text: 'signup_with',
-                shape: 'rectangular',
-                width: 280,
-              });
-              setGoogleButtonRendered(true);
-            }
-          };
+          initGoogleIdentity(cfg.googleClientId, handleCredentialResponse);
 
-          if ((window as any).google?.accounts?.id) {
-            attachGsi();
-          } else {
-            let count = 0;
-            const timer = setInterval(() => {
-              count++;
-              if ((window as any).google?.accounts?.id) {
-                clearInterval(timer);
-                attachGsi();
-              } else if (count >= 20) {
-                clearInterval(timer);
-              }
-            }, 150);
+          if (googleBtnRef.current && isMounted) {
+            renderGoogleButton(googleBtnRef.current, {
+              mode: 'signup',
+              theme: 'outline',
+              size: 'large',
+              width: 320,
+            });
+            setGoogleButtonRendered(true);
+            setGoogleInitError(null);
           }
         }
-      } catch (err) {
-        console.warn('Failed to load auth config:', err);
+      } catch (err: unknown) {
+        if (!isMounted) return;
+        const msg = err instanceof Error ? err.message : 'Google authentication unavailable';
+        setGoogleInitError(msg);
       }
     };
-    fetchConfig();
+
+    setupGoogle();
+
     return () => {
       isMounted = false;
+      unregisterGoogleCallback(handleCredentialResponse);
     };
   }, [onSuccess]);
 
@@ -225,11 +222,18 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
       setError('Google Sign-Up is not configured for this deployment. Please register using your email and password below.');
       return;
     }
+    if (googleInitError) {
+      setError(googleInitError);
+      return;
+    }
     const google = (window as any).google;
-    if (google?.accounts?.id) {
-      google.accounts.id.prompt();
-    } else {
-      setError('Google Sign-In is still initializing. Please wait a moment or sign up with email.');
+    if (!google?.accounts?.id) {
+      setError('Google authentication script is still loading. If you are using an adblocker, please allow accounts.google.com, or sign up with email.');
+      return;
+    }
+    if (googleBtnRef.current) {
+      renderGoogleButton(googleBtnRef.current, { mode: 'signup', width: 320 });
+      setGoogleButtonRendered(true);
     }
   };
 
@@ -501,31 +505,57 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
                   <span className="h-px flex-1 bg-slate-300/60" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5">
-                  {/* Google Button */}
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={handleGoogleClick}
-                      disabled={loading || socialLoading}
-                      className="flex h-10 w-full items-center justify-center gap-2 rounded-xl neu-button text-xs font-medium text-slate-700 disabled:opacity-50"
-                    >
-                      <GoogleIcon size={16} />
-                      <span>Google</span>
-                    </button>
-                    <div ref={googleBtnRef} className="hidden" />
+                <div className="space-y-2.5 pt-1">
+                  {/* Google Official Button Container - Real, Clickable, No Hidden Duplicate */}
+                  <div className="w-full flex flex-col items-center justify-center min-h-[44px]">
+                    <div
+                      ref={googleBtnRef}
+                      className="w-full flex justify-center items-center min-h-[44px]"
+                      style={{ display: googleButtonRendered ? 'flex' : 'none' }}
+                    />
+
+                    {!googleButtonRendered && (
+                      <div className="w-full max-w-[320px]">
+                        {!authConfig?.googleAuthEnabled ? (
+                          <button
+                            type="button"
+                            onClick={handleGoogleClick}
+                            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-button text-xs font-medium text-slate-700 opacity-60"
+                          >
+                            <GoogleIcon size={16} />
+                            <span>Google Sign-Up (Unconfigured)</span>
+                          </button>
+                        ) : googleInitError ? (
+                          <button
+                            type="button"
+                            onClick={handleGoogleClick}
+                            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-button text-xs font-medium text-slate-700 hover:text-blue-600"
+                          >
+                            <GoogleIcon size={16} />
+                            <span>Retry Loading Google Sign-Up</span>
+                          </button>
+                        ) : (
+                          <div className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-inset text-xs font-medium text-slate-500">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
+                            <span>Initializing Google Sign-Up...</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Apple Button */}
-                  <button
-                    type="button"
-                    onClick={handleAppleClick}
-                    disabled={loading || socialLoading}
-                    className="flex h-10 w-full items-center justify-center gap-2 rounded-xl neu-button text-xs font-medium text-slate-700 disabled:opacity-50"
-                  >
-                    <Apple size={16} />
-                    <span>Apple</span>
-                  </button>
+                  {/* Apple Button (shown only when configured) */}
+                  {authConfig?.appleAuthEnabled && (
+                    <button
+                      type="button"
+                      onClick={handleAppleClick}
+                      disabled={loading || socialLoading}
+                      className="flex h-11 w-full items-center justify-center gap-2 rounded-xl neu-button text-xs font-medium text-slate-700 disabled:opacity-50"
+                    >
+                      <Apple size={16} />
+                      <span>Continue with Apple</span>
+                    </button>
+                  )}
                 </div>
               </>
             )}
