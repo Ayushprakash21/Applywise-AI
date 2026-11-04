@@ -197,7 +197,7 @@ export const QueueTab: React.FC<QueueTabProps> = ({
                     {app.tailoredResume.professionalSummary}
                   </p>
                   <div className="flex flex-wrap gap-1.5 pt-1">
-                    {app.tailoredResume.targetedSkills.slice(0, 5).map((sk, i) => (
+                    {(app.tailoredResume.targetedSkills || []).slice(0, 5).map((sk, i) => (
                       <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">
                         {sk}
                       </span>

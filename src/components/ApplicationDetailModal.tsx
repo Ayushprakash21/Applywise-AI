@@ -148,11 +148,11 @@ export const ApplicationDetailModal: React.FC<ApplicationDetailModalProps> = ({
             </div>
             <div className="space-y-1">
               <span className="text-slate-400 font-semibold text-[11px]">Selected Experience Bullets:</span>
-              {application.tailoredResume.tailoredExperiences.map((exp, i) => (
+              {(application.tailoredResume.tailoredExperiences || []).map((exp, i) => (
                 <div key={i} className="p-2.5 rounded-lg border border-slate-800 bg-slate-950/40 space-y-1">
                   <div className="font-semibold text-white">{exp.role} at {exp.company} ({exp.period})</div>
                   <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
-                    {exp.bulletPoints.map((bp, j) => (
+                    {(exp.bulletPoints || []).map((bp, j) => (
                       <li key={j}>{bp}</li>
                     ))}
                   </ul>

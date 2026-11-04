@@ -14,7 +14,7 @@ if (typeof (globalThis as any).pdfjsWorker === 'undefined') {
 import { PDFParse } from 'pdf-parse';
 import mammoth from 'mammoth';
 import { Document, Paragraph, TextRun, HeadingLevel, Packer, AlignmentType } from 'docx';
-import { UserProfile, TailoredResumeContent, VerifiedSkill, ExperienceItem } from '../src/types/index.ts';
+import { UserProfile, TailoredResumeContent, VerifiedSkill, ExperienceItem, StructuredExtractionOutput } from '../src/types/index.ts';
 import { detectJobFamily } from './matchingEngine.ts';
 
 export interface ExtractionResult {
@@ -110,6 +110,11 @@ export const workerResumeEngine = {
         throw new Error(`Failed to extract text from PDF: ${msg}`);
       }
     } else {
+      // Validate DOCX OpenXML ZIP header signature (PK\x03\x04)
+      if (nodeBuf.length < 4 || nodeBuf[0] !== 0x50 || nodeBuf[1] !== 0x4B || nodeBuf[2] !== 0x03 || nodeBuf[3] !== 0x04) {
+        throw new Error('Failed to extract text from Word document: Malformed DOCX file (invalid ZIP archive header).');
+      }
+
       try {
         const result = await mammoth.extractRawText({ buffer: nodeBuf });
         const rawText = result.value ? result.value.trim() : '';
@@ -144,9 +149,30 @@ export const workerResumeEngine = {
   /**
    * Structure extracted resume text via Gemini API, or fallback to deterministic heuristic parser.
    */
-  async structureProfileWithAI(text: string, existingProfile?: UserProfile | null, apiKey?: string): Promise<UserProfile> {
+  async structureProfileDetailed(text: string, existingProfile?: UserProfile | null, apiKey?: string): Promise<StructuredExtractionOutput> {
+    const startTime = Date.now();
+    const warnings: string[] = [];
+    const validationErrors: string[] = [];
+
     if (!apiKey) {
-      return workerResumeEngine.heuristicParse(text, existingProfile);
+      const heuristicFields = workerResumeEngine.heuristicParse(text, existingProfile);
+      return {
+        method: 'HEURISTIC',
+        parserModel: 'Heuristic-CrossIndustry-v2.0',
+        status: 'SUCCESS',
+        extractedFields: heuristicFields,
+        warnings: ['Gemini API key not configured. Used cross-industry deterministic heuristic parser.'],
+        validationErrors: [],
+        processingDurationMs: Date.now() - startTime,
+        fallbackReason: 'API_KEY_UNAVAILABLE',
+        diagnostics: {
+          textLength: text.length,
+          skillsExtractedCount: heuristicFields.skills.length,
+          experienceEntriesCount: heuristicFields.experiences.length,
+          educationEntriesCount: heuristicFields.education.length,
+          isDateUncertain: heuristicFields.experiences.some(e => e.isDateUncertain),
+        },
+      };
     }
 
     try {
@@ -192,7 +218,7 @@ Return ONLY a valid JSON object matching this structure:
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { responseMimeType: 'application/json' },
         }),
-        signal: AbortSignal.timeout(12000),
+        signal: AbortSignal.timeout(15000),
       });
 
       if (!res.ok) {
@@ -203,11 +229,82 @@ Return ONLY a valid JSON object matching this structure:
       const jsonText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!jsonText) throw new Error('Empty Gemini response');
 
-      const parsed = JSON.parse(jsonText);
+      let parsed: any;
+      try {
+        parsed = JSON.parse(jsonText);
+      } catch {
+        validationErrors.push('Gemini returned malformed or non-JSON output');
+        const fallbackFields = workerResumeEngine.heuristicParse(text, existingProfile);
+        return {
+          method: 'HEURISTIC',
+          parserModel: 'gemini-2.5-flash -> Heuristic-Fallback',
+          status: 'PARTIAL',
+          extractedFields: fallbackFields,
+          warnings: ['AI output failed JSON validation; parsed deterministically with heuristic engine.'],
+          validationErrors,
+          processingDurationMs: Date.now() - startTime,
+          fallbackReason: 'MALFORMED_GEMINI_OUTPUT',
+          diagnostics: {
+            textLength: text.length,
+            skillsExtractedCount: fallbackFields.skills.length,
+            experienceEntriesCount: fallbackFields.experiences.length,
+            educationEntriesCount: fallbackFields.education.length,
+            isDateUncertain: fallbackFields.experiences.some(e => e.isDateUncertain),
+          },
+        };
+      }
 
-      return {
+      const parsedExperiences: ExperienceItem[] = Array.isArray(parsed.experiences)
+        ? parsed.experiences
+            .filter((exp: any) => exp && exp.company && !isInvalidToken(exp.company) && !isInvalidToken(exp.role))
+            .map((exp: any) => {
+              const dateRes = parseEmploymentDates(exp.startDate ? `${exp.startDate} - ${exp.endDate || (exp.current ? 'Present' : '')}` : exp.period);
+              if (dateRes.isDateUncertain) {
+                warnings.push(`Employment dates uncertain for ${exp.company}: please verify.`);
+              }
+              return {
+                id: crypto.randomUUID(),
+                company: String(exp.company).trim(),
+                role: String(exp.role || '').trim(),
+                startDate: dateRes.startDate,
+                endDate: dateRes.endDate,
+                current: Boolean(dateRes.current),
+                location: exp.location || '',
+                description: exp.description || '',
+                achievements: Array.isArray(exp.achievements) ? exp.achievements : [],
+                verifiedSkillsUsed: Array.isArray(exp.verifiedSkillsUsed) ? exp.verifiedSkillsUsed : [],
+                isDateUncertain: dateRes.isDateUncertain,
+                dateWarning: dateRes.dateWarning,
+                originalDateText: dateRes.originalDateText,
+                needsVerification: dateRes.isDateUncertain,
+              };
+            })
+        : [];
+
+      const totalMonths = parsedExperiences.reduce((sum: number, exp: ExperienceItem) => {
+        const d = parseEmploymentDates(exp.startDate ? `${exp.startDate} - ${exp.endDate || (exp.current ? 'Present' : '')}` : '');
+        return sum + d.durationMonths;
+      }, 0);
+      const calculatedExpYears = Math.round(totalMonths / 12);
+      const totalExperienceYears = typeof parsed.totalExperienceYears === 'number'
+        ? parsed.totalExperienceYears
+        : (calculatedExpYears || existingProfile?.totalExperienceYears || 0);
+
+      const extractedSkills: VerifiedSkill[] = Array.isArray(parsed.skills)
+        ? parsed.skills.map((s: any): VerifiedSkill => ({
+            name: String(s.name || '').trim(),
+            category: (s.category as any) || 'general',
+            proficiency: (s.proficiency as any) || 'proficient',
+            yearsExperience: typeof s.yearsExperience === 'number' ? s.yearsExperience : 0,
+            verified: false,
+          }))
+        : [];
+
+      const extractedLanguages: string[] = Array.isArray(parsed.languages) ? parsed.languages.filter(Boolean) : [];
+
+      const parsedProfile: UserProfile = {
         id: existingProfile?.id || crypto.randomUUID(),
-        fullName: parsed.fullName || existingProfile?.fullName || 'Verified Candidate',
+        fullName: parsed.fullName ? parsed.fullName.trim() : (existingProfile?.fullName || ''),
         email: parsed.email || existingProfile?.email || '',
         phone: parsed.phone || existingProfile?.phone || '',
         location: parsed.location || existingProfile?.location || '',
@@ -215,9 +312,9 @@ Return ONLY a valid JSON object matching this structure:
         workAuthorizationStatus: existingProfile?.workAuthorizationStatus || '',
         workAuthorization: existingProfile?.workAuthorization || [],
         requiresVisaSponsorship: existingProfile?.requiresVisaSponsorship || false,
-        currentTitle: parsed.currentTitle || existingProfile?.currentTitle || '',
-        currentEmployer: parsed.currentEmployer || existingProfile?.currentEmployer || '',
-        totalExperienceYears: typeof parsed.totalExperienceYears === 'number' ? parsed.totalExperienceYears : (existingProfile?.totalExperienceYears || 2),
+        currentTitle: parsed.currentTitle || (parsedExperiences[0]?.role || ''),
+        currentEmployer: parsed.currentEmployer || (parsedExperiences[0]?.company || ''),
+        totalExperienceYears,
         professionalSummary: parsed.professionalSummary || '',
         education: Array.isArray(parsed.education)
           ? parsed.education.map((e: any) => ({
@@ -236,44 +333,60 @@ Return ONLY a valid JSON object matching this structure:
               issueYear: String(c.issueYear || ''),
             }))
           : [],
-        skills: Array.isArray(parsed.skills)
-          ? parsed.skills.map((s: any): VerifiedSkill => ({
-              name: s.name || '',
-              category: (s.category as any) || 'general',
-              proficiency: (s.proficiency as any) || 'proficient',
-              yearsExperience: typeof s.yearsExperience === 'number' ? s.yearsExperience : 2,
-              verified: true,
-            }))
-          : [],
-        experiences: Array.isArray(parsed.experiences)
-          ? parsed.experiences
-              .filter((exp: any) => exp && exp.company && !isInvalidToken(exp.company) && !isInvalidToken(exp.role))
-              .map((exp: any) => {
-                const dateRes = parseEmploymentDates(exp.startDate ? `${exp.startDate} - ${exp.endDate || (exp.current ? 'Present' : '')}` : exp.period);
-                return {
-                  id: crypto.randomUUID(),
-                  company: exp.company.trim(),
-                  role: exp.role.trim(),
-                  startDate: dateRes.startDate,
-                  endDate: dateRes.endDate,
-                  current: Boolean(dateRes.current),
-                  location: exp.location || '',
-                  description: exp.description || '',
-                  achievements: Array.isArray(exp.achievements) ? exp.achievements : [],
-                  verifiedSkillsUsed: Array.isArray(exp.verifiedSkillsUsed) ? exp.verifiedSkillsUsed : [],
-                  isDateUncertain: dateRes.isDateUncertain,
-                  dateWarning: dateRes.dateWarning,
-                  originalDateText: dateRes.originalDateText,
-                  needsVerification: dateRes.isDateUncertain,
-                };
-              })
-          : [],
-        languages: Array.isArray(parsed.languages) && parsed.languages.length > 0 ? parsed.languages : ['English'],
+        skills: extractedSkills,
+        experiences: parsedExperiences,
+        languages: extractedLanguages,
         masterResumeLastUpdated: new Date().toISOString(),
       };
-    } catch {
-      return workerResumeEngine.heuristicParse(text, existingProfile);
+
+      return {
+        method: 'GEMINI',
+        parserModel: 'gemini-2.5-flash',
+        status: warnings.length > 0 ? 'PARTIAL' : 'SUCCESS',
+        extractedFields: parsedProfile,
+        warnings,
+        validationErrors: [],
+        processingDurationMs: Date.now() - startTime,
+        diagnostics: {
+          textLength: text.length,
+          skillsExtractedCount: extractedSkills.length,
+          experienceEntriesCount: parsedExperiences.length,
+          educationEntriesCount: parsedProfile.education.length,
+          isDateUncertain: parsedExperiences.some(e => e.isDateUncertain),
+        },
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      validationErrors.push(msg);
+      const isTimeout = msg.toLowerCase().includes('timeout') || msg.toLowerCase().includes('abort');
+      const fallbackFields = workerResumeEngine.heuristicParse(text, existingProfile);
+
+      return {
+        method: 'HEURISTIC',
+        parserModel: 'Heuristic-CrossIndustry-v2.0',
+        status: 'PARTIAL',
+        extractedFields: fallbackFields,
+        warnings: [`Gemini extraction failed (${msg}); processed with deterministic heuristic engine.`],
+        validationErrors,
+        processingDurationMs: Date.now() - startTime,
+        fallbackReason: isTimeout ? 'GEMINI_TIMEOUT' : 'GEMINI_API_ERROR',
+        diagnostics: {
+          textLength: text.length,
+          skillsExtractedCount: fallbackFields.skills.length,
+          experienceEntriesCount: fallbackFields.experiences.length,
+          educationEntriesCount: fallbackFields.education.length,
+          isDateUncertain: fallbackFields.experiences.some(e => e.isDateUncertain),
+        },
+      };
     }
+  },
+
+  /**
+   * Structure extracted resume text via Gemini API, or fallback to deterministic heuristic parser.
+   */
+  async structureProfileWithAI(text: string, existingProfile?: UserProfile | null, apiKey?: string): Promise<UserProfile> {
+    const detailed = await this.structureProfileDetailed(text, existingProfile, apiKey);
+    return detailed.extractedFields;
   },
 
   /**
@@ -336,7 +449,7 @@ Return ONLY a valid JSON object matching this structure:
 
     return {
       id: existingProfile?.id || crypto.randomUUID(),
-      fullName: existingProfile?.fullName || (firstLine.length < 40 ? firstLine : 'Verified Candidate'),
+      fullName: existingProfile?.fullName || (firstLine.length < 40 ? firstLine : ''),
       email: emailMatch ? emailMatch[0] : (existingProfile?.email || ''),
       phone: phoneMatch ? phoneMatch[0] : (existingProfile?.phone || ''),
       location: existingProfile?.location || '',
@@ -354,11 +467,11 @@ Return ONLY a valid JSON object matching this structure:
         name: s,
         category: 'general',
         proficiency: 'proficient',
-        yearsExperience: 2,
-        verified: true,
+        yearsExperience: 0,
+        verified: false,
       })),
       experiences: parsedExperiences,
-      languages: existingProfile?.languages || ['English'],
+      languages: existingProfile?.languages || [],
       masterResumeLastUpdated: new Date().toISOString(),
     };
   },
@@ -372,7 +485,7 @@ Return ONLY a valid JSON object matching this structure:
     const masterSkills = new Set(profile.skills.map(s => s.name.toLowerCase().trim()));
 
     // 1. Verify every company in tailored experience exists in master profile
-    for (const exp of tailored.tailoredExperiences) {
+    for (const exp of tailored.tailoredExperiences || []) {
       const cLower = exp.company.toLowerCase().trim();
       if (!cLower) continue;
       const found = masterCompanies.some(mc => mc.includes(cLower) || cLower.includes(mc));
@@ -382,7 +495,7 @@ Return ONLY a valid JSON object matching this structure:
     }
 
     // 2. Verify skills are present in verified profile
-    for (const sk of tailored.targetedSkills) {
+    for (const sk of tailored.targetedSkills || []) {
       const sLower = sk.toLowerCase().trim();
       const hasSkill = Array.from(masterSkills).some(ms => ms.includes(sLower) || sLower.includes(ms));
       if (!hasSkill) {
@@ -419,8 +532,8 @@ Return ONLY a valid JSON object matching this structure:
       tailoredExperiences: profile.experiences.map(e => ({
         company: e.company,
         role: e.role,
-        period: `${e.startDate} - ${e.current ? 'Present' : e.endDate}`,
-        bulletPoints: e.achievements.length > 0 ? e.achievements : [e.description],
+        period: `${e.startDate || ''} - ${e.current ? 'Present' : (e.endDate || '')}`,
+        bulletPoints: (e.achievements && e.achievements.length > 0) ? e.achievements.filter((b): b is string => typeof b === 'string') : (e.description ? [e.description] : []),
       })),
       education: profile.education.map(e => `${e.degree} — ${e.institution} (${e.graduationYear})`),
       certifications: profile.certifications.map(c => `${c.name} (${c.issuingOrg})`),
@@ -474,25 +587,25 @@ Return ONLY a valid JSON object matching this structure:
               heading: HeadingLevel.HEADING_2,
             }),
             new Paragraph({
-              children: [new TextRun({ text: tailored.targetedSkills.join(' • '), size: 22 })],
+              children: [new TextRun({ text: (tailored.targetedSkills || []).join(' • '), size: 22 })],
             }),
             new Paragraph({ text: '' }),
             new Paragraph({
               text: 'Professional Experience',
               heading: HeadingLevel.HEADING_2,
             }),
-            ...tailored.tailoredExperiences.flatMap(exp => [
+            ...(tailored.tailoredExperiences || []).flatMap(exp => [
               new Paragraph({
                 children: [
                   new TextRun({ text: `${exp.role} — ${exp.company}`, bold: true, size: 22 }),
                   new TextRun({ text: `   (${exp.period})`, italics: true, size: 20 }),
                 ],
               }),
-              ...exp.bulletPoints.map(
+              ...(exp.bulletPoints || []).map(
                 b =>
                   new Paragraph({
                     bullet: { level: 0 },
-                    children: [new TextRun({ text: b, size: 21 })],
+                    children: [new TextRun({ text: b || '', size: 21 })],
                   })
               ),
               new Paragraph({ text: '' }),

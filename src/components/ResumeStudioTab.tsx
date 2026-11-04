@@ -42,9 +42,9 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
     if (!selectedApp) return;
     const textToCopy =
       activeView === 'resume'
-        ? `${selectedApp.tailoredResume.headline}\n\n${selectedApp.tailoredResume.professionalSummary}\n\nSKILLS:\n${selectedApp.tailoredResume.targetedSkills.join(', ')}\n\nEXPERIENCE:\n` +
-          selectedApp.tailoredResume.tailoredExperiences
-            .map(e => `${e.role} at ${e.company} (${e.period})\n` + e.bulletPoints.map(b => `• ${b}`).join('\n'))
+        ? `${selectedApp.tailoredResume.headline}\n\n${selectedApp.tailoredResume.professionalSummary}\n\nSKILLS:\n${(selectedApp.tailoredResume.targetedSkills || []).join(', ')}\n\nEXPERIENCE:\n` +
+          (selectedApp.tailoredResume.tailoredExperiences || [])
+            .map(e => `${e.role} at ${e.company} (${e.period})\n` + (e.bulletPoints || []).map(b => `• ${b}`).join('\n'))
             .join('\n\n')
         : selectedApp.coverLetter || '';
 
@@ -185,7 +185,7 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
           <div className="rounded-2xl border border-slate-200/80 bg-white p-4 space-y-3 shadow-xs">
             <h4 className="text-xs font-semibold text-slate-900">Targeted Role Keywords</h4>
             <div className="flex flex-wrap gap-1.5">
-              {resume.targetedSkills.map((sk, i) => (
+              {(resume.targetedSkills || []).map((sk, i) => (
                 <span
                   key={i}
                   className="text-[11px] px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/80 font-medium"
@@ -242,7 +242,7 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
                     Core Competencies
                   </h3>
                   <p className="text-xs leading-relaxed text-slate-700 print:text-slate-900 font-medium">
-                    {resume.targetedSkills.join(' • ')}
+                    {(resume.targetedSkills || []).join(' • ')}
                   </p>
                 </div>
 
@@ -253,7 +253,7 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
                   </h3>
 
                   <div className="space-y-4">
-                    {resume.tailoredExperiences.map((exp, idx) => (
+                    {(resume.tailoredExperiences || []).map((exp, idx) => (
                       <div key={idx} className="space-y-1.5">
                         <div className="flex justify-between items-baseline text-xs">
                           <span className="font-bold text-slate-900 print:text-black text-sm">
@@ -281,20 +281,20 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
                     Education
                   </h3>
                   <div className="space-y-1 text-xs text-slate-700 print:text-slate-800">
-                    {resume.education.map((edu, i) => (
+                    {(resume.education || []).map((edu, i) => (
                       <div key={i}>{edu}</div>
                     ))}
                   </div>
                 </div>
 
                 {/* Certifications */}
-                {resume.certifications.length > 0 && (
+                {(resume.certifications || []).length > 0 && (
                   <div className="space-y-1.5">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 print:text-black border-b border-slate-200 print:border-black pb-1">
                       Certifications
                     </h3>
                     <div className="space-y-1 text-xs text-slate-700 print:text-slate-800">
-                      {resume.certifications.map((cert, i) => (
+                      {(resume.certifications || []).map((cert, i) => (
                         <div key={i}>{cert}</div>
                       ))}
                     </div>

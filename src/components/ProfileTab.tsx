@@ -325,7 +325,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                       Verified Achievements
                     </div>
                     <ul className="space-y-1 text-xs text-slate-300">
-                      {exp.achievements.map((ach, i) => (
+                      {(exp.achievements || []).map((ach, i) => (
                         <li key={i} className="flex items-start space-x-2">
                           <span className="text-indigo-400 font-bold">›</span>
                           <span className="leading-relaxed">{ach}</span>
@@ -335,7 +335,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-800/60">
-                    {exp.verifiedSkillsUsed.map((sk, i) => (
+                    {(exp.verifiedSkillsUsed || []).map((sk, i) => (
                       <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">
                         {sk}
                       </span>

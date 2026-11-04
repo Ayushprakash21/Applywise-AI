@@ -39,6 +39,12 @@ import { FlowLogin } from './components/FlowLogin.tsx';
 import { FlowSignup } from './components/FlowSignup.tsx';
 import { NotFoundPage } from './components/NotFoundPage.tsx';
 import { NotificationsPage } from './components/NotificationsPage.tsx';
+import { CareerDesk } from './components/CareerDesk.tsx';
+import { OpportunityRadar } from './components/OpportunityRadar.tsx';
+import { ApplicationControl } from './components/ApplicationControl.tsx';
+import { InterviewStudio } from './components/InterviewStudio.tsx';
+import { RecruiterReview } from './components/RecruiterReview.tsx';
+import { CareerAtlas } from './components/CareerAtlas.tsx';
 
 const normalizePath = (rawPath: string): string => {
   const path = (rawPath || '/').split('?')[0].split('#')[0] || '/';
@@ -104,6 +110,7 @@ export default function App() {
 
   // Navigation: signed-in tabs (Career Command Center is default overview)
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
+  const [recruiterReviewAppId, setRecruiterReviewAppId] = useState<string | undefined>(undefined);
 
   // Core Data State
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -288,6 +295,10 @@ export default function App() {
       return;
     }
     try {
+      if (!isPermanentFreeAccessAccount(currentUser)) {
+        navigateTo('/pricing');
+        return;
+      }
       const res = await api.upgradeSubscription(plan, billingCycle);
       if (res.success && res.subscription) {
         setSubscription(res.subscription);
@@ -589,6 +600,82 @@ export default function App() {
           plan={isBlackSubscriber ? 'black' : ((subscription?.planId as 'free' | 'pro' | 'black') || subscription?.plan || 'free')}
           usage={usage}
         >
+          {activeTab === 'desk' && (
+            <CareerDesk
+              user={currentUser}
+              profile={profile}
+              preferences={preferences}
+              applications={applications}
+              vacancies={vacancies}
+              onNavigateTab={tab => handleSelectTab(tab as DashboardTab)}
+              onSelectVacancy={v => setSelectedVacancy(v)}
+              onOpenOnboarding={() => setOnboardingOpen(true)}
+              onAskCopilotPrompt={(prompt: string) => {
+                setCopilotPrompt(prompt);
+                setCopilotOpen(true);
+              }}
+            />
+          )}
+
+          {activeTab === 'radar' && (
+            <OpportunityRadar
+              vacancies={vacancies}
+              profile={profile}
+              onSelectVacancy={v => setSelectedVacancy(v)}
+              onRefreshLiveJobs={async () => {
+                const res = await api.refreshLiveJobs();
+                showToast(res.message);
+                await loadUserData();
+              }}
+              onPrepareApplication={async v => { await handlePrepareApplication(typeof v === 'string' ? v : (v as any).id); }}
+            />
+          )}
+
+          {activeTab === 'control' && (
+            <ApplicationControl
+              applications={applications}
+              onSelectApplication={app => setPreviewResumeApp(app)}
+              onOpenRecruiterReview={(appId: string) => {
+                setRecruiterReviewAppId(appId);
+                setActiveTab('recruiter_review');
+              }}
+              onRefresh={loadUserData}
+              onNavigateToRadar={() => setActiveTab('radar')}
+            />
+          )}
+
+          {activeTab === 'interview_studio' && (
+            <InterviewStudio
+              applications={applications}
+              profile={profile}
+              onAskCopilot={(prompt: string) => {
+                setCopilotPrompt(prompt);
+                setCopilotOpen(true);
+              }}
+            />
+          )}
+
+          {activeTab === 'recruiter_review' && (
+            <RecruiterReview
+              applications={applications}
+              initialApplicationId={recruiterReviewAppId}
+              onNavigateToApplication={() => {
+                setActiveTab('control');
+              }}
+            />
+          )}
+
+          {activeTab === 'atlas' && (
+            <CareerAtlas
+              profile={profile}
+              preferences={preferences}
+              onAskCopilot={(prompt: string) => {
+                setCopilotPrompt(prompt);
+                setCopilotOpen(true);
+              }}
+            />
+          )}
+
           {activeTab === 'overview' && (
             <CareerCommandCenter
               user={currentUser}
@@ -650,7 +737,7 @@ export default function App() {
               }}
               onNavigateToJobs={() => setActiveTab('jobs')}
               onNavigateToApplications={() => setActiveTab('applications')}
-              onAskCopilot={prompt => {
+              onAskCopilot={(prompt: string) => {
                 setCopilotPrompt(prompt);
                 setCopilotOpen(true);
               }}
@@ -680,7 +767,7 @@ export default function App() {
               vacancies={vacancies}
               onOpenOnboarding={() => setOnboardingOpen(true)}
               onNavigateToJobs={() => setActiveTab('jobs')}
-              onAskCopilot={prompt => {
+              onAskCopilot={(prompt: string) => {
                 setCopilotPrompt(prompt);
                 setCopilotOpen(true);
               }}

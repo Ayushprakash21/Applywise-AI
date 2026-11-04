@@ -5,6 +5,22 @@ export type EmploymentType = 'full-time' | 'contract' | 'part-time' | 'internshi
 export type OperatingMode = 'MODE_A_RESEARCH' | 'MODE_B_PREPARE_APPROVE' | 'MODE_C_AUTONOMOUS';
 
 export type ApplicationStatus =
+  // 12 Canonical Career Experience Stages
+  | 'OPPORTUNITY_SELECTED'
+  | 'SUITABILITY_REVIEWED'
+  | 'RESUME_PREPARED'
+  | 'RECRUITER_REVIEW_COMPLETED'
+  | 'APPLICATION_READY'
+  | 'READY_TO_SUBMIT'
+  | 'AWAITING_USER_APPROVAL'
+  | 'AWAITING_USER_REVIEW'
+  | 'SUBMISSION_IN_PROGRESS'
+  | 'SUBMITTED_CONFIRMED'
+  | 'INTERVIEW'
+  | 'OFFER'
+  | 'REJECTED'
+  | 'WITHDRAWN'
+  // Legacy & Workflow Aliases for Backward Compatibility
   | 'DISCOVERED'
   | 'VALIDATED'
   | 'MATCHED'
@@ -39,19 +55,22 @@ export type ApplicationStatus =
   | 'SUBMISSION_FAILED';
 
 export interface EducationItem {
-  id: string;
+  id?: string;
   degree: string;
   institution: string;
-  fieldOfStudy: string;
+  fieldOfStudy?: string;
   graduationYear: string;
+  year?: string;
   gpa?: string;
 }
 
 export interface CertificationItem {
-  id: string;
+  id?: string;
   name: string;
   issuingOrg: string;
-  issueYear: string;
+  issuer?: string;
+  issueYear?: string;
+  year?: string;
   credentialId?: string;
 }
 
@@ -59,6 +78,7 @@ export interface VerifiedSkill {
   name: string;
   category?: 'frontend' | 'backend' | 'cloud' | 'ai' | 'database' | 'architecture' | 'leadership' | 'devops' | 'general' | (string & {});
   proficiency?: 'expert' | 'proficient' | 'familiar' | 'advanced' | 'intermediate' | (string & {});
+  level?: string;
   yearsExperience?: number;
   verified?: boolean;
 }
@@ -82,6 +102,82 @@ export interface ExperienceItem {
   needsVerification?: boolean;
   sourceText?: string;
   employmentType?: string | null;
+}
+
+export type EmploymentRecord = ExperienceItem;
+
+export interface OpportunitySignal {
+  id: string;
+  company: string;
+  signalType: 'expansion' | 'office_opening' | 'public_hiring' | 'industry_growth' | 'department_launch';
+  headline: string;
+  sourceName: string;
+  sourceUrl: string;
+  publishedDate: string;
+  location: string;
+  relevanceExplanation: string;
+  hasVerifiedVacancy: boolean;
+  linkedVacancyId?: string;
+}
+
+export interface InterviewMockSession {
+  id: string;
+  userId: string;
+  jobId?: string;
+  roleTitle: string;
+  companyName: string;
+  interviewType: 'behavioral' | 'technical' | 'situational' | 'leadership' | 'hr';
+  questions: Array<{ id: string; question: string; category: string; expectedPoints?: string[] }>;
+  answers: Array<{ questionId: string; answerText: string; timeSpentSeconds?: number; timestamp: string }>;
+  feedback: {
+    relevanceScore?: number;
+    structureScore?: number;
+    clarityScore?: number;
+    specificityScore?: number;
+    evidenceScore?: number;
+    overallFeedback?: string;
+    rubricNotes?: string[];
+  };
+  improvementAreas: string[];
+  overallScore?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RecruiterReviewAudit {
+  id: string;
+  userId: string;
+  applicationId: string;
+  roleAlignmentScore: number;
+  reviewCategories: Record<string, { score: number; status: 'strong' | 'adequate' | 'gap'; notes: string }>;
+  evidenceClassification: {
+    verifiedEvidence: string[];
+    indirectEvidence: string[];
+    notEstablished: string[];
+  };
+  strongestPoints: string[];
+  potentialConcerns: string[];
+  missingMandatoryRequirements: string[];
+  resumeImprovements: string[];
+  clarificationQuestions: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CareerTrajectory {
+  id: string;
+  userId: string;
+  trajectoryTitle: string;
+  targetRole: string;
+  currentAlignmentScore: number;
+  transferableSkills: string[];
+  missingSkills: string[];
+  requiredExperienceYears: number;
+  recommendedCertifications: string[];
+  learningPath: Array<{ step: number; title: string; estimatedHours: number; rationale: string; isCompleted: boolean }>;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type FactCategory =
@@ -162,6 +258,7 @@ export interface UserProfile {
 
 export interface CareerPreferences {
   targetRoles?: string[];
+  targetLocations?: string[];
   targetCountries: string[];
   targetCities: string[];
   preferredTitles: string[];
@@ -702,9 +799,9 @@ export interface DigitalTwinExperience {
   id: string;
   company: string;
   role: string;
-  startDate: string;
-  endDate: string;
-  current: boolean;
+  startDate?: string;
+  endDate?: string;
+  current?: boolean;
   location: string;
   description: string;
   achievements: string[];
@@ -834,7 +931,7 @@ export interface AccountUsageStats {
     remaining: number | null;
   };
   aiCopilot: {
-    tier: 'standard' | 'unlimited';
+    tier: 'standard' | 'unlimited' | 'elite';
     isUnlimited: boolean;
   };
 }
@@ -860,4 +957,117 @@ export interface FounderProfile {
   isPublished?: boolean;
   publishedAt?: string | null;
   updatedAt?: string;
+}
+
+// ============================================================================
+// ADMIN RESUME MANAGEMENT & EXTRACTION TYPES
+// ============================================================================
+
+export type ResumeExtractionStatus = 'SUCCESS' | 'PARTIAL' | 'FAILED' | 'SCANNED' | 'PENDING';
+export type ResumeExtractionMethod = 'GEMINI' | 'HEURISTIC' | 'OCR' | 'NONE';
+
+export interface ResumeDocument {
+  id: string;
+  userId: string;
+  userEmail?: string;
+  userFullName?: string;
+  fileName: string;
+  fileType: 'pdf' | 'docx' | string;
+  fileSizeBytes: number;
+  extractedText: string;
+  isScanned: boolean;
+  storageKey?: string | null;
+  fileHash?: string | null;
+  mimeType?: string;
+  pageCount?: number;
+  extractionStatus: ResumeExtractionStatus;
+  extractionMethod: ResumeExtractionMethod;
+  parserModel?: string;
+  errorMessage?: string;
+  warnings?: string[];
+  processingDurationMs?: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ResumeExtractionRun {
+  id: string;
+  resumeId: string;
+  userId: string;
+  runType: 'INITIAL_UPLOAD' | 'ADMIN_REPROCESS' | 'AUTOMATED_RETRY';
+  status: ResumeExtractionStatus;
+  extractionMethod: ResumeExtractionMethod;
+  parserModel?: string;
+  structuredOutput?: UserProfile | null;
+  diagnostics?: Record<string, any>;
+  errorMessage?: string;
+  warnings?: string[];
+  durationMs: number;
+  createdAt: string;
+}
+
+export interface ResumeExtractionVersion {
+  id: string;
+  resumeId: string;
+  userId: string;
+  versionNumber: number;
+  data: UserProfile;
+  diffSummary?: Record<string, any>;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface ResumeExtractionEvent {
+  id: string;
+  resumeId: string;
+  adminId: string;
+  adminEmail: string;
+  eventType:
+    | 'VIEW_METADATA'
+    | 'VIEW_TEXT'
+    | 'VIEW_EXTRACTION'
+    | 'REPROCESS_TRIGGERED'
+    | 'REPROCESS_COMPLETED'
+    | 'REPROCESS_FAILED';
+  details?: Record<string, any>;
+  ipAddress?: string;
+  createdAt: string;
+}
+
+export interface AdminResumesSummary {
+  total: number;
+  successCount: number;
+  partialCount: number;
+  failedCount: number;
+  scannedCount: number;
+  pendingCount: number;
+}
+
+export interface AdminResumesResponse {
+  success: boolean;
+  resumes: ResumeDocument[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  summary: AdminResumesSummary;
+}
+
+export interface StructuredExtractionOutput {
+  method: 'GEMINI' | 'HEURISTIC';
+  parserModel: string;
+  status: ResumeExtractionStatus;
+  extractedFields: UserProfile;
+  warnings: string[];
+  validationErrors: string[];
+  processingDurationMs: number;
+  fallbackReason?: string;
+  diagnostics: {
+    pageCount?: number;
+    textLength: number;
+    skillsExtractedCount: number;
+    experienceEntriesCount: number;
+    educationEntriesCount: number;
+    isDateUncertain: boolean;
+  };
 }

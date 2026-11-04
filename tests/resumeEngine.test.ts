@@ -51,6 +51,6 @@ Bachelor of Science in Computer Science, Stanford University (2018)
   );
 
   assert.equal(tailoring.truthfulnessScore, 100);
-  assert.ok(tailoring.tailoredResume.headline.includes('Frontend'));
+  assert.ok((tailoring.tailoredResume.headline || '').includes('Frontend'));
   assert.ok(tailoring.coverLetter.includes('TechNova Systems'));
 });

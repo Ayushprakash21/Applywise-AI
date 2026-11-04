@@ -24,7 +24,10 @@ import {
   Compass,
   Command,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Map,
+  ShieldCheck,
+  Radio
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
 import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
@@ -33,6 +36,12 @@ import { NotificationItem, AutomationSettings, AccountUsageStats } from '../type
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 
 export type DashboardTab =
+  | 'desk'
+  | 'radar'
+  | 'control'
+  | 'interview_studio'
+  | 'recruiter_review'
+  | 'atlas'
   | 'overview'
   | 'profile'
   | 'resume_intelligence'
@@ -124,24 +133,22 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
   const navGroups: Array<{ group: string; items: NavItem[] }> = [
     {
-      group: 'WORKSPACE',
+      group: 'CAREER INTELLIGENCE & WORKSPACE',
       items: [
-        { id: 'overview' as const, label: 'Dashboard', icon: LayoutDashboard },
-        { id: 'profile' as const, label: 'Career Profile', icon: User },
-        { id: 'resume_intelligence' as const, label: 'Resume Intelligence', icon: FileText },
-        { id: 'jobs' as const, label: 'Find Jobs', icon: Search },
-        { id: 'matches' as const, label: 'Job Matches', icon: Sparkles },
-        { id: 'applications' as const, label: 'My Applications', icon: Briefcase },
-        { id: 'interviews' as const, label: 'Interview Prep', icon: Calendar },
+        { id: 'desk' as const, label: 'Career Desk', icon: LayoutDashboard },
+        { id: 'radar' as const, label: 'Opportunity Radar', icon: Radio },
+        { id: 'control' as const, label: 'Application Control', icon: Briefcase },
+        { id: 'interview_studio' as const, label: 'Interview Studio', icon: Calendar },
+        { id: 'recruiter_review' as const, label: 'Recruiter Review', icon: ShieldCheck },
+        { id: 'atlas' as const, label: 'Career Atlas', icon: Map },
       ],
     },
     {
-      group: 'CAREER INTELLIGENCE',
+      group: 'CAREER OPERATIONS & PROFILE',
       items: [
-        { id: 'copilot' as const, label: 'AI Career Assistant', icon: Bot },
+        { id: 'profile' as const, label: 'Career Profile & Facts', icon: User },
         { id: 'resume_studio' as const, label: 'Resume Studio', icon: FileCheck },
         { id: 'career_report' as const, label: 'Skills & Gap Report', icon: BarChart3 },
-        { id: 'career_twin' as const, label: 'Career Twin', icon: Shield },
       ],
     },
     {
@@ -149,7 +156,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       items: [
         { id: 'notifications' as const, label: 'Notifications', icon: Bell, badge: unreadCount },
         { id: 'settings' as const, label: 'Settings', icon: Sliders },
-        { id: 'subscription' as const, label: 'Subscription Plan', icon: Award },
+        { id: 'subscription' as const, label: 'Membership & Billing', icon: Award },
       ],
     },
   ];

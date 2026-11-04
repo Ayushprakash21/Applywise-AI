@@ -24,7 +24,16 @@ import {
   CareerRoadmap,
   JobAlertRule,
   ApplicationActivityEvent,
-  FounderProfile
+  FounderProfile,
+  OpportunitySignal,
+  InterviewMockSession,
+  RecruiterReviewAudit,
+  CareerTrajectory,
+  ResumeDocument,
+  ResumeExtractionRun,
+  ResumeExtractionVersion,
+  ResumeExtractionEvent,
+  AdminResumesResponse
 } from '../types/index.ts';
 
 export interface DashboardSummary {
@@ -270,6 +279,73 @@ export const api = {
       recentErrors: any[];
       serverTime: string;
     }>('/api/admin/sources/health'),
+
+  // --- ADMIN RESUME MANAGEMENT ---
+  getAdminResumes: (params?: { page?: number; limit?: number; search?: string; status?: string; format?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.page) q.set('page', String(params.page));
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.search) q.set('search', params.search);
+    if (params?.status) q.set('status', params.status);
+    if (params?.format) q.set('format', params.format);
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return fetchJson<AdminResumesResponse>(`/api/admin/resumes${qs}`);
+  },
+
+  getAdminResumeById: (resumeId: string) =>
+    fetchJson<{
+      success: boolean;
+      resume: ResumeDocument;
+      runs: ResumeExtractionRun[];
+      versions: ResumeExtractionVersion[];
+      candidateFacts: any[];
+    }>(`/api/admin/resumes/${resumeId}`),
+
+  getAdminResumeText: (resumeId: string) =>
+    fetchJson<{
+      success: boolean;
+      resumeId: string;
+      fileName: string;
+      fileType: string;
+      pageCount: number;
+      extractedText: string;
+      characterCount: number;
+    }>(`/api/admin/resumes/${resumeId}/text`),
+
+  getAdminResumeExtraction: (resumeId: string) =>
+    fetchJson<{
+      success: boolean;
+      resumeId: string;
+      latestRun: ResumeExtractionRun | null;
+      extractionStatus: string;
+      extractionMethod: string;
+      parserModel?: string;
+      warnings?: string[];
+      candidateFacts: any[];
+    }>(`/api/admin/resumes/${resumeId}/extraction`),
+
+  reprocessAdminResume: (resumeId: string) =>
+    fetchJson<{
+      success: boolean;
+      runId: string;
+      versionId: string;
+      diffSummary: any;
+      status: string;
+      extractionMethod: string;
+      parserModel?: string;
+      warnings?: string[];
+    }>(`/api/admin/resumes/${resumeId}/reprocess`, {
+      method: 'POST',
+    }),
+
+  getAdminResumeHistory: (resumeId: string) =>
+    fetchJson<{
+      success: boolean;
+      resumeId: string;
+      runs: ResumeExtractionRun[];
+      versions: ResumeExtractionVersion[];
+      events: ResumeExtractionEvent[];
+    }>(`/api/admin/resumes/${resumeId}/history`),
 
   // --- PROFILE ---
   getProfile: () => fetchJson<{ success: boolean; profile: UserProfile }>('/api/profile'),
@@ -809,6 +885,36 @@ export const api = {
   removeFounderPhoto: () =>
     fetchJson<{ success: boolean; message: string }>('/api/admin/founder-profile/photo', {
       method: 'DELETE',
+    }),
+
+  // --- SIX-PILLAR CAREER OPERATIONS ---
+  getOpportunitySignals: () =>
+    fetchJson<{ success: boolean; signals: OpportunitySignal[] }>('/api/opportunity-signals'),
+
+  getMockInterviewSessions: (jobId?: string) =>
+    fetchJson<{ success: boolean; sessions: InterviewMockSession[] }>(jobId ? `/api/interviews/mock-sessions?jobId=${jobId}` : '/api/interviews/mock-sessions'),
+
+  saveMockInterviewSession: (session: Partial<InterviewMockSession>) =>
+    fetchJson<{ success: boolean; session: InterviewMockSession }>('/api/interviews/mock-sessions', {
+      method: 'POST',
+      body: JSON.stringify(session),
+    }),
+
+  getRecruiterReviewAudit: (applicationId: string) =>
+    fetchJson<{ success: boolean; audit: RecruiterReviewAudit }>(`/api/applications/${applicationId}/recruiter-review`),
+
+  generateRecruiterReview: (applicationId: string) =>
+    fetchJson<{ success: boolean; audit: RecruiterReviewAudit }>(`/api/applications/${applicationId}/recruiter-review`, {
+      method: 'POST',
+    }),
+
+  getCareerTrajectories: () =>
+    fetchJson<{ success: boolean; trajectories: CareerTrajectory[] }>('/api/career-atlas/trajectories'),
+
+  saveCareerTrajectory: (trajectory: Partial<CareerTrajectory>) =>
+    fetchJson<{ success: boolean; trajectory: CareerTrajectory }>('/api/career-atlas/trajectories', {
+      method: 'POST',
+      body: JSON.stringify(trajectory),
     }),
 
 };

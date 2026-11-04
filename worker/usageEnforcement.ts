@@ -52,8 +52,9 @@ export async function getAccountUsageStats(
 ): Promise<AccountUsageStats> {
   const isPerm = userEmail ? isPermanentFreeAccessEmail(userEmail) : false;
   const sub = await store.getUserSubscription(userId);
-  const isPro = isPerm || (sub && sub.planId === 'pro' && sub.status === 'active');
-  const planId: 'free' | 'pro' | 'black' = isPro ? 'pro' : 'free';
+  const isPaid = (sub && (sub.planId === 'pro' || sub.planId === 'black') && sub.status === 'active');
+  const isPro = isPerm || isPaid;
+  const planId: 'free' | 'pro' | 'black' = isPerm ? 'pro' : (isPaid ? (sub.planId as 'pro' | 'black') : 'free');
 
   const [activeResumes, applicationCount] = await Promise.all([
     store.countResumeDocuments(userId),
@@ -62,7 +63,7 @@ export async function getAccountUsageStats(
 
   if (isPro) {
     return {
-      planId: 'pro',
+      planId,
       isPermanentAccess: isPerm,
       resumes: {
         active: activeResumes,

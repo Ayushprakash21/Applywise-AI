@@ -496,6 +496,14 @@ export function calculateJobMatch(
  * Validates state transitions in the application lifecycle state machine.
  */
 export const ALLOWED_TRANSITIONS: Record<ApplicationStatus, ApplicationStatus[]> = {
+  // 12 Canonical Six-Pillar Lifecycle Stages
+  OPPORTUNITY_SELECTED: ['SUITABILITY_REVIEWED', 'RESUME_PREPARED', 'APPLICATION_READY', 'WITHDRAWN', 'REJECTED'],
+  SUITABILITY_REVIEWED: ['RESUME_PREPARED', 'APPLICATION_READY', 'WITHDRAWN', 'REJECTED'],
+  RESUME_PREPARED: ['RECRUITER_REVIEW_COMPLETED', 'APPLICATION_READY', 'WITHDRAWN'],
+  RECRUITER_REVIEW_COMPLETED: ['APPLICATION_READY', 'AWAITING_USER_APPROVAL', 'WITHDRAWN'],
+  APPLICATION_READY: ['AWAITING_USER_APPROVAL', 'SUBMISSION_IN_PROGRESS', 'WITHDRAWN'],
+  READY_TO_SUBMIT: ['AWAITING_USER_APPROVAL', 'AWAITING_USER_REVIEW', 'SUBMISSION_IN_PROGRESS', 'SUBMITTED_CONFIRMED', 'WITHDRAWN'],
+  AWAITING_USER_APPROVAL: ['SUBMISSION_IN_PROGRESS', 'APPLICATION_READY', 'WITHDRAWN'],
   DISCOVERED: ['VALIDATED', 'WITHDRAWN', 'FAILED', 'MATCHED', 'PREPARED'],
   VALIDATED: ['MATCHED', 'WITHDRAWN', 'FAILED'],
   MATCHED: ['RESUME_GENERATED', 'AWAITING_APPROVAL', 'PREPARED', 'WITHDRAWN', 'FAILED'],
@@ -551,7 +559,7 @@ export function verifyTruthfulness(
   const masterDegrees = profile.education.map(ed => ed.degree.toLowerCase().trim());
 
   // 1. Verify companies in tailored experience
-  for (const exp of tailored.tailoredExperiences) {
+  for (const exp of tailored.tailoredExperiences || []) {
     const cLower = exp.company.toLowerCase().trim();
     const found = masterCompanies.some(mc => mc.includes(cLower) || cLower.includes(mc));
     if (!found) {
@@ -561,7 +569,7 @@ export function verifyTruthfulness(
 
   // 2. Verify skills are in master verified skills
   let unverifiedSkillsCount = 0;
-  for (const sk of tailored.targetedSkills) {
+  for (const sk of tailored.targetedSkills || []) {
     const sLower = sk.toLowerCase().trim();
     const hasSkill = Array.from(masterSkills).some(ms => ms.includes(sLower) || sLower.includes(ms));
     if (!hasSkill) {
@@ -571,7 +579,7 @@ export function verifyTruthfulness(
   }
 
   // 3. Calculate score
-  const totalChecks = Math.max(1, tailored.targetedSkills.length + tailored.tailoredExperiences.length);
+  const totalChecks = Math.max(1, (tailored.targetedSkills || []).length + (tailored.tailoredExperiences || []).length);
   const deductions = issues.length * 20;
   const score = Math.max(0, 100 - deductions);
 

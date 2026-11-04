@@ -8,6 +8,7 @@ import multer from 'multer';
 import cookieParser from 'cookie-parser';
 import { authAndStore, AuthUser } from './server/authAndStore.ts';
 import { resumeEngine } from './server/resumeEngine.ts';
+import { calculateExtractionDiff, mergeProfileSafely } from './src/utils/resumeReprocessing.ts';
 import { buildFactsFromProfile, auditTailoredResume } from './src/utils/candidateFactRegistry.ts';
 import { generateCopilotResponse } from './src/utils/copilotEngine.ts';
 import { jobDiscovery } from './server/jobDiscovery.ts';
@@ -333,38 +334,99 @@ app.post(
       }
 
       const extraction = await resumeEngine.extractText(file.buffer, file.originalname, file.mimetype);
+      const fileHash = crypto.createHash('sha256').update(file.buffer).digest('hex');
+      const docId = crypto.randomUUID();
+
+      // Durable local storage for Node development runtime
+      const uploadDir = path.join(process.cwd(), 'data', 'uploads', 'resumes', req.user!.id);
+      fs.mkdirSync(uploadDir, { recursive: true });
+      const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storageKey = path.join('data', 'uploads', 'resumes', req.user!.id, `${docId}_${safeName}`);
+      fs.writeFileSync(path.join(process.cwd(), storageKey), file.buffer);
 
       if (extraction.isScanned || !extraction.text || extraction.text.length < 40) {
+        authAndStore.saveResumeDocument(req.user!.id, {
+          id: docId,
+          fileName: file.originalname,
+          fileType: extraction.format,
+          fileSizeBytes: file.size,
+          extractedText: '',
+          isScanned: true,
+          storageKey,
+          fileHash,
+          mimeType: file.mimetype,
+          pageCount: extraction.pageCount || 1,
+          extractionStatus: 'SCANNED',
+          extractionMethod: 'NONE',
+          errorMessage: extraction.warning || 'Scanned or image document detected. No readable text could be extracted.'
+        });
+
         return res.status(422).json({
           success: false,
           isScanned: true,
-          error: extraction.warning || 'Scanned or image document detected. No readable text could be extracted. Please upload a standard text PDF or DOCX file.',
+          error: extraction.warning || 'Text could not be extracted because this document appears to contain scanned images. OCR processing is unavailable.',
         });
       }
 
+      const existingProfile = authAndStore.getProfile(req.user!.id);
+      const detailed = await resumeEngine.structureProfileDetailed(extraction.text, existingProfile);
+
       // Record document in DB
       authAndStore.saveResumeDocument(req.user!.id, {
+        id: docId,
         fileName: file.originalname,
         fileType: extraction.format,
         fileSizeBytes: file.size,
         extractedText: extraction.text.slice(0, 50000),
         isScanned: false,
+        storageKey,
+        fileHash,
+        mimeType: file.mimetype,
+        pageCount: extraction.pageCount || 1,
+        extractionStatus: detailed.status,
+        extractionMethod: detailed.method,
+        parserModel: detailed.parserModel,
+        warnings: detailed.warnings,
+        processingDurationMs: detailed.processingDurationMs
       });
 
-      // Parse structured profile via Gemini
-      const existingProfile = authAndStore.getProfile(req.user!.id);
-      const parsedProfile = await resumeEngine.structureProfileWithAI(extraction.text, existingProfile);
+      // Record run
+      authAndStore.saveResumeExtractionRun({
+        resumeId: docId,
+        userId: req.user!.id,
+        runType: 'INITIAL_UPLOAD',
+        status: detailed.status,
+        extractionMethod: detailed.method,
+        parserModel: detailed.parserModel,
+        structuredOutput: detailed.extractedFields,
+        diagnostics: detailed.diagnostics,
+        warnings: detailed.warnings,
+        durationMs: detailed.processingDurationMs
+      });
+
+      // Record version
+      authAndStore.saveResumeExtractionVersion({
+        resumeId: docId,
+        userId: req.user!.id,
+        data: detailed.extractedFields,
+        createdBy: req.user!.id
+      });
+
+      // Build facts with provenance (never auto-verify)
+      const facts = buildFactsFromProfile(detailed.extractedFields, docId);
+      authAndStore.saveCandidateFacts(req.user!.id, facts);
 
       // Merge and save
-      authAndStore.saveProfile(req.user!.id, parsedProfile);
-      authAndStore.addAuditLog(req.user!.id, 'User manual', 'RESUME_UPLOADED', file.originalname, `Extracted and structured profile with ${parsedProfile.skills.length} skills and ${parsedProfile.experiences.length} experience entries`);
-      authAndStore.addNotification(req.user!.id, 'Resume Parsed Successfully', `Extracted profile for ${parsedProfile.fullName}. Please review your information.`, 'system');
+      authAndStore.saveProfile(req.user!.id, detailed.extractedFields);
+      authAndStore.addAuditLog(req.user!.id, 'User manual', 'RESUME_UPLOADED', file.originalname, `Extracted profile with ${detailed.extractedFields.skills.length} skills and ${detailed.extractedFields.experiences.length} experience entries`);
+      authAndStore.addNotification(req.user!.id, 'Resume Parsed Successfully', `Extracted profile for ${detailed.extractedFields.fullName}. Please review your information.`, 'system');
 
       res.json({
         success: true,
-        profile: parsedProfile,
+        profile: detailed.extractedFields,
         extractedTextSummary: extraction.text.slice(0, 300) + '...',
-        warning: extraction.warning,
+        warning: extraction.warning || (detailed.warnings.length > 0 ? detailed.warnings.join('; ') : undefined),
+        diagnostics: detailed.diagnostics
       });
     } catch (err: unknown) {
       console.error('Resume upload error:', err);
@@ -1072,29 +1134,11 @@ app.post('/api/subscription/upgrade', requireAuth, (req: AuthenticatedRequest, r
       });
     }
 
-    const { planId = 'pro', billingInterval = 'monthly' } = req.body || {};
-    const validPlan: 'pro' | 'black' = planId === 'black' ? 'black' : 'pro';
-
-    authAndStore.updateUserSubscription(user.id, validPlan, billingInterval);
-    authAndStore.addAuditLog(user.id, 'User manual', 'SUBSCRIPTION_UPGRADED', `Plan: ${validPlan} (${billingInterval})`, `Upgraded account to ${validPlan.toUpperCase()}`);
-
-    const isBlack = validPlan === 'black';
-    authAndStore.addNotification(
-      user.id,
-      isBlack ? 'Welcome to BLACK by ApplyVise AI' : 'Welcome to ApplyVise Pro!',
-      isBlack
-        ? 'Your account is now activated with BLACK ELITE membership. You have unlocked 2× Pro usage, exclusive multi-role strategy, advanced interview simulations, and priority AI processing.'
-        : 'Your account has been upgraded. You now have access to high-volume AI intelligence, advanced ATS tailoring, and deep gap analysis.',
-      'system'
-    );
-
-    const updatedSub = authAndStore.getUserSubscription(user.id);
-    return res.json({
-      success: true,
-      subscription: updatedSub,
-      message: isBlack
-        ? 'Welcome to BLACK by ApplyVise AI! Your Career. Without Limits.'
-        : 'Welcome to ApplyVise Pro! All premium capabilities are now active.',
+    // Direct self-upgrade without verified payment is strictly forbidden
+    return res.status(402).json({
+      success: false,
+      error: 'Direct subscription upgrade without verified payment is disabled. Please complete checkout through payment gateway.',
+      code: 'PAYMENT_REQUIRED',
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -1160,19 +1204,20 @@ app.post('/api/subscription/razorpay/verify', requireAuth, (req: AuthenticatedRe
   const user = req.user!;
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, planId = 'pro', billingInterval = 'monthly' } = req.body || {};
 
-  if (!razorpay_order_id || !razorpay_payment_id) {
-    return res.status(400).json({ success: false, error: 'Missing payment confirmation parameters.' });
+  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    return res.status(400).json({ success: false, error: 'Missing payment confirmation parameters (order_id, payment_id, or signature).' });
   }
 
-  // Signature verification if secret configured
   const secret = process.env.RAZORPAY_KEY_SECRET;
-  if (secret && razorpay_signature) {
-    const hmac = crypto.createHmac('sha256', secret);
-    hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
-    const expectedSig = hmac.digest('hex');
-    if (expectedSig !== razorpay_signature) {
-      return res.status(400).json({ success: false, error: 'Invalid payment signature. Verification failed.' });
-    }
+  if (!secret) {
+    return res.status(500).json({ success: false, error: 'Payment gateway configuration error: Secret key is not configured.' });
+  }
+
+  const hmac = crypto.createHmac('sha256', secret);
+  hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
+  const expectedSig = hmac.digest('hex');
+  if (expectedSig.toLowerCase() !== razorpay_signature.trim().toLowerCase()) {
+    return res.status(400).json({ success: false, error: 'Invalid payment signature. Verification failed.' });
   }
 
   const validPlan: 'pro' | 'black' = planId === 'black' ? 'black' : 'pro';
@@ -1402,6 +1447,256 @@ app.get('/api/admin/system-health', requireAdmin, (req: AuthenticatedRequest, re
       serverTime: new Date().toISOString(),
     },
   });
+});
+
+
+// ============================================================================
+// ADMIN RESUME MANAGEMENT WORKSPACE ENDPOINTS (LOCAL PARITY)
+// ============================================================================
+
+app.get('/api/admin/resumes', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const page = parseInt(String(req.query.page || '1'), 10);
+    const limit = parseInt(String(req.query.limit || '20'), 10);
+    const search = String(req.query.search || '');
+    const status = String(req.query.status || 'all');
+    const format = String(req.query.format || 'all');
+
+    const data = authAndStore.getAdminResumes({ page, limit, search, status, format });
+    res.json({ success: true, ...data });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+app.get('/api/admin/resumes/:resumeId', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { resumeId } = req.params;
+    const resume = authAndStore.getResumeDocumentById(resumeId);
+    if (!resume) {
+      return res.status(404).json({ success: false, error: 'Resume document not found.' });
+    }
+
+    authAndStore.logResumeExtractionEvent({
+      resumeId,
+      adminId: req.user!.id,
+      adminEmail: req.user!.email,
+      eventType: 'VIEW_METADATA',
+      ipAddress: req.ip
+    });
+
+    const runs = authAndStore.getResumeExtractionRuns(resumeId);
+    const versions = authAndStore.getResumeExtractionVersions(resumeId);
+    const candidateFacts = authAndStore.getCandidateFacts(resume.userId);
+
+    res.json({ success: true, resume, runs, versions, candidateFacts });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+app.get('/api/admin/resumes/:resumeId/text', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { resumeId } = req.params;
+    const resume = authAndStore.getResumeDocumentById(resumeId);
+    if (!resume) {
+      return res.status(404).json({ success: false, error: 'Resume document not found.' });
+    }
+
+    authAndStore.logResumeExtractionEvent({
+      resumeId,
+      adminId: req.user!.id,
+      adminEmail: req.user!.email,
+      eventType: 'VIEW_TEXT',
+      ipAddress: req.ip
+    });
+
+    res.json({
+      success: true,
+      resumeId,
+      fileName: resume.fileName,
+      fileType: resume.fileType,
+      pageCount: resume.pageCount,
+      extractedText: resume.extractedText,
+      characterCount: resume.extractedText.length
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+app.get('/api/admin/resumes/:resumeId/extraction', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { resumeId } = req.params;
+    const resume = authAndStore.getResumeDocumentById(resumeId);
+    if (!resume) {
+      return res.status(404).json({ success: false, error: 'Resume document not found.' });
+    }
+
+    authAndStore.logResumeExtractionEvent({
+      resumeId,
+      adminId: req.user!.id,
+      adminEmail: req.user!.email,
+      eventType: 'VIEW_EXTRACTION',
+      ipAddress: req.ip
+    });
+
+    const runs = authAndStore.getResumeExtractionRuns(resumeId);
+    const latestRun = runs[0] || null;
+    const candidateFacts = authAndStore.getCandidateFacts(resume.userId);
+
+    res.json({
+      success: true,
+      resumeId,
+      latestRun,
+      extractionStatus: resume.extractionStatus,
+      extractionMethod: resume.extractionMethod,
+      parserModel: resume.parserModel,
+      warnings: resume.warnings,
+      candidateFacts
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+app.post('/api/admin/resumes/:resumeId/reprocess', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { resumeId } = req.params;
+    const resume = authAndStore.getResumeDocumentById(resumeId);
+    if (!resume) {
+      return res.status(404).json({ success: false, error: 'Resume document not found.' });
+    }
+
+    authAndStore.logResumeExtractionEvent({
+      resumeId,
+      adminId: req.user!.id,
+      adminEmail: req.user!.email,
+      eventType: 'REPROCESS_TRIGGERED',
+      ipAddress: req.ip
+    });
+
+    // Check if original document binary exists in local storage
+    if (!resume.storageKey || !fs.existsSync(path.resolve(process.cwd(), resume.storageKey))) {
+      authAndStore.logResumeExtractionEvent({
+        resumeId,
+        adminId: req.user!.id,
+        adminEmail: req.user!.email,
+        eventType: 'REPROCESS_FAILED',
+        details: { reason: 'ORIGINAL_DOCUMENT_UNAVAILABLE' },
+        ipAddress: req.ip
+      });
+      return res.status(422).json({
+        success: false,
+        code: 'ORIGINAL_DOCUMENT_UNAVAILABLE',
+        error: 'Original document binary is not stored in object storage. Reprocessing is unavailable without candidate re-upload.'
+      });
+    }
+
+    const fileBuffer = fs.readFileSync(path.resolve(process.cwd(), resume.storageKey));
+    const extraction = await resumeEngine.extractText(fileBuffer, resume.fileName, resume.mimeType || 'application/pdf');
+
+    if (extraction.isScanned || !extraction.text || extraction.text.length < 40) {
+      authAndStore.updateResumeDocumentStatus(resumeId, {
+        extractionStatus: 'SCANNED',
+        errorMessage: extraction.warning || 'Scanned document with no readable text.'
+      });
+      return res.status(422).json({
+        success: false,
+        isScanned: true,
+        error: extraction.warning || 'Scanned or image document detected.'
+      });
+    }
+
+    const currentProfile = authAndStore.getProfile(resume.userId);
+    const existingFacts = authAndStore.getCandidateFacts(resume.userId);
+    const detailed = await resumeEngine.structureProfileDetailed(extraction.text, currentProfile);
+
+    // Calculate safe diff against existing candidate facts
+    const diffSummary = calculateExtractionDiff(detailed.extractedFields, currentProfile, existingFacts);
+
+    // Record extraction run
+    const runId = authAndStore.saveResumeExtractionRun({
+      resumeId,
+      userId: resume.userId,
+      runType: 'ADMIN_REPROCESS',
+      status: detailed.status,
+      extractionMethod: detailed.method,
+      parserModel: detailed.parserModel,
+      structuredOutput: detailed.extractedFields,
+      diagnostics: detailed.diagnostics,
+      warnings: detailed.warnings,
+      durationMs: detailed.processingDurationMs
+    });
+
+    // Save as new extraction version
+    const versionId = authAndStore.saveResumeExtractionVersion({
+      resumeId,
+      userId: resume.userId,
+      data: detailed.extractedFields,
+      diffSummary,
+      createdBy: req.user!.id
+    });
+
+    // Update resume document status
+    authAndStore.updateResumeDocumentStatus(resumeId, {
+      extractionStatus: detailed.status,
+      extractionMethod: detailed.method,
+      parserModel: detailed.parserModel,
+      extractedText: extraction.text.slice(0, 50000),
+      warnings: detailed.warnings,
+      processingDurationMs: detailed.processingDurationMs
+    });
+
+    // Merge candidate profile SAFELY without overwriting USER_CONFIRMED or USER_CORRECTED facts
+    const mergedProfile = mergeProfileSafely(detailed.extractedFields, currentProfile, existingFacts);
+    authAndStore.saveProfile(resume.userId, mergedProfile);
+
+    // Log completion
+    authAndStore.logResumeExtractionEvent({
+      resumeId,
+      adminId: req.user!.id,
+      adminEmail: req.user!.email,
+      eventType: 'REPROCESS_COMPLETED',
+      details: { runId, versionId, diffSummary },
+      ipAddress: req.ip
+    });
+
+    res.json({
+      success: true,
+      runId,
+      versionId,
+      diffSummary,
+      status: detailed.status,
+      extractionMethod: detailed.method,
+      parserModel: detailed.parserModel,
+      warnings: detailed.warnings
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
+app.get('/api/admin/resumes/:resumeId/history', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { resumeId } = req.params;
+    const resume = authAndStore.getResumeDocumentById(resumeId);
+    if (!resume) {
+      return res.status(404).json({ success: false, error: 'Resume document not found.' });
+    }
+    const runs = authAndStore.getResumeExtractionRuns(resumeId);
+    const versions = authAndStore.getResumeExtractionVersions(resumeId);
+    const events = authAndStore.getResumeExtractionEvents(resumeId);
+    res.json({ success: true, resumeId, runs, versions, events });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ success: false, error: msg });
+  }
 });
 
 app.get('/api/admin/sources/health', requireAdmin, (req: AuthenticatedRequest, res: Response) => {

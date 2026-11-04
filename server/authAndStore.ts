@@ -225,6 +225,67 @@ export interface AuthUser {
   createdAt: string;
 }
 
+
+// Ensure resume_documents has all durable storage & extraction columns
+try {
+  const resumeCols = sqlite.prepare('PRAGMA table_info(resume_documents)').all() as Array<{ name: string }>;
+  const colNames = new Set(resumeCols.map(c => c.name));
+  
+  if (!colNames.has('storage_key')) sqlite.exec('ALTER TABLE resume_documents ADD COLUMN storage_key TEXT;');
+  if (!colNames.has('file_hash')) sqlite.exec('ALTER TABLE resume_documents ADD COLUMN file_hash TEXT;');
+  if (!colNames.has('mime_type')) sqlite.exec('ALTER TABLE resume_documents ADD COLUMN mime_type TEXT;');
+  if (!colNames.has('page_count')) sqlite.exec('ALTER TABLE resume_documents ADD COLUMN page_count INTEGER DEFAULT 1;');
+  if (!colNames.has('extraction_status')) sqlite.exec("ALTER TABLE resume_documents ADD COLUMN extraction_status TEXT DEFAULT 'SUCCESS';");
+  if (!colNames.has('extraction_method')) sqlite.exec("ALTER TABLE resume_documents ADD COLUMN extraction_method TEXT DEFAULT 'HEURISTIC';");
+  if (!colNames.has('parser_model')) sqlite.exec('ALTER TABLE resume_documents ADD COLUMN parser_model TEXT;');
+  if (!colNames.has('error_message')) sqlite.exec('ALTER TABLE resume_documents ADD COLUMN error_message TEXT;');
+  if (!colNames.has('warnings')) sqlite.exec('ALTER TABLE resume_documents ADD COLUMN warnings TEXT;');
+  if (!colNames.has('processing_duration_ms')) sqlite.exec('ALTER TABLE resume_documents ADD COLUMN processing_duration_ms INTEGER DEFAULT 0;');
+  if (!colNames.has('updated_at')) sqlite.exec('ALTER TABLE resume_documents ADD COLUMN updated_at TEXT;');
+
+  sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS resume_extraction_runs (
+      id TEXT PRIMARY KEY,
+      resume_id TEXT NOT NULL REFERENCES resume_documents(id) ON DELETE CASCADE,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      run_type TEXT NOT NULL,
+      status TEXT NOT NULL,
+      extraction_method TEXT NOT NULL,
+      parser_model TEXT,
+      structured_output TEXT,
+      diagnostics TEXT,
+      error_message TEXT,
+      warnings TEXT,
+      duration_ms INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS resume_extraction_versions (
+      id TEXT PRIMARY KEY,
+      resume_id TEXT NOT NULL REFERENCES resume_documents(id) ON DELETE CASCADE,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      version_number INTEGER NOT NULL,
+      data TEXT NOT NULL,
+      diff_summary TEXT,
+      created_by TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS resume_extraction_events (
+      id TEXT PRIMARY KEY,
+      resume_id TEXT NOT NULL,
+      admin_id TEXT NOT NULL,
+      admin_email TEXT NOT NULL,
+      event_type TEXT NOT NULL,
+      details TEXT,
+      ip_address TEXT,
+      created_at TEXT NOT NULL
+    );
+  `);
+} catch (e) {
+  console.warn('[SQLite Resume Migration Warning]:', e);
+}
+
 export const authAndStore = {
   // --- AUTHENTICATION ---
   createUser(fullName: string, email: string, passwordPlain: string): AuthUser {
@@ -601,14 +662,66 @@ export const authAndStore = {
   },
 
   // --- RESUME DOCUMENTS & VERSIONS ---
-  saveResumeDocument(userId: string, doc: { fileName: string; fileType: string; fileSizeBytes: number; extractedText: string; isScanned: boolean }): string {
-    const id = crypto.randomUUID();
+  saveResumeDocument(
+    userId: string,
+    doc: {
+      id?: string;
+      fileName: string;
+      fileType: string;
+      fileSizeBytes: number;
+      extractedText: string;
+      isScanned: boolean;
+      storageKey?: string | null;
+      fileHash?: string | null;
+      mimeType?: string;
+      pageCount?: number;
+      extractionStatus?: string;
+      extractionMethod?: string;
+      parserModel?: string;
+      errorMessage?: string;
+      warnings?: string[];
+      processingDurationMs?: number;
+    },
+    replaceExisting: boolean = false
+  ): string {
+    const id = doc.id || crypto.randomUUID();
     const now = new Date().toISOString();
+    
+    if (replaceExisting) {
+      try {
+        sqlite.prepare('DELETE FROM resume_documents WHERE user_id = ?').run(userId);
+      } catch {}
+    }
+
     const stmt = sqlite.prepare(`
-      INSERT INTO resume_documents (id, user_id, file_name, file_type, file_size_bytes, extracted_text, is_scanned, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO resume_documents (
+        id, user_id, file_name, file_type, file_size_bytes, extracted_text, is_scanned,
+        storage_key, file_hash, mime_type, page_count, extraction_status, extraction_method,
+        parser_model, error_message, warnings, processing_duration_ms, created_at, updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    stmt.run(id, userId, doc.fileName, doc.fileType, doc.fileSizeBytes, doc.extractedText, doc.isScanned ? 1 : 0, now);
+    stmt.run(
+      id,
+      userId,
+      doc.fileName,
+      doc.fileType,
+      doc.fileSizeBytes,
+      doc.extractedText,
+      doc.isScanned ? 1 : 0,
+      doc.storageKey || null,
+      doc.fileHash || null,
+      doc.mimeType || (doc.fileType === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+      doc.pageCount || 1,
+      doc.extractionStatus || (doc.isScanned ? 'SCANNED' : 'SUCCESS'),
+      doc.extractionMethod || 'HEURISTIC',
+      doc.parserModel || null,
+      doc.errorMessage || null,
+      doc.warnings ? JSON.stringify(doc.warnings) : null,
+      doc.processingDurationMs || 0,
+      now,
+      now
+    );
     return id;
   },
 
@@ -1095,6 +1208,419 @@ export const authAndStore = {
 
   deleteCandidateFact(userId: string, factId: string): void {
     sqlite.prepare('DELETE FROM candidate_facts WHERE user_id = ? AND id = ?').run(userId, factId);
+  },
+
+  
+  // --- ADMIN RESUME EXTRACTION & REVIEW WORKSPACE ---
+  getAdminResumes(options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    format?: string;
+  }) {
+    const page = Math.max(1, options.page || 1);
+    const limit = Math.min(100, Math.max(1, options.limit || 20));
+    const offset = (page - 1) * limit;
+
+    let whereConditions: string[] = [];
+    let params: any[] = [];
+
+    if (options.search && options.search.trim()) {
+      const q = `%${options.search.trim().toLowerCase()}%`;
+      whereConditions.push('(LOWER(r.file_name) LIKE ? OR LOWER(u.email) LIKE ? OR LOWER(u.full_name) LIKE ? OR r.user_id = ?)');
+      params.push(q, q, q, options.search.trim());
+    }
+
+    if (options.status && options.status !== 'all') {
+      whereConditions.push('r.extraction_status = ?');
+      params.push(options.status);
+    }
+
+    if (options.format && options.format !== 'all') {
+      whereConditions.push('LOWER(r.file_type) = ?');
+      params.push(options.format.toLowerCase());
+    }
+
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+    // Paginated resumes query
+    const listQuery = `
+      SELECT 
+        r.id, r.user_id, r.file_name, r.file_type, r.file_size_bytes, 
+        r.extracted_text, r.is_scanned, r.storage_key, r.file_hash, 
+        r.mime_type, r.page_count, r.extraction_status, r.extraction_method, 
+        r.parser_model, r.error_message, r.warnings, r.processing_duration_ms, 
+        r.created_at, r.updated_at,
+        u.email as user_email, u.full_name as user_full_name
+      FROM resume_documents r
+      JOIN users u ON r.user_id = u.id
+      ${whereClause}
+      ORDER BY r.created_at DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    const rows = sqlite.prepare(listQuery).all(...params, limit, offset) as any[];
+
+    // Overall summary counts query (across all resumes)
+    const summaryQuery = `
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN extraction_status = 'SUCCESS' THEN 1 ELSE 0 END) as successCount,
+        SUM(CASE WHEN extraction_status = 'PARTIAL' THEN 1 ELSE 0 END) as partialCount,
+        SUM(CASE WHEN extraction_status = 'FAILED' THEN 1 ELSE 0 END) as failedCount,
+        SUM(CASE WHEN is_scanned = 1 OR extraction_status = 'SCANNED' THEN 1 ELSE 0 END) as scannedCount,
+        SUM(CASE WHEN extraction_status = 'PENDING' THEN 1 ELSE 0 END) as pendingCount
+      FROM resume_documents
+    `;
+    const summaryRow = (sqlite.prepare(summaryQuery).get() as any) || {};
+
+    // Filtered total count
+    const totalFilteredQuery = `
+      SELECT COUNT(*) as count 
+      FROM resume_documents r
+      JOIN users u ON r.user_id = u.id
+      ${whereClause}
+    `;
+    const totalFiltered = (sqlite.prepare(totalFilteredQuery).get(...params) as any)?.count || 0;
+
+    const resumes = rows.map(r => ({
+      id: r.id,
+      userId: r.user_id,
+      userEmail: r.user_email,
+      userFullName: r.user_full_name,
+      fileName: r.file_name,
+      fileType: r.file_type,
+      fileSizeBytes: r.file_size_bytes,
+      extractedText: r.extracted_text,
+      isScanned: Boolean(r.is_scanned),
+      storageKey: r.storage_key,
+      fileHash: r.file_hash,
+      mimeType: r.mime_type,
+      pageCount: r.page_count || 1,
+      extractionStatus: r.extraction_status || (r.is_scanned ? 'SCANNED' : 'SUCCESS'),
+      extractionMethod: r.extraction_method || 'HEURISTIC',
+      parserModel: r.parser_model,
+      errorMessage: r.error_message,
+      warnings: r.warnings ? JSON.parse(r.warnings) : [],
+      processingDurationMs: r.processing_duration_ms || 0,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at || r.created_at
+    }));
+
+    return {
+      resumes,
+      total: totalFiltered,
+      page,
+      limit,
+      totalPages: Math.ceil(totalFiltered / limit) || 1,
+      summary: {
+        total: summaryRow.total || 0,
+        successCount: summaryRow.successCount || 0,
+        partialCount: summaryRow.partialCount || 0,
+        failedCount: summaryRow.failedCount || 0,
+        scannedCount: summaryRow.scannedCount || 0,
+        pendingCount: summaryRow.pendingCount || 0
+      }
+    };
+  },
+
+  getResumeDocumentById(id: string) {
+    const query = `
+      SELECT 
+        r.id, r.user_id, r.file_name, r.file_type, r.file_size_bytes, 
+        r.extracted_text, r.is_scanned, r.storage_key, r.file_hash, 
+        r.mime_type, r.page_count, r.extraction_status, r.extraction_method, 
+        r.parser_model, r.error_message, r.warnings, r.processing_duration_ms, 
+        r.created_at, r.updated_at,
+        u.email as user_email, u.full_name as user_full_name
+      FROM resume_documents r
+      JOIN users u ON r.user_id = u.id
+      WHERE r.id = ?
+    `;
+    const r = sqlite.prepare(query).get(id) as any;
+    if (!r) return null;
+
+    return {
+      id: r.id,
+      userId: r.user_id,
+      userEmail: r.user_email,
+      userFullName: r.user_full_name,
+      fileName: r.file_name,
+      fileType: r.file_type,
+      fileSizeBytes: r.file_size_bytes,
+      extractedText: r.extracted_text,
+      isScanned: Boolean(r.is_scanned),
+      storageKey: r.storage_key,
+      fileHash: r.file_hash,
+      mimeType: r.mime_type,
+      pageCount: r.page_count || 1,
+      extractionStatus: r.extraction_status || (r.is_scanned ? 'SCANNED' : 'SUCCESS'),
+      extractionMethod: r.extraction_method || 'HEURISTIC',
+      parserModel: r.parser_model,
+      errorMessage: r.error_message,
+      warnings: r.warnings ? JSON.parse(r.warnings) : [],
+      processingDurationMs: r.processing_duration_ms || 0,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at || r.created_at
+    };
+  },
+
+  getResumeExtractionRuns(resumeId: string) {
+    const rows = sqlite.prepare(
+      'SELECT * FROM resume_extraction_runs WHERE resume_id = ? ORDER BY created_at DESC'
+    ).all(resumeId) as any[];
+
+    return rows.map(r => ({
+      id: r.id,
+      resumeId: r.resume_id,
+      userId: r.user_id,
+      runType: r.run_type,
+      status: r.status,
+      extractionMethod: r.extraction_method,
+      parserModel: r.parser_model,
+      structuredOutput: r.structured_output ? JSON.parse(r.structured_output) : null,
+      diagnostics: r.diagnostics ? JSON.parse(r.diagnostics) : null,
+      errorMessage: r.error_message,
+      warnings: r.warnings ? JSON.parse(r.warnings) : [],
+      durationMs: r.duration_ms,
+      createdAt: r.created_at
+    }));
+  },
+
+  saveResumeExtractionRun(run: {
+    id?: string;
+    resumeId: string;
+    userId: string;
+    runType: string;
+    status: string;
+    extractionMethod: string;
+    parserModel?: string;
+    structuredOutput?: any;
+    diagnostics?: any;
+    errorMessage?: string;
+    warnings?: string[];
+    durationMs?: number;
+  }): string {
+    const id = run.id || crypto.randomUUID();
+    const now = new Date().toISOString();
+    const stmt = sqlite.prepare(`
+      INSERT INTO resume_extraction_runs (
+        id, resume_id, user_id, run_type, status, extraction_method, parser_model,
+        structured_output, diagnostics, error_message, warnings, duration_ms, created_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    stmt.run(
+      id,
+      run.resumeId,
+      run.userId,
+      run.runType,
+      run.status,
+      run.extractionMethod,
+      run.parserModel || null,
+      run.structuredOutput ? JSON.stringify(run.structuredOutput) : null,
+      run.diagnostics ? JSON.stringify(run.diagnostics) : null,
+      run.errorMessage || null,
+      run.warnings ? JSON.stringify(run.warnings) : null,
+      run.durationMs || 0,
+      now
+    );
+    return id;
+  },
+
+  getResumeExtractionVersions(resumeId: string) {
+    const rows = sqlite.prepare(
+      'SELECT * FROM resume_extraction_versions WHERE resume_id = ? ORDER BY version_number DESC'
+    ).all(resumeId) as any[];
+
+    return rows.map(r => ({
+      id: r.id,
+      resumeId: r.resume_id,
+      userId: r.user_id,
+      versionNumber: r.version_number,
+      data: JSON.parse(r.data),
+      diffSummary: r.diff_summary ? JSON.parse(r.diff_summary) : null,
+      createdBy: r.created_by,
+      createdAt: r.created_at
+    }));
+  },
+
+  saveResumeExtractionVersion(version: {
+    id?: string;
+    resumeId: string;
+    userId: string;
+    versionNumber?: number;
+    data: any;
+    diffSummary?: any;
+    createdBy: string;
+  }): string {
+    const id = version.id || crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    let verNum: number = version.versionNumber || 0;
+    if (!verNum) {
+      const maxRow = sqlite.prepare(
+        'SELECT MAX(version_number) as max_ver FROM resume_extraction_versions WHERE resume_id = ?'
+      ).get(version.resumeId) as any;
+      verNum = (maxRow?.max_ver || 0) + 1;
+    }
+
+    const stmt = sqlite.prepare(`
+      INSERT INTO resume_extraction_versions (
+        id, resume_id, user_id, version_number, data, diff_summary, created_by, created_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    stmt.run(
+      id,
+      version.resumeId,
+      version.userId,
+      verNum,
+      JSON.stringify(version.data),
+      version.diffSummary ? JSON.stringify(version.diffSummary) : null,
+      version.createdBy,
+      now
+    );
+    return id;
+  },
+
+  getResumeExtractionEvents(resumeId: string) {
+    const rows = sqlite.prepare(
+      'SELECT * FROM resume_extraction_events WHERE resume_id = ? ORDER BY created_at DESC'
+    ).all(resumeId) as any[];
+
+    return rows.map(r => ({
+      id: r.id,
+      resumeId: r.resume_id,
+      adminId: r.admin_id,
+      adminEmail: r.admin_email,
+      eventType: r.event_type,
+      details: r.details ? JSON.parse(r.details) : null,
+      ipAddress: r.ip_address,
+      createdAt: r.created_at
+    }));
+  },
+
+  logResumeExtractionEvent(event: {
+    resumeId: string;
+    adminId: string;
+    adminEmail: string;
+    eventType: string;
+    details?: any;
+    ipAddress?: string;
+  }): string {
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+    const stmt = sqlite.prepare(`
+      INSERT INTO resume_extraction_events (
+        id, resume_id, admin_id, admin_email, event_type, details, ip_address, created_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    stmt.run(
+      id,
+      event.resumeId,
+      event.adminId,
+      event.adminEmail,
+      event.eventType,
+      event.details ? JSON.stringify(event.details) : null,
+      event.ipAddress || null,
+      now
+    );
+    return id;
+  },
+
+  updateResumeDocumentStatus(id: string, updates: {
+    extractionStatus?: string;
+    extractionMethod?: string;
+    parserModel?: string;
+    extractedText?: string;
+    errorMessage?: string;
+    warnings?: string[];
+    processingDurationMs?: number;
+  }) {
+    const now = new Date().toISOString();
+    const current = this.getResumeDocumentById(id);
+    if (!current) return;
+
+    const stmt = sqlite.prepare(`
+      UPDATE resume_documents
+      SET extraction_status = ?,
+          extraction_method = ?,
+          parser_model = ?,
+          extracted_text = ?,
+          error_message = ?,
+          warnings = ?,
+          processing_duration_ms = ?,
+          updated_at = ?
+      WHERE id = ?
+    `);
+    stmt.run(
+      updates.extractionStatus || current.extractionStatus,
+      updates.extractionMethod || current.extractionMethod,
+      updates.parserModel || current.parserModel || null,
+      updates.extractedText || current.extractedText,
+      updates.errorMessage || null,
+      updates.warnings ? JSON.stringify(updates.warnings) : (current.warnings ? JSON.stringify(current.warnings) : null),
+      updates.processingDurationMs ?? current.processingDurationMs ?? 0,
+      now,
+      id
+    );
+  },
+
+  // Real Database Queries for Administrator Overview & Users
+  getRealAdminOverview() {
+    const totalUsers = (sqlite.prepare('SELECT COUNT(*) as count FROM users').get() as any)?.count || 0;
+    const totalAdmins = (sqlite.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").get() as any)?.count || 0;
+    const totalApplications = (sqlite.prepare('SELECT COUNT(*) as count FROM applications').get() as any)?.count || 0;
+    const totalResumes = (sqlite.prepare('SELECT COUNT(*) as count FROM resume_documents').get() as any)?.count || 0;
+    const totalVacancies = (sqlite.prepare('SELECT COUNT(*) as count FROM cached_vacancies').get() as any)?.count || 0;
+    const activeSubscriptions = (sqlite.prepare("SELECT COUNT(*) as count FROM user_subscriptions WHERE plan_id = 'pro' AND status = 'active'").get() as any)?.count || 0;
+
+    return {
+      totalUsers,
+      totalAdmins,
+      totalApplications,
+      totalResumes,
+      totalVacancies,
+      activeSubscriptions
+    };
+  },
+
+  getRealAdminUsers(limit = 100, offset = 0, search = '') {
+    let whereClause = '';
+    const params: any[] = [];
+    if (search && search.trim()) {
+      whereClause = 'WHERE LOWER(email) LIKE ? OR LOWER(full_name) LIKE ? OR id = ?';
+      const q = `%${search.trim().toLowerCase()}%`;
+      params.push(q, q, search.trim());
+    }
+
+    const countQuery = `SELECT COUNT(*) as count FROM users ${whereClause}`;
+    const total = (sqlite.prepare(countQuery).get(...params) as any)?.count || 0;
+
+    const query = `
+      SELECT id, email, full_name, role, is_verified, created_at
+      FROM users
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
+    `;
+    const rows = sqlite.prepare(query).all(...params, limit, offset) as any[];
+
+    return {
+      users: rows.map(r => ({
+        id: r.id,
+        email: r.email,
+        fullName: r.full_name,
+        role: r.role,
+        isVerified: Boolean(r.is_verified),
+        createdAt: r.created_at,
+        planId: 'free'
+      })),
+      total
+    };
   },
 
   cacheInitialVacanciesIfEmpty(vacancies?: JobVacancy[]) {

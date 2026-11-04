@@ -54,9 +54,9 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
   const handleCopy = () => {
     const textToCopy =
       activeTab === 'resume'
-        ? `${profile.fullName}\n${profile.email} | ${profile.phone} | ${profile.location}\n\n${resume.headline}\n\n${resume.professionalSummary}\n\nSKILLS:\n${resume.targetedSkills.join(', ')}\n\nEXPERIENCE:\n` +
-          resume.tailoredExperiences
-            .map(e => `${e.role} at ${e.company} (${e.period})\n` + e.bulletPoints.map(b => `• ${b}`).join('\n'))
+        ? `${profile.fullName}\n${profile.email} | ${profile.phone} | ${profile.location}\n\n${resume.headline}\n\n${resume.professionalSummary}\n\nSKILLS:\n${(resume.targetedSkills || []).join(', ')}\n\nEXPERIENCE:\n` +
+          (resume.tailoredExperiences || [])
+            .map(e => `${e.role} at ${e.company} (${e.period})\n` + (e.bulletPoints || []).map(b => `• ${b}`).join('\n'))
             .join('\n\n')
         : application.coverLetter || '';
 
@@ -183,7 +183,7 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                   Core Competencies & Skills
                 </h2>
                 <div className="flex flex-wrap gap-1.5">
-                  {resume.targetedSkills.map((sk, idx) => (
+                  {(resume.targetedSkills || []).map((sk, idx) => (
                     <span
                       key={idx}
                       className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 text-[11px] font-medium"
@@ -200,7 +200,7 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                   Professional Experience
                 </h2>
                 <div className="space-y-3">
-                  {resume.tailoredExperiences.map((exp, i) => (
+                  {(resume.tailoredExperiences || []).map((exp, i) => (
                     <div key={i} className="space-y-1">
                       <div className="flex justify-between items-baseline">
                         <span className="font-bold text-slate-900 text-xs">{exp.role}</span>

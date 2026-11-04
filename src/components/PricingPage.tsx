@@ -97,13 +97,11 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             rzp.open();
             return;
           }
-        } catch {
-          // Fall back gracefully to direct upgrade endpoint
+        } catch (checkoutErr: unknown) {
+          const checkoutMsg = checkoutErr instanceof Error ? checkoutErr.message : String(checkoutErr);
+          setErrorMessage(`Payment checkout error: ${checkoutMsg}. Please verify payment gateway configuration.`);
+          return;
         }
-
-        const res = await api.upgradeSubscription(planId, billingInterval);
-        setSuccessMessage(res.message);
-        if (onSubscriptionUpdated) onSubscriptionUpdated();
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         setErrorMessage(`Subscription error: ${msg}`);

@@ -88,7 +88,7 @@ export const copilotTools: CopilotToolRegistry = {
     return profile.employmentHistory.map(emp => ({
       company: emp.company,
       role: emp.role,
-      duration: emp.duration,
+      duration: emp.duration || (emp.startDate && emp.endDate ? `${emp.startDate} - ${emp.endDate}` : 'Unspecified'),
       achievements: emp.achievements || [],
       isVerified: verifiedEmployers.has(emp.company.toLowerCase()) || verifiedFacts.length === 0
     }));
@@ -116,7 +116,7 @@ export const copilotTools: CopilotToolRegistry = {
     return profile.education.map(ed => ({
       institution: ed.institution,
       degree: ed.degree,
-      year: ed.year
+      year: ed.year || ed.graduationYear || 'Unspecified'
     }));
   },
 
@@ -124,8 +124,8 @@ export const copilotTools: CopilotToolRegistry = {
     if (!profile || !profile.certifications) return [];
     return profile.certifications.map(c => ({
       name: c.name,
-      issuer: c.issuer,
-      year: c.year
+      issuer: c.issuer || c.issuingOrg || 'Unspecified',
+      year: c.year || c.issueYear || 'Unspecified'
     }));
   },
 
