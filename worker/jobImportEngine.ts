@@ -61,7 +61,6 @@ export function normalizeJobUrl(rawUrl: string): {
 
     const queryStr = searchParams.toString();
     const canonicalUrl = `${parsed.protocol}//${hostname}${pathname}${queryStr ? '?' + queryStr : ''}`;
-    const sourceDomain = hostname.replace(/^www\./i, '');
 
     return {
       valid: true,
