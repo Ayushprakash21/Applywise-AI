@@ -19,6 +19,7 @@ import { ResumeStudioTab } from './components/ResumeStudioTab.tsx';
 import { LandingPage } from './components/LandingPage.tsx';
 import { AuthModals } from './components/AuthModals.tsx';
 import { ResumeOnboardingModal } from './components/ResumeOnboardingModal.tsx';
+import { JobImportModal } from './components/JobImportModal.tsx';
 import { JobSearchPage } from './components/JobSearchPage.tsx';
 import { JobDetailDrawer } from './components/JobDetailDrawer.tsx';
 import { ApplicationsPage } from './components/ApplicationsPage.tsx';
@@ -29,12 +30,7 @@ import {
   TermsOfUseModal,
   AccountSettingsModal
 } from './components/LegalModals.tsx';
-import { AboutPage } from './components/AboutPage.tsx';
-import { PricingPage } from './components/PricingPage.tsx';
 import { AICopilot } from './components/AICopilot.tsx';
-import { CareerTwinPage } from './components/CareerTwinPage.tsx';
-import { AdminConsole } from './components/AdminConsole.tsx';
-import { AdminLoginPage } from './components/AdminLoginPage.tsx';
 import { FlowLogin } from './components/FlowLogin.tsx';
 import { FlowSignup } from './components/FlowSignup.tsx';
 import { NotFoundPage } from './components/NotFoundPage.tsx';
@@ -45,6 +41,13 @@ import { ApplicationControl } from './components/ApplicationControl.tsx';
 import { InterviewStudio } from './components/InterviewStudio.tsx';
 import { RecruiterReview } from './components/RecruiterReview.tsx';
 import { CareerAtlas } from './components/CareerAtlas.tsx';
+
+// Code-split heavy routes and administrative modules for production performance
+const AdminConsole = React.lazy(() => import('./components/AdminConsole.tsx').then(m => ({ default: m.AdminConsole })));
+const AdminLoginPage = React.lazy(() => import('./components/AdminLoginPage.tsx').then(m => ({ default: m.AdminLoginPage })));
+const CareerTwinPage = React.lazy(() => import('./components/CareerTwinPage.tsx').then(m => ({ default: m.CareerTwinPage })));
+const PricingPage = React.lazy(() => import('./components/PricingPage.tsx').then(m => ({ default: m.PricingPage })));
+const AboutPage = React.lazy(() => import('./components/AboutPage.tsx').then(m => ({ default: m.AboutPage })));
 
 const normalizePath = (rawPath: string): string => {
   const path = (rawPath || '/').split('?')[0].split('#')[0] || '/';
@@ -151,6 +154,7 @@ export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup' | 'recovery'>('login');
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [jobImportOpen, setJobImportOpen] = useState(false);
   const [selectedVacancy, setSelectedVacancy] = useState<JobVacancy | null>(null);
   const [previewResumeApp, setPreviewResumeApp] = useState<ApplicationRecord | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
@@ -495,6 +499,14 @@ export default function App() {
       )}
 
       {/* Main Signed-In Header OR Landing Page OR Dedicated Pages */}
+      <React.Suspense fallback={
+        <div className="min-h-screen bg-slate-950/20 backdrop-blur-xs flex items-center justify-center p-6">
+          <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-700/60 shadow-xl flex items-center space-x-3 text-slate-200 text-xs font-semibold">
+            <div className="w-3.5 h-3.5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+            <span>Loading view...</span>
+          </div>
+        </div>
+      }>
       {!KNOWN_ROUTES.has(currentRoute) ? (
         <NotFoundPage
           onNavigateHome={() => navigateTo('/')}
@@ -610,6 +622,7 @@ export default function App() {
               onNavigateTab={tab => handleSelectTab(tab as DashboardTab)}
               onSelectVacancy={v => setSelectedVacancy(v)}
               onOpenOnboarding={() => setOnboardingOpen(true)}
+              onOpenImportModal={() => setJobImportOpen(true)}
               onAskCopilotPrompt={(prompt: string) => {
                 setCopilotPrompt(prompt);
                 setCopilotOpen(true);
@@ -622,6 +635,7 @@ export default function App() {
               vacancies={vacancies}
               profile={profile}
               onSelectVacancy={v => setSelectedVacancy(v)}
+              onOpenImportModal={() => setJobImportOpen(true)}
               onRefreshLiveJobs={async () => {
                 const res = await api.refreshLiveJobs();
                 showToast(res.message);
@@ -687,6 +701,7 @@ export default function App() {
               onNavigateTab={tab => handleSelectTab(tab as DashboardTab)}
               onSelectVacancy={v => setSelectedVacancy(v)}
               onOpenOnboarding={() => setOnboardingOpen(true)}
+              onOpenImportModal={() => setJobImportOpen(true)}
               onAskCopilotPrompt={prompt => {
                 setCopilotPrompt(prompt);
                 setCopilotOpen(true);
@@ -840,6 +855,7 @@ export default function App() {
           }}
         />
       )}
+      </React.Suspense>
 
       {/* Global AI Career Copilot */}
       {!['/login', '/signin', '/signup', '/register', '/admin/login'].includes(currentRoute) && (
@@ -891,6 +907,23 @@ export default function App() {
           }
           showToast('Master profile verified and updated!');
         }}
+      />
+
+      <JobImportModal
+        isOpen={jobImportOpen}
+        onClose={() => setJobImportOpen(false)}
+        onJobSaved={async (savedVacancy, movedToApplications) => {
+          await loadUserData();
+          setSelectedVacancy(savedVacancy);
+          if (movedToApplications) {
+            setActiveTab('control');
+            showToast(`Opportunity "${savedVacancy.title}" saved & moved to Application Control.`);
+          } else {
+            setActiveTab('radar');
+            showToast(`Opportunity "${savedVacancy.title}" saved to Opportunity Radar.`);
+          }
+        }}
+        plan={isBlackSubscriber ? 'black' : ((subscription?.planId as 'free' | 'pro' | 'black') || subscription?.plan || 'free')}
       />
 
       <JobDetailDrawer

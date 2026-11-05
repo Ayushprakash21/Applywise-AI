@@ -511,7 +511,7 @@ CRITICAL RULES:
   validateTruthfulness(tailored: TailoredResumeContent, profile: UserProfile): TruthfulnessValidationResult {
     const issues: string[] = [];
     const masterCompanies = profile.experiences.map(e => e.company.toLowerCase().trim());
-    const masterSkills = new Set(profile.skills.map(s => s.name.toLowerCase().trim()));
+    const masterSkills = new Set((profile.skills || []).map(s => (typeof s === 'string' ? s : (s as any)?.name || '').toLowerCase().trim()));
 
     // 1. Verify every company in tailored experience exists in master profile
     for (const exp of tailored.tailoredExperiences || []) {
@@ -557,7 +557,7 @@ CRITICAL RULES:
     const profileFacts = {
       name: profile.fullName,
       title: profile.currentTitle,
-      skills: profile.skills.map(s => s.name),
+      skills: (profile.skills || []).map(s => (typeof s === 'string' ? s : (s as any)?.name || '')),
       companies: profile.experiences.map(e => e.company),
       roles: profile.experiences.map(e => e.role),
       experiencePoints: profile.experiences.flatMap(e => e.achievements || [e.description]),
@@ -606,7 +606,7 @@ STRICT RULES:
           const rawResume: TailoredResumeContent = {
             headline: parsed.headline,
             professionalSummary: parsed.professionalSummary,
-            targetedSkills: Array.isArray(parsed.targetedSkills) ? parsed.targetedSkills : profile.skills.map(s => s.name),
+            targetedSkills: Array.isArray(parsed.targetedSkills) ? parsed.targetedSkills : (profile.skills || []).map(s => (typeof s === 'string' ? s : (s as any)?.name || '')),
             tailoredExperiences: Array.isArray(parsed.tailoredExperiences) ? parsed.tailoredExperiences : profile.experiences.map(e => ({
               company: e.company,
               role: e.role,
@@ -640,7 +640,7 @@ STRICT RULES:
     }
 
     // Domain-Adaptive Heuristic Tailoring Fallback (handles Supply Chain, Management, Finance, Tech)
-    const matchedSkills = profile.skills.map(s => s.name).slice(0, 10);
+    const matchedSkills = (profile.skills || []).map(s => (typeof s === 'string' ? s : (s as any)?.name || '')).slice(0, 10);
     const domainHeadline = `${profile.currentTitle || 'Professional'} | ${jobTitle} Candidate`;
 
     const rawResume: TailoredResumeContent = {

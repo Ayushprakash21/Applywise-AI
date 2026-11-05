@@ -10,13 +10,15 @@ import { hashPassword, verifyPassword, generateSessionToken, validateEmail, vali
 import { workerResumeEngine } from './resumeEngine.ts';
 import { calculateExtractionDiff, mergeProfileSafely } from '../src/utils/resumeReprocessing.ts';
 import { buildFactsFromProfile, auditTailoredResume } from '../src/utils/candidateFactRegistry.ts';
+import { buildInterviewEvaluationPrompt, validateInterviewEvaluationOutput } from '../src/utils/interviewEvaluator.ts';
 import { generateCopilotResponse } from '../src/utils/copilotEngine.ts';
 import { workerJobDiscovery } from './jobDiscovery.ts';
 import { workerMatchingEngine } from './matchingEngine.ts';
 import { workerSubmissionAdapter } from './submissionAdapter.ts';
 import { initialIntegrations } from '../src/data/seedData.ts';
 import { validateStateTransition } from '../src/utils/rules.ts';
-import { ApplicationRecord, ApplicationStatus } from '../src/types/index.ts';
+import { ApplicationRecord, ApplicationStatus, JobVacancy, UserImportedJobRecord, ExtractedJobData } from '../src/types/index.ts';
+import { executeUniversalJobExtraction, normalizeJobUrl } from './jobImportEngine.ts';
 
 import { SOURCE_REGISTRY, isSafePublicUrl, LiveJobItem } from './jobConnectors.ts';
 import { runIncrementalJobSync } from './jobSyncManager.ts';
@@ -1807,6 +1809,349 @@ app.post('/api/vacancies/:id/recheck', async (c) => {
 });
 
 // ============================================================================
+// 4B. UNIVERSAL JOB IMPORT & URL-BASED OPPORTUNITY EXTRACTION
+// ============================================================================
+
+app.post('/api/jobs/import/extract', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const body = await c.req.json<{ url: string }>().catch(() => ({ url: '' }));
+  const url = (body.url || '').trim();
+
+  if (!url) {
+    return c.json({ success: false, error: 'Job URL is required.' }, 400);
+  }
+
+  const extractionRes = await executeUniversalJobExtraction(url);
+  if (!extractionRes.success || !extractionRes.extractedData) {
+    return c.json({
+      success: false,
+      blocked: extractionRes.blocked,
+      error: extractionRes.error || 'Failed to extract job posting from the provided URL.',
+      code: extractionRes.code,
+      manualFallbackAvailable: true,
+    }, extractionRes.blocked ? 403 : 400);
+  }
+
+  const norm = normalizeJobUrl(url);
+  const dupCheck = await store.findDuplicateImportedJob(
+    user.id,
+    norm.canonicalUrl,
+    extractionRes.extractedData.company || undefined,
+    extractionRes.extractedData.title || undefined
+  );
+
+  return c.json({
+    success: true,
+    extractedData: extractionRes.extractedData,
+    isDuplicate: dupCheck.isDuplicate,
+    existingVacancy: dupCheck.existingVacancy,
+    existingRecord: dupCheck.existingRecord,
+  });
+});
+
+app.post('/api/jobs/import/parse-text', requireAuth, async (c) => {
+  interface ParseTextBody {
+    text?: string;
+    title?: string;
+    company?: string;
+    url?: string;
+  }
+  const body = (await c.req.json<ParseTextBody>().catch(() => ({}))) as ParseTextBody;
+  const text = (body.text || '').trim();
+
+  if (!text) {
+    return c.json({ success: false, error: 'Job text is required for manual description parsing.' }, 400);
+  }
+
+  const now = new Date().toISOString();
+  const sourceDomain = body.url ? normalizeJobUrl(body.url).sourceDomain : 'manual';
+  const extractedData: ExtractedJobData = {
+    title: body.title || text.split('\n')[0].slice(0, 80).trim() || 'Untitled Role',
+    company: body.company || 'Company',
+    companyWebsite: null,
+    companyLogo: null,
+    location: 'Not Specified',
+    country: 'Global',
+    workplaceType: 'Unspecified',
+    employmentType: 'Full-time',
+    salaryRange: null,
+    minExperienceYears: null,
+    maxExperienceYears: null,
+    requiredSkills: [],
+    preferredSkills: [],
+    responsibilities: [],
+    qualifications: [],
+    educationRequirements: [],
+    description: text,
+    deadline: null,
+    originalUrl: body.url || '',
+    sourceDomain,
+    sourcePublishedDate: null,
+    extractionTimestamp: now,
+    extractionMethod: 'manual',
+    extractionConfidence: 1.0,
+    extractionStatus: 'manual_entry',
+    notes: ['Manually entered or pasted by candidate.'],
+    unavailableFields: [],
+    reviewRecommendedFields: ['salaryRange', 'deadline'],
+  };
+
+  return c.json({
+    success: true,
+    extractedData,
+  });
+});
+
+app.post('/api/jobs/import/save', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const body = await c.req.json<{
+    extractedData: ExtractedJobData;
+    candidateEdits?: Partial<ExtractedJobData>;
+    applyDirectly?: boolean;
+  }>().catch(() => null);
+
+  if (!body || !body.extractedData) {
+    return c.json({ success: false, error: 'Extracted job data is required.' }, 400);
+  }
+
+  const { extractedData, candidateEdits, applyDirectly } = body;
+  const title = (candidateEdits?.title || extractedData.title || '').trim();
+  const company = (candidateEdits?.company || extractedData.company || '').trim();
+  const description = (candidateEdits?.description || extractedData.description || '').trim();
+
+  if (!title) {
+    return c.json({ success: false, error: 'Job title is required.' }, 400);
+  }
+  if (!company) {
+    return c.json({ success: false, error: 'Company name is required.' }, 400);
+  }
+
+  const now = new Date().toISOString();
+  const vacancyId = `vac_imp_${crypto.randomUUID()}`;
+  const originalUrl = extractedData.originalUrl || '';
+  const norm = normalizeJobUrl(originalUrl);
+  const canonicalUrl = norm.canonicalUrl || originalUrl;
+  const sourceDomain = norm.sourceDomain || extractedData.sourceDomain || 'manual';
+
+  const location = candidateEdits?.location ?? extractedData.location ?? 'Remote';
+  const workplaceType = candidateEdits?.workplaceType ?? extractedData.workplaceType ?? 'On-site';
+  const employmentType = candidateEdits?.employmentType ?? extractedData.employmentType ?? 'Full-time';
+  const requiredSkills = candidateEdits?.requiredSkills ?? extractedData.requiredSkills ?? [];
+  const preferredSkills = candidateEdits?.preferredSkills ?? extractedData.preferredSkills ?? [];
+  const salaryRange = candidateEdits?.salaryRange ?? extractedData.salaryRange ?? undefined;
+
+  const mergedData: ExtractedJobData = {
+    ...extractedData,
+    ...candidateEdits,
+    title,
+    company,
+    location,
+    workplaceType,
+    employmentType,
+    description: description || 'Imported by candidate.',
+    requiredSkills,
+    preferredSkills,
+    salaryRange: salaryRange || null,
+    extractionTimestamp: extractedData.extractionTimestamp || now,
+    extractionMethod: extractedData.extractionMethod || 'manual',
+    extractionConfidence: extractedData.extractionConfidence || 1.0,
+    extractionStatus: candidateEdits ? 'verified_source' : extractedData.extractionStatus || 'manual_entry',
+  };
+
+  const vacancy: JobVacancy = {
+    id: vacancyId,
+    source: 'imported',
+    title,
+    company,
+    companyLogo: extractedData.companyLogo || undefined,
+    location,
+    country: extractedData.country || 'Global',
+    remote: workplaceType.toLowerCase() === 'remote',
+    arrangement: workplaceType.toLowerCase() as any,
+    employmentType,
+    url: originalUrl,
+    description: description || 'Imported by candidate.',
+    requirements: [...requiredSkills, ...preferredSkills],
+    requiredSkills,
+    preferredSkills,
+    tags: requiredSkills.slice(0, 5),
+    publishedAt: extractedData.sourcePublishedDate || now,
+    retrievedAt: now,
+    isActive: true,
+    salaryRange: salaryRange ? {
+      min: salaryRange.min ?? undefined,
+      max: salaryRange.max ?? undefined,
+      currency: salaryRange.currency ?? undefined,
+      raw: salaryRange.raw ?? undefined,
+    } : undefined,
+    importedByUserId: user.id,
+    importedProvenance: {
+      originalUrl,
+      sourceDomain,
+      extractionStatus: mergedData.extractionStatus,
+      extractionMethod: mergedData.extractionMethod,
+      extractionConfidence: mergedData.extractionConfidence,
+      importedAt: now,
+    },
+  };
+
+  const importedRecord: UserImportedJobRecord = {
+    id: `imp_${crypto.randomUUID()}`,
+    userId: user.id,
+    vacancyId: vacancy.id,
+    originalUrl,
+    canonicalUrl,
+    sourceDomain,
+    extractionStatus: mergedData.extractionStatus,
+    extractionMethod: mergedData.extractionMethod,
+    extractionConfidence: mergedData.extractionConfidence,
+    extractedData: mergedData,
+    candidateEdits,
+    createdAt: now,
+    updatedAt: now,
+    isArchived: false,
+  };
+
+  await store.saveUserImportedJob(importedRecord, vacancy);
+
+  let applicationId: string | undefined;
+  if (applyDirectly) {
+    applicationId = `app_${crypto.randomUUID()}`;
+    const appRecord: ApplicationRecord = {
+      id: applicationId,
+      duplicateKey: `${vacancy.company}::${vacancy.title}::${user.id}`.toLowerCase(),
+      vacancyId: vacancy.id,
+      company: vacancy.company,
+      role: vacancy.title,
+      country: vacancy.country || 'Global',
+      location: vacancy.location || 'Remote',
+      jobUrl: vacancy.url,
+      url: vacancy.url,
+      matchScore: vacancy.matchEvaluation?.matchScore || 70,
+      status: 'READY_TO_SUBMIT',
+      tailoredResume: {
+        targetJobTitle: vacancy.title,
+        targetCompany: vacancy.company,
+      },
+      timeline: [
+        {
+          stage: 'READY_TO_SUBMIT',
+          timestamp: now,
+          note: 'Imported opportunity queued for application control (candidate verification pending)',
+          actor: 'User manual',
+        },
+      ],
+      notes: 'Imported opportunity moved directly into Application Control workspace.',
+      createdAt: now,
+      updatedAt: now,
+    };
+    await store.saveApplication(user.id, appRecord);
+  }
+
+  return c.json({
+    success: true,
+    vacancy,
+    importedRecord,
+    applicationId,
+  });
+});
+
+app.get('/api/jobs/imported', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const importedJobs = await store.getUserImportedJobs(user.id);
+  return c.json({ success: true, importedJobs });
+});
+
+app.delete('/api/jobs/imported/:id', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const id = c.req.param('id');
+  const success = await store.deleteUserImportedJob(user.id, id);
+  return c.json({
+    success,
+    message: success ? 'Imported opportunity deleted.' : 'Opportunity not found or not owned by user.',
+  });
+});
+
+app.post('/api/jobs/imported/:id/archive', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const id = c.req.param('id');
+  const success = await store.archiveUserImportedJob(user.id, id);
+  return c.json({
+    success,
+    message: success ? 'Imported opportunity archived.' : 'Opportunity not found or not owned by user.',
+  });
+});
+
+app.post('/api/jobs/imported/:id/to-application', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const importedId = c.req.param('id');
+  const importedJobs = await store.getUserImportedJobs(user.id);
+  const target = importedJobs.find(j => j.id === importedId || j.vacancyId === importedId);
+
+  if (!target) {
+    return c.json({ success: false, error: 'Imported opportunity not found.' }, 404);
+  }
+
+  const existingApps = await store.getApplications(user.id);
+  const existing = existingApps.find(a => a.vacancyId === target.vacancyId);
+  if (existing) {
+    return c.json({
+      success: true,
+      message: 'Application record already active in Application Control.',
+      applicationId: existing.id,
+      application: existing,
+    });
+  }
+
+  const vacancy = await store.getVacancyById(target.vacancyId);
+  const now = new Date().toISOString();
+  const appId = `app_${crypto.randomUUID()}`;
+  const appRecord: ApplicationRecord = {
+    id: appId,
+    duplicateKey: `${target.extractedData.company || 'Company'}::${target.extractedData.title || 'Role'}::${user.id}`.toLowerCase(),
+    vacancyId: target.vacancyId,
+    company: vacancy?.company || target.extractedData.company || 'Company',
+    role: vacancy?.title || target.extractedData.title || 'Imported Role',
+    country: vacancy?.country || target.extractedData.country || 'Global',
+    location: vacancy?.location || target.extractedData.location || 'Remote',
+    jobUrl: target.originalUrl,
+    url: target.originalUrl,
+    matchScore: vacancy?.matchEvaluation?.matchScore || 70,
+    status: 'READY_TO_SUBMIT',
+    tailoredResume: {
+      targetJobTitle: vacancy?.title || target.extractedData.title || 'Imported Role',
+      targetCompany: vacancy?.company || target.extractedData.company || 'Company',
+    },
+    timeline: [
+      {
+        stage: 'READY_TO_SUBMIT',
+        timestamp: now,
+        note: `Opportunity imported from ${target.sourceDomain} and queued for truthful application lifecycle.`,
+        actor: 'User manual',
+      },
+    ],
+    notes: `Imported from ${target.sourceDomain} and moved to Application Control.`,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  await store.saveApplication(user.id, appRecord);
+
+  return c.json({
+    success: true,
+    message: 'Opportunity successfully moved to Application Control.',
+    applicationId: appId,
+    application: appRecord,
+  });
+});
+
+// ============================================================================
 // 5. APPLICATIONS & TRUTHFUL SUBMISSION
 // ============================================================================
 
@@ -1815,6 +2160,53 @@ app.get('/api/applications', requireAuth, async (c) => {
   const store: D1Store = c.get('store');
   const applications = await store.getApplications(user.id);
   return c.json({ success: true, applications });
+});
+
+app.post('/api/applications', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const body = await c.req.json();
+  const { vacancyId, jobId, company, role, status, tailoredResume, coverLetter, location, country, matchScore, url, jobUrl } = body;
+
+  const newApp: ApplicationRecord = {
+    id: `app_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    duplicateKey: `${company || 'Company'}::${role || 'Role'}::${user.id}`.toLowerCase(),
+    vacancyId: vacancyId || jobId || null,
+    company: company || 'Target Company',
+    role: role || 'Target Role',
+    country: country || 'Remote',
+    location: location || 'Remote',
+    jobUrl: jobUrl || url || '',
+    url: jobUrl || url || '',
+    salaryRange: body.salaryRange,
+    matchScore: matchScore ?? 80,
+    status: status || 'PREPARED',
+    resumeVersionId: `ver_${Date.now()}`,
+    tailoredResume: tailoredResume || {
+      headline: `${role || 'Professional'} Candidate`,
+      professionalSummary: 'Prepared application.',
+      targetedSkills: [],
+      tailoredExperiences: [],
+      education: [],
+      certifications: [],
+      truthfulnessScore: 100,
+      auditNotes: []
+    },
+    coverLetter: coverLetter || '',
+    timeline: [
+      {
+        timestamp: new Date().toISOString(),
+        stage: status || 'PREPARED',
+        note: 'Application record created.',
+        actor: 'User manual',
+      }
+    ],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  await store.saveApplication(user.id, newApp);
+  return c.json({ success: true, application: newApp }, 201);
 });
 
 app.post('/api/applications/create-from-vacancy', requireAuth, async (c) => {
@@ -1920,6 +2312,32 @@ app.post('/api/applications/:id/transition', requireAuth, async (c) => {
 
   await store.saveApplication(user.id, appRecord);
   await store.addAuditLog(user.id, 'User manual', 'STATUS_TRANSITION', `${appRecord.company} - ${appRecord.role}`, `Moved to ${newStatus}`);
+  return c.json({ success: true, application: appRecord });
+});
+
+app.patch('/api/applications/:id/status', requireAuth, async (c) => {
+  const user: AuthUser = c.get('user')!;
+  const store: D1Store = c.get('store');
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const { status, notes, note } = body;
+
+  const appRecord = await store.getApplicationById(user.id, id);
+  if (!appRecord) {
+    return c.json({ success: false, error: 'Application not found.' }, 404);
+  }
+
+  appRecord.status = status;
+  appRecord.updatedAt = new Date().toISOString();
+  appRecord.timeline.push({
+    timestamp: new Date().toISOString(),
+    stage: status,
+    note: notes || note || `Status updated to ${status}`,
+    actor: 'User manual',
+  });
+
+  await store.saveApplication(user.id, appRecord);
+  await store.addAuditLog(user.id, 'User manual', 'STATUS_UPDATED', `${appRecord.company} - ${appRecord.role}`, `Moved to ${status}`);
   return c.json({ success: true, application: appRecord });
 });
 
@@ -2252,8 +2670,17 @@ app.post('/api/resume/compare/:jobId', requireAuth, async (c) => {
 // SIX-PILLAR CAREER OPERATIONS ROUTES
 // ============================================================================
 
+function isValidGeminiKey(key?: string): boolean {
+  if (!key) return false;
+  const trimmed = key.trim();
+  if (!trimmed || trimmed === 'MY_GEMINI_API_KEY' || trimmed.startsWith('MY_GEMINI') || trimmed.length < 25) {
+    return false;
+  }
+  return true;
+}
+
 // 1. Opportunity Signals (Pillar 2: Opportunity Radar)
-app.get('/api/opportunity-signals', requireAuth, async (c) => {
+const handleGetOpportunitySignals = async (c: any) => {
   try {
     const store: D1Store = c.get('store');
     const signals = await store.getOpportunitySignals();
@@ -2262,10 +2689,13 @@ app.get('/api/opportunity-signals', requireAuth, async (c) => {
     const msg = err instanceof Error ? err.message : String(err);
     return c.json({ success: false, error: `Failed to load hiring signals: ${msg}` }, 500);
   }
-});
+};
+// Canonical and deprecated alias
+app.get('/api/opportunity-radar/signals', requireAuth, handleGetOpportunitySignals);
+app.get('/api/opportunity-signals', requireAuth, handleGetOpportunitySignals);
 
 // 2. Mock Interview Sessions (Pillar 4: Interview Studio)
-app.get('/api/interviews/mock-sessions', requireAuth, async (c) => {
+const handleGetMockSessions = async (c: any) => {
   try {
     const user: AuthUser = c.get('user')!;
     const store: D1Store = c.get('store');
@@ -2276,9 +2706,9 @@ app.get('/api/interviews/mock-sessions', requireAuth, async (c) => {
     const msg = err instanceof Error ? err.message : String(err);
     return c.json({ success: false, error: `Failed to load mock sessions: ${msg}` }, 500);
   }
-});
+};
 
-app.post('/api/interviews/mock-sessions', requireAuth, async (c) => {
+const handleSaveMockSession = async (c: any) => {
   try {
     const user: AuthUser = c.get('user')!;
     const store: D1Store = c.get('store');
@@ -2289,27 +2719,130 @@ app.post('/api/interviews/mock-sessions', requireAuth, async (c) => {
     const msg = err instanceof Error ? err.message : String(err);
     return c.json({ success: false, error: `Failed to save mock session: ${msg}` }, 500);
   }
-});
+};
+// Canonical and aliases
+app.get('/api/interview-studio/sessions', requireAuth, handleGetMockSessions);
+app.get('/api/interviews/mock-sessions', requireAuth, handleGetMockSessions);
+app.post('/api/interview-studio/sessions', requireAuth, handleSaveMockSession);
+app.post('/api/interviews/mock-sessions', requireAuth, handleSaveMockSession);
 
-// 3. Recruiter Screening Review (Pillar 5: Recruiter Review)
-app.get('/api/applications/:id/recruiter-review', requireAuth, async (c) => {
+const handleEvaluateInterviewAnswer = async (c: any) => {
   try {
     const user: AuthUser = c.get('user')!;
     const store: D1Store = c.get('store');
-    const applicationId = c.req.param('id');
+    const body = await c.req.json();
+    const { question, answer, roleTitle, companyName, category, context, expectedPoints } = body;
+
+    if (!question || !answer || typeof answer !== 'string' || !answer.trim()) {
+      return c.json({ success: false, error: 'Question and answer are required.' }, 400);
+    }
+
+    const apiKey = c.env.GEMINI_API_KEY;
+    if (!isValidGeminiKey(apiKey)) {
+      return c.json({
+        success: false,
+        error: 'Evaluation unavailable — retry required.',
+        noSyntheticScores: true,
+      }, 502);
+    }
+
+    const verifiedFacts = await store.getCandidateFacts(user.id);
+    const prompt = buildInterviewEvaluationPrompt({
+      question,
+      answer,
+      roleTitle: roleTitle || 'Software Engineer',
+      companyName,
+      category,
+      context,
+      expectedPoints,
+      verifiedFacts,
+    });
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json' },
+      }),
+      signal: AbortSignal.timeout(20000),
+    });
+
+    if (!res.ok) {
+      return c.json({
+        success: false,
+        error: 'Evaluation unavailable — retry required.',
+        noSyntheticScores: true,
+      }, 502);
+    }
+
+    const resData = (await res.json()) as any;
+    const jsonText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!jsonText) {
+      return c.json({
+        success: false,
+        error: 'Evaluation unavailable — retry required.',
+        noSyntheticScores: true,
+      }, 502);
+    }
+
+    let parsed: any;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch {
+      return c.json({
+        success: false,
+        error: 'Evaluation unavailable — retry required.',
+        noSyntheticScores: true,
+      }, 502);
+    }
+
+    const evaluation = validateInterviewEvaluationOutput(parsed, 'gemini-2.5-flash');
+    return c.json({ success: true, evaluation });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('Worker interview evaluation error:', msg);
+    return c.json({
+      success: false,
+      error: 'Evaluation unavailable — retry required.',
+      noSyntheticScores: true,
+    }, 502);
+  }
+};
+// Canonical and alias
+app.post('/api/interview-studio/evaluate', requireAuth, handleEvaluateInterviewAnswer);
+app.post('/api/interviews/mock-sessions/evaluate', requireAuth, handleEvaluateInterviewAnswer);
+
+// 3. Recruiter Screening Review (Pillar 5: Recruiter Review)
+const handleGetRecruiterReview = async (c: any) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const applicationId = c.req.param('id') || c.req.query('applicationId');
+    if (!applicationId) {
+      return c.json({ success: false, error: 'applicationId is required.' }, 400);
+    }
     const audit = await store.getRecruiterReviewAudit(applicationId, user.id);
     return c.json({ success: true, audit });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     return c.json({ success: false, error: `Failed to load recruiter review: ${msg}` }, 500);
   }
-});
+};
 
-app.post('/api/applications/:id/recruiter-review', requireAuth, async (c) => {
+const handlePostRecruiterReview = async (c: any) => {
   try {
     const user: AuthUser = c.get('user')!;
     const store: D1Store = c.get('store');
-    const applicationId = c.req.param('id');
+    let bodyApplicationId: string | undefined;
+    try {
+      const body = await c.req.json();
+      bodyApplicationId = body?.applicationId;
+    } catch {}
+    const applicationId = c.req.param('id') || bodyApplicationId;
+    if (!applicationId) {
+      return c.json({ success: false, error: 'applicationId is required.' }, 400);
+    }
     const [appRecord, profile, facts] = await Promise.all([
       store.getApplicationById(applicationId, user.id),
       store.getProfile(user.id),
@@ -2382,7 +2915,12 @@ app.post('/api/applications/:id/recruiter-review', requireAuth, async (c) => {
     const msg = err instanceof Error ? err.message : String(err);
     return c.json({ success: false, error: `Failed to generate recruiter review: ${msg}` }, 500);
   }
-});
+};
+// Canonical and aliases
+app.get('/api/applications/:id/recruiter-review', requireAuth, handleGetRecruiterReview);
+app.get('/api/recruiter-review/audit', requireAuth, handleGetRecruiterReview);
+app.post('/api/applications/:id/recruiter-review', requireAuth, handlePostRecruiterReview);
+app.post('/api/recruiter-review/audit', requireAuth, handlePostRecruiterReview);
 
 // 4. Career Atlas Trajectories (Pillar 6: Career Atlas)
 app.get('/api/career-atlas/trajectories', requireAuth, async (c) => {

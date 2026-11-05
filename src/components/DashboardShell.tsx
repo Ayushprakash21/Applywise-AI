@@ -183,8 +183,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             </button>
 
             <BrandLogo
-              variant="light"
+              variant={plan === 'black' ? 'dark' : 'light'}
               size="md"
+              badge={plan === 'black' ? 'ELITE' : undefined}
               onClick={() => onSelectTab('overview')}
               className="cursor-pointer"
             />
@@ -291,7 +292,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="flex items-center space-x-2.5 p-1.5 pr-3 rounded-full bg-white/70 hover:bg-white border border-white/85 shadow-2xs transition text-left cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-[#8065F5] text-white font-bold flex items-center justify-center text-xs shadow-xs">
+                <div className={`w-8 h-8 rounded-full ${plan === 'black' ? 'bg-[#101216] text-[#C6A66A] border border-[rgba(198,166,106,0.35)] shadow-xs' : 'bg-gradient-to-tr from-blue-600 to-[#8065F5] text-white shadow-xs'} font-bold flex items-center justify-center text-xs`}>
                   {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
                 </div>
                 <div className="hidden md:block">
@@ -301,7 +302,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                   </div>
                   <div className="text-[10px] text-slate-500 font-medium">
                     {plan === 'black' ? (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-bold text-[9px] bg-[#090B12] text-[#F3DEAC] border border-[#D6B46A]/40">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-mono font-medium text-[9px] tracking-wider uppercase bg-[#101216] text-[#C6A66A] border border-[rgba(198,166,106,0.25)]">
                         BLACK ELITE
                       </span>
                     ) : isFounderAccount ? (
@@ -320,7 +321,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                     <p className="text-xs font-bold text-slate-900 truncate">{user.fullName}</p>
                     <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
                     {plan === 'black' ? (
-                      <div className="mt-2 inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#090B12] text-[#F3DEAC] border border-[#D6B46A]/60 shadow-xs">
+                      <div className="mt-2 inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium tracking-wide bg-[#101216] text-[#C6A66A] border border-[rgba(198,166,106,0.25)]">
                         <RoyalCrownLogo size="xs" />
                         <span>BLACK ELITE Member</span>
                       </div>

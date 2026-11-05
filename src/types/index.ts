@@ -144,6 +144,38 @@ export interface InterviewMockSession {
   updatedAt: string;
 }
 
+export interface EvaluationDimension {
+  score: number;
+  maxScore: number;
+  explanation: string;
+}
+
+export interface StructureDimension extends EvaluationDimension {
+  maxScore: 25;
+  missingStarElements: string[];
+}
+
+export interface EvidenceDimension extends EvaluationDimension {
+  maxScore: 30;
+  verifiedClaims: string[];
+  unsupportedClaims: string[];
+}
+
+export interface InterviewEvaluationOutput {
+  overallScore: number;
+  relevance: EvaluationDimension & { maxScore: 25 };
+  structure: StructureDimension;
+  clarity: EvaluationDimension & { maxScore: 20 };
+  evidence: EvidenceDimension;
+  strengths: string[];
+  improvementOpportunities: string[];
+  evaluationConfidence: 'HIGH' | 'MEDIUM' | 'LOW';
+  evaluationStatus: 'COMPLETED' | 'UNAVAILABLE' | 'FAILED';
+  timestamp: string;
+  modelUsed: string;
+  error?: string;
+}
+
 export interface RecruiterReviewAudit {
   id: string;
   userId: string;
@@ -602,9 +634,94 @@ export interface ApplicationActivityEvent {
   notes?: string;
 }
 
+export type JobImportExtractionMethod = 'json_ld' | 'open_graph' | 'adapter' | 'html_heuristic' | 'ai_assisted' | 'manual';
+export type JobImportExtractionStatus = 'verified_source' | 'extracted_review_recommended' | 'partially_extracted' | 'manual_entry';
+
+export interface ExtractedJobData {
+  title: string | null;
+  company: string | null;
+  companyWebsite?: string | null;
+  companyLogo?: string | null;
+  location: string | null;
+  country: string | null;
+  employmentType?: string | null;
+  workplaceType?: 'Remote' | 'Hybrid' | 'On-site' | 'Unspecified' | null;
+  salaryRange?: {
+    min?: number | null;
+    max?: number | null;
+    currency?: string | null;
+    raw?: string | null;
+  } | null;
+  minExperienceYears?: number | null;
+  maxExperienceYears?: number | null;
+  requiredSkills: string[];
+  preferredSkills: string[];
+  responsibilities: string[];
+  qualifications: string[];
+  educationRequirements: string[];
+  description: string | null;
+  deadline?: string | null;
+  originalUrl: string;
+  sourceDomain: string;
+  sourcePublishedDate?: string | null;
+  extractionTimestamp: string;
+  extractionMethod: JobImportExtractionMethod;
+  extractionConfidence: number;
+  extractionStatus: JobImportExtractionStatus;
+  notes?: string[];
+  unavailableFields: string[];
+  reviewRecommendedFields: string[];
+}
+
+export interface UserImportedJobRecord {
+  id: string;
+  userId: string;
+  vacancyId: string;
+  originalUrl: string;
+  canonicalUrl: string;
+  sourceDomain: string;
+  extractionStatus: JobImportExtractionStatus;
+  extractionMethod: JobImportExtractionMethod;
+  extractionConfidence: number;
+  extractedData: ExtractedJobData;
+  candidateEdits?: Partial<ExtractedJobData>;
+  createdAt: string;
+  updatedAt: string;
+  isArchived: boolean;
+}
+
+export interface JobImportExtractRequest {
+  url: string;
+}
+
+export interface JobImportExtractResponse {
+  success: boolean;
+  blocked?: boolean;
+  error?: string;
+  code?: string;
+  extractedData?: ExtractedJobData;
+  isDuplicate?: boolean;
+  existingVacancy?: JobVacancy;
+  manualFallbackAvailable?: boolean;
+}
+
+export interface JobImportSaveRequest {
+  extractedData: ExtractedJobData;
+  candidateEdits?: Partial<ExtractedJobData>;
+  applyDirectly?: boolean;
+}
+
+export interface JobImportSaveResponse {
+  success: boolean;
+  error?: string;
+  vacancy?: JobVacancy;
+  importedRecord?: UserImportedJobRecord;
+  applicationId?: string;
+}
+
 export interface JobVacancy {
   id: string;
-  source: 'remotive' | 'jobicy' | 'arbeitnow' | 'direct_feed' | 'manual';
+  source: 'remotive' | 'jobicy' | 'arbeitnow' | 'direct_feed' | 'manual' | 'imported';
   title: string;
   company: string;
   companyLogo?: string;
@@ -637,6 +754,15 @@ export interface JobVacancy {
   workArrangement?: WorkArrangement | string;
   sourceUrl?: string;
   postedDate?: string;
+  importedByUserId?: string;
+  importedProvenance?: {
+    originalUrl: string;
+    sourceDomain: string;
+    extractionStatus: JobImportExtractionStatus;
+    extractionMethod: JobImportExtractionMethod;
+    extractionConfidence: number;
+    importedAt: string;
+  };
 }
 
 export interface TailoredResumeContent {

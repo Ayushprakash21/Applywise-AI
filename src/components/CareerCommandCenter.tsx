@@ -55,6 +55,7 @@ interface CareerCommandCenterProps {
   onOpenOnboarding: () => void;
   onAskCopilotPrompt: (prompt: string) => void;
   onSearchJobs: (query: string) => void;
+  onOpenImportModal?: () => void;
 }
 
 export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
@@ -69,6 +70,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
   onOpenOnboarding,
   onAskCopilotPrompt,
   onSearchJobs,
+  onOpenImportModal,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [careerRoadmap, setCareerRoadmap] = useState<CareerRoadmap | null>(null);
@@ -431,6 +433,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
         <OpportunityRadar
           vacancies={vacancies}
           onSelectVacancy={onSelectVacancy}
+          onOpenImportModal={onOpenImportModal}
         />
       </section>
 

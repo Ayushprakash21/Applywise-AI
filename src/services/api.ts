@@ -27,13 +27,19 @@ import {
   FounderProfile,
   OpportunitySignal,
   InterviewMockSession,
+  InterviewEvaluationOutput,
   RecruiterReviewAudit,
   CareerTrajectory,
   ResumeDocument,
   ResumeExtractionRun,
   ResumeExtractionVersion,
   ResumeExtractionEvent,
-  AdminResumesResponse
+  AdminResumesResponse,
+  ExtractedJobData,
+  UserImportedJobRecord,
+  JobImportExtractResponse,
+  JobImportSaveRequest,
+  JobImportSaveResponse
 } from '../types/index.ts';
 
 export interface DashboardSummary {
@@ -444,6 +450,43 @@ export const api = {
       }>;
       lastChecked: string;
     }>('/api/jobs/status'),
+
+  // --- UNIVERSAL JOB IMPORT & URL-BASED OPPORTUNITY EXTRACTION ---
+  extractJobFromUrl: (url: string) =>
+    fetchJson<JobImportExtractResponse>('/api/jobs/import/extract', {
+      method: 'POST',
+      body: JSON.stringify({ url }),
+    }),
+
+  parseJobFromText: (text: string, title?: string, company?: string, url?: string) =>
+    fetchJson<{ success: boolean; extractedData: ExtractedJobData }>('/api/jobs/import/parse-text', {
+      method: 'POST',
+      body: JSON.stringify({ text, title, company, url }),
+    }),
+
+  saveImportedJob: (data: JobImportSaveRequest) =>
+    fetchJson<JobImportSaveResponse>('/api/jobs/import/save', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getImportedJobs: () =>
+    fetchJson<{ success: boolean; importedJobs: UserImportedJobRecord[] }>('/api/jobs/imported'),
+
+  deleteImportedJob: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/api/jobs/imported/${id}`, {
+      method: 'DELETE',
+    }),
+
+  archiveImportedJob: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/api/jobs/imported/${id}/archive`, {
+      method: 'POST',
+    }),
+
+  moveImportedJobToApplication: (id: string) =>
+    fetchJson<{ success: boolean; message: string; applicationId: string; application: ApplicationRecord }>(`/api/jobs/imported/${id}/to-application`, {
+      method: 'POST',
+    }),
 
   // --- CAREER INTELLIGENCE & NEXT-GEN APPLICATION SUITE (PART 2) ---
   getFitEvidenceMap: (jobId: string) =>
@@ -888,29 +931,73 @@ export const api = {
     }),
 
   // --- SIX-PILLAR CAREER OPERATIONS ---
+
+  /** Canonical: GET /api/opportunity-radar/signals */
   getOpportunitySignals: () =>
+    fetchJson<{ success: boolean; signals: OpportunitySignal[] }>('/api/opportunity-radar/signals'),
+
+  /** @deprecated Compatibility alias using legacy /api/opportunity-signals path */
+  getOpportunitySignalsLegacy: () =>
     fetchJson<{ success: boolean; signals: OpportunitySignal[] }>('/api/opportunity-signals'),
 
+  /** Canonical: GET /api/interview-studio/sessions */
   getMockInterviewSessions: (jobId?: string) =>
-    fetchJson<{ success: boolean; sessions: InterviewMockSession[] }>(jobId ? `/api/interviews/mock-sessions?jobId=${jobId}` : '/api/interviews/mock-sessions'),
+    fetchJson<{ success: boolean; sessions: InterviewMockSession[] }>(jobId ? `/api/interview-studio/sessions?jobId=${jobId}` : '/api/interview-studio/sessions'),
 
+  /** Canonical: POST /api/interview-studio/sessions */
   saveMockInterviewSession: (session: Partial<InterviewMockSession>) =>
-    fetchJson<{ success: boolean; session: InterviewMockSession }>('/api/interviews/mock-sessions', {
+    fetchJson<{ success: boolean; session: InterviewMockSession }>('/api/interview-studio/sessions', {
       method: 'POST',
       body: JSON.stringify(session),
     }),
 
+  /** Canonical: POST /api/interview-studio/evaluate */
+  evaluateInterviewAnswer: (payload: {
+    questionId?: string;
+    question: string;
+    answer: string;
+    roleTitle?: string;
+    companyName?: string;
+    category?: string;
+    context?: string;
+    expectedPoints?: string[];
+  }) =>
+    fetchJson<{ success: boolean; evaluation?: InterviewEvaluationOutput; error?: string; noSyntheticScores?: boolean }>('/api/interview-studio/evaluate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  /** @deprecated Compatibility alias using legacy /api/interviews/mock-sessions/evaluate path */
+  evaluateInterviewAnswerLegacy: (payload: {
+    questionId?: string;
+    question: string;
+    answer: string;
+    roleTitle?: string;
+    companyName?: string;
+    category?: string;
+    context?: string;
+    expectedPoints?: string[];
+  }) =>
+    fetchJson<{ success: boolean; evaluation?: InterviewEvaluationOutput; error?: string; noSyntheticScores?: boolean }>('/api/interviews/mock-sessions/evaluate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  /** Canonical: GET /api/applications/:id/recruiter-review */
   getRecruiterReviewAudit: (applicationId: string) =>
     fetchJson<{ success: boolean; audit: RecruiterReviewAudit }>(`/api/applications/${applicationId}/recruiter-review`),
 
+  /** Canonical: POST /api/applications/:id/recruiter-review */
   generateRecruiterReview: (applicationId: string) =>
     fetchJson<{ success: boolean; audit: RecruiterReviewAudit }>(`/api/applications/${applicationId}/recruiter-review`, {
       method: 'POST',
     }),
 
+  /** Canonical: GET /api/career-atlas/trajectories */
   getCareerTrajectories: () =>
     fetchJson<{ success: boolean; trajectories: CareerTrajectory[] }>('/api/career-atlas/trajectories'),
 
+  /** Canonical: POST /api/career-atlas/trajectories */
   saveCareerTrajectory: (trajectory: Partial<CareerTrajectory>) =>
     fetchJson<{ success: boolean; trajectory: CareerTrajectory }>('/api/career-atlas/trajectories', {
       method: 'POST',

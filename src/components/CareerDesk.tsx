@@ -19,7 +19,8 @@ import {
   DollarSign,
   FileText,
   SlidersHorizontal,
-  BookmarkCheck
+  BookmarkCheck,
+  Plus
 } from 'lucide-react';
 import {
   UserProfile,
@@ -43,6 +44,7 @@ export interface CareerDeskProps {
   onOpenPreferences?: () => void;
   onOpenProfile?: () => void;
   onOpenOnboarding?: () => void;
+  onOpenImportModal?: () => void;
   onAskCopilotPrompt?: (prompt: string) => void;
   plan?: 'free' | 'pro' | 'black';
   className?: string;
@@ -69,6 +71,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
   onSelectVacancy,
   onOpenPreferences,
   onOpenProfile,
+  onOpenImportModal,
   plan = 'free',
 }) => {
   const isBlack = plan === 'black';
@@ -138,7 +141,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
       {/* 1. Header & Executive Greeting */}
       <div className={`p-6 sm:p-8 rounded-3xl border transition-all shadow-sm ${
         isBlack
-          ? 'bg-[#090D14]/90 border-amber-500/30 text-slate-100'
+          ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9]'
           : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
       }`}>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -146,7 +149,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
             <div className="flex items-center space-x-2">
               <span className={`text-xs font-mono font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full ${
                 isBlack
-                  ? 'bg-amber-400/10 text-amber-300 border border-amber-400/30'
+                  ? 'bg-[rgba(198,166,106,0.08)] text-[#C6A66A] border border-[rgba(198,166,106,0.22)]'
                   : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/40'
               }`}>
                 {isBlack ? 'BLACK ELITE CAREER WORKSPACE' : 'EXECUTIVE CAREER DESK'}
@@ -164,7 +167,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
           {/* Profile Completion Badge */}
           <div className={`p-4 rounded-2xl border flex items-center space-x-4 min-w-[240px] ${
             isBlack
-              ? 'bg-[#05070B] border-amber-500/20'
+              ? 'bg-[#0D0F12] border-[rgba(255,255,255,0.08)]'
               : 'bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800'
           }`}>
             <div className="relative flex items-center justify-center">
@@ -184,7 +187,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
                   r="23"
                   stroke="currentColor"
                   strokeWidth="5"
-                  className={isBlack ? 'text-amber-400' : 'text-indigo-600 dark:text-indigo-400'}
+                  className={isBlack ? 'text-[#C6A66A]' : 'text-indigo-600 dark:text-indigo-400'}
                   fill="transparent"
                   strokeDasharray="144"
                   strokeDashoffset={144 - (144 * completionScore) / 100}
@@ -212,21 +215,36 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
       {/* 2. Personalized Career Brief */}
       <div className={`p-6 sm:p-7 rounded-3xl border ${
         isBlack
-          ? 'bg-[#090D14]/80 border-amber-500/20 text-slate-100'
+          ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9]'
           : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
       }`}>
         <div className="flex items-center justify-between pb-4 border-b border-slate-200/60 dark:border-slate-800/80">
           <div className="flex items-center space-x-2.5">
-            <Compass className={`w-5 h-5 ${isBlack ? 'text-amber-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
+            <Compass className={`w-5 h-5 ${isBlack ? 'text-[#C6A66A]' : 'text-indigo-600 dark:text-indigo-400'}`} />
             <h2 className="text-base sm:text-lg font-bold tracking-tight">Your Career Brief</h2>
           </div>
-          <button
-            onClick={onOpenPreferences}
-            className="flex items-center space-x-1.5 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white transition"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Search Parameters</span>
-          </button>
+          <div className="flex items-center space-x-2">
+            {onOpenImportModal && (
+              <button
+                onClick={onOpenImportModal}
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                  isBlack
+                    ? 'bg-[rgba(198,166,106,0.1)] hover:bg-[rgba(198,166,106,0.2)] text-[#E8D49E] border border-[rgba(198,166,106,0.25)]'
+                    : 'bg-indigo-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100'
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Import Job</span>
+              </button>
+            )}
+            <button
+              onClick={onOpenPreferences}
+              className="flex items-center space-x-1.5 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white transition"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Search Parameters</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-5 text-xs">
@@ -285,7 +303,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
         <div
           onClick={() => onNavigateTab('control')}
           className={`p-5 rounded-2xl border transition-all cursor-pointer hover:border-indigo-400 ${
-            isBlack ? 'bg-[#090D14]/70 border-amber-500/20' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
+            isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] hover:border-[rgba(198,166,106,0.3)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between text-slate-400 text-xs">
@@ -301,7 +319,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
         <div
           onClick={() => onNavigateTab('control')}
           className={`p-5 rounded-2xl border transition-all cursor-pointer hover:border-indigo-400 ${
-            isBlack ? 'bg-[#090D14]/70 border-amber-500/20' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
+            isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] hover:border-[rgba(198,166,106,0.3)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between text-slate-400 text-xs">
@@ -317,7 +335,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
         <div
           onClick={() => onNavigateTab('interview_studio')}
           className={`p-5 rounded-2xl border transition-all cursor-pointer hover:border-indigo-400 ${
-            isBlack ? 'bg-[#090D14]/70 border-amber-500/20' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
+            isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] hover:border-[rgba(198,166,106,0.3)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between text-slate-400 text-xs">
@@ -333,7 +351,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
         <div
           onClick={() => onNavigateTab('control')}
           className={`p-5 rounded-2xl border transition-all cursor-pointer hover:border-indigo-400 ${
-            isBlack ? 'bg-[#090D14]/70 border-amber-500/20' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
+            isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] hover:border-[rgba(198,166,106,0.3)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between text-slate-400 text-xs">
@@ -351,7 +369,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Priority Actions */}
         <div className={`lg:col-span-1 p-6 rounded-3xl border space-y-4 ${
-          isBlack ? 'bg-[#090D14]/70 border-amber-500/20' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
+          isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
         }`}>
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">
@@ -404,7 +422,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
 
         {/* High-Alignment Opportunities */}
         <div className={`lg:col-span-2 p-6 rounded-3xl border space-y-4 ${
-          isBlack ? 'bg-[#090D14]/70 border-amber-500/20' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
+          isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
         }`}>
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">

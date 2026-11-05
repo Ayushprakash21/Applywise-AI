@@ -95,7 +95,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
       {/* 1. Header & Trajectory Selector */}
       <div className={`p-6 sm:p-8 rounded-3xl border transition-all shadow-sm ${
         isBlack
-          ? 'bg-[#090D14]/90 border-amber-500/30 text-slate-100'
+          ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9]'
           : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
       }`}>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -103,7 +103,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
             <div className="flex items-center space-x-2">
               <span className={`text-xs font-mono font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full ${
                 isBlack
-                  ? 'bg-amber-400/10 text-amber-300 border border-amber-400/30'
+                  ? 'bg-[rgba(198,166,106,0.08)] text-[#C6A66A] border border-[rgba(198,166,106,0.22)]'
                   : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/40'
               }`}>
                 CAREER PATHWAYS & DEVELOPMENT ATLAS
@@ -181,7 +181,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
       {/* 2. TAB: INTERACTIVE CAREER MAP (GRAPH VISUALIZATION) */}
       {activeTab === 'map' && (
         <div className={`p-6 sm:p-8 rounded-3xl border ${
-          isBlack ? 'bg-[#090D14]/80 border-amber-500/20' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
+          isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
         }`}>
           <div className="pb-4 border-b border-slate-200/60 dark:border-slate-800/80 flex items-center justify-between">
             <div className="space-y-0.5">
@@ -265,7 +265,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
       {/* 3. TAB: DEVELOPMENT ROADMAP (ESTIMATED EFFORT & MILESTONES) */}
       {activeTab === 'roadmap' && (
         <div className={`p-6 sm:p-8 rounded-3xl border space-y-6 ${
-          isBlack ? 'bg-[#090D14]/80 border-amber-500/20' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
+          isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
         }`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/60 dark:border-slate-800/80">
             <div className="space-y-0.5">
@@ -330,7 +330,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                     ? 'border-indigo-600 shadow-sm'
                     : 'border-slate-200/80 dark:border-slate-800 hover:border-slate-400'
                 } ${
-                  isBlack ? 'bg-[#090D14]/80 text-slate-100' : 'bg-white/80 dark:bg-slate-900/80 text-slate-900 dark:text-white'
+                  isBlack ? 'bg-[#13161B] text-[#F0EEE9]' : 'bg-white/80 dark:bg-slate-900/80 text-slate-900 dark:text-white'
                 }`}
               >
                 <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 dark:border-slate-800/80">

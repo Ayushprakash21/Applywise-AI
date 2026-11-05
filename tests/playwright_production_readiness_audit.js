@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 
-const BASE_URL = 'http://localhost:4173';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 const VIEWPORTS = [
   { width: 1920, height: 1080, name: 'desktop_1920x1080' },

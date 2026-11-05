@@ -210,7 +210,9 @@ export const serverMatchingEngine = {
 
     // 4. Skills Scoring (25% max) & Profile Evidence Traceability
     let skillsScore = 0;
-    const candidateSkills = (profile.skills || []).map(s => s.name.toLowerCase().trim());
+    const candidateSkills = (profile.skills || [])
+      .map(s => (typeof s === 'string' ? s : (s as any)?.name || '').toLowerCase().trim())
+      .filter(Boolean);
 
     if (rawReqs.length > 0) {
       let matchedCount = 0;

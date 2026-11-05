@@ -21,7 +21,9 @@ import {
   TransferableSkillBridge,
   ApplicationReceipt,
   ApplicationIntegrityReport,
-  CareerOutcomeItem
+  CareerOutcomeItem,
+  UserImportedJobRecord,
+  ExtractedJobData
 } from '../src/types/index.ts';
 import { isPermanentFreeAccessAccount } from '../src/config/freeAccess.ts';
 
@@ -450,7 +452,7 @@ export class D1Store {
 
     // 2. Fallback to cached_vacancies if live_jobs_cache is empty
     const { results } = await this.db.prepare(
-      'SELECT data FROM cached_vacancies WHERE is_active = 1 ORDER BY retrieved_at DESC LIMIT ?'
+      "SELECT data FROM cached_vacancies WHERE is_active = 1 AND source != 'imported' ORDER BY retrieved_at DESC LIMIT ?"
     ).bind(limit).all<{ data: string }>();
 
     return (results || []).map(r => {
@@ -2952,7 +2954,7 @@ export class D1Store {
         'SELECT * FROM career_trajectories WHERE user_id = ? ORDER BY is_active DESC, updated_at DESC'
       ).bind(userId).all<any>();
 
-      if (results && results.length > 0) {
+      if (results) {
         return results.map(r => ({
           id: r.id,
           userId: r.user_id,
@@ -2973,26 +2975,7 @@ export class D1Store {
       // Default trajectory fallback
     }
 
-    return [
-      {
-        id: 'traj_operations_lead',
-        userId,
-        trajectoryTitle: 'Operations & Process Leadership',
-        targetRole: 'Director of Enterprise Operations',
-        currentAlignmentScore: 82,
-        transferableSkills: ['Process Optimization', 'Enterprise Supply Chain', 'SLA Management', 'Cross-Functional Leadership'],
-        missingSkills: ['Six Sigma Black Belt', 'Multi-Region Logistics', 'P&L Budget Oversight'],
-        requiredExperienceYears: 8,
-        recommendedCertifications: ['Lean Six Sigma Black Belt', 'APICS Certified Supply Chain Professional (CSCP)'],
-        learningPath: [
-          { step: 1, title: 'Complete Lean Six Sigma Black Belt practical project', estimatedHours: 40, rationale: 'Validates quantitative process excellence methodology', isCompleted: false },
-          { step: 2, title: 'Lead multi-site process standardization initiative', estimatedHours: 60, rationale: 'Demonstrates distributed leadership capability', isCompleted: false },
-        ],
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ];
+    return [];
   }
 
   async saveCareerTrajectory(traj: any, userId: string): Promise<any> {
@@ -3045,5 +3028,206 @@ export class D1Store {
     };
   }
 
+  // --- UNIVERSAL JOB IMPORT & OPPORTUNITY MANAGEMENT ---
+  async saveUserImportedJob(record: UserImportedJobRecord, vacancy: JobVacancy): Promise<void> {
+    const now = new Date().toISOString();
+    try {
+      await this.db.prepare(`
+        INSERT INTO cached_vacancies (id, source, title, company, location, url, data, is_active, retrieved_at)
+        VALUES (?, 'imported', ?, ?, ?, ?, ?, 1, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          is_active = 1,
+          retrieved_at = excluded.retrieved_at,
+          data = excluded.data
+      `).bind(vacancy.id, vacancy.title, vacancy.company, vacancy.location, vacancy.url, JSON.stringify(vacancy), now).run();
+    } catch (e) {
+      console.warn('[D1 Imported Vacancy Save Error]:', e);
+    }
 
+    try {
+      await this.db.prepare(`
+        INSERT INTO user_imported_jobs (
+          id, user_id, vacancy_id, original_url, canonical_url, source_domain,
+          extraction_status, extraction_method, extraction_confidence,
+          extracted_data, candidate_edits, created_at, updated_at, is_archived
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+        ON CONFLICT(user_id, canonical_url) DO UPDATE SET
+          vacancy_id = excluded.vacancy_id,
+          extraction_status = excluded.extraction_status,
+          extraction_method = excluded.extraction_method,
+          extraction_confidence = excluded.extraction_confidence,
+          extracted_data = excluded.extracted_data,
+          candidate_edits = excluded.candidate_edits,
+          updated_at = excluded.updated_at,
+          is_archived = 0
+      `).bind(
+        record.id,
+        record.userId,
+        record.vacancyId,
+        record.originalUrl,
+        record.canonicalUrl,
+        record.sourceDomain,
+        record.extractionStatus,
+        record.extractionMethod,
+        record.extractionConfidence,
+        JSON.stringify(record.extractedData),
+        record.candidateEdits ? JSON.stringify(record.candidateEdits) : null,
+        record.createdAt || now,
+        record.updatedAt || now
+      ).run();
+    } catch (e) {
+      console.warn('[D1 User Imported Job Save Error]:', e);
+    }
+  }
+
+  async getUserImportedJobs(userId: string, includeArchived = false): Promise<UserImportedJobRecord[]> {
+    try {
+      const sql = includeArchived
+        ? 'SELECT * FROM user_imported_jobs WHERE user_id = ? ORDER BY created_at DESC'
+        : 'SELECT * FROM user_imported_jobs WHERE user_id = ? AND is_archived = 0 ORDER BY created_at DESC';
+      const { results } = await this.db.prepare(sql).bind(userId).all<any>();
+
+      return (results || []).map(r => ({
+        id: r.id,
+        userId: r.user_id,
+        vacancyId: r.vacancy_id,
+        originalUrl: r.original_url,
+        canonicalUrl: r.canonical_url,
+        sourceDomain: r.source_domain,
+        extractionStatus: r.extraction_status,
+        extractionMethod: r.extraction_method,
+        extractionConfidence: Number(r.extraction_confidence),
+        extractedData: JSON.parse(r.extracted_data),
+        candidateEdits: r.candidate_edits ? JSON.parse(r.candidate_edits) : undefined,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+        isArchived: Boolean(r.is_archived),
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  async getUserImportedJobByVacancyId(userId: string, vacancyId: string): Promise<UserImportedJobRecord | null> {
+    try {
+      const r = await this.db.prepare('SELECT * FROM user_imported_jobs WHERE user_id = ? AND vacancy_id = ?')
+        .bind(userId, vacancyId).first<any>();
+      if (!r) return null;
+      return {
+        id: r.id,
+        userId: r.user_id,
+        vacancyId: r.vacancy_id,
+        originalUrl: r.original_url,
+        canonicalUrl: r.canonical_url,
+        sourceDomain: r.source_domain,
+        extractionStatus: r.extraction_status,
+        extractionMethod: r.extraction_method,
+        extractionConfidence: Number(r.extraction_confidence),
+        extractedData: JSON.parse(r.extracted_data),
+        candidateEdits: r.candidate_edits ? JSON.parse(r.candidate_edits) : undefined,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+        isArchived: Boolean(r.is_archived),
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async findDuplicateImportedJob(userId: string, canonicalUrl: string, company?: string, title?: string): Promise<{
+    isDuplicate: boolean;
+    existingRecord?: UserImportedJobRecord;
+    existingVacancy?: JobVacancy;
+  }> {
+    try {
+      const urlRow = await this.db.prepare('SELECT * FROM user_imported_jobs WHERE user_id = ? AND canonical_url = ? AND is_archived = 0')
+        .bind(userId, canonicalUrl).first<any>();
+      if (urlRow) {
+        const existingRecord: UserImportedJobRecord = {
+          id: urlRow.id,
+          userId: urlRow.user_id,
+          vacancyId: urlRow.vacancy_id,
+          originalUrl: urlRow.original_url,
+          canonicalUrl: urlRow.canonical_url,
+          sourceDomain: urlRow.source_domain,
+          extractionStatus: urlRow.extraction_status,
+          extractionMethod: urlRow.extraction_method,
+          extractionConfidence: Number(urlRow.extraction_confidence),
+          extractedData: JSON.parse(urlRow.extracted_data),
+          candidateEdits: urlRow.candidate_edits ? JSON.parse(urlRow.candidate_edits) : undefined,
+          createdAt: urlRow.created_at,
+          updatedAt: urlRow.updated_at,
+          isArchived: Boolean(urlRow.is_archived),
+        };
+        const vacancy = await this.getVacancyById(urlRow.vacancy_id);
+        return { isDuplicate: true, existingRecord, existingVacancy: vacancy || undefined };
+      }
+    } catch {
+      // Continue
+    }
+
+    if (company && title) {
+      const compNorm = company.toLowerCase().trim();
+      const titleNorm = title.toLowerCase().trim();
+      const allUserJobs = await this.getUserImportedJobs(userId);
+      for (const rec of allUserJobs) {
+        if (
+          (rec.extractedData.company || '').toLowerCase().trim() === compNorm &&
+          (rec.extractedData.title || '').toLowerCase().trim() === titleNorm
+        ) {
+          const vacancy = await this.getVacancyById(rec.vacancyId);
+          return { isDuplicate: true, existingRecord: rec, existingVacancy: vacancy || undefined };
+        }
+      }
+    }
+
+    return { isDuplicate: false };
+  }
+
+  async deleteUserImportedJob(userId: string, id: string): Promise<boolean> {
+    try {
+      const res = await this.db.prepare('DELETE FROM user_imported_jobs WHERE id = ? AND user_id = ?').bind(id, userId).run();
+      return (res.meta.changes ?? 0) > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  async archiveUserImportedJob(userId: string, id: string): Promise<boolean> {
+    try {
+      const res = await this.db.prepare('UPDATE user_imported_jobs SET is_archived = 1, updated_at = ? WHERE id = ? AND user_id = ?')
+        .bind(new Date().toISOString(), id, userId).run();
+      return (res.meta.changes ?? 0) > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  async getUserVacancies(userId?: string, limit = 100): Promise<JobVacancy[]> {
+    const baseVacancies = await this.getVacancies(limit);
+    if (!userId) return baseVacancies;
+
+    const importedRecords = await this.getUserImportedJobs(userId);
+    const importedVacancies: JobVacancy[] = [];
+    for (const rec of importedRecords) {
+      const v = await this.getVacancyById(rec.vacancyId);
+      if (v) {
+        v.source = 'imported';
+        v.importedByUserId = userId;
+        v.importedProvenance = {
+          originalUrl: rec.originalUrl,
+          sourceDomain: rec.sourceDomain,
+          extractionStatus: rec.extractionStatus,
+          extractionMethod: rec.extractionMethod,
+          extractionConfidence: rec.extractionConfidence,
+          importedAt: rec.createdAt,
+        };
+        importedVacancies.push(v);
+      }
+    }
+
+    const importedIds = new Set(importedVacancies.map(iv => iv.id));
+    const combined = [...importedVacancies, ...baseVacancies.filter(bv => !importedIds.has(bv.id))];
+    return combined.slice(0, limit);
+  }
 }

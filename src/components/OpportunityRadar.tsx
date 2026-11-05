@@ -24,7 +24,8 @@ import {
   RefreshCw,
   TrendingUp,
   AlertTriangle,
-  Globe
+  Globe,
+  Plus
 } from 'lucide-react';
 import { JobVacancy, OpportunitySignal, UserProfile } from '../types/index.ts';
 import { api } from '../services/api.ts';
@@ -36,6 +37,7 @@ export interface OpportunityRadarProps {
   onSelectVacancy: (vacancy: JobVacancy) => void;
   onRefreshLiveJobs?: () => Promise<void>;
   onPrepareApplication?: (vacancyId: string) => Promise<any> | void;
+  onOpenImportModal?: () => void;
   plan?: 'free' | 'pro' | 'black';
   className?: string;
 }
@@ -45,6 +47,8 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
   profile,
   onSelectVacancy,
   onRefreshLiveJobs,
+  onPrepareApplication,
+  onOpenImportModal,
   plan = 'free',
   className = '',
 }) => {
@@ -52,7 +56,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
 
   // View & Filter State
   const [viewMode, setViewMode] = useState<'dossier' | 'signals' | 'spatial'>('dossier');
-  const [filterMode, setFilterMode] = useState<'all' | 'high_match' | 'remote' | 'salary' | 'visa'>('all');
+  const [filterMode, setFilterMode] = useState<'all' | 'high_match' | 'imported' | 'direct' | 'remote' | 'salary' | 'visa'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [locationFilter, setLocationFilter] = useState('All');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -160,6 +164,12 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
     if (filterMode === 'high_match') {
       return (v.matchEvaluation?.matchScore || 0) >= 70;
     }
+    if (filterMode === 'imported') {
+      return v.source === 'imported';
+    }
+    if (filterMode === 'direct') {
+      return v.source !== 'imported';
+    }
     if (filterMode === 'remote') {
       return v.remote || v.workArrangement === 'remote' || v.arrangement === 'remote';
     }
@@ -187,7 +197,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
       {/* 1. Header & Radar Controls */}
       <div className={`p-6 sm:p-8 rounded-3xl border transition-all shadow-sm ${
         isBlack
-          ? 'bg-[#090D14]/90 border-amber-500/30 text-slate-100'
+          ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9]'
           : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
       }`}>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -195,7 +205,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
             <div className="flex items-center space-x-2">
               <span className={`text-xs font-mono font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full ${
                 isBlack
-                  ? 'bg-amber-400/10 text-amber-300 border border-amber-400/30'
+                  ? 'bg-[rgba(198,166,106,0.08)] text-[#C6A66A] border border-[rgba(198,166,106,0.22)]'
                   : 'bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-400 border border-cyan-200/50 dark:border-cyan-800/40'
               }`}>
                 MARKET MONITORING & DISCOVERY
@@ -210,8 +220,22 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
             </p>
           </div>
 
-          {/* Action Tools: Refresh & View Toggle */}
-          <div className="flex items-center space-x-3">
+          {/* Action Tools: Import, Refresh & View Toggle */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {onOpenImportModal && (
+              <button
+                onClick={onOpenImportModal}
+                className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shadow-xs ${
+                  isBlack
+                    ? 'bg-gradient-to-r from-[#C6A66A] to-[#E8D49E] text-[#08090B] hover:opacity-95'
+                    : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Import Job</span>
+              </button>
+            )}
+
             {onRefreshLiveJobs && (
               <button
                 onClick={handleRefresh}
@@ -293,6 +317,8 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
             {[
               { id: 'all', label: 'All Openings' },
               { id: 'high_match', label: 'High Match (70%+)' },
+              { id: 'imported', label: `Imported by Me (${uniqueVacancies.filter(v => v.source === 'imported').length})` },
+              { id: 'direct', label: 'Direct Feed' },
               { id: 'remote', label: 'Remote Only' },
               { id: 'salary', label: 'Salary Disclosed' },
               { id: 'visa', label: 'Visa Sponsorship' },
@@ -302,7 +328,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 onClick={() => setFilterMode(f.id as any)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
                   filterMode === f.id
-                    ? isBlack ? 'bg-amber-400 text-black' : 'bg-indigo-600 text-white'
+                    ? isBlack ? 'bg-[#C6A66A] text-[#0D0F12] shadow-xs' : 'bg-indigo-600 text-white'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                 }`}
               >
@@ -328,7 +354,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
               <div
                 key={sig.id}
                 className={`p-5 rounded-3xl border transition-all flex flex-col justify-between space-y-4 ${
-                  isBlack ? 'bg-[#090D14]/80 border-amber-500/20' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
+                  isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] hover:border-[rgba(198,166,106,0.25)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
                 }`}
               >
                 <div className="space-y-2.5">
@@ -406,7 +432,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                     onClick={() => onSelectVacancy(vac)}
                     className={`p-5 sm:p-6 rounded-3xl border transition-all cursor-pointer hover:border-indigo-400/80 shadow-2xs ${
                       isBlack
-                        ? 'bg-[#090D14]/80 border-amber-500/20 text-slate-100 hover:border-amber-400/50'
+                        ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9] hover:border-[rgba(198,166,106,0.3)]'
                         : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
                     }`}
                   >
@@ -417,6 +443,12 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                           <h2 className="text-base sm:text-lg font-bold tracking-tight">
                             {vac.title}
                           </h2>
+                          {vac.source === 'imported' && (
+                            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[rgba(198,166,106,0.12)] text-[#E8D49E] border border-[rgba(198,166,106,0.3)]">
+                              <Sparkles className="w-2.5 h-2.5 text-[#C6A66A]" />
+                              <span>Imported ({vac.importedProvenance?.extractionMethod || 'user'})</span>
+                            </span>
+                          )}
                           <span className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
                             matchScore >= 80
                               ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60'
@@ -503,6 +535,20 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                         >
                           <XCircle className="w-4 h-4" />
                         </button>
+
+                        {onPrepareApplication && (
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              onPrepareApplication(vac.id);
+                            }}
+                            title="Move to Application Control"
+                            className="px-3 py-2 rounded-xl bg-[rgba(198,166,106,0.12)] hover:bg-[rgba(198,166,106,0.22)] text-[#E8D49E] border border-[rgba(198,166,106,0.25)] text-xs font-semibold transition flex items-center space-x-1"
+                          >
+                            <Zap className="w-3.5 h-3.5 text-[#C6A66A]" />
+                            <span className="hidden sm:inline">Track</span>
+                          </button>
+                        )}
 
                         <button
                           onClick={() => onSelectVacancy(vac)}

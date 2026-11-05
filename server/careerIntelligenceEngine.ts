@@ -25,6 +25,11 @@ import {
   ScoringWeights,
 } from '../src/types/index.ts';
 
+export function extractSkillNames(skills?: any[]): string[] {
+  if (!Array.isArray(skills)) return [];
+  return skills.map(s => (typeof s === 'string' ? s : (s as any)?.name || '').trim()).filter(Boolean);
+}
+
 // Cross-industry domains and transferable keywords
 export const DOMAIN_TAXONOMY: Record<string, { keywords: string[]; related: string[] }> = {
   supply_chain: {
@@ -151,7 +156,7 @@ export class CareerIntelligenceEngine {
     const missingEssentialRequirements: string[] = [];
     const missingPreferredRequirements: string[] = [];
 
-    const candidateSkills = (profile.skills || []).map(s => s.name.toLowerCase().trim());
+    const candidateSkills = extractSkillNames(profile.skills).map(s => s.toLowerCase());
     const candidateExperiences = profile.experiences || [];
     const expText = candidateExperiences.map(e => `${e.role} ${e.company} ${(e.achievements || []).join(' ')}`).join(' ').toLowerCase();
 
@@ -489,7 +494,7 @@ export class CareerIntelligenceEngine {
     const nodes: FitEvidenceNode[] = [];
     const evaluation = matchEval || this.evaluateMultiDimensionalMatch(profile, {} as CareerPreferences, vacancy);
 
-    const candidateSkills = (profile.skills || []).map(s => s.name.toLowerCase().trim());
+    const candidateSkills = extractSkillNames(profile.skills).map(s => s.toLowerCase());
     const candidateExperiences = profile.experiences || [];
     const candidateCerts = (profile.certifications || []).map(c => c.name.toLowerCase().trim());
 
@@ -710,7 +715,7 @@ export class CareerIntelligenceEngine {
     const issues: ResumeIssue[] = [];
 
     const exps = profile.experiences || [];
-    const skills = (profile.skills || []).map(s => s.name);
+    const skills = extractSkillNames(profile.skills);
     const education = profile.education || [];
     const certs = (profile.certifications || []).map(c => c.name);
 
@@ -858,7 +863,7 @@ export class CareerIntelligenceEngine {
    * Resume-to-Job Comparison with ATS Readability Feedback
    */
   public compareResumeToJob(profile: UserProfile, vacancy: JobVacancy): ResumeToJobComparison {
-    const candidateSkills = (profile.skills || []).map(s => s.name.toLowerCase().trim());
+    const candidateSkills = extractSkillNames(profile.skills).map(s => s.toLowerCase());
     const descLower = (vacancy.description || '').toLowerCase();
     const requirements = vacancy.requirements || this.extractRequirementsFromText(vacancy.description);
 
@@ -1061,7 +1066,7 @@ export class CareerIntelligenceEngine {
    * 6. Application Copilot (Requirement 6)
    */
   public generateCopilotArtifacts(profile: UserProfile, vacancy: JobVacancy): CopilotJobArtifacts {
-    const verifiedSkills = (profile.skills || []).map(s => s.name);
+    const verifiedSkills = extractSkillNames(profile.skills);
     const exps = profile.experiences || [];
 
     // Filter experiences to verified achievements
@@ -1127,7 +1132,7 @@ export class CareerIntelligenceEngine {
    * 7. Interview Intelligence (Requirement 9)
    */
   public generateInterviewIntelligence(profile: UserProfile, vacancy: JobVacancy): InterviewIntelligenceReport {
-    const verifiedSkills = (profile.skills || []).map(s => s.name);
+    const verifiedSkills = extractSkillNames(profile.skills);
     const exps = profile.experiences || [];
     const topExp = exps[0];
 
@@ -1207,7 +1212,7 @@ export class CareerIntelligenceEngine {
    * 8. Personalized Career Roadmap (Requirement 10)
    */
   public generateCareerRoadmap(profile: UserProfile, targetRole: string, targetVacancies: JobVacancy[]): CareerRoadmap {
-    const verifiedSkills = (profile.skills || []).map(s => s.name.toLowerCase().trim());
+    const verifiedSkills = extractSkillNames(profile.skills).map(s => s.toLowerCase());
     const skillFrequency = new Map<string, number>();
 
     // Analyze target vacancies to find frequent requirements

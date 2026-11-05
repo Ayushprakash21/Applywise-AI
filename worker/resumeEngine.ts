@@ -482,7 +482,7 @@ Return ONLY a valid JSON object matching this structure:
   validateTruthfulness(tailored: TailoredResumeContent, profile: UserProfile): TruthfulnessValidationResult {
     const issues: string[] = [];
     const masterCompanies = profile.experiences.map(e => e.company.toLowerCase().trim());
-    const masterSkills = new Set(profile.skills.map(s => s.name.toLowerCase().trim()));
+    const masterSkills = new Set((profile.skills || []).map(s => (typeof s === 'string' ? s : (s as any)?.name || '').toLowerCase().trim()));
 
     // 1. Verify every company in tailored experience exists in master profile
     for (const exp of tailored.tailoredExperiences || []) {
@@ -525,10 +525,12 @@ Return ONLY a valid JSON object matching this structure:
   ): Promise<{ tailoredResume: TailoredResumeContent; coverLetter: string; truthfulnessScore: number; auditIssues: string[] }> {
     const jobFamily = detectJobFamily(jobTitle, jobDescription);
 
+    const skillNames = (profile.skills || []).map(s => (typeof s === 'string' ? s : (s as any)?.name || ''));
+
     const rawResume: TailoredResumeContent = {
       headline: `${profile.currentTitle || jobTitle} | Focus on ${jobCompany}`,
-      professionalSummary: `${profile.fullName} is a dedicated professional with proven experience in ${jobFamily.replace('_', ' ')}. Demonstrated background includes ${profile.skills.slice(0, 4).map(s => s.name).join(', ')}.`,
-      targetedSkills: profile.skills.map(s => s.name).slice(0, 10),
+      professionalSummary: `${profile.fullName} is a dedicated professional with proven experience in ${jobFamily.replace('_', ' ')}. Demonstrated background includes ${skillNames.slice(0, 4).join(', ')}.`,
+      targetedSkills: skillNames.slice(0, 10),
       tailoredExperiences: profile.experiences.map(e => ({
         company: e.company,
         role: e.role,
@@ -547,7 +549,7 @@ Return ONLY a valid JSON object matching this structure:
 
     return {
       tailoredResume: rawResume,
-      coverLetter: `Dear Hiring Team at ${jobCompany},\n\nI am excited to apply for the ${jobTitle} position at ${jobCompany}. With over ${profile.totalExperienceYears} years of experience and core strengths in ${profile.skills.slice(0, 3).map(s => s.name).join(', ')}, I look forward to bringing immediate value to your team.\n\nThank you for considering my application.\n\nSincerely,\n${profile.fullName}`,
+      coverLetter: `Dear Hiring Team at ${jobCompany},\n\nI am excited to apply for the ${jobTitle} position at ${jobCompany}. With over ${profile.totalExperienceYears} years of experience and core strengths in ${skillNames.slice(0, 3).join(', ')}, I look forward to bringing immediate value to your team.\n\nThank you for considering my application.\n\nSincerely,\n${profile.fullName}`,
       truthfulnessScore: audit.score,
       auditIssues: audit.issues,
     };

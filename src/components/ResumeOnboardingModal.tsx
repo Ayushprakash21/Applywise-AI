@@ -302,6 +302,9 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="onboarding-modal-title"
         className="w-full max-w-2xl bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.18)] overflow-hidden max-h-[90vh] flex flex-col my-auto"
         onClick={e => e.stopPropagation()}
       >
@@ -310,7 +313,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
           <div className="flex items-center space-x-3 min-w-0">
             <BrandLogo size="sm" showWordmark={false} />
             <div className="min-w-0">
-              <h2 className="text-base font-bold text-slate-900 truncate">Resume Intelligence Onboarding</h2>
+              <h2 id="onboarding-modal-title" className="text-base font-bold text-slate-900 truncate">Resume Intelligence Onboarding</h2>
               <p className="text-xs text-slate-500 truncate">Zero-hallucination factual extraction for truthful matching</p>
             </div>
           </div>

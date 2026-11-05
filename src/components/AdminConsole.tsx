@@ -29,6 +29,7 @@ import { AuditLogEntry } from '../types/index.ts';
 import { BrandLogo } from './BrandLogo.tsx';
 import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
 import { AdminFounderProfile } from './AdminFounderProfile.tsx';
+import { AdminResumeManagement } from './AdminResumeManagement.tsx';
 
 interface AdminConsoleProps {
   currentUser: AuthUser;
@@ -36,7 +37,7 @@ interface AdminConsoleProps {
   onLogout: () => void;
 }
 
-type AdminTab = 'overview' | 'users' | 'sources' | 'audit' | 'system' | 'founder';
+type AdminTab = 'overview' | 'users' | 'resumes' | 'sources' | 'audit' | 'system' | 'founder';
 
 export const AdminConsole: React.FC<AdminConsoleProps> = ({
   currentUser,
@@ -264,6 +265,18 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             </button>
 
             <button
+              onClick={() => setActiveTab('resumes')}
+              className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
+                activeTab === 'resumes'
+                  ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+              }`}
+            >
+              <FileText className="h-3.5 w-3.5 text-purple-400" />
+              <span>Resume Operations ({stats?.totalResumes ?? '...'})</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('sources')}
               className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
                 activeTab === 'sources'
@@ -377,9 +390,9 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] space-y-3">
+              <div onClick={() => setActiveTab('resumes')} className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] space-y-3 cursor-pointer hover:border-violet-300 transition">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Master Resumes</span>
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Master Resumes (Click to Manage)</span>
                   <div className="p-2 rounded-xl bg-violet-50 text-violet-600">
                     <FileText className="h-4 w-4" />
                   </div>
@@ -567,6 +580,21 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* TAB: RESUMES & EXTRACTION */}
+        {activeTab === 'resumes' && (
+          <div className="space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Resume Management & Extraction</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Inspect ingested documents, verify candidate facts, review parser telemetry, and trigger safe re-extractions
+                </p>
+              </div>
+            </div>
+            <AdminResumeManagement onRefreshOverview={loadData} />
           </div>
         )}
 

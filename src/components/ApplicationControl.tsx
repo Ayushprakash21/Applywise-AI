@@ -132,7 +132,7 @@ export const ApplicationControl: React.FC<ApplicationControlProps> = ({
       {/* 1. Header & Stage Governance */}
       <div className={`p-6 sm:p-8 rounded-3xl border transition-all shadow-sm ${
         isBlack
-          ? 'bg-[#090D14]/90 border-amber-500/30 text-slate-100'
+          ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9]'
           : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
       }`}>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -140,7 +140,7 @@ export const ApplicationControl: React.FC<ApplicationControlProps> = ({
             <div className="flex items-center space-x-2">
               <span className={`text-xs font-mono font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full ${
                 isBlack
-                  ? 'bg-amber-400/10 text-amber-300 border border-amber-400/30'
+                  ? 'bg-[rgba(198,166,106,0.08)] text-[#C6A66A] border border-[rgba(198,166,106,0.22)]'
                   : 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/40'
               }`}>
                 GOVERNED APPLICATION LIFECYCLE
@@ -259,7 +259,7 @@ export const ApplicationControl: React.FC<ApplicationControlProps> = ({
                 key={app.id}
                 className={`p-6 rounded-3xl border transition-all ${
                   isBlack
-                    ? 'bg-[#090D14]/80 border-amber-500/20 text-slate-100'
+                    ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9] hover:border-[rgba(198,166,106,0.25)]'
                     : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
                 }`}
               >

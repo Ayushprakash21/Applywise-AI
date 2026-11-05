@@ -24,14 +24,19 @@ import {
   CheckCircle,
   Save,
   Mic,
-  MicOff
+  MicOff,
+  AlertCircle,
+  Loader2,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 import {
   ApplicationRecord,
   UserProfile,
   JobVacancy,
   InterviewMockSession,
-  CandidateFact
+  CandidateFact,
+  InterviewEvaluationOutput
 } from '../types/index.ts';
 import { api } from '../services/api.ts';
 
@@ -86,6 +91,9 @@ export const InterviewStudio: React.FC<InterviewStudioProps> = ({
   const [sessionCompleted, setSessionCompleted] = useState<boolean>(false);
   const [isSavingSession, setIsSavingSession] = useState<boolean>(false);
   const [sessionHistory, setSessionHistory] = useState<InterviewMockSession[]>([]);
+  const [isEvaluating, setIsEvaluating] = useState<boolean>(false);
+  const [evaluationResult, setEvaluationResult] = useState<InterviewEvaluationOutput | null>(null);
+  const [evaluationError, setEvaluationError] = useState<string | null>(null);
 
   // Timer Effect
   useEffect(() => {
@@ -184,10 +192,54 @@ export const InterviewStudio: React.FC<InterviewStudioProps> = ({
 
   const activeQuestion = filteredQuestions[activeQuestionIndex] || filteredQuestions[0];
 
+  const runEvaluation = async (answersToEval?: Record<string, string>) => {
+    const answers = answersToEval || sessionAnswers;
+    const answeredEntries = Object.entries(answers).filter(([_, text]) => text && text.trim().length > 0);
+
+    if (answeredEntries.length === 0) {
+      setEvaluationError('Please provide an answer before running evaluation.');
+      return;
+    }
+
+    setIsEvaluating(true);
+    setEvaluationError(null);
+
+    try {
+      const questionsList = filteredQuestions.filter(q => answers[q.id]?.trim());
+      const compositeQuestion = questionsList.map((q, idx) => `[Question ${idx + 1} - ${q.category}]: ${q.question}`).join('\n\n');
+      const compositeAnswer = questionsList.map((q, idx) => `[Response to Question ${idx + 1}]:\n${answers[q.id]}`).join('\n\n');
+      const allExpectedPoints = questionsList.flatMap(q => q.expectedPoints || []);
+
+      const res = await api.evaluateInterviewAnswer({
+        questionId: questionsList[0]?.id || 'q_composite',
+        question: compositeQuestion,
+        answer: compositeAnswer,
+        roleTitle: targetRole,
+        companyName: targetCompany,
+        category: activeCategory,
+        expectedPoints: allExpectedPoints,
+      });
+
+      if (res.success && res.evaluation) {
+        setEvaluationResult(res.evaluation);
+      } else {
+        setEvaluationError(res.error || 'Evaluation unavailable — retry required.');
+        setEvaluationResult(null);
+      }
+    } catch (err) {
+      console.error('Failed to evaluate interview answer:', err);
+      setEvaluationError('Evaluation unavailable — retry required.');
+      setEvaluationResult(null);
+    } finally {
+      setIsEvaluating(false);
+    }
+  };
+
   const handleNextQuestion = () => {
-    // Record current answer
+    let updatedAnswers = sessionAnswers;
     if (activeQuestion) {
-      setSessionAnswers(prev => ({ ...prev, [activeQuestion.id]: currentAnswer }));
+      updatedAnswers = { ...sessionAnswers, [activeQuestion.id]: currentAnswer };
+      setSessionAnswers(updatedAnswers);
     }
     setCurrentAnswer('');
     if (activeQuestionIndex < filteredQuestions.length - 1) {
@@ -195,10 +247,14 @@ export const InterviewStudio: React.FC<InterviewStudioProps> = ({
     } else {
       setSessionCompleted(true);
       setIsTimerRunning(false);
+      runEvaluation(updatedAnswers);
     }
   };
 
   const handleSaveSession = async () => {
+    if (!evaluationResult) {
+      return;
+    }
     try {
       setIsSavingSession(true);
       const sessionPayload: Partial<InterviewMockSession> = {
@@ -219,21 +275,20 @@ export const InterviewStudio: React.FC<InterviewStudioProps> = ({
           timestamp: new Date().toISOString(),
         })),
         feedback: {
-          relevanceScore: 88,
-          structureScore: 92,
-          clarityScore: 85,
-          specificityScore: 90,
-          evidenceScore: 86,
-          overallFeedback: `Responses for ${targetRole} show strong alignment with STAR structure and grounded candidate facts.`,
+          relevanceScore: evaluationResult.relevance.score,
+          structureScore: evaluationResult.structure.score,
+          clarityScore: evaluationResult.clarity.score,
+          evidenceScore: evaluationResult.evidence.score,
+          overallFeedback: evaluationResult.strengths.join(' ') || `Responses for ${targetRole} evaluated against role rubric.`,
           rubricNotes: [
-            'Responses directly reference verified competencies in candidate registry.',
-            'Quantitative metrics cited match documented experience without exaggeration.',
+            `Relevance (${evaluationResult.relevance.score}/25): ${evaluationResult.relevance.explanation}`,
+            `Structure (${evaluationResult.structure.score}/25): ${evaluationResult.structure.explanation}`,
+            `Clarity (${evaluationResult.clarity.score}/20): ${evaluationResult.clarity.explanation}`,
+            `Evidence (${evaluationResult.evidence.score}/30): ${evaluationResult.evidence.explanation}`,
           ],
         },
-        improvementAreas: [
-          'Further tighten the transition between Task and Action in technical narratives.',
-        ],
-        overallScore: 88,
+        improvementAreas: evaluationResult.improvementOpportunities,
+        overallScore: evaluationResult.overallScore,
       };
 
       const res = await api.saveMockInterviewSession(sessionPayload);
@@ -259,7 +314,7 @@ export const InterviewStudio: React.FC<InterviewStudioProps> = ({
       {/* 1. Header & Target Selector */}
       <div className={`p-6 sm:p-8 rounded-3xl border transition-all shadow-sm ${
         isBlack
-          ? 'bg-[#090D14]/90 border-amber-500/30 text-slate-100'
+          ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9]'
           : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
       }`}>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -267,7 +322,7 @@ export const InterviewStudio: React.FC<InterviewStudioProps> = ({
             <div className="flex items-center space-x-2">
               <span className={`text-xs font-mono font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-full ${
                 isBlack
-                  ? 'bg-amber-400/10 text-amber-300 border border-amber-400/30'
+                  ? 'bg-[rgba(198,166,106,0.08)] text-[#C6A66A] border border-[rgba(198,166,106,0.22)]'
                   : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/40'
               }`}>
                 INTERVIEW INTELLIGENCE & REHEARSAL
@@ -361,7 +416,7 @@ export const InterviewStudio: React.FC<InterviewStudioProps> = ({
                 onClick={() => setActiveCategory(cat.id as any)}
                 className={`px-2.5 py-1 rounded-xl text-[11px] font-semibold transition cursor-pointer ${
                   activeCategory === cat.id
-                    ? isBlack ? 'bg-amber-400 text-black' : 'bg-emerald-600 text-white'
+                    ? isBlack ? 'bg-[#C6A66A] text-[#0D0F12] shadow-xs' : 'bg-emerald-600 text-white'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                 }`}
               >
@@ -381,7 +436,7 @@ export const InterviewStudio: React.FC<InterviewStudioProps> = ({
                 key={q.id}
                 className={`p-6 rounded-3xl border transition-all ${
                   isBlack
-                    ? 'bg-[#090D14]/80 border-amber-500/20 text-slate-100'
+                    ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9] hover:border-[rgba(198,166,106,0.25)]'
                     : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
                 }`}
               >
@@ -442,7 +497,7 @@ export const InterviewStudio: React.FC<InterviewStudioProps> = ({
       {mode === 'simulator' && (
         <div className={`p-6 sm:p-8 rounded-3xl border transition-all ${
           isBlack
-            ? 'bg-[#090D14]/90 border-amber-500/30 text-slate-100'
+            ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9]'
             : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
         }`}>
           {!sessionCompleted ? (
@@ -535,36 +590,161 @@ export const InterviewStudio: React.FC<InterviewStudioProps> = ({
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto text-left">
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800">
-                  <span className="text-[10px] uppercase font-mono text-slate-400 font-semibold block">STAR Structure</span>
-                  <span className="text-base font-bold text-emerald-600 font-mono">92%</span>
+              {/* Loading State */}
+              {isEvaluating && (
+                <div className="p-8 rounded-3xl bg-slate-50/80 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800 max-w-xl mx-auto space-y-4">
+                  <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mx-auto" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                      Evaluating responses against verified candidate facts...
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Scoring 100-point rubric across Relevance (25), STAR Structure (25), Clarity (20), and Evidence (30).
+                    </p>
+                  </div>
                 </div>
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800">
-                  <span className="text-[10px] uppercase font-mono text-slate-400 font-semibold block">Relevance</span>
-                  <span className="text-base font-bold text-indigo-600 font-mono">88%</span>
+              )}
+
+              {/* Evaluation Unavailable Error / Retry UI */}
+              {!isEvaluating && evaluationError && (
+                <div className="p-6 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 max-w-xl mx-auto space-y-3">
+                  <div className="flex items-center justify-center space-x-2">
+                    <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                    <span className="font-semibold text-sm">{evaluationError}</span>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    The evaluation service could not score your response at this time. No synthetic scores will be generated.
+                  </p>
+                  <div className="pt-2">
+                    <button
+                      onClick={() => runEvaluation()}
+                      className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs transition inline-flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Retry Evaluation</span>
+                    </button>
+                  </div>
                 </div>
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800">
-                  <span className="text-[10px] uppercase font-mono text-slate-400 font-semibold block">Factual Grounding</span>
-                  <span className="text-base font-bold text-cyan-600 font-mono">95%</span>
+              )}
+
+              {/* Real 100-Point Rubric Breakdown */}
+              {!isEvaluating && evaluationResult && (
+                <div className="space-y-6 max-w-2xl mx-auto text-left">
+                  {/* Overall Score Banner */}
+                  <div className="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-800/60 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-mono text-indigo-500 dark:text-indigo-400 font-bold block">
+                        Verified Rubric Score
+                      </span>
+                      <span className="text-2xl font-bold text-indigo-700 dark:text-indigo-300 font-mono">
+                        {evaluationResult.overallScore} / 100
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold">
+                        Confidence: {evaluationResult.evaluationConfidence}
+                      </span>
+                      <p className="text-[10px] text-slate-400 mt-1">Evaluated via {evaluationResult.modelUsed}</p>
+                    </div>
+                  </div>
+
+                  {/* 4 Dimension Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] uppercase font-mono text-slate-400 font-semibold">Question Relevance</span>
+                        <span className="text-sm font-bold text-indigo-600 font-mono">{evaluationResult.relevance.score} / 25</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                        {evaluationResult.relevance.explanation}
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] uppercase font-mono text-slate-400 font-semibold">STAR Structure</span>
+                        <span className="text-sm font-bold text-emerald-600 font-mono">{evaluationResult.structure.score} / 25</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                        {evaluationResult.structure.explanation}
+                      </p>
+                      {evaluationResult.structure.missingStarElements?.length > 0 && (
+                        <div className="text-[10px] text-amber-600 dark:text-amber-400 font-mono">
+                          Missing elements: {evaluationResult.structure.missingStarElements.join(', ')}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] uppercase font-mono text-slate-400 font-semibold">Clarity & Conciseness</span>
+                        <span className="text-sm font-bold text-cyan-600 font-mono">{evaluationResult.clarity.score} / 20</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                        {evaluationResult.clarity.explanation}
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] uppercase font-mono text-slate-400 font-semibold">Factual Evidence</span>
+                        <span className="text-sm font-bold text-purple-600 font-mono">{evaluationResult.evidence.score} / 30</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                        {evaluationResult.evidence.explanation}
+                      </p>
+                      {evaluationResult.evidence.unsupportedClaims?.length > 0 && (
+                        <div className="text-[10px] text-rose-500 font-mono flex items-center space-x-1 pt-0.5">
+                          <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+                          <span>Unverified: {evaluationResult.evidence.unsupportedClaims.join(', ')}</span>
+                        </div>
+                      )}
+                      {evaluationResult.evidence.verifiedClaims?.length > 0 && (
+                        <div className="text-[10px] text-emerald-600 font-mono flex items-center space-x-1 pt-0.5">
+                          <CheckCircle className="w-3 h-3 flex-shrink-0" />
+                          <span>Verified: {evaluationResult.evidence.verifiedClaims.join(', ')}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Strengths & Improvement Opportunities */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    {evaluationResult.strengths?.length > 0 && (
+                      <div className="p-3 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/50 space-y-1.5">
+                        <span className="font-bold text-emerald-700 dark:text-emerald-400 block text-[11px]">Observed Strengths</span>
+                        <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-300">
+                          {evaluationResult.strengths.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {evaluationResult.improvementOpportunities?.length > 0 && (
+                      <div className="p-3 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/50 space-y-1.5">
+                        <span className="font-bold text-amber-700 dark:text-amber-400 block text-[11px]">Improvement Opportunities</span>
+                        <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-300">
+                          {evaluationResult.improvementOpportunities.map((o, i) => (
+                            <li key={i}>{o}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800">
-                  <span className="text-[10px] uppercase font-mono text-slate-400 font-semibold block">Overall Score</span>
-                  <span className="text-base font-bold text-emerald-600 font-mono">88%</span>
-                </div>
-              </div>
+              )}
 
               <div className="flex justify-center space-x-3 pt-4">
                 <button
-                  onClick={() => { setMode('bank'); setSessionCompleted(false); }}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 transition"
+                  onClick={() => { setMode('bank'); setSessionCompleted(false); setEvaluationResult(null); setEvaluationError(null); }}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                 >
                   Return to Question Bank
                 </button>
                 <button
                   onClick={handleSaveSession}
-                  disabled={isSavingSession}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-xs transition flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                  disabled={isSavingSession || !evaluationResult || isEvaluating}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-xs transition flex items-center space-x-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>{isSavingSession ? 'Saving Record...' : 'Save Session to History'}</span>
@@ -605,7 +785,7 @@ export const InterviewStudio: React.FC<InterviewStudioProps> = ({
                       </span>
                     </div>
                     <div className="text-xs text-slate-400 font-mono">
-                      {new Date(sess.createdAt).toLocaleDateString()} · Score: {sess.overallScore || 85}%
+                      {new Date(sess.createdAt).toLocaleDateString()} · Score: {sess.overallScore !== undefined ? `${sess.overallScore}%` : 'Grounded Rehearsal'}
                     </div>
                   </div>
 

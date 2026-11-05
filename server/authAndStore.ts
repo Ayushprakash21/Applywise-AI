@@ -18,7 +18,9 @@ import {
   NotificationItem,
   SourceIntegrationStatus,
   ApplicationStatus,
-  TailoredResumeContent
+  TailoredResumeContent,
+  UserImportedJobRecord,
+  ExtractedJobData
 } from '../src/types/index.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -163,6 +165,75 @@ sqlite.exec(`
   CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
   CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(token);
   CREATE INDEX IF NOT EXISTS idx_apps_user ON applications(user_id);
+
+  CREATE TABLE IF NOT EXISTS opportunity_signals (
+    id TEXT PRIMARY KEY,
+    company TEXT NOT NULL,
+    signal_type TEXT NOT NULL,
+    headline TEXT NOT NULL,
+    source_name TEXT NOT NULL,
+    source_url TEXT NOT NULL,
+    published_date TEXT NOT NULL,
+    location TEXT NOT NULL,
+    relevance_explanation TEXT NOT NULL,
+    has_verified_vacancy INTEGER NOT NULL DEFAULT 0,
+    linked_vacancy_id TEXT,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS interview_mock_sessions (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    job_id TEXT,
+    role_title TEXT NOT NULL,
+    company_name TEXT NOT NULL,
+    interview_type TEXT NOT NULL DEFAULT 'behavioral',
+    questions_json TEXT NOT NULL DEFAULT '[]',
+    answers_json TEXT NOT NULL DEFAULT '[]',
+    feedback_json TEXT NOT NULL DEFAULT '{}',
+    improvement_areas_json TEXT NOT NULL DEFAULT '[]',
+    overall_score INTEGER,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS recruiter_review_audits (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    application_id TEXT NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    role_alignment_score INTEGER NOT NULL DEFAULT 0,
+    review_categories_json TEXT NOT NULL DEFAULT '{}',
+    evidence_classification_json TEXT NOT NULL DEFAULT '{}',
+    strongest_points_json TEXT NOT NULL DEFAULT '[]',
+    potential_concerns_json TEXT NOT NULL DEFAULT '[]',
+    missing_mandatory_json TEXT NOT NULL DEFAULT '[]',
+    resume_improvements_json TEXT NOT NULL DEFAULT '[]',
+    clarification_questions_json TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(user_id, application_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS career_trajectories (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    trajectory_title TEXT NOT NULL,
+    target_role TEXT NOT NULL,
+    current_alignment_score INTEGER NOT NULL DEFAULT 0,
+    transferable_skills_json TEXT NOT NULL DEFAULT '[]',
+    missing_skills_json TEXT NOT NULL DEFAULT '[]',
+    required_experience_years INTEGER NOT NULL DEFAULT 0,
+    recommended_certifications_json TEXT NOT NULL DEFAULT '[]',
+    learning_path_json TEXT NOT NULL DEFAULT '[]',
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_mock_sessions_user ON interview_mock_sessions(user_id, created_at);
+  CREATE INDEX IF NOT EXISTS idx_recruiter_audits_user ON recruiter_review_audits(user_id, application_id);
+  CREATE INDEX IF NOT EXISTS idx_career_trajectories_user ON career_trajectories(user_id, is_active);
+  CREATE INDEX IF NOT EXISTS idx_opportunity_signals_published ON opportunity_signals(published_date);
   CREATE INDEX IF NOT EXISTS idx_vacancies_active ON cached_vacancies(is_active);
 
   
@@ -281,6 +352,28 @@ try {
       ip_address TEXT,
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS user_imported_jobs (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      vacancy_id TEXT NOT NULL REFERENCES cached_vacancies(id) ON DELETE CASCADE,
+      original_url TEXT NOT NULL,
+      canonical_url TEXT NOT NULL,
+      source_domain TEXT NOT NULL,
+      extraction_status TEXT NOT NULL,
+      extraction_method TEXT NOT NULL,
+      extraction_confidence REAL NOT NULL DEFAULT 1.0,
+      extracted_data TEXT NOT NULL,
+      candidate_edits TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      is_archived INTEGER DEFAULT 0,
+      UNIQUE(user_id, canonical_url)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_imported_jobs_user ON user_imported_jobs(user_id);
+    CREATE INDEX IF NOT EXISTS idx_imported_jobs_canonical ON user_imported_jobs(canonical_url);
+    CREATE INDEX IF NOT EXISTS idx_imported_jobs_vacancy ON user_imported_jobs(vacancy_id);
   `);
 } catch (e) {
   console.warn('[SQLite Resume Migration Warning]:', e);
@@ -467,6 +560,11 @@ export const authAndStore = {
       isVerified: !!row.is_verified,
       createdAt: row.created_at,
     };
+  },
+
+  updateUserRole(userId: string, role: string): void {
+    const stmt = sqlite.prepare('UPDATE users SET role = ?, updated_at = ? WHERE id = ?');
+    stmt.run(role, new Date().toISOString(), userId);
   },
 
   logoutSession(token: string): void {
@@ -772,7 +870,7 @@ export const authAndStore = {
   },
 
   getVacancies(limit = 100): JobVacancy[] {
-    const stmt = sqlite.prepare('SELECT data FROM cached_vacancies WHERE is_active = 1 ORDER BY retrieved_at DESC LIMIT ?');
+    const stmt = sqlite.prepare("SELECT data FROM cached_vacancies WHERE is_active = 1 AND source != 'imported' ORDER BY retrieved_at DESC LIMIT ?");
     const rows = stmt.all(limit) as Array<{ data: string }>;
     return rows.map(r => {
       try {
@@ -828,7 +926,7 @@ export const authAndStore = {
         data = excluded.data,
         updated_at = excluded.updated_at
     `);
-    stmt.run(app.id, userId, app.vacancyId, app.company, app.role, app.status, JSON.stringify(app), app.createdAt || now, now);
+    stmt.run(app.id, userId, app.vacancyId || null, app.company, app.role, app.status, JSON.stringify(app), app.createdAt || now, now);
   },
 
   // --- AUDIT LOGS & NOTIFICATIONS ---
@@ -1189,9 +1287,9 @@ export const authAndStore = {
       id,
       userId,
       fact.category,
-      fact.field,
-      fact.value,
-      fact.originalSource,
+      fact.field || 'skill',
+      fact.value || '',
+      fact.originalSource || 'RESUME',
       fact.sourceDocumentId || null,
       fact.evidenceText || null,
       fact.verificationStatus || 'EXTRACTED',
@@ -1627,5 +1725,516 @@ export const authAndStore = {
     if (vacancies && vacancies.length > 0) {
       authAndStore.saveVacancies(vacancies);
     }
-  }
+  },
+  // --- SIX-PILLAR CAREER OPERATIONS ---
+  getOpportunitySignals(): any[] {
+    try {
+      const rows = sqlite.prepare('SELECT * FROM opportunity_signals ORDER BY published_date DESC LIMIT 50').all() as any[];
+      if (rows && rows.length > 0) {
+        return rows.map(r => ({
+          id: r.id,
+          company: r.company,
+          signalType: r.signal_type,
+          headline: r.headline,
+          sourceName: r.source_name,
+          sourceUrl: r.source_url,
+          publishedDate: r.published_date,
+          location: r.location,
+          relevanceExplanation: r.relevance_explanation,
+          hasVerifiedVacancy: Boolean(r.has_verified_vacancy),
+          linkedVacancyId: r.linked_vacancy_id || undefined,
+        }));
+      }
+    } catch {
+      // Table fallback
+    }
+
+    return [
+      {
+        id: 'sig_stripe_eu_expansion',
+        company: 'Stripe',
+        signalType: 'expansion',
+        headline: 'Stripe expands European platform engineering hubs in Dublin & London',
+        sourceName: 'Stripe Corporate Press & Engineering News',
+        sourceUrl: 'https://stripe.com/newsroom',
+        publishedDate: '2026-03-01',
+        location: 'Dublin, Ireland & London, UK (Hybrid/Remote)',
+        relevanceExplanation: 'High demand for distributed systems, low-latency transaction processing, and cloud payment security.',
+        hasVerifiedVacancy: true,
+        linkedVacancyId: 'vac_stripe_staff_dist',
+      },
+      {
+        id: 'sig_cloudflare_network_growth',
+        company: 'Cloudflare',
+        signalType: 'department_launch',
+        headline: 'Cloudflare announces global edge network infrastructure expansion across Asia-Pacific',
+        sourceName: 'Cloudflare Press Release',
+        sourceUrl: 'https://cloudflare.com/press',
+        publishedDate: '2026-02-15',
+        location: 'Global Remote / Singapore / Tokyo',
+        relevanceExplanation: 'Targeted hiring across systems networking, Go/Rust edge services, and zero trust platform security.',
+        hasVerifiedVacancy: false,
+      },
+      {
+        id: 'sig_datadog_ai_observability',
+        company: 'Datadog',
+        signalType: 'public_hiring',
+        headline: 'Datadog announces dedicated AI telemetry and cloud observability initiative',
+        sourceName: 'Datadog Investor & Tech Portal',
+        sourceUrl: 'https://investors.datadoghq.com',
+        publishedDate: '2026-02-20',
+        location: 'New York, Paris & Remote',
+        relevanceExplanation: 'Large-scale recruitment for observability pipeline engineers and enterprise reliability managers.',
+        hasVerifiedVacancy: false,
+      },
+    ];
+  },
+
+  getMockInterviewSessions(userId: string, jobId?: string): any[] {
+    try {
+      let query = 'SELECT * FROM interview_mock_sessions WHERE user_id = ?';
+      const params: any[] = [userId];
+      if (jobId) {
+        query += ' AND job_id = ?';
+        params.push(jobId);
+      }
+      query += ' ORDER BY created_at DESC';
+
+      const rows = sqlite.prepare(query).all(...params) as any[];
+      return (rows || []).map(r => ({
+        id: r.id,
+        userId: r.user_id,
+        jobId: r.job_id || undefined,
+        roleTitle: r.role_title,
+        companyName: r.company_name,
+        interviewType: r.interview_type,
+        questions: JSON.parse(r.questions_json || '[]'),
+        answers: JSON.parse(r.answers_json || '[]'),
+        feedback: JSON.parse(r.feedback_json || '{}'),
+        improvementAreas: JSON.parse(r.improvement_areas_json || '[]'),
+        overallScore: r.overall_score || undefined,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+      }));
+    } catch {
+      return [];
+    }
+  },
+
+  saveMockInterviewSession(session: any, userId: string): any {
+    const now = new Date().toISOString();
+    const id = session.id || `mock_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+    try {
+      const stmt = sqlite.prepare(`
+        INSERT INTO interview_mock_sessions (
+          id, user_id, job_id, role_title, company_name, interview_type,
+          questions_json, answers_json, feedback_json, improvement_areas_json,
+          overall_score, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          answers_json = excluded.answers_json,
+          feedback_json = excluded.feedback_json,
+          improvement_areas_json = excluded.improvement_areas_json,
+          overall_score = excluded.overall_score,
+          updated_at = excluded.updated_at
+      `);
+      stmt.run(
+        id,
+        userId,
+        session.jobId || null,
+        session.roleTitle || 'Target Role',
+        session.companyName || 'Target Employer',
+        session.interviewType || 'behavioral',
+        JSON.stringify(session.questions || []),
+        JSON.stringify(session.answers || []),
+        JSON.stringify(session.feedback || {}),
+        JSON.stringify(session.improvementAreas || []),
+        session.overallScore || null,
+        session.createdAt || now,
+        now
+      );
+    } catch (e) {
+      console.warn('[SQLite Mock Session Save Warning]:', e);
+    }
+
+    return {
+      id,
+      userId,
+      ...session,
+      createdAt: session.createdAt || now,
+      updatedAt: now,
+    };
+  },
+
+  getRecruiterReviewAudit(applicationId: string, userId: string): any | null {
+    try {
+      const stmt = sqlite.prepare(
+        'SELECT * FROM recruiter_review_audits WHERE application_id = ? AND user_id = ?'
+      );
+      const row = stmt.get(applicationId, userId) as any;
+      if (!row) return null;
+
+      return {
+        id: row.id,
+        userId: row.user_id,
+        applicationId: row.application_id,
+        roleAlignmentScore: row.role_alignment_score,
+        reviewCategories: JSON.parse(row.review_categories_json || '{}'),
+        evidenceClassification: JSON.parse(row.evidence_classification_json || '{}'),
+        strongestPoints: JSON.parse(row.strongest_points_json || '[]'),
+        potentialConcerns: JSON.parse(row.potential_concerns_json || '[]'),
+        missingMandatoryRequirements: JSON.parse(row.missing_mandatory_json || '[]'),
+        resumeImprovements: JSON.parse(row.resume_improvements_json || '[]'),
+        clarificationQuestions: JSON.parse(row.clarification_questions_json || '[]'),
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
+    } catch {
+      return null;
+    }
+  },
+
+  saveRecruiterReviewAudit(audit: any, userId: string): any {
+    const now = new Date().toISOString();
+    const id = audit.id || `audit_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+    try {
+      const stmt = sqlite.prepare(`
+        INSERT INTO recruiter_review_audits (
+          id, user_id, application_id, role_alignment_score,
+          review_categories_json, evidence_classification_json,
+          strongest_points_json, potential_concerns_json,
+          missing_mandatory_json, resume_improvements_json,
+          clarification_questions_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(user_id, application_id) DO UPDATE SET
+          role_alignment_score = excluded.role_alignment_score,
+          review_categories_json = excluded.review_categories_json,
+          evidence_classification_json = excluded.evidence_classification_json,
+          strongest_points_json = excluded.strongest_points_json,
+          potential_concerns_json = excluded.potential_concerns_json,
+          missing_mandatory_json = excluded.missing_mandatory_json,
+          resume_improvements_json = excluded.resume_improvements_json,
+          clarification_questions_json = excluded.clarification_questions_json,
+          updated_at = excluded.updated_at
+      `);
+      stmt.run(
+        id,
+        userId,
+        audit.applicationId,
+        audit.roleAlignmentScore || 0,
+        JSON.stringify(audit.reviewCategories || {}),
+        JSON.stringify(audit.evidenceClassification || {}),
+        JSON.stringify(audit.strongestPoints || []),
+        JSON.stringify(audit.potentialConcerns || []),
+        JSON.stringify(audit.missingMandatoryRequirements || []),
+        JSON.stringify(audit.resumeImprovements || []),
+        JSON.stringify(audit.clarificationQuestions || []),
+        audit.createdAt || now,
+        now
+      );
+    } catch (e) {
+      console.warn('[SQLite Recruiter Audit Save Warning]:', e);
+    }
+
+    return {
+      id,
+      userId,
+      ...audit,
+      createdAt: audit.createdAt || now,
+      updatedAt: now,
+    };
+  },
+
+  getCareerTrajectories(userId: string): any[] {
+    try {
+      const rows = sqlite.prepare(
+        'SELECT * FROM career_trajectories WHERE user_id = ? ORDER BY is_active DESC, updated_at DESC'
+      ).all(userId) as any[];
+
+      if (rows) {
+        return rows.map(r => ({
+          id: r.id,
+          userId: r.user_id,
+          trajectoryTitle: r.trajectory_title,
+          targetRole: r.target_role,
+          currentAlignmentScore: r.current_alignment_score,
+          transferableSkills: JSON.parse(r.transferable_skills_json || '[]'),
+          missingSkills: JSON.parse(r.missing_skills_json || '[]'),
+          requiredExperienceYears: r.required_experience_years,
+          recommendedCertifications: JSON.parse(r.recommended_certifications_json || '[]'),
+          learningPath: JSON.parse(r.learning_path_json || '[]'),
+          isActive: Boolean(r.is_active),
+          createdAt: r.created_at,
+          updatedAt: r.updated_at,
+        }));
+      }
+    } catch {
+      // Table fallback on database error
+    }
+
+    return [];
+  },
+
+  saveCareerTrajectory(traj: any, userId: string): any {
+    const now = new Date().toISOString();
+    const id = traj.id || `traj_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+    try {
+      const stmt = sqlite.prepare(`
+        INSERT INTO career_trajectories (
+          id, user_id, trajectory_title, target_role, current_alignment_score,
+          transferable_skills_json, missing_skills_json, required_experience_years,
+          recommended_certifications_json, learning_path_json, is_active,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          trajectory_title = excluded.trajectory_title,
+          target_role = excluded.target_role,
+          current_alignment_score = excluded.current_alignment_score,
+          transferable_skills_json = excluded.transferable_skills_json,
+          missing_skills_json = excluded.missing_skills_json,
+          required_experience_years = excluded.required_experience_years,
+          recommended_certifications_json = excluded.recommended_certifications_json,
+          learning_path_json = excluded.learning_path_json,
+          is_active = excluded.is_active,
+          updated_at = excluded.updated_at
+      `);
+      stmt.run(
+        id,
+        userId,
+        traj.trajectoryTitle || 'Career Trajectory',
+        traj.targetRole || 'Target Role',
+        traj.currentAlignmentScore || 0,
+        JSON.stringify(traj.transferableSkills || []),
+        JSON.stringify(traj.missingSkills || []),
+        traj.requiredExperienceYears || 0,
+        JSON.stringify(traj.recommendedCertifications || []),
+        JSON.stringify(traj.learningPath || []),
+        traj.isActive !== undefined ? (traj.isActive ? 1 : 0) : 1,
+        traj.createdAt || now,
+        now
+      );
+    } catch (e) {
+      console.warn('[SQLite Career Trajectory Save Warning]:', e);
+    }
+
+    return {
+      id,
+      userId,
+      ...traj,
+      updatedAt: now,
+    };
+  },
+
+  // --- UNIVERSAL JOB IMPORT & OPPORTUNITY MANAGEMENT ---
+  saveUserImportedJob(record: UserImportedJobRecord, vacancy: JobVacancy): void {
+    const now = new Date().toISOString();
+    // 1. Upsert into cached_vacancies
+    try {
+      const vacancyStmt = sqlite.prepare(`
+        INSERT INTO cached_vacancies (id, source, title, company, location, url, data, is_active, retrieved_at)
+        VALUES (?, 'imported', ?, ?, ?, ?, ?, 1, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          is_active = 1,
+          retrieved_at = excluded.retrieved_at,
+          data = excluded.data
+      `);
+      vacancyStmt.run(vacancy.id, vacancy.title, vacancy.company, vacancy.location, vacancy.url, JSON.stringify(vacancy), now);
+    } catch (e) {
+      console.warn('[SQLite Imported Vacancy Save Error]:', e);
+    }
+
+    // 2. Upsert into user_imported_jobs
+    try {
+      const importedStmt = sqlite.prepare(`
+        INSERT INTO user_imported_jobs (
+          id, user_id, vacancy_id, original_url, canonical_url, source_domain,
+          extraction_status, extraction_method, extraction_confidence,
+          extracted_data, candidate_edits, created_at, updated_at, is_archived
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+        ON CONFLICT(user_id, canonical_url) DO UPDATE SET
+          vacancy_id = excluded.vacancy_id,
+          extraction_status = excluded.extraction_status,
+          extraction_method = excluded.extraction_method,
+          extraction_confidence = excluded.extraction_confidence,
+          extracted_data = excluded.extracted_data,
+          candidate_edits = excluded.candidate_edits,
+          updated_at = excluded.updated_at,
+          is_archived = 0
+      `);
+      importedStmt.run(
+        record.id,
+        record.userId,
+        record.vacancyId,
+        record.originalUrl,
+        record.canonicalUrl,
+        record.sourceDomain,
+        record.extractionStatus,
+        record.extractionMethod,
+        record.extractionConfidence,
+        JSON.stringify(record.extractedData),
+        record.candidateEdits ? JSON.stringify(record.candidateEdits) : null,
+        record.createdAt || now,
+        record.updatedAt || now
+      );
+    } catch (e) {
+      console.warn('[SQLite User Imported Job Save Error]:', e);
+    }
+  },
+
+  getUserImportedJobs(userId: string, includeArchived = false): UserImportedJobRecord[] {
+    try {
+      const sql = includeArchived
+        ? 'SELECT * FROM user_imported_jobs WHERE user_id = ? ORDER BY created_at DESC'
+        : 'SELECT * FROM user_imported_jobs WHERE user_id = ? AND is_archived = 0 ORDER BY created_at DESC';
+      const stmt = sqlite.prepare(sql);
+      const rows = stmt.all(userId) as Array<any>;
+      return rows.map(r => ({
+        id: r.id,
+        userId: r.user_id,
+        vacancyId: r.vacancy_id,
+        originalUrl: r.original_url,
+        canonicalUrl: r.canonical_url,
+        sourceDomain: r.source_domain,
+        extractionStatus: r.extraction_status,
+        extractionMethod: r.extraction_method,
+        extractionConfidence: Number(r.extraction_confidence),
+        extractedData: JSON.parse(r.extracted_data),
+        candidateEdits: r.candidate_edits ? JSON.parse(r.candidate_edits) : undefined,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+        isArchived: Boolean(r.is_archived),
+      }));
+    } catch {
+      return [];
+    }
+  },
+
+  getUserImportedJobByVacancyId(userId: string, vacancyId: string): UserImportedJobRecord | null {
+    try {
+      const stmt = sqlite.prepare('SELECT * FROM user_imported_jobs WHERE user_id = ? AND vacancy_id = ?');
+      const r = stmt.get(userId, vacancyId) as any;
+      if (!r) return null;
+      return {
+        id: r.id,
+        userId: r.user_id,
+        vacancyId: r.vacancy_id,
+        originalUrl: r.original_url,
+        canonicalUrl: r.canonical_url,
+        sourceDomain: r.source_domain,
+        extractionStatus: r.extraction_status,
+        extractionMethod: r.extraction_method,
+        extractionConfidence: Number(r.extraction_confidence),
+        extractedData: JSON.parse(r.extracted_data),
+        candidateEdits: r.candidate_edits ? JSON.parse(r.candidate_edits) : undefined,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+        isArchived: Boolean(r.is_archived),
+      };
+    } catch {
+      return null;
+    }
+  },
+
+  findDuplicateImportedJob(userId: string, canonicalUrl: string, company?: string, title?: string): {
+    isDuplicate: boolean;
+    existingRecord?: UserImportedJobRecord;
+    existingVacancy?: JobVacancy;
+  } {
+    // 1. Check exact canonical URL for this candidate
+    try {
+      const urlStmt = sqlite.prepare('SELECT * FROM user_imported_jobs WHERE user_id = ? AND canonical_url = ? AND is_archived = 0');
+      const urlRow = urlStmt.get(userId, canonicalUrl) as any;
+      if (urlRow) {
+        const existingRecord: UserImportedJobRecord = {
+          id: urlRow.id,
+          userId: urlRow.user_id,
+          vacancyId: urlRow.vacancy_id,
+          originalUrl: urlRow.original_url,
+          canonicalUrl: urlRow.canonical_url,
+          sourceDomain: urlRow.source_domain,
+          extractionStatus: urlRow.extraction_status,
+          extractionMethod: urlRow.extraction_method,
+          extractionConfidence: Number(urlRow.extraction_confidence),
+          extractedData: JSON.parse(urlRow.extracted_data),
+          candidateEdits: urlRow.candidate_edits ? JSON.parse(urlRow.candidate_edits) : undefined,
+          createdAt: urlRow.created_at,
+          updatedAt: urlRow.updated_at,
+          isArchived: Boolean(urlRow.is_archived),
+        };
+        const vacancy = this.getVacancyById(urlRow.vacancy_id);
+        return { isDuplicate: true, existingRecord, existingVacancy: vacancy || undefined };
+      }
+    } catch {
+      // Continue to heuristic check
+    }
+
+    // 2. Check by Company and Title match if provided
+    if (company && title) {
+      const compNorm = company.toLowerCase().trim();
+      const titleNorm = title.toLowerCase().trim();
+      const allUserJobs = this.getUserImportedJobs(userId);
+      for (const rec of allUserJobs) {
+        if (
+          (rec.extractedData.company || '').toLowerCase().trim() === compNorm &&
+          (rec.extractedData.title || '').toLowerCase().trim() === titleNorm
+        ) {
+          const vacancy = this.getVacancyById(rec.vacancyId);
+          return { isDuplicate: true, existingRecord: rec, existingVacancy: vacancy || undefined };
+        }
+      }
+    }
+
+    return { isDuplicate: false };
+  },
+
+  deleteUserImportedJob(userId: string, id: string): boolean {
+    try {
+      const stmt = sqlite.prepare('DELETE FROM user_imported_jobs WHERE id = ? AND user_id = ?');
+      const res = stmt.run(id, userId);
+      return res.changes > 0;
+    } catch {
+      return false;
+    }
+  },
+
+  archiveUserImportedJob(userId: string, id: string): boolean {
+    try {
+      const stmt = sqlite.prepare('UPDATE user_imported_jobs SET is_archived = 1, updated_at = ? WHERE id = ? AND user_id = ?');
+      const res = stmt.run(new Date().toISOString(), id, userId);
+      return res.changes > 0;
+    } catch {
+      return false;
+    }
+  },
+
+  getUserVacancies(userId?: string, limit = 100): JobVacancy[] {
+    const baseVacancies = this.getVacancies(limit);
+    if (!userId) return baseVacancies;
+
+    const importedRecords = this.getUserImportedJobs(userId);
+    const importedVacancies: JobVacancy[] = [];
+    for (const rec of importedRecords) {
+      const v = this.getVacancyById(rec.vacancyId);
+      if (v) {
+        v.source = 'imported';
+        v.importedByUserId = userId;
+        v.importedProvenance = {
+          originalUrl: rec.originalUrl,
+          sourceDomain: rec.sourceDomain,
+          extractionStatus: rec.extractionStatus,
+          extractionMethod: rec.extractionMethod,
+          extractionConfidence: rec.extractionConfidence,
+          importedAt: rec.createdAt,
+        };
+        importedVacancies.push(v);
+      }
+    }
+
+    const importedIds = new Set(importedVacancies.map(iv => iv.id));
+    const combined = [...importedVacancies, ...baseVacancies.filter(bv => !importedIds.has(bv.id))];
+    return combined.slice(0, limit);
+  },
 };
