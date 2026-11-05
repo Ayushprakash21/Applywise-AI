@@ -23,9 +23,23 @@ import {
   ApplicationIntegrityReport,
   CareerOutcomeItem,
   UserImportedJobRecord,
-  ExtractedJobData
+  ExtractedJobData,
+  MembershipPlanId,
+  MembershipValidityType,
+  MembershipStatus,
+  MembershipSource,
+  MembershipGrant,
+  MembershipSummaryMetrics,
+  AdminProvisionUserRequest
 } from '../src/types/index.ts';
+import {
+  addCalendarMonthsUTC,
+  calculateMembershipExpiry,
+  calculateRemainingDays,
+  deriveMembershipStatus
+} from '../src/utils/membershipDates.ts';
 import { isPermanentFreeAccessAccount } from '../src/config/freeAccess.ts';
+import { hashPassword } from './auth.ts';
 
 export interface AuthUser {
   id: string;
@@ -754,11 +768,16 @@ export class D1Store {
   // --- SUBSCRIPTIONS & ENTITLEMENTS ---
   async getUserSubscription(userId: string): Promise<{
     planId: 'free' | 'pro' | 'black';
-    status: 'active' | 'cancelled' | 'past_due';
-    billingInterval: 'monthly' | 'annual';
+    status: 'active' | 'cancelled' | 'past_due' | 'expired';
+    billingInterval: 'monthly' | 'annual' | 'permanent';
     currentPeriodStart: string;
     currentPeriodEnd: string;
     cancelAtPeriodEnd: boolean;
+    membershipSource?: MembershipSource;
+    validityType?: string;
+    grantId?: string;
+    grantedBy?: string;
+    remainingDays?: number | null;
   }> {
     const userRow = await this.db.prepare('SELECT email, is_verified FROM users WHERE id = ?').bind(userId).first<{ email: string; is_verified: number }>();
     if (userRow && isPermanentFreeAccessAccount({ email: userRow.email, isVerified: !!userRow.is_verified })) {
@@ -766,13 +785,76 @@ export class D1Store {
       return {
         planId: 'black',
         status: 'active',
-        billingInterval: 'annual',
+        billingInterval: 'permanent',
         currentPeriodStart: now.toISOString(),
         currentPeriodEnd: '2099-12-31T23:59:59.999Z',
         cancelAtPeriodEnd: false,
+        membershipSource: 'SYSTEM',
+        validityType: 'lifetime',
+        remainingDays: null,
       };
     }
 
+    // 1. Check for Active Administrative Membership Grant
+    const activeGrant = await this.db.prepare(
+      "SELECT * FROM membership_grants WHERE user_id = ? AND status = 'active' ORDER BY created_at DESC LIMIT 1"
+    ).bind(userId).first<any>();
+
+    if (activeGrant) {
+      const now = new Date();
+      if (activeGrant.expires_at && new Date(activeGrant.expires_at).getTime() <= now.getTime()) {
+        await this.db.prepare("UPDATE membership_grants SET status = 'expired', updated_at = ? WHERE id = ?")
+          .bind(now.toISOString(), activeGrant.id).run();
+
+        try {
+          const userEmail = userRow?.email || 'unknown';
+          await this.addAuditLog(
+            userId,
+            'System Scheduler',
+            'MEMBERSHIP_EXPIRED',
+            `Membership (${activeGrant.plan.toUpperCase()} - ${activeGrant.validity_type})`,
+            JSON.stringify({
+              targetUserId: userId,
+              targetEmail: userEmail,
+              adminId: activeGrant.granted_by,
+              previousPlan: activeGrant.plan,
+              newPlan: 'free',
+              previousExpiry: activeGrant.expires_at,
+              newExpiry: null,
+              actionType: 'MEMBERSHIP_EXPIRED',
+              validityType: activeGrant.validity_type,
+              reason: 'Automatic expiration timestamp reached',
+              source: 'ADMIN_GRANT'
+            })
+          );
+          await this.addNotification(
+            userId,
+            'Membership Expired',
+            `Your administrative ${activeGrant.plan.toUpperCase()} membership has expired. Renew or upgrade to continue enjoying premium capabilities.`,
+            'warning',
+            { plan: activeGrant.plan, expiredAt: activeGrant.expires_at }
+          );
+        } catch {
+          // Non-blocking log catch
+        }
+      } else {
+        return {
+          planId: activeGrant.plan as 'free' | 'pro' | 'black',
+          status: 'active',
+          billingInterval: activeGrant.validity_type === 'lifetime' ? 'permanent' : 'annual',
+          currentPeriodStart: activeGrant.starts_at,
+          currentPeriodEnd: activeGrant.expires_at || '2099-12-31T23:59:59.999Z',
+          cancelAtPeriodEnd: false,
+          membershipSource: 'ADMIN_GRANT',
+          validityType: activeGrant.validity_type,
+          grantId: activeGrant.id,
+          grantedBy: activeGrant.granted_by,
+          remainingDays: calculateRemainingDays(activeGrant.expires_at),
+        };
+      }
+    }
+
+    // 2. Check for Standard / Paid Subscription
     const row = await this.db.prepare(
       'SELECT plan_id, status, billing_interval, current_period_start, current_period_end, cancel_at_period_end FROM user_subscriptions WHERE user_id = ?'
     ).bind(userId).first<{
@@ -794,16 +876,809 @@ export class D1Store {
         currentPeriodStart: now.toISOString(),
         currentPeriodEnd: nextMonth.toISOString(),
         cancelAtPeriodEnd: false,
+        membershipSource: 'SYSTEM',
+        validityType: 'monthly',
+        remainingDays: 30,
       };
     }
 
+    const isExpired = row.current_period_end && new Date(row.current_period_end).getTime() <= Date.now() && row.billing_interval !== 'permanent';
+    const effectivePlanId = isExpired ? 'free' : (row.plan_id === 'black' ? 'black' : row.plan_id === 'pro' ? 'pro' : 'free');
+    const effectiveStatus = isExpired ? 'expired' : ((row.status as any) || 'active');
+
     return {
-      planId: row.plan_id === 'black' ? 'black' : row.plan_id === 'pro' ? 'pro' : 'free',
-      status: (row.status as any) || 'active',
+      planId: effectivePlanId,
+      status: effectiveStatus,
       billingInterval: (row.billing_interval as any) || 'monthly',
       currentPeriodStart: row.current_period_start,
       currentPeriodEnd: row.current_period_end,
       cancelAtPeriodEnd: !!row.cancel_at_period_end,
+      membershipSource: 'PAYMENT',
+      validityType: row.billing_interval,
+      remainingDays: calculateRemainingDays(row.current_period_end),
+    };
+  }
+
+  async getActiveMembershipGrant(userId: string): Promise<any | null> {
+    return await this.db.prepare(
+      "SELECT * FROM membership_grants WHERE user_id = ? AND status = 'active' ORDER BY created_at DESC LIMIT 1"
+    ).bind(userId).first<any>() || null;
+  }
+
+  async createOrInviteUserWithMembership(params: {
+    fullName: string;
+    email: string;
+    plan: MembershipPlanId;
+    validity: MembershipValidityType;
+    accountStatus?: string;
+    notes?: string;
+    adminId: string;
+    adminEmail?: string;
+    correlationId?: string;
+  }): Promise<{
+    success: boolean;
+    isNewUser: boolean;
+    user: { id: string; email: string; fullName: string; role: string };
+    grant: MembershipGrant;
+    invitationStatus: string;
+    invitationUrl?: string;
+    message: string;
+  }> {
+    const cleanEmail = params.email ? params.email.toLowerCase().trim() : '';
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      throw new Error('A valid email address is required');
+    }
+    const cleanName = params.fullName ? params.fullName.trim() : cleanEmail.split('@')[0];
+
+    const validPlans: MembershipPlanId[] = ['free', 'pro', 'black'];
+    if (!validPlans.includes(params.plan)) {
+      throw new Error(`Invalid plan selected: ${params.plan}`);
+    }
+
+    const validValidity: MembershipValidityType[] = ['6_months', '12_months', '24_months', 'lifetime'];
+    if (!validValidity.includes(params.validity)) {
+      throw new Error(`Invalid validity selected: ${params.validity}`);
+    }
+
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const correlationId = params.correlationId || crypto.randomUUID();
+
+    let targetUser = await this.db.prepare('SELECT id, email, full_name, role FROM users WHERE email = ?').bind(cleanEmail).first<any>();
+    let isNewUser = false;
+    let invitationToken: string | undefined;
+
+    if (!targetUser) {
+      isNewUser = true;
+      const newUserId = crypto.randomUUID();
+      const secretEntropy = crypto.randomUUID() + crypto.randomUUID();
+      const passHash = await hashPassword(secretEntropy);
+
+      await this.db.prepare(`
+        INSERT INTO users (id, email, password_hash, full_name, role, is_verified, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 'user', 1, ?, ?)
+      `).bind(newUserId, cleanEmail, passHash, cleanName, nowIso, nowIso).run();
+
+      const defaultProfile: UserProfile = {
+        id: crypto.randomUUID(),
+        fullName: cleanName,
+        email: cleanEmail,
+        phone: '',
+        location: '',
+        workAuthorizationCountry: '',
+        workAuthorizationStatus: '',
+        workAuthorization: [],
+        requiresVisaSponsorship: false,
+        currentTitle: '',
+        currentEmployer: '',
+        totalExperienceYears: 0,
+        professionalSummary: '',
+        education: [],
+        certifications: [],
+        skills: [],
+        experiences: [],
+        languages: [],
+        masterResumeLastUpdated: '',
+      };
+      await this.saveProfile(newUserId, defaultProfile);
+
+      invitationToken = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+      const invitationExpiry = addCalendarMonthsUTC(now, 1).toISOString();
+      await this.db.prepare(`
+        INSERT INTO user_invitations (id, user_id, email, token, status, expires_at, created_at)
+        VALUES (?, ?, ?, ?, 'pending', ?, ?)
+      `).bind(crypto.randomUUID(), newUserId, cleanEmail, invitationToken, invitationExpiry, nowIso).run();
+
+      await this.addAuditLog(
+        newUserId,
+        params.adminEmail || params.adminId,
+        'USER_INVITED',
+        `User Account (${cleanEmail})`,
+        JSON.stringify({
+          targetUserId: newUserId,
+          targetEmail: cleanEmail,
+          adminId: params.adminId,
+          adminEmail: params.adminEmail || params.adminId,
+          actionType: 'USER_INVITED',
+          correlationId,
+          reason: params.notes || 'Administrative user invitation & provisioning'
+        })
+      );
+
+      targetUser = {
+        id: newUserId,
+        email: cleanEmail,
+        full_name: cleanName,
+        role: 'user',
+      };
+    }
+
+    const previousSub = await this.getUserSubscription(targetUser.id);
+    const previousPlan = previousSub.planId;
+    const previousExpiry = previousSub.currentPeriodEnd;
+
+    const startsAt = nowIso;
+    const expiresAt = calculateMembershipExpiry(now, params.validity);
+
+    await this.db.prepare("UPDATE membership_grants SET status = 'revoked', updated_at = ? WHERE user_id = ? AND status = 'active'")
+      .bind(nowIso, targetUser.id).run();
+
+    const grantId = crypto.randomUUID();
+    await this.db.prepare(`
+      INSERT INTO membership_grants (
+        id, user_id, plan, validity_type, membership_source, starts_at, expires_at, status, granted_by, reason, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, 'ADMIN_GRANT', ?, ?, 'active', ?, ?, ?, ?)
+    `).bind(
+      grantId,
+      targetUser.id,
+      params.plan,
+      params.validity,
+      startsAt,
+      expiresAt,
+      params.adminId,
+      params.notes || '',
+      nowIso,
+      nowIso
+    ).run();
+
+    const billingInterval = params.validity === 'lifetime' ? 'permanent' : 'annual';
+    await this.db.prepare(`
+      INSERT INTO user_subscriptions (
+        id, user_id, plan_id, status, billing_interval, current_period_start, current_period_end, cancel_at_period_end, created_at, updated_at
+      ) VALUES (?, ?, ?, 'active', ?, ?, ?, 0, ?, ?)
+      ON CONFLICT(user_id) DO UPDATE SET
+        plan_id = excluded.plan_id,
+        status = excluded.status,
+        billing_interval = excluded.billing_interval,
+        current_period_start = excluded.current_period_start,
+        current_period_end = excluded.current_period_end,
+        cancel_at_period_end = 0,
+        updated_at = excluded.updated_at
+    `).bind(
+      crypto.randomUUID(),
+      targetUser.id,
+      params.plan,
+      billingInterval,
+      startsAt,
+      expiresAt || '2099-12-31T23:59:59.999Z',
+      nowIso,
+      nowIso
+    ).run();
+
+    const actionType = isNewUser ? 'MEMBERSHIP_GRANTED' : (previousPlan === params.plan ? 'MEMBERSHIP_CHANGED' : 'MEMBERSHIP_GRANTED');
+    await this.addAuditLog(
+      targetUser.id,
+      params.adminEmail || params.adminId,
+      actionType,
+      `Membership (${params.plan.toUpperCase()} - ${params.validity})`,
+      JSON.stringify({
+        targetUserId: targetUser.id,
+        targetEmail: cleanEmail,
+        adminId: params.adminId,
+        adminEmail: params.adminEmail || params.adminId,
+        previousPlan,
+        newPlan: params.plan,
+        previousExpiry,
+        newExpiry: expiresAt,
+        validityType: params.validity,
+        actionType,
+        reason: params.notes || 'Administrative membership provision',
+        source: 'ADMIN_GRANT',
+        correlationId
+      })
+    );
+
+    const derivedStatus = deriveMembershipStatus(startsAt, expiresAt, 'active');
+    const remainingDays = calculateRemainingDays(expiresAt);
+
+    const grant: MembershipGrant = {
+      id: grantId,
+      userId: targetUser.id,
+      userEmail: cleanEmail,
+      userName: targetUser.full_name,
+      plan: params.plan,
+      validityType: params.validity,
+      membershipSource: 'ADMIN_GRANT',
+      startsAt,
+      expiresAt,
+      status: 'active',
+      derivedStatus,
+      remainingDays,
+      grantedBy: params.adminId,
+      grantedByEmail: params.adminEmail,
+      reason: params.notes,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+
+    return {
+      success: true,
+      isNewUser,
+      user: {
+        id: targetUser.id,
+        email: cleanEmail,
+        fullName: targetUser.full_name,
+        role: targetUser.role,
+      },
+      grant,
+      invitationStatus: isNewUser ? 'INVITATION_CREATED_NO_EMAIL_SERVICE' : 'ACCOUNT_ACTIVE',
+      invitationUrl: invitationToken ? `/auth/invitation?token=${invitationToken}` : undefined,
+      message: isNewUser
+        ? 'User successfully provisioned with administrative membership. Email delivery provider is unconfigured; please copy setup link.'
+        : `Membership for ${cleanEmail} successfully updated to ${params.plan.toUpperCase()}.`,
+    };
+  }
+
+  async assignUserMembership(params: {
+    userId: string;
+    plan: MembershipPlanId;
+    validity: MembershipValidityType;
+    notes?: string;
+    adminId: string;
+    adminEmail?: string;
+    confirmOverridePaid?: boolean;
+    correlationId?: string;
+  }): Promise<MembershipGrant> {
+    const user = await this.db.prepare('SELECT id, email, full_name FROM users WHERE id = ?').bind(params.userId).first<any>();
+    if (!user) {
+      throw new Error(`User not found with id: ${params.userId}`);
+    }
+
+    const previousSub = await this.getUserSubscription(params.userId);
+    if (previousSub.membershipSource === 'PAYMENT' && previousSub.status === 'active' && previousSub.planId !== 'free' && !params.confirmOverridePaid) {
+      throw new Error('This user has an active paid subscription. Explicit confirmation (confirmOverridePaid: true) is required before overriding with an administrative grant.');
+    }
+
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const correlationId = params.correlationId || crypto.randomUUID();
+    const startsAt = nowIso;
+    const expiresAt = calculateMembershipExpiry(now, params.validity);
+
+    await this.db.prepare("UPDATE membership_grants SET status = 'revoked', updated_at = ? WHERE user_id = ? AND status = 'active'")
+      .bind(nowIso, params.userId).run();
+
+    const grantId = crypto.randomUUID();
+    await this.db.prepare(`
+      INSERT INTO membership_grants (
+        id, user_id, plan, validity_type, membership_source, starts_at, expires_at, status, granted_by, reason, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, 'ADMIN_GRANT', ?, ?, 'active', ?, ?, ?, ?)
+    `).bind(
+      grantId,
+      params.userId,
+      params.plan,
+      params.validity,
+      startsAt,
+      expiresAt,
+      params.adminId,
+      params.notes || '',
+      nowIso,
+      nowIso
+    ).run();
+
+    const billingInterval = params.validity === 'lifetime' ? 'permanent' : 'annual';
+    await this.db.prepare(`
+      INSERT INTO user_subscriptions (
+        id, user_id, plan_id, status, billing_interval, current_period_start, current_period_end, cancel_at_period_end, created_at, updated_at
+      ) VALUES (?, ?, ?, 'active', ?, ?, ?, 0, ?, ?)
+      ON CONFLICT(user_id) DO UPDATE SET
+        plan_id = excluded.plan_id,
+        status = excluded.status,
+        billing_interval = excluded.billing_interval,
+        current_period_start = excluded.current_period_start,
+        current_period_end = excluded.current_period_end,
+        cancel_at_period_end = 0,
+        updated_at = excluded.updated_at
+    `).bind(
+      crypto.randomUUID(),
+      params.userId,
+      params.plan,
+      billingInterval,
+      startsAt,
+      expiresAt || '2099-12-31T23:59:59.999Z',
+      nowIso,
+      nowIso
+    ).run();
+
+    await this.addAuditLog(
+      params.userId,
+      params.adminEmail || params.adminId,
+      'MEMBERSHIP_CHANGED',
+      `Membership (${params.plan.toUpperCase()} - ${params.validity})`,
+      JSON.stringify({
+        targetUserId: params.userId,
+        targetEmail: user.email,
+        adminId: params.adminId,
+        adminEmail: params.adminEmail || params.adminId,
+        previousPlan: previousSub.planId,
+        newPlan: params.plan,
+        previousExpiry: previousSub.currentPeriodEnd,
+        newExpiry: expiresAt,
+        validityType: params.validity,
+        actionType: 'MEMBERSHIP_CHANGED',
+        reason: params.notes || 'Administrative membership reassignment',
+        source: 'ADMIN_GRANT',
+        correlationId
+      })
+    );
+
+    return {
+      id: grantId,
+      userId: params.userId,
+      userEmail: user.email,
+      userName: user.full_name,
+      plan: params.plan,
+      validityType: params.validity,
+      membershipSource: 'ADMIN_GRANT',
+      startsAt,
+      expiresAt,
+      status: 'active',
+      derivedStatus: deriveMembershipStatus(startsAt, expiresAt, 'active'),
+      remainingDays: calculateRemainingDays(expiresAt),
+      grantedBy: params.adminId,
+      grantedByEmail: params.adminEmail,
+      reason: params.notes,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+  }
+
+  async extendUserMembership(params: {
+    grantId: string;
+    validity: MembershipValidityType;
+    notes?: string;
+    adminId: string;
+    adminEmail?: string;
+    correlationId?: string;
+  }): Promise<MembershipGrant> {
+    const grant = await this.db.prepare('SELECT * FROM membership_grants WHERE id = ?').bind(params.grantId).first<any>();
+    if (!grant) {
+      throw new Error(`Membership grant not found with id: ${params.grantId}`);
+    }
+
+    if (grant.validity_type === 'lifetime' || !grant.expires_at) {
+      throw new Error('Lifetime memberships cannot be extended as they have no expiration date.');
+    }
+
+    const user = await this.db.prepare('SELECT id, email, full_name FROM users WHERE id = ?').bind(grant.user_id).first<any>();
+    const now = new Date();
+    const nowIso = now.toISOString();
+
+    const currentExpiryTime = new Date(grant.expires_at).getTime();
+    const baseDate = currentExpiryTime > now.getTime() ? new Date(grant.expires_at) : now;
+
+    let newExpiry: string | null = null;
+    let newValidityType = grant.validity_type;
+
+    if (params.validity === 'lifetime') {
+      newExpiry = null;
+      newValidityType = 'lifetime';
+    } else {
+      newExpiry = calculateMembershipExpiry(baseDate, params.validity);
+    }
+
+    await this.db.prepare(`
+      UPDATE membership_grants
+      SET expires_at = ?, validity_type = ?, status = 'active', reason = ?, updated_at = ?
+      WHERE id = ?
+    `).bind(newExpiry, newValidityType, params.notes || grant.reason || '', nowIso, grant.id).run();
+
+    await this.db.prepare(`
+      UPDATE user_subscriptions
+      SET current_period_end = ?, updated_at = ?
+      WHERE user_id = ?
+    `).bind(newExpiry || '2099-12-31T23:59:59.999Z', nowIso, grant.user_id).run();
+
+    await this.addAuditLog(
+      grant.user_id,
+      params.adminEmail || params.adminId,
+      'MEMBERSHIP_EXTENDED',
+      `Membership Extension (${grant.plan.toUpperCase()} + ${params.validity})`,
+      JSON.stringify({
+        targetUserId: grant.user_id,
+        targetEmail: user?.email || '',
+        adminId: params.adminId,
+        adminEmail: params.adminEmail || params.adminId,
+        previousPlan: grant.plan,
+        newPlan: grant.plan,
+        previousExpiry: grant.expires_at,
+        newExpiry,
+        validityType: newValidityType,
+        actionType: 'MEMBERSHIP_EXTENDED',
+        reason: params.notes || 'Administrative membership extension',
+        source: 'ADMIN_GRANT',
+        correlationId: params.correlationId || crypto.randomUUID()
+      })
+    );
+
+    return {
+      id: grant.id,
+      userId: grant.user_id,
+      userEmail: user?.email || '',
+      userName: user?.full_name || '',
+      plan: grant.plan,
+      validityType: newValidityType,
+      membershipSource: 'ADMIN_GRANT',
+      startsAt: grant.starts_at,
+      expiresAt: newExpiry,
+      status: 'active',
+      derivedStatus: deriveMembershipStatus(grant.starts_at, newExpiry, 'active'),
+      remainingDays: calculateRemainingDays(newExpiry),
+      grantedBy: grant.granted_by,
+      grantedByEmail: params.adminEmail,
+      reason: params.notes || grant.reason,
+      createdAt: grant.created_at,
+      updatedAt: nowIso,
+    };
+  }
+
+  async updateMembershipGrantStatus(params: {
+    grantId: string;
+    status: 'active' | 'suspended' | 'revoked';
+    notes?: string;
+    adminId: string;
+    adminEmail?: string;
+    correlationId?: string;
+  }): Promise<MembershipGrant> {
+    const grant = await this.db.prepare('SELECT * FROM membership_grants WHERE id = ?').bind(params.grantId).first<any>();
+    if (!grant) {
+      throw new Error(`Membership grant not found with id: ${params.grantId}`);
+    }
+
+    const user = await this.db.prepare('SELECT id, email, full_name FROM users WHERE id = ?').bind(grant.user_id).first<any>();
+    const nowIso = new Date().toISOString();
+
+    await this.db.prepare(`
+      UPDATE membership_grants
+      SET status = ?, reason = ?, updated_at = ?
+      WHERE id = ?
+    `).bind(params.status, params.notes || grant.reason || '', nowIso, grant.id).run();
+
+    if (params.status === 'revoked' || params.status === 'suspended') {
+      await this.db.prepare(`
+        UPDATE user_subscriptions
+        SET plan_id = 'free', status = 'active', updated_at = ?
+        WHERE user_id = ?
+      `).bind(nowIso, grant.user_id).run();
+    } else if (params.status === 'active') {
+      await this.db.prepare(`
+        UPDATE user_subscriptions
+        SET plan_id = ?, status = 'active', updated_at = ?
+        WHERE user_id = ?
+      `).bind(grant.plan, nowIso, grant.user_id).run();
+    }
+
+    let actionType = 'MEMBERSHIP_CHANGED';
+    if (params.status === 'suspended') actionType = 'MEMBERSHIP_SUSPENDED';
+    else if (params.status === 'active') actionType = 'MEMBERSHIP_REACTIVATED';
+    else if (params.status === 'revoked') actionType = 'MEMBERSHIP_REVOKED';
+
+    await this.addAuditLog(
+      grant.user_id,
+      params.adminEmail || params.adminId,
+      actionType,
+      `Membership Status -> ${params.status.toUpperCase()}`,
+      JSON.stringify({
+        targetUserId: grant.user_id,
+        targetEmail: user?.email || '',
+        adminId: params.adminId,
+        adminEmail: params.adminEmail || params.adminId,
+        previousPlan: grant.plan,
+        newPlan: params.status === 'active' ? grant.plan : 'free',
+        previousExpiry: grant.expires_at,
+        newExpiry: grant.expires_at,
+        actionType,
+        reason: params.notes || `Administrative membership ${params.status}`,
+        source: 'ADMIN_GRANT',
+        correlationId: params.correlationId || crypto.randomUUID()
+      })
+    );
+
+    return {
+      id: grant.id,
+      userId: grant.user_id,
+      userEmail: user?.email || '',
+      userName: user?.full_name || '',
+      plan: grant.plan,
+      validityType: grant.validity_type,
+      membershipSource: 'ADMIN_GRANT',
+      startsAt: grant.starts_at,
+      expiresAt: grant.expires_at,
+      status: params.status,
+      derivedStatus: deriveMembershipStatus(grant.starts_at, grant.expires_at, params.status),
+      remainingDays: calculateRemainingDays(grant.expires_at),
+      grantedBy: grant.granted_by,
+      grantedByEmail: params.adminEmail,
+      reason: params.notes || grant.reason,
+      createdAt: grant.created_at,
+      updatedAt: nowIso,
+    };
+  }
+
+  async getMembershipManagementList(params: {
+    search?: string;
+    plan?: string;
+    status?: string;
+    validityType?: string;
+    lifetimeOnly?: boolean;
+    expiringWithin30Days?: boolean;
+    grantedBy?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    items: Array<{
+      userId: string;
+      userName: string;
+      userEmail: string;
+      currentPlan: MembershipPlanId;
+      membershipStatus: MembershipStatus;
+      activationDate: string;
+      expiryDate: string | null;
+      remainingValidity: string;
+      remainingDays: number | null;
+      provisionedBy: string;
+      lastUpdated: string;
+      grantId?: string;
+      membershipSource: MembershipSource;
+      validityType: MembershipValidityType;
+      hasPaidSubscription: boolean;
+      notes?: string;
+    }>;
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const page = Math.max(1, params.page || 1);
+    const limit = Math.min(100, Math.max(1, params.limit || 20));
+    const offset = (page - 1) * limit;
+
+    let usersQuery = 'SELECT id, email, full_name, created_at, updated_at FROM users WHERE 1=1';
+    const queryParams: any[] = [];
+
+    if (params.search && params.search.trim()) {
+      const term = `%${params.search.trim()}%`;
+      usersQuery += ' AND (email LIKE ? OR full_name LIKE ?)';
+      queryParams.push(term, term);
+    }
+
+    usersQuery += ' ORDER BY created_at DESC';
+    const stmt = this.db.prepare(usersQuery);
+    const usersResult = queryParams.length > 0 ? await stmt.bind(...queryParams).all<any>() : await stmt.all<any>();
+    const allUsers = usersResult.results || [];
+
+    const nowTime = Date.now();
+    const mapped: any[] = [];
+
+    for (const u of allUsers) {
+      const grant = await this.db.prepare(
+        'SELECT * FROM membership_grants WHERE user_id = ? ORDER BY created_at DESC LIMIT 1'
+      ).bind(u.id).first<any>();
+
+      const sub = await this.db.prepare(
+        'SELECT * FROM user_subscriptions WHERE user_id = ?'
+      ).bind(u.id).first<any>();
+
+      const isAllowlisted = isPermanentFreeAccessAccount({ email: u.email, isVerified: true });
+      let currentPlan: MembershipPlanId = 'free';
+      let membershipStatus: MembershipStatus = 'active';
+      let activationDate = u.created_at;
+      let expiryDate: string | null = null;
+      let remainingDays: number | null = null;
+      let provisionedBy = 'Self / System';
+      let lastUpdated = u.updated_at || u.created_at;
+      let membershipSource: MembershipSource = 'SYSTEM';
+      let validityType: MembershipValidityType = '12_months';
+      let grantId: string | undefined = undefined;
+      let notes: string | undefined = undefined;
+
+      const hasPaid = Boolean(sub && sub.plan_id !== 'free' && sub.status === 'active');
+
+      if (isAllowlisted) {
+        currentPlan = 'black';
+        membershipStatus = 'lifetime';
+        membershipSource = 'SYSTEM';
+        validityType = 'lifetime';
+        provisionedBy = 'Permanent Allowlist';
+        activationDate = u.created_at;
+      } else if (grant) {
+        currentPlan = grant.plan;
+        grantId = grant.id;
+        membershipSource = grant.membership_source as MembershipSource;
+        validityType = grant.validity_type;
+        activationDate = grant.starts_at;
+        expiryDate = grant.expires_at;
+        notes = grant.reason;
+        lastUpdated = grant.updated_at || grant.created_at;
+
+        if (grant.granted_by) {
+          const granter = await this.db.prepare('SELECT email, full_name FROM users WHERE id = ?').bind(grant.granted_by).first<any>();
+          provisionedBy = granter ? (granter.full_name || granter.email) : grant.granted_by;
+        }
+
+        remainingDays = calculateRemainingDays(grant.expires_at, nowTime);
+        membershipStatus = deriveMembershipStatus(grant.starts_at, grant.expires_at, grant.status, nowTime);
+
+        if (membershipStatus === 'expired') {
+          currentPlan = hasPaid ? (sub.plan_id as MembershipPlanId) : 'free';
+        }
+      } else if (sub) {
+        currentPlan = sub.plan_id as MembershipPlanId;
+        activationDate = sub.current_period_start;
+        expiryDate = sub.current_period_end;
+        membershipSource = 'PAYMENT';
+        lastUpdated = sub.updated_at || sub.created_at;
+        provisionedBy = 'Payment Gateway';
+        remainingDays = calculateRemainingDays(sub.current_period_end, nowTime);
+        membershipStatus = deriveMembershipStatus(sub.current_period_start, sub.current_period_end, sub.status, nowTime);
+      }
+
+      let remainingValidity = 'Active';
+      if (membershipStatus === 'lifetime' || validityType === 'lifetime' || !expiryDate) {
+        remainingValidity = 'Lifetime';
+      } else if (membershipStatus === 'suspended') {
+        remainingValidity = 'Suspended';
+      } else if (membershipStatus === 'revoked') {
+        remainingValidity = 'Revoked';
+      } else if (membershipStatus === 'expired' || (remainingDays !== null && remainingDays <= 0)) {
+        remainingValidity = 'Expired';
+      } else if (remainingDays !== null) {
+        if (remainingDays <= 30) {
+          remainingValidity = `${remainingDays} day${remainingDays === 1 ? '' : 's'} (Expiring Soon)`;
+        } else {
+          remainingValidity = `${remainingDays} days`;
+        }
+      }
+
+      mapped.push({
+        userId: u.id,
+        userName: u.full_name,
+        userEmail: u.email,
+        currentPlan,
+        membershipStatus,
+        activationDate,
+        expiryDate,
+        remainingValidity,
+        remainingDays,
+        provisionedBy,
+        lastUpdated,
+        grantId,
+        membershipSource,
+        validityType,
+        hasPaidSubscription: hasPaid,
+        notes,
+      });
+    }
+
+    let filtered = mapped;
+    if (params.plan && params.plan !== 'all') {
+      filtered = filtered.filter(item => item.currentPlan === params.plan);
+    }
+    if (params.status && params.status !== 'all') {
+      filtered = filtered.filter(item => item.membershipStatus === params.status);
+    }
+    if (params.validityType && params.validityType !== 'all') {
+      filtered = filtered.filter(item => item.validityType === params.validityType);
+    }
+    if (params.lifetimeOnly) {
+      filtered = filtered.filter(item => item.membershipStatus === 'lifetime' || item.validityType === 'lifetime');
+    }
+    if (params.expiringWithin30Days) {
+      filtered = filtered.filter(item => item.membershipStatus === 'expiring_soon' || (item.remainingDays !== null && item.remainingDays > 0 && item.remainingDays <= 30));
+    }
+    if (params.grantedBy && params.grantedBy !== 'all') {
+      filtered = filtered.filter(item => item.provisionedBy.toLowerCase().includes(params.grantedBy!.toLowerCase()));
+    }
+
+    const total = filtered.length;
+    const paginated = filtered.slice(offset, offset + limit);
+
+    return {
+      items: paginated,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
+  }
+
+  async getMembershipSummaryMetrics(): Promise<MembershipSummaryMetrics> {
+    const totalUsersRow = await this.db.prepare('SELECT COUNT(*) as c FROM users').first<{ c: number }>();
+    const totalUsers = totalUsersRow?.c || 0;
+
+    const all = await this.getMembershipManagementList({ limit: 10000 });
+    const items = all.items;
+
+    let freeUsers = 0;
+    let proMembers = 0;
+    let blackEliteMembers = 0;
+    let activeMemberships = 0;
+    let lifetimeMembers = 0;
+    let expiringWithin30Days = 0;
+    let expiredMemberships = 0;
+
+    for (const item of items) {
+      if (item.currentPlan === 'black') blackEliteMembers++;
+      else if (item.currentPlan === 'pro') proMembers++;
+      else freeUsers++;
+
+      if (item.membershipStatus === 'active' || item.membershipStatus === 'lifetime' || item.membershipStatus === 'expiring_soon') {
+        activeMemberships++;
+      }
+
+      if (item.membershipStatus === 'lifetime' || item.validityType === 'lifetime') {
+        lifetimeMembers++;
+      }
+
+      if (item.membershipStatus === 'expiring_soon' || (item.remainingDays !== null && item.remainingDays > 0 && item.remainingDays <= 30)) {
+        expiringWithin30Days++;
+      }
+
+      if (item.membershipStatus === 'expired') {
+        expiredMemberships++;
+      }
+    }
+
+    return {
+      totalRegisteredUsers: totalUsers,
+      freeUsers,
+      proMembers,
+      blackEliteMembers,
+      activeMemberships,
+      lifetimeMembers,
+      expiringWithin30Days,
+      expiredMemberships,
+    };
+  }
+
+  async getMembershipGrantHistory(userId: string): Promise<{
+    grants: any[];
+    auditLogs: any[];
+  }> {
+    const grantsRes = await this.db.prepare(
+      'SELECT * FROM membership_grants WHERE user_id = ? ORDER BY created_at DESC'
+    ).bind(userId).all<any>();
+
+    const auditRes = await this.db.prepare(`
+      SELECT * FROM audit_logs
+      WHERE user_id = ? AND (action LIKE 'MEMBERSHIP_%' OR action LIKE 'USER_%')
+      ORDER BY timestamp DESC
+    `).bind(userId).all<any>();
+
+    const grants = grantsRes.results || [];
+    const auditLogs = auditRes.results || [];
+
+    return {
+      grants,
+      auditLogs: auditLogs.map(l => ({
+        id: l.id,
+        userId: l.user_id,
+        action: l.action,
+        actor: l.actor,
+        target: l.target,
+        details: l.details ? JSON.parse(l.details) : {},
+        timestamp: l.timestamp,
+      })),
     };
   }
 

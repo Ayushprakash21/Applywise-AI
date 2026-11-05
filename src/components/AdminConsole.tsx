@@ -22,7 +22,8 @@ import {
   ExternalLink,
   Lock,
   ChevronRight,
-  Filter
+  Filter,
+  Award
 } from 'lucide-react';
 import { api, AuthUser } from '../services/api.ts';
 import { AuditLogEntry } from '../types/index.ts';
@@ -30,6 +31,7 @@ import { BrandLogo } from './BrandLogo.tsx';
 import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
 import { AdminFounderProfile } from './AdminFounderProfile.tsx';
 import { AdminResumeManagement } from './AdminResumeManagement.tsx';
+import { AdminUserProvisioning } from './AdminUserProvisioning.tsx';
 import { getEffectivePlan } from '../config/freeAccess.ts';
 
 interface AdminConsoleProps {
@@ -39,6 +41,7 @@ interface AdminConsoleProps {
 }
 
 type AdminTab = 'overview' | 'users' | 'resumes' | 'sources' | 'audit' | 'system' | 'founder';
+type ExtendedAdminTab = AdminTab | 'provisioning';
 
 export const AdminConsole: React.FC<AdminConsoleProps> = ({
   currentUser,
@@ -47,7 +50,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
 }) => {
   const plan = getEffectivePlan(currentUser);
   const isBlack = plan.isBlack || (typeof document !== 'undefined' && (document.body.classList.contains('theme-black') || document.documentElement.getAttribute('data-theme') === 'black'));
-  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+  const [activeTab, setActiveTab] = useState<ExtendedAdminTab>('overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -275,6 +278,22 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             >
               <Users className={`h-3.5 w-3.5 ${isBlack ? 'text-[#76A9D8]' : 'text-blue-400'}`} />
               <span>Users & Roles ({totalUsers})</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('provisioning')}
+              className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
+                activeTab === 'provisioning'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                  : isBlack
+                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+              }`}
+            >
+              <Award className={`h-3.5 w-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-amber-400'}`} />
+              <span>User Provisioning</span>
             </button>
 
             <button
@@ -642,6 +661,11 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               </div>
             </div>
           </div>
+        )}
+
+        {/* TAB: USER PROVISIONING & MEMBERSHIP VALIDITY */}
+        {activeTab === 'provisioning' && (
+          <AdminUserProvisioning currentUser={currentUser} />
         )}
 
         {/* TAB: RESUMES & EXTRACTION */}

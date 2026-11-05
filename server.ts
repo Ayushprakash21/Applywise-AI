@@ -1483,6 +1483,11 @@ app.get('/api/subscription/current', requireAuth, (req: AuthenticatedRequest, re
     badge: effective.badge,
     isPermanentFreeAccess: effective.isPermanentFreeAccess,
     description: effective.description,
+    membershipSource: effective.membershipSource || sub.membershipSource,
+    validityType: effective.validityType || sub.validityType,
+    remainingDays: effective.remainingDays !== undefined ? effective.remainingDays : sub.remainingDays,
+    grantId: sub.grantId,
+    grantedBy: sub.grantedBy,
   };
 
   res.json({
@@ -2054,6 +2059,141 @@ app.get('/api/admin/users', requireAdmin, (req: AuthenticatedRequest, res: Respo
 
 app.post('/api/admin/users/:id/role', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
   res.json({ success: true, message: 'Role updated successfully.' });
+});
+
+// ============================================================================
+// ADMIN USER PROVISIONING & MEMBERSHIP MANAGEMENT ENDPOINTS
+// ============================================================================
+
+app.get('/api/admin/memberships', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { search, plan, status, validityType, lifetimeOnly, expiringWithin30Days, grantedBy, page, limit } = req.query;
+    const result = authAndStore.getMembershipManagementList({
+      search: search as string,
+      plan: plan as string,
+      status: status as string,
+      validityType: validityType as string,
+      lifetimeOnly: lifetimeOnly === 'true',
+      expiringWithin30Days: expiringWithin30Days === 'true',
+      grantedBy: grantedBy as string,
+      page: page ? parseInt(page as string, 10) : 1,
+      limit: limit ? parseInt(limit as string, 10) : 20,
+    });
+    return res.json({ success: true, ...result });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/admin/memberships/summary', requireAdmin, (_req: AuthenticatedRequest, res: Response) => {
+  try {
+    const summary = authAndStore.getMembershipSummaryMetrics();
+    return res.json({ success: true, summary });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/memberships/provision', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const admin = req.user!;
+    const { fullName, email, plan, validity, accountStatus, notes } = req.body;
+    if (!email || !plan || !validity) {
+      return res.status(400).json({ success: false, error: 'Email, plan, and validity are required fields.' });
+    }
+    const result = authAndStore.createOrInviteUserWithMembership({
+      fullName: fullName || '',
+      email,
+      plan,
+      validity,
+      accountStatus,
+      notes,
+      adminId: admin.id,
+      adminEmail: admin.email,
+      correlationId: (req.headers['x-correlation-id'] as string) || crypto.randomUUID(),
+    });
+    return res.json(result);
+  } catch (err: any) {
+    return res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/admin/memberships/:userId/assign', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const admin = req.user!;
+    const { userId } = req.params;
+    const { plan, validity, notes, confirmOverridePaid } = req.body;
+    if (!plan || !validity) {
+      return res.status(400).json({ success: false, error: 'Plan and validity are required fields.' });
+    }
+    const grant = authAndStore.assignUserMembership({
+      userId,
+      plan,
+      validity,
+      notes,
+      adminId: admin.id,
+      adminEmail: admin.email,
+      confirmOverridePaid: Boolean(confirmOverridePaid),
+      correlationId: (req.headers['x-correlation-id'] as string) || crypto.randomUUID(),
+    });
+    return res.json({ success: true, grant, message: 'Membership successfully assigned.' });
+  } catch (err: any) {
+    return res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/admin/memberships/:grantId/extend', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const admin = req.user!;
+    const { grantId } = req.params;
+    const { validity, notes } = req.body;
+    if (!validity) {
+      return res.status(400).json({ success: false, error: 'Validity extension duration is required.' });
+    }
+    const grant = authAndStore.extendUserMembership({
+      grantId,
+      validity,
+      notes,
+      adminId: admin.id,
+      adminEmail: admin.email,
+      correlationId: (req.headers['x-correlation-id'] as string) || crypto.randomUUID(),
+    });
+    return res.json({ success: true, grant, message: 'Membership successfully extended.' });
+  } catch (err: any) {
+    return res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/admin/memberships/:grantId/status', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const admin = req.user!;
+    const { grantId } = req.params;
+    const { status, notes } = req.body;
+    if (!status || !['active', 'suspended', 'revoked'].includes(status)) {
+      return res.status(400).json({ success: false, error: 'A valid status (active, suspended, or revoked) is required.' });
+    }
+    const grant = authAndStore.updateMembershipGrantStatus({
+      grantId,
+      status,
+      notes,
+      adminId: admin.id,
+      adminEmail: admin.email,
+      correlationId: (req.headers['x-correlation-id'] as string) || crypto.randomUUID(),
+    });
+    return res.json({ success: true, grant, message: `Membership status updated to ${status}.` });
+  } catch (err: any) {
+    return res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/admin/memberships/:userId/history', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const history = authAndStore.getMembershipGrantHistory(userId);
+    return res.json({ success: true, ...history });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 app.get('/api/admin/audit-logs', requireAdmin, (req: AuthenticatedRequest, res: Response) => {

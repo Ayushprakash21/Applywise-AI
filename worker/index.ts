@@ -659,6 +659,11 @@ app.get('/api/subscription/current', requireAuth, async (c) => {
     badge: effective.badge,
     isPermanentFreeAccess: effective.isPermanentFreeAccess,
     description: effective.description,
+    membershipSource: effective.membershipSource || sub.membershipSource,
+    validityType: effective.validityType || sub.validityType,
+    remainingDays: effective.remainingDays !== undefined ? effective.remainingDays : sub.remainingDays,
+    grantId: sub.grantId,
+    grantedBy: sub.grantedBy,
   };
 
   return c.json({
@@ -3348,6 +3353,176 @@ app.post('/api/admin/users/:id/role', requireAdmin, async (c) => {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[AdminUserRole Error]:', msg);
     return c.json({ success: false, error: `Failed to update user role: ${msg}` }, 500);
+  }
+});
+
+// ============================================================================
+// ADMIN USER PROVISIONING & MEMBERSHIP MANAGEMENT ENDPOINTS (WORKER D1)
+// ============================================================================
+
+app.get('/api/admin/memberships', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const search = c.req.query('search');
+    const plan = c.req.query('plan');
+    const status = c.req.query('status');
+    const validityType = c.req.query('validityType');
+    const lifetimeOnly = c.req.query('lifetimeOnly') === 'true';
+    const expiringWithin30Days = c.req.query('expiringWithin30Days') === 'true';
+    const grantedBy = c.req.query('grantedBy');
+    const page = c.req.query('page') ? parseInt(c.req.query('page')!, 10) : 1;
+    const limit = c.req.query('limit') ? parseInt(c.req.query('limit')!, 10) : 20;
+
+    const result = await store.getMembershipManagementList({
+      search,
+      plan,
+      status,
+      validityType,
+      lifetimeOnly,
+      expiringWithin30Days,
+      grantedBy,
+      page,
+      limit,
+    });
+    return c.json({ success: true, ...result });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.get('/api/admin/memberships/summary', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const summary = await store.getMembershipSummaryMetrics();
+    return c.json({ success: true, summary });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.post('/api/admin/memberships/provision', requireAdmin, async (c) => {
+  try {
+    const admin: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const body = await c.req.json();
+    const { fullName, email, plan, validity, accountStatus, notes } = body;
+
+    if (!email || !plan || !validity) {
+      return c.json({ success: false, error: 'Email, plan, and validity are required fields.' }, 400);
+    }
+
+    const result = await store.createOrInviteUserWithMembership({
+      fullName: fullName || '',
+      email,
+      plan,
+      validity,
+      accountStatus,
+      notes,
+      adminId: admin.id,
+      adminEmail: admin.email,
+      correlationId: c.req.header('x-correlation-id') || crypto.randomUUID(),
+    });
+    return c.json(result);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 400);
+  }
+});
+
+app.put('/api/admin/memberships/:userId/assign', requireAdmin, async (c) => {
+  try {
+    const admin: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const userId = c.req.param('userId');
+    const body = await c.req.json();
+    const { plan, validity, notes, confirmOverridePaid } = body;
+
+    if (!plan || !validity) {
+      return c.json({ success: false, error: 'Plan and validity are required fields.' }, 400);
+    }
+
+    const grant = await store.assignUserMembership({
+      userId,
+      plan,
+      validity,
+      notes,
+      adminId: admin.id,
+      adminEmail: admin.email,
+      confirmOverridePaid: Boolean(confirmOverridePaid),
+      correlationId: c.req.header('x-correlation-id') || crypto.randomUUID(),
+    });
+    return c.json({ success: true, grant, message: 'Membership successfully assigned.' });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 400);
+  }
+});
+
+app.put('/api/admin/memberships/:grantId/extend', requireAdmin, async (c) => {
+  try {
+    const admin: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const grantId = c.req.param('grantId');
+    const body = await c.req.json();
+    const { validity, notes } = body;
+
+    if (!validity) {
+      return c.json({ success: false, error: 'Validity extension duration is required.' }, 400);
+    }
+
+    const grant = await store.extendUserMembership({
+      grantId,
+      validity,
+      notes,
+      adminId: admin.id,
+      adminEmail: admin.email,
+      correlationId: c.req.header('x-correlation-id') || crypto.randomUUID(),
+    });
+    return c.json({ success: true, grant, message: 'Membership successfully extended.' });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 400);
+  }
+});
+
+app.put('/api/admin/memberships/:grantId/status', requireAdmin, async (c) => {
+  try {
+    const admin: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const grantId = c.req.param('grantId');
+    const body = await c.req.json();
+    const { status, notes } = body;
+
+    if (!status || !['active', 'suspended', 'revoked'].includes(status)) {
+      return c.json({ success: false, error: 'A valid status (active, suspended, or revoked) is required.' }, 400);
+    }
+
+    const grant = await store.updateMembershipGrantStatus({
+      grantId,
+      status,
+      notes,
+      adminId: admin.id,
+      adminEmail: admin.email,
+      correlationId: c.req.header('x-correlation-id') || crypto.randomUUID(),
+    });
+    return c.json({ success: true, grant, message: `Membership status updated to ${status}.` });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 400);
+  }
+});
+
+app.get('/api/admin/memberships/:userId/history', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const userId = c.req.param('userId');
+    const history = await store.getMembershipGrantHistory(userId);
+    return c.json({ success: true, ...history });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
   }
 });
 

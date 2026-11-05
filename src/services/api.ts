@@ -39,7 +39,15 @@ import {
   UserImportedJobRecord,
   JobImportExtractResponse,
   JobImportSaveRequest,
-  JobImportSaveResponse
+  JobImportSaveResponse,
+  MembershipGrant,
+  MembershipSummaryMetrics,
+  AdminProvisionUserRequest,
+  AdminProvisionUserResponse,
+  AdminAssignMembershipRequest,
+  AdminExtendMembershipRequest,
+  AdminUpdateMembershipStatusRequest,
+  MembershipHistoryItem
 } from '../types/index.ts';
 
 export interface DashboardSummary {
@@ -258,6 +266,90 @@ export const api = {
       total: number;
     }>(`/api/admin/users${queryString}`);
   },
+
+  // --- ADMIN USER PROVISIONING & MEMBERSHIP MANAGEMENT ---
+  getAdminMemberships: (params?: {
+    search?: string;
+    plan?: string;
+    status?: string;
+    validityType?: string;
+    lifetimeOnly?: boolean;
+    expiringWithin30Days?: boolean;
+    grantedBy?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const q = new URLSearchParams();
+    if (params?.search) q.set('search', params.search);
+    if (params?.plan && params.plan !== 'all') q.set('plan', params.plan);
+    if (params?.status && params.status !== 'all') q.set('status', params.status);
+    if (params?.validityType && params.validityType !== 'all') q.set('validityType', params.validityType);
+    if (params?.lifetimeOnly) q.set('lifetimeOnly', 'true');
+    if (params?.expiringWithin30Days) q.set('expiringWithin30Days', 'true');
+    if (params?.grantedBy && params.grantedBy !== 'all') q.set('grantedBy', params.grantedBy);
+    if (params?.page) q.set('page', String(params.page));
+    if (params?.limit) q.set('limit', String(params.limit));
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return fetchJson<{
+      success: boolean;
+      items: Array<{
+        userId: string;
+        userName: string;
+        userEmail: string;
+        currentPlan: 'free' | 'pro' | 'black';
+        membershipStatus: any;
+        activationDate: string;
+        expiryDate: string | null;
+        remainingValidity: string;
+        remainingDays: number | null;
+        provisionedBy: string;
+        lastUpdated: string;
+        grantId?: string;
+        membershipSource: any;
+        validityType: any;
+        hasPaidSubscription: boolean;
+        notes?: string;
+      }>;
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(`/api/admin/memberships${qs}`);
+  },
+
+  getAdminMembershipSummary: () =>
+    fetchJson<{ success: boolean; summary: MembershipSummaryMetrics }>('/api/admin/memberships/summary'),
+
+  provisionAdminUser: (data: AdminProvisionUserRequest) =>
+    fetchJson<AdminProvisionUserResponse>('/api/admin/memberships/provision', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  assignAdminMembership: (userId: string, data: AdminAssignMembershipRequest) =>
+    fetchJson<{ success: boolean; grant: MembershipGrant; message: string }>(`/api/admin/memberships/${userId}/assign`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  extendAdminMembership: (grantId: string, data: AdminExtendMembershipRequest) =>
+    fetchJson<{ success: boolean; grant: MembershipGrant; message: string }>(`/api/admin/memberships/${grantId}/extend`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  updateAdminMembershipStatus: (grantId: string, data: AdminUpdateMembershipStatusRequest) =>
+    fetchJson<{ success: boolean; grant: MembershipGrant; message: string }>(`/api/admin/memberships/${grantId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  getAdminMembershipHistory: (userId: string) =>
+    fetchJson<{
+      success: boolean;
+      grants: any[];
+      auditLogs: MembershipHistoryItem[];
+    }>(`/api/admin/memberships/${userId}/history`),
 
   updateAdminUserRole: (id: string, newRole: 'admin' | 'user') =>
     fetchJson<{ success: boolean; message: string }>(`/api/admin/users/${id}/role`, {

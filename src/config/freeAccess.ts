@@ -27,6 +27,9 @@ export interface EffectivePlanDetails {
   status: 'active' | 'cancelled' | 'past_due' | 'expired';
   billingInterval: 'permanent' | 'monthly' | 'annual';
   isPermanentFreeAccess: boolean;
+  membershipSource?: 'ADMIN_GRANT' | 'PAYMENT' | 'PROMOTIONAL' | 'SYSTEM';
+  validityType?: string;
+  remainingDays?: number | null;
   aiQuotaMonthly: number;
   maxDailyApplications: number;
   description: string;
@@ -80,7 +83,15 @@ export function isPermanentFreeAccessAccount(user?: FreeAccessUserIdentity | nul
  */
 export function getEffectivePlan(
   user?: FreeAccessUserIdentity | null,
-  currentSubscription?: { planId?: string; status?: string; billingInterval?: string } | null
+  currentSubscription?: {
+    planId?: string;
+    status?: string;
+    billingInterval?: string;
+    currentPeriodEnd?: string;
+    membershipSource?: 'ADMIN_GRANT' | 'PAYMENT' | 'PROMOTIONAL' | 'SYSTEM';
+    validityType?: string;
+    remainingDays?: number | null;
+  } | null
 ): EffectivePlanDetails {
   const isFreeAccess = isPermanentFreeAccessAccount(user);
 
@@ -92,6 +103,9 @@ export function getEffectivePlan(
       status: 'active',
       billingInterval: 'permanent',
       isPermanentFreeAccess: true,
+      membershipSource: 'SYSTEM',
+      validityType: 'lifetime',
+      remainingDays: null,
       aiQuotaMonthly: 1200, // High operational runaway protection ceiling (2× Pro 600)
       maxDailyApplications: 100, // Unrestricted daily application ceiling (2× Pro 50)
       description: 'Permanent unrestricted access to BLACK by ApplyVise AI, exclusive career intelligence, AI Copilot, and priority capabilities.',
@@ -109,16 +123,59 @@ export function getEffectivePlan(
     };
   }
 
+  // Check if subscription is expired
+  const isExpired =
+    currentSubscription?.status === 'expired' ||
+    (currentSubscription?.currentPeriodEnd &&
+      new Date(currentSubscription.currentPeriodEnd).getTime() <= Date.now() &&
+      currentSubscription.billingInterval !== 'permanent' &&
+      currentSubscription.validityType !== 'lifetime');
+
+  if (isExpired) {
+    return {
+      planId: 'free',
+      planName: 'ApplyVise Free (Membership Expired)',
+      badge: 'FREE',
+      status: 'expired',
+      billingInterval: 'monthly',
+      isPermanentFreeAccess: false,
+      membershipSource: currentSubscription?.membershipSource || 'SYSTEM',
+      validityType: currentSubscription?.validityType,
+      remainingDays: 0,
+      aiQuotaMonthly: 10,
+      maxDailyApplications: 5,
+      description: 'Your previous membership has expired. Renew or upgrade to restore unrestricted access.',
+      canTailorResume: false,
+      canDeepAnalyze: false,
+      canInterviewPrep: false,
+      canAutoApply: false,
+      unlimitedAICopilot: false,
+      isBlack: false,
+      canBlackCareerStrategy: false,
+      canBlackAppIntelligence: false,
+      canBlackInterviewSim: false,
+      canBlackResumeStudio: false,
+      priorityProcessing: false,
+    };
+  }
+
   // 1. BLACK ELITE Membership Check (Positioned Above Pro)
-  const isBlackPaid = currentSubscription?.planId === 'black' && currentSubscription?.status !== 'inactive' && currentSubscription?.status !== 'canceled';
+  const isBlackPaid =
+    currentSubscription?.planId === 'black' &&
+    currentSubscription?.status !== 'inactive' &&
+    currentSubscription?.status !== 'canceled';
   if (isBlackPaid) {
+    const isLifetime = currentSubscription?.billingInterval === 'permanent' || currentSubscription?.validityType === 'lifetime';
     return {
       planId: 'black',
-      planName: 'BLACK by ApplyVise AI',
+      planName: isLifetime ? 'BLACK by ApplyVise AI — Lifetime Member' : 'BLACK by ApplyVise AI',
       badge: 'BLACK ELITE',
       status: 'active',
       billingInterval: (currentSubscription?.billingInterval as any) || 'monthly',
       isPermanentFreeAccess: false,
+      membershipSource: currentSubscription?.membershipSource || 'PAYMENT',
+      validityType: currentSubscription?.validityType,
+      remainingDays: currentSubscription?.remainingDays,
       aiQuotaMonthly: 600, // Exactly 2 × Pro (300)
       maxDailyApplications: 50, // Exactly 2 × Pro (25)
       description: 'Your Career. Without Limits. Elite Career Intelligence with 2× Pro usage and exclusive capabilities.',
@@ -137,15 +194,22 @@ export function getEffectivePlan(
   }
 
   // 2. Pro Membership Check
-  const isProPaid = currentSubscription?.planId === 'pro' && currentSubscription?.status !== 'inactive' && currentSubscription?.status !== 'canceled';
+  const isProPaid =
+    currentSubscription?.planId === 'pro' &&
+    currentSubscription?.status !== 'inactive' &&
+    currentSubscription?.status !== 'canceled';
   if (isProPaid) {
+    const isLifetime = currentSubscription?.billingInterval === 'permanent' || currentSubscription?.validityType === 'lifetime';
     return {
       planId: 'pro',
-      planName: 'ApplyVise Pro',
+      planName: isLifetime ? 'ApplyVise Pro — Lifetime Member' : 'ApplyVise Pro',
       badge: 'PRO',
       status: 'active',
       billingInterval: (currentSubscription?.billingInterval as any) || 'monthly',
       isPermanentFreeAccess: false,
+      membershipSource: currentSubscription?.membershipSource || 'PAYMENT',
+      validityType: currentSubscription?.validityType,
+      remainingDays: currentSubscription?.remainingDays,
       aiQuotaMonthly: 300,
       maxDailyApplications: 25,
       description: 'Advanced AI tailoring, in-depth job analysis, and interview preparation.',
@@ -168,9 +232,12 @@ export function getEffectivePlan(
     planId: 'free',
     planName: 'ApplyVise Free',
     badge: 'FREE',
-    status: 'active',
+    status: (currentSubscription?.status as any) || 'active',
     billingInterval: 'monthly',
     isPermanentFreeAccess: false,
+    membershipSource: currentSubscription?.membershipSource || 'SYSTEM',
+    validityType: currentSubscription?.validityType,
+    remainingDays: currentSubscription?.remainingDays,
     aiQuotaMonthly: 10,
     maxDailyApplications: 5,
     description: 'Essential application tracking, factual resume extraction, and core discovery.',

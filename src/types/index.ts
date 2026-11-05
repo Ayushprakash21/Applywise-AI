@@ -1197,3 +1197,101 @@ export interface StructuredExtractionOutput {
     isDateUncertain: boolean;
   };
 }
+
+// ============================================================================
+// ADMIN USER PROVISIONING & MEMBERSHIP MANAGEMENT
+// ============================================================================
+
+export type MembershipPlanId = 'free' | 'pro' | 'black';
+export type MembershipValidityType = '6_months' | '12_months' | '24_months' | 'lifetime';
+export type MembershipStatus =
+  | 'active'
+  | 'scheduled'
+  | 'expiring_soon'
+  | 'expired'
+  | 'suspended'
+  | 'revoked'
+  | 'lifetime';
+export type MembershipSource = 'ADMIN_GRANT' | 'PAYMENT' | 'PROMOTIONAL' | 'SYSTEM';
+
+export interface MembershipGrant {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  plan: MembershipPlanId;
+  validityType: MembershipValidityType;
+  membershipSource: MembershipSource;
+  startsAt: string;
+  expiresAt: string | null;
+  status: 'active' | 'suspended' | 'revoked' | 'expired';
+  derivedStatus: MembershipStatus;
+  remainingDays: number | null;
+  grantedBy: string;
+  grantedByEmail?: string;
+  reason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MembershipSummaryMetrics {
+  totalRegisteredUsers: number;
+  freeUsers: number;
+  proMembers: number;
+  blackEliteMembers: number;
+  activeMemberships: number;
+  lifetimeMembers: number;
+  expiringWithin30Days: number;
+  expiredMemberships: number;
+}
+
+export interface AdminProvisionUserRequest {
+  fullName: string;
+  email: string;
+  plan: MembershipPlanId;
+  validity: MembershipValidityType;
+  accountStatus?: string;
+  notes?: string;
+}
+
+export interface AdminProvisionUserResponse {
+  success: boolean;
+  isNewUser: boolean;
+  user: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: string;
+  };
+  grant: MembershipGrant;
+  invitationStatus: string;
+  invitationUrl?: string;
+  message: string;
+}
+
+export interface AdminAssignMembershipRequest {
+  plan: MembershipPlanId;
+  validity: MembershipValidityType;
+  notes?: string;
+  confirmOverridePaid?: boolean;
+}
+
+export interface AdminExtendMembershipRequest {
+  validity: MembershipValidityType;
+  notes?: string;
+}
+
+export interface AdminUpdateMembershipStatusRequest {
+  status: 'active' | 'suspended' | 'revoked';
+  notes?: string;
+}
+
+export interface MembershipHistoryItem {
+  id: string;
+  userId: string;
+  action: string;
+  actor: string;
+  details: Record<string, any>;
+  timestamp: string;
+}
+
