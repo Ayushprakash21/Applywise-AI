@@ -744,6 +744,38 @@ body.theme-black {
   box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.85) !important;
 }
 
+/* Admin Console — Security Architecture Guide Box */
+.theme-black [class*="bg-indigo-50/70"],
+.theme-black .admin-security-card {
+  background-color: #14171C !important;
+  border: 1px solid rgba(198, 166, 106, 0.30) !important;
+  color: #F2F0EA !important;
+}
+
+.theme-black [class*="bg-indigo-50/70"] p,
+.theme-black .admin-security-card p {
+  color: #C0BDB5 !important;
+}
+
+.theme-black [class*="bg-indigo-50/70"] code,
+.theme-black .admin-security-card code,
+.theme-black [class*="bg-indigo-100/90"],
+.theme-black [class*="bg-indigo-100"] {
+  background-color: #0D1014 !important;
+  color: #C6A66A !important;
+  border: 1px solid rgba(198, 166, 106, 0.30) !important;
+}
+
+.theme-black [class*="bg-indigo-50/70"] svg,
+.theme-black .admin-security-card svg {
+  color: #C6A66A !important;
+}
+
+/* Notifications Page — Left Indicator & Item Contrast */
+.theme-black .border-l-blue-600 {
+  border-left-color: #C6A66A !important;
+}
+
 /* 8. Tables, Borders, Dividers & Tooltips */
 .theme-black table {
   border-color: rgba(255, 255, 255, 0.09) !important;

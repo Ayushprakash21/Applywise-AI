@@ -30,6 +30,7 @@ import { BrandLogo } from './BrandLogo.tsx';
 import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
 import { AdminFounderProfile } from './AdminFounderProfile.tsx';
 import { AdminResumeManagement } from './AdminResumeManagement.tsx';
+import { getEffectivePlan } from '../config/freeAccess.ts';
 
 interface AdminConsoleProps {
   currentUser: AuthUser;
@@ -44,6 +45,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
   onNavigateHome,
   onLogout,
 }) => {
+  const plan = getEffectivePlan(currentUser);
+  const isBlack = plan.isBlack || (typeof document !== 'undefined' && (document.body.classList.contains('theme-black') || document.documentElement.getAttribute('data-theme') === 'black'));
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -238,17 +241,23 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
         </div>
 
         {/* Console Subnavigation Tabs (Segmented Recessed Neumorphic Strip) */}
-        <div className="bg-slate-950/60 border-t border-slate-800/70 px-4 sm:px-6">
+        <div className={`border-t px-4 sm:px-6 transition-colors ${
+          isBlack ? 'bg-[#090A0C] border-[rgba(255,255,255,0.08)]' : 'bg-slate-950/60 border-slate-800/70'
+        }`}>
           <div className="max-w-7xl mx-auto flex items-center space-x-1 py-1.5 overflow-x-auto text-xs">
             <button
               onClick={() => setActiveTab('overview')}
               className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
                 activeTab === 'overview'
-                  ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                  : isBlack
+                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
               }`}
             >
-              <Activity className="h-3.5 w-3.5 text-indigo-400" />
+              <Activity className={`h-3.5 w-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-indigo-400'}`} />
               <span>Overview & KPIs</span>
             </button>
 
@@ -256,11 +265,15 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               onClick={() => setActiveTab('users')}
               className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
                 activeTab === 'users'
-                  ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                  : isBlack
+                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
               }`}
             >
-              <Users className="h-3.5 w-3.5 text-blue-400" />
+              <Users className={`h-3.5 w-3.5 ${isBlack ? 'text-[#76A9D8]' : 'text-blue-400'}`} />
               <span>Users & Roles ({totalUsers})</span>
             </button>
 
@@ -268,11 +281,15 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               onClick={() => setActiveTab('resumes')}
               className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
                 activeTab === 'resumes'
-                  ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                  : isBlack
+                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
               }`}
             >
-              <FileText className="h-3.5 w-3.5 text-purple-400" />
+              <FileText className={`h-3.5 w-3.5 ${isBlack ? 'text-[#9483E8]' : 'text-purple-400'}`} />
               <span>Resume Operations ({stats?.totalResumes ?? '...'})</span>
             </button>
 
@@ -280,11 +297,15 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               onClick={() => setActiveTab('sources')}
               className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
                 activeTab === 'sources'
-                  ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                  : isBlack
+                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
               }`}
             >
-              <Cpu className="h-3.5 w-3.5 text-cyan-400" />
+              <Cpu className={`h-3.5 w-3.5 ${isBlack ? 'text-[#76A9D8]' : 'text-cyan-400'}`} />
               <span>Job Ingestion & Sources</span>
             </button>
 
@@ -292,11 +313,15 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               onClick={() => setActiveTab('audit')}
               className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
                 activeTab === 'audit'
-                  ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                  : isBlack
+                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
               }`}
             >
-              <Shield className="h-3.5 w-3.5 text-amber-400" />
+              <Shield className={`h-3.5 w-3.5 ${isBlack ? 'text-[#D9AA61]' : 'text-amber-400'}`} />
               <span>Security & Audit Trail</span>
             </button>
 
@@ -304,11 +329,15 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               onClick={() => setActiveTab('system')}
               className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
                 activeTab === 'system'
-                  ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                  : isBlack
+                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
               }`}
             >
-              <Database className="h-3.5 w-3.5 text-emerald-400" />
+              <Database className={`h-3.5 w-3.5 ${isBlack ? 'text-[#35B887]' : 'text-emerald-400'}`} />
               <span>System Health & Edge</span>
             </button>
 
@@ -316,11 +345,15 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               onClick={() => setActiveTab('founder')}
               className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
                 activeTab === 'founder'
-                  ? 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                  : isBlack
+                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
               }`}
             >
-              <Sparkles className="h-3.5 w-3.5 text-pink-400" />
+              <Sparkles className={`h-3.5 w-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-pink-400'}`} />
               <span>Founder Profile</span>
             </button>
           </div>
@@ -349,119 +382,147 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
         {activeTab === 'overview' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Platform Operational Status</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <h2 className={`text-xl font-bold ${isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'}`}>Platform Operational Status</h2>
+              <p className={`text-xs mt-0.5 ${isBlack ? 'text-[#C0BDB5]' : 'text-slate-500'}`}>
                 Real-time operational metrics queried directly from production Cloudflare D1 database
               </p>
             </div>
 
             {/* Metric Cards (Neumorphic Raised Cards) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] space-y-3">
+              <div className={`p-5 rounded-2xl space-y-3 transition border ${
+                isBlack
+                  ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA] be-card'
+                  : 'bg-white border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] text-slate-900'
+              }`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Registered Accounts</span>
-                  <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${isBlack ? 'text-[#92949A]' : 'text-slate-500'}`}>Registered Accounts</span>
+                  <div className={`p-2 rounded-xl ${isBlack ? 'bg-[rgba(118,169,216,0.15)] text-[#76A9D8] border border-[rgba(118,169,216,0.30)]' : 'bg-blue-50 text-blue-600'}`}>
                     <Users className="h-4 w-4" />
                   </div>
                 </div>
                 <div className="flex items-baseline space-x-2">
-                  <span className="text-3xl font-extrabold text-slate-900">{stats?.totalUsers ?? '...'}</span>
-                  <span className="text-xs text-slate-500">accounts</span>
+                  <span className={`text-3xl font-extrabold ${isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'}`}>{stats?.totalUsers ?? '...'}</span>
+                  <span className={`text-xs ${isBlack ? 'text-[#C0BDB5]' : 'text-slate-500'}`}>accounts</span>
                 </div>
-                <div className="text-[11px] text-slate-500 flex items-center space-x-1 pt-1 border-t border-slate-100">
-                  <Shield className="h-3.5 w-3.5 text-indigo-600" />
+                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[rgba(255,255,255,0.09)] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
+                  <Shield className={`h-3.5 w-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-indigo-600'}`} />
                   <span><strong>{stats?.totalAdmins ?? 0}</strong> provisioned administrators</span>
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] space-y-3">
+              <div className={`p-5 rounded-2xl space-y-3 transition border ${
+                isBlack
+                  ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA] be-card'
+                  : 'bg-white border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] text-slate-900'
+              }`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Job Applications</span>
-                  <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${isBlack ? 'text-[#92949A]' : 'text-slate-500'}`}>Job Applications</span>
+                  <div className={`p-2 rounded-xl ${isBlack ? 'bg-[rgba(53,184,135,0.15)] text-[#35B887] border border-[rgba(53,184,135,0.30)]' : 'bg-emerald-50 text-emerald-600'}`}>
                     <Briefcase className="h-4 w-4" />
                   </div>
                 </div>
                 <div className="flex items-baseline space-x-2">
-                  <span className="text-3xl font-extrabold text-slate-900">{stats?.totalApplications ?? '...'}</span>
-                  <span className="text-xs text-slate-500">records</span>
+                  <span className={`text-3xl font-extrabold ${isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'}`}>{stats?.totalApplications ?? '...'}</span>
+                  <span className={`text-xs ${isBlack ? 'text-[#C0BDB5]' : 'text-slate-500'}`}>records</span>
                 </div>
-                <div className="text-[11px] text-slate-500 flex items-center space-x-1 pt-1 border-t border-slate-100">
+                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[rgba(255,255,255,0.09)] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
                   <span>Enforcing 5-application limit on Free tier</span>
                 </div>
               </div>
 
-              <div onClick={() => setActiveTab('resumes')} className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] space-y-3 cursor-pointer hover:border-violet-300 transition">
+              <div onClick={() => setActiveTab('resumes')} className={`p-5 rounded-2xl space-y-3 cursor-pointer transition border ${
+                isBlack
+                  ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.30)] text-[#F2F0EA] be-card'
+                  : 'bg-white border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] hover:border-violet-300 text-slate-900'
+              }`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Master Resumes (Click to Manage)</span>
-                  <div className="p-2 rounded-xl bg-violet-50 text-violet-600">
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${isBlack ? 'text-[#92949A]' : 'text-slate-500'}`}>Master Resumes (Click to Manage)</span>
+                  <div className={`p-2 rounded-xl ${isBlack ? 'bg-[rgba(148,131,232,0.15)] text-[#9483E8] border border-[rgba(148,131,232,0.30)]' : 'bg-violet-50 text-violet-600'}`}>
                     <FileText className="h-4 w-4" />
                   </div>
                 </div>
                 <div className="flex items-baseline space-x-2">
-                  <span className="text-3xl font-extrabold text-slate-900">{stats?.totalResumes ?? '...'}</span>
-                  <span className="text-xs text-slate-500">documents</span>
+                  <span className={`text-3xl font-extrabold ${isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'}`}>{stats?.totalResumes ?? '...'}</span>
+                  <span className={`text-xs ${isBlack ? 'text-[#C0BDB5]' : 'text-slate-500'}`}>documents</span>
                 </div>
-                <div className="text-[11px] text-slate-500 flex items-center space-x-1 pt-1 border-t border-slate-100">
+                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[rgba(255,255,255,0.09)] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
                   <span>Enforcing 1-active master limit on Free tier</span>
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] space-y-3">
+              <div className={`p-5 rounded-2xl space-y-3 transition border ${
+                isBlack
+                  ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA] be-card'
+                  : 'bg-white border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] text-slate-900'
+              }`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Paid Plans (Pro & BLACK)</span>
-                  <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${isBlack ? 'text-[#92949A]' : 'text-slate-500'}`}>Active Paid Plans (Pro & BLACK)</span>
+                  <div className={`p-2 rounded-xl ${isBlack ? 'bg-[rgba(198,166,106,0.15)] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]' : 'bg-amber-50 text-amber-600'}`}>
                     <Sparkles className="h-4 w-4" />
                   </div>
                 </div>
                 <div className="flex items-baseline space-x-2">
-                  <span className="text-3xl font-extrabold text-slate-900">{stats?.activeSubscriptions ?? '...'}</span>
-                  <span className="text-xs text-slate-500">subscriptions</span>
+                  <span className={`text-3xl font-extrabold ${isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'}`}>{stats?.activeSubscriptions ?? '...'}</span>
+                  <span className={`text-xs ${isBlack ? 'text-[#C0BDB5]' : 'text-slate-500'}`}>subscriptions</span>
                 </div>
-                <div className="text-[11px] text-slate-500 flex items-center space-x-1 pt-1 border-t border-slate-100">
+                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[rgba(255,255,255,0.09)] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
                   <span>Plus 2 authorized permanent free-access accounts</span>
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] space-y-3">
+              <div className={`p-5 rounded-2xl space-y-3 transition border ${
+                isBlack
+                  ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA] be-card'
+                  : 'bg-white border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] text-slate-900'
+              }`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Cached Vacancies</span>
-                  <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${isBlack ? 'text-[#92949A]' : 'text-slate-500'}`}>Cached Vacancies</span>
+                  <div className={`p-2 rounded-xl ${isBlack ? 'bg-[rgba(148,131,232,0.15)] text-[#9483E8] border border-[rgba(148,131,232,0.30)]' : 'bg-indigo-50 text-indigo-600'}`}>
                     <Layers className="h-4 w-4" />
                   </div>
                 </div>
                 <div className="flex items-baseline space-x-2">
-                  <span className="text-3xl font-extrabold text-slate-900">{stats?.totalVacancies ?? '...'}</span>
-                  <span className="text-xs text-slate-500">live openings</span>
+                  <span className={`text-3xl font-extrabold ${isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'}`}>{stats?.totalVacancies ?? '...'}</span>
+                  <span className={`text-xs ${isBlack ? 'text-[#C0BDB5]' : 'text-slate-500'}`}>live openings</span>
                 </div>
-                <div className="text-[11px] text-slate-500 flex items-center space-x-1 pt-1 border-t border-slate-100">
+                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[rgba(255,255,255,0.09)] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
                   <span>Syncing every 10 min via Cloudflare Triggers</span>
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] space-y-3">
+              <div className={`p-5 rounded-2xl space-y-3 transition border ${
+                isBlack
+                  ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA] be-card'
+                  : 'bg-white border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] text-slate-900'
+              }`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Google OAuth Status</span>
-                  <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                  <span className={`text-xs font-semibold uppercase tracking-wider ${isBlack ? 'text-[#92949A]' : 'text-slate-500'}`}>Google OAuth Status</span>
+                  <div className={`p-2 rounded-xl ${isBlack ? 'bg-[rgba(118,169,216,0.15)] text-[#76A9D8] border border-[rgba(118,169,216,0.30)]' : 'bg-blue-50 text-blue-600'}`}>
                     <Key className="h-4 w-4" />
                   </div>
                 </div>
                 <div className="flex items-baseline space-x-2">
-                  <span className="text-lg font-bold text-emerald-700">Client Configured</span>
+                  <span className={`text-lg font-bold ${isBlack ? 'text-[#35B887]' : 'text-emerald-700'}`}>Client Configured</span>
                 </div>
-                <div className="text-[11px] text-slate-500 flex items-center space-x-1 pt-1 border-t border-slate-100">
+                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[rgba(255,255,255,0.09)] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
                   <span>Cryptographic tokeninfo signature verification active</span>
                 </div>
               </div>
             </div>
 
             {/* Quick Actions / Guide */}
-            <div className="p-5 rounded-2xl bg-indigo-50/70 border border-indigo-200/70 text-xs text-indigo-900 space-y-2">
-              <div className="font-bold flex items-center space-x-2">
-                <Shield className="h-4 w-4 text-indigo-600" />
+            <div className={`p-5 rounded-2xl text-xs space-y-2 border transition ${
+              isBlack
+                ? 'bg-[#14171C] border-[rgba(198,166,106,0.30)] text-[#F2F0EA] shadow-xs admin-security-card'
+                : 'bg-indigo-50/70 border-indigo-200/70 text-indigo-900'
+            }`}>
+              <div className={`font-bold flex items-center space-x-2 ${isBlack ? 'text-[#F2F0EA]' : 'text-indigo-950'}`}>
+                <Shield className={`h-4 w-4 ${isBlack ? 'text-[#C6A66A]' : 'text-indigo-600'}`} />
                 <span>Administrator Provisioning & Security Architecture</span>
               </div>
-              <p className="leading-relaxed text-indigo-800">
-                Administrative privileges in ApplyVise AI are strictly enforced on the server by verifying the authenticated user's session token against the <code className="bg-indigo-100/90 px-1 py-0.5 rounded font-mono">users.role</code> column in Cloudflare D1. Client-supplied roles or emails are never trusted. To provision new administrators from the command line, use <code className="bg-indigo-100/90 px-1 py-0.5 rounded font-mono">npm run admin:promote &lt;email&gt;</code>.
+              <p className={`leading-relaxed ${isBlack ? 'text-[#C0BDB5]' : 'text-indigo-800'}`}>
+                Administrative privileges in ApplyVise AI are strictly enforced on the server by verifying the authenticated user's session token against the <code className={`px-1.5 py-0.5 rounded font-mono font-medium ${isBlack ? 'bg-[#0D1014] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]' : 'bg-indigo-100/90'}`}>users.role</code> column in Cloudflare D1. Client-supplied roles or emails are never trusted. To provision new administrators from the command line, use <code className={`px-1.5 py-0.5 rounded font-mono font-medium ${isBlack ? 'bg-[#0D1014] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]' : 'bg-indigo-100/90'}`}>npm run admin:promote &lt;email&gt;</code>.
               </p>
             </div>
           </div>

@@ -47,6 +47,11 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
   const [isProcessingAll, setIsProcessingAll] = useState(false);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
+  const isBlack = typeof document !== 'undefined' && (
+    document.body.classList.contains('theme-black') ||
+    document.documentElement.getAttribute('data-theme') === 'black'
+  );
+
   // Statistics strictly derived from actual notification records
   const totalCount = notifications.length;
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
@@ -126,45 +131,69 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
       case 'match':
         return {
           icon: Sparkles,
-          iconBg: 'bg-violet-100 text-violet-600 border border-violet-200',
+          iconBg: isBlack
+            ? 'bg-[rgba(148,131,232,0.18)] text-[#9483E8] border border-[rgba(148,131,232,0.35)]'
+            : 'bg-violet-100 text-violet-600 border border-violet-200',
           label: 'Opportunity Match',
-          badgeClass: 'bg-violet-50 text-violet-700 border-violet-200',
+          badgeClass: isBlack
+            ? 'bg-[rgba(148,131,232,0.12)] text-[#9483E8] border-[rgba(148,131,232,0.30)]'
+            : 'bg-violet-50 text-violet-700 border-violet-200',
         };
       case 'submission_success':
         return {
           icon: CheckCircle2,
-          iconBg: 'bg-emerald-100 text-emerald-600 border border-emerald-200',
+          iconBg: isBlack
+            ? 'bg-[rgba(53,184,135,0.18)] text-[#35B887] border border-[rgba(53,184,135,0.35)]'
+            : 'bg-emerald-100 text-emerald-600 border border-emerald-200',
           label: 'Application Sent',
-          badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+          badgeClass: isBlack
+            ? 'bg-[rgba(53,184,135,0.12)] text-[#35B887] border-[rgba(53,184,135,0.30)]'
+            : 'bg-emerald-50 text-emerald-700 border-emerald-200',
         };
       case 'submission_failed':
         return {
           icon: AlertTriangle,
-          iconBg: 'bg-rose-100 text-rose-600 border border-rose-200',
+          iconBg: isBlack
+            ? 'bg-[rgba(214,117,117,0.18)] text-[#D67575] border border-[rgba(214,117,117,0.35)]'
+            : 'bg-rose-100 text-rose-600 border border-rose-200',
           label: 'Action Required',
-          badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+          badgeClass: isBlack
+            ? 'bg-[rgba(214,117,117,0.12)] text-[#D67575] border-[rgba(214,117,117,0.30)]'
+            : 'bg-rose-50 text-rose-700 border-rose-200',
         };
       case 'approval_needed':
         return {
           icon: Clock,
-          iconBg: 'bg-amber-100 text-amber-600 border border-amber-200',
+          iconBg: isBlack
+            ? 'bg-[rgba(217,170,97,0.18)] text-[#D9AA61] border border-[rgba(217,170,97,0.35)]'
+            : 'bg-amber-100 text-amber-600 border border-amber-200',
           label: 'Approval Needed',
-          badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+          badgeClass: isBlack
+            ? 'bg-[rgba(217,170,97,0.12)] text-[#D9AA61] border-[rgba(217,170,97,0.30)]'
+            : 'bg-amber-50 text-amber-700 border-amber-200',
         };
       case 'reminder':
         return {
           icon: Calendar,
-          iconBg: 'bg-indigo-100 text-indigo-600 border border-indigo-200',
+          iconBg: isBlack
+            ? 'bg-[rgba(148,131,232,0.18)] text-[#9483E8] border border-[rgba(148,131,232,0.35)]'
+            : 'bg-indigo-100 text-indigo-600 border border-indigo-200',
           label: 'Interview Reminder',
-          badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+          badgeClass: isBlack
+            ? 'bg-[rgba(148,131,232,0.12)] text-[#9483E8] border-[rgba(148,131,232,0.30)]'
+            : 'bg-indigo-50 text-indigo-700 border-indigo-200',
         };
       case 'system':
       default:
         return {
           icon: Info,
-          iconBg: 'bg-sky-100 text-sky-600 border border-sky-200',
+          iconBg: isBlack
+            ? 'bg-[rgba(118,169,216,0.18)] text-[#76A9D8] border border-[rgba(118,169,216,0.35)]'
+            : 'bg-sky-100 text-sky-600 border border-sky-200',
           label: 'System Update',
-          badgeClass: 'bg-sky-50 text-sky-700 border-sky-200',
+          badgeClass: isBlack
+            ? 'bg-[rgba(118,169,216,0.12)] text-[#76A9D8] border-[rgba(118,169,216,0.30)]'
+            : 'bg-sky-50 text-sky-700 border-sky-200',
         };
     }
   };
@@ -174,14 +203,22 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
       {/* 1. Header & Summary Metric Badges */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50/80 border border-blue-200/80 text-[11px] font-bold tracking-wide uppercase text-blue-700 mb-2">
-            <Bell className="w-3.5 h-3.5 text-blue-600" />
+          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase mb-2 ${
+            isBlack
+              ? 'bg-[rgba(198,166,106,0.12)] border border-[rgba(198,166,106,0.30)] text-[#C6A66A]'
+              : 'bg-blue-50/80 border border-blue-200/80 text-blue-700'
+          }`}>
+            <Bell className={`w-3.5 h-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-blue-600'}`} />
             <span>Activity Center</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
+            isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'
+          }`}>
             Notifications
           </h1>
-          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
+          <p className={`text-sm mt-1 max-w-2xl ${
+            isBlack ? 'text-[#C0BDB5]' : 'text-slate-500'
+          }`}>
             Stay informed about your career activity, applications and important account updates.
           </p>
         </div>
@@ -189,44 +226,78 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
         {/* Real Ground-Truth Metric Badges */}
         <div className="flex items-center gap-2.5 sm:gap-3">
           {/* Total Badge */}
-          <div className="px-3.5 py-2 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/80 shadow-2xs flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-medium">Total</span>
-            <span className="text-sm font-bold text-slate-800">{totalCount}</span>
+          <div className={`px-3.5 py-2 rounded-2xl backdrop-blur-xl border shadow-2xs flex items-center gap-2 ${
+            isBlack
+              ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]'
+              : 'bg-white/70 border-white/80'
+          }`}>
+            <span className={`text-xs font-medium ${isBlack ? 'text-[#92949A]' : 'text-slate-400'}`}>Total</span>
+            <span className={`text-sm font-bold ${isBlack ? 'text-[#F2F0EA]' : 'text-slate-800'}`}>{totalCount}</span>
           </div>
 
           {/* Unread Badge */}
-          <div className="px-3.5 py-2 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/80 shadow-2xs flex items-center gap-2">
+          <div className={`px-3.5 py-2 rounded-2xl backdrop-blur-xl border shadow-2xs flex items-center gap-2 ${
+            isBlack
+              ? 'bg-[#14171C] border-[rgba(198,166,106,0.30)]'
+              : 'bg-white/70 border-white/80'
+          }`}>
             <span className="flex h-2 w-2 relative">
               {unreadCount > 0 && (
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75" />
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                  isBlack ? 'bg-[#C6A66A]' : 'bg-violet-400'
+                }`} />
               )}
-              <span className={`relative inline-flex rounded-full h-2 w-2 ${unreadCount > 0 ? 'bg-violet-600' : 'bg-slate-300'}`} />
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                unreadCount > 0
+                  ? isBlack ? 'bg-[#C6A66A]' : 'bg-violet-600'
+                  : isBlack ? 'bg-[#737780]' : 'bg-slate-300'
+              }`} />
             </span>
-            <span className="text-xs text-slate-400 font-medium">Unread</span>
-            <span className={`text-sm font-bold ${unreadCount > 0 ? 'text-[#8065F5]' : 'text-slate-700'}`}>
+            <span className={`text-xs font-medium ${isBlack ? 'text-[#92949A]' : 'text-slate-400'}`}>Unread</span>
+            <span className={`text-sm font-bold ${
+              unreadCount > 0
+                ? isBlack ? 'text-[#C6A66A]' : 'text-[#8065F5]'
+                : isBlack ? 'text-[#C0BDB5]' : 'text-slate-700'
+            }`}>
               {unreadCount}
             </span>
           </div>
 
           {/* Read Badge */}
-          <div className="px-3.5 py-2 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/80 shadow-2xs flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-medium">Read</span>
-            <span className="text-sm font-bold text-slate-800">{readCount}</span>
+          <div className={`px-3.5 py-2 rounded-2xl backdrop-blur-xl border shadow-2xs flex items-center gap-2 ${
+            isBlack
+              ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]'
+              : 'bg-white/70 border-white/80'
+          }`}>
+            <span className={`text-xs font-medium ${isBlack ? 'text-[#92949A]' : 'text-slate-400'}`}>Read</span>
+            <span className={`text-sm font-bold ${isBlack ? 'text-[#F2F0EA]' : 'text-slate-800'}`}>{readCount}</span>
           </div>
         </div>
       </div>
 
       {/* 2. Control Bar: Filter Tabs, Search & Global Actions */}
-      <div className="p-3 sm:p-4 rounded-3xl bg-white/70 backdrop-blur-2xl border border-white/80 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className={`p-3 sm:p-4 rounded-3xl backdrop-blur-2xl border shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 ${
+        isBlack
+          ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]'
+          : 'bg-white/70 border-white/80'
+      }`}>
         {/* Left: Tab Switcher */}
-        <div className="flex items-center bg-slate-100/80 p-1 rounded-2xl w-full sm:w-auto">
+        <div className={`flex items-center p-1 rounded-2xl w-full sm:w-auto ${
+          isBlack
+            ? 'bg-[#0D1014] border border-[rgba(255,255,255,0.09)]'
+            : 'bg-slate-100/80'
+        }`}>
           <button
             type="button"
             onClick={() => setFilter('all')}
             className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               filter === 'all'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-800'
+                ? isBlack
+                  ? 'bg-[#191D23] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-2xs'
+                  : 'bg-white text-slate-900 shadow-2xs'
+                : isBlack
+                  ? 'text-[#C0BDB5] hover:text-[#F2F0EA]'
+                  : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             All <span className="ml-1 text-[11px] opacity-70">({totalCount})</span>
@@ -236,13 +307,21 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
             onClick={() => setFilter('unread')}
             className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               filter === 'unread'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-800'
+                ? isBlack
+                  ? 'bg-[#191D23] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-2xs'
+                  : 'bg-white text-slate-900 shadow-2xs'
+                : isBlack
+                  ? 'text-[#C0BDB5] hover:text-[#F2F0EA]'
+                  : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             Unread
             {unreadCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-violet-100 text-violet-700 font-bold">
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                isBlack
+                  ? 'bg-[rgba(198,166,106,0.18)] text-[#C6A66A]'
+                  : 'bg-violet-100 text-violet-700'
+              }`}>
                 {unreadCount}
               </span>
             )}
@@ -252,8 +331,12 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
             onClick={() => setFilter('read')}
             className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               filter === 'read'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-800'
+                ? isBlack
+                  ? 'bg-[#191D23] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-2xs'
+                  : 'bg-white text-slate-900 shadow-2xs'
+                : isBlack
+                  ? 'text-[#C0BDB5] hover:text-[#F2F0EA]'
+                  : 'text-slate-500 hover:text-slate-800'
             }`}
           >
             Read <span className="ml-1 text-[11px] opacity-70">({readCount})</span>
@@ -268,13 +351,19 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search notifications..."
-            className="w-full pl-9 pr-8 py-2 rounded-2xl bg-white/80 border border-slate-200/80 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition"
+            className={`w-full pl-9 pr-8 py-2 rounded-2xl text-xs transition border focus:outline-none ${
+              isBlack
+                ? 'bg-[#0D1014] border-[rgba(255,255,255,0.12)] text-[#F2F0EA] placeholder-[#737780] focus:border-[rgba(198,166,106,0.50)]'
+                : 'bg-white/80 border-slate-200/80 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500'
+            }`}
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 p-0.5"
+              className={`absolute right-2.5 top-1/2 -translate-y-1/2 text-xs p-0.5 ${
+                isBlack ? 'text-[#92949A] hover:text-[#F2F0EA]' : 'text-slate-400 hover:text-slate-600'
+              }`}
             >
               ×
             </button>
@@ -287,10 +376,14 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
             type="button"
             onClick={handleMarkAll}
             disabled={unreadCount === 0 || isProcessingAll}
-            className="flex-1 sm:flex-initial px-3.5 py-2 rounded-2xl bg-white/80 hover:bg-white border border-slate-200/80 text-xs font-semibold text-slate-700 hover:text-slate-900 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+            className={`be-btn-secondary flex-1 sm:flex-initial px-3.5 py-2 rounded-2xl text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer border ${
+              isBlack
+                ? 'bg-[#191D23] hover:bg-[#20252D] text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)]'
+                : 'bg-white/80 hover:bg-white text-slate-700 hover:text-slate-900 border-slate-200/80'
+            }`}
             title="Mark all notifications as read"
           >
-            <Check className="w-3.5 h-3.5 text-blue-600" />
+            <Check className={`w-3.5 h-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-blue-600'}`} />
             <span>Mark all read</span>
           </button>
 
@@ -298,11 +391,15 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
             type="button"
             onClick={() => onRefresh()}
             disabled={isLoading}
-            className="p-2 rounded-2xl bg-white/80 hover:bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 disabled:opacity-50 transition shadow-2xs cursor-pointer"
+            className={`p-2 rounded-2xl transition shadow-2xs cursor-pointer disabled:opacity-50 border ${
+              isBlack
+                ? 'bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)]'
+                : 'bg-white/80 hover:bg-white text-slate-600 hover:text-slate-900 border-slate-200/80'
+            }`}
             title="Refresh notifications"
             aria-label="Refresh notifications"
           >
-            <RotateCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />
+            <RotateCw className={`w-4 h-4 ${isLoading ? 'animate-spin ' + (isBlack ? 'text-[#C6A66A]' : 'text-blue-600') : (isBlack ? 'text-[#C6A66A]' : '')}`} />
           </button>
         </div>
       </div>
@@ -416,8 +513,12 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
                 key={notification.id}
                 className={`p-4 sm:p-5 rounded-3xl transition-all duration-200 relative border ${
                   isUnread
-                    ? 'bg-white/85 backdrop-blur-2xl border-white shadow-2xs hover:shadow-md border-l-4 border-l-blue-600'
-                    : 'bg-white/55 backdrop-blur-xl border-white/80 shadow-2xs hover:bg-white/75 opacity-90'
+                    ? isBlack
+                      ? 'bg-[#14171C] backdrop-blur-2xl border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.30)] shadow-2xs hover:shadow-md border-l-4 border-l-blue-600'
+                      : 'bg-white/85 backdrop-blur-2xl border-white shadow-2xs hover:shadow-md border-l-4 border-l-blue-600'
+                    : isBlack
+                      ? 'bg-[#14171C]/75 backdrop-blur-xl border-[rgba(255,255,255,0.06)] shadow-2xs hover:bg-[#14171C] opacity-90'
+                      : 'bg-white/55 backdrop-blur-xl border-white/80 shadow-2xs hover:bg-white/75 opacity-90'
                 }`}
               >
                 <div className="flex items-start gap-3.5 sm:gap-4">
@@ -434,7 +535,9 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
                       {/* Title */}
                       <h4
                         className={`text-xs sm:text-sm font-bold truncate ${
-                          isUnread ? 'text-slate-900' : 'text-slate-700'
+                          isUnread
+                            ? isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'
+                            : isBlack ? 'text-[#C0BDB5]' : 'text-slate-700'
                         }`}
                       >
                         {notification.title}
@@ -449,33 +552,47 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
 
                       {/* New Status Indicator */}
                       {isUnread && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 animate-pulse">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border animate-pulse ${
+                          isBlack
+                            ? 'bg-[rgba(198,166,106,0.15)] text-[#C6A66A] border-[rgba(198,166,106,0.30)]'
+                            : 'bg-blue-100 text-blue-700 border border-blue-200'
+                        }`}>
                           New
                         </span>
                       )}
 
                       {/* Timestamp */}
-                      <span className="ml-auto text-[11px] text-slate-400 font-medium">
+                      <span className={`ml-auto text-[11px] font-medium font-mono ${
+                        isBlack ? 'text-[#92949A]' : 'text-slate-400'
+                      }`}>
                         {formatTime(notification.timestamp)}
                       </span>
                     </div>
 
                     {/* Notification Message */}
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed break-words">
+                    <p className={`text-xs sm:text-sm leading-relaxed break-words ${
+                      isBlack ? 'text-[#C0BDB5]' : 'text-slate-600'
+                    }`}>
                       {notification.message}
                     </p>
 
                     {/* Contextual Actions Bar */}
-                    <div className="mt-3 flex flex-wrap items-center gap-2.5 pt-2 border-t border-slate-100/70">
+                    <div className={`mt-3 flex flex-wrap items-center gap-2.5 pt-2 border-t ${
+                      isBlack ? 'border-[rgba(255,255,255,0.08)]' : 'border-slate-100/70'
+                    }`}>
                       {/* Related Destination Action (if supported by metadata or type) */}
                       {(notification.type === 'match' || notification.vacancyId) && onNavigateToJobs && (
                         <button
                           type="button"
                           onClick={onNavigateToJobs}
-                          className="px-3 py-1.5 rounded-xl bg-blue-50/80 hover:bg-blue-100 border border-blue-200/80 text-[11px] font-semibold text-blue-700 transition flex items-center gap-1 cursor-pointer"
+                          className={`be-btn-primary px-3 py-1.5 rounded-xl text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer border ${
+                            isBlack
+                              ? 'bg-[#C6A66A] hover:bg-[#D9BB80] text-[#17130C] border-[rgba(198,166,106,0.30)]'
+                              : 'bg-blue-50/80 hover:bg-blue-100 border-blue-200/80 text-blue-700'
+                          }`}
                         >
-                          <span>Explore Opportunity</span>
-                          <ArrowRight className="w-3 h-3" />
+                          <span className={isBlack ? 'text-[#17130C] font-bold' : ''}>Explore Opportunity</span>
+                          <ArrowRight className={`w-3 h-3 ${isBlack ? 'text-[#17130C]' : ''}`} />
                         </button>
                       )}
 
@@ -486,10 +603,14 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
                           <button
                             type="button"
                             onClick={onNavigateToApplications}
-                            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-[11px] font-semibold text-slate-700 transition flex items-center gap-1 cursor-pointer"
+                            className={`px-3 py-1.5 rounded-xl text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer border ${
+                              isBlack
+                                ? 'bg-[#191D23] hover:bg-[#20252D] text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)]'
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                            }`}
                           >
                             <span>View Applications</span>
-                            <ExternalLink className="w-3 h-3" />
+                            <ExternalLink className={`w-3 h-3 ${isBlack ? 'text-[#C6A66A]' : ''}`} />
                           </button>
                         )}
 
@@ -499,10 +620,14 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
                           type="button"
                           onClick={() => handleMarkOne(notification.id)}
                           disabled={isProcessingThis}
-                          className="ml-auto text-[11px] font-semibold text-slate-500 hover:text-blue-600 transition flex items-center gap-1 cursor-pointer p-1"
+                          className={`ml-auto px-2.5 py-1 rounded-lg text-[11px] font-semibold transition flex items-center gap-1.5 cursor-pointer border ${
+                            isBlack
+                              ? 'bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs'
+                              : 'text-slate-500 hover:text-blue-600 border-transparent p-1'
+                          }`}
                         >
-                          <Check className="w-3.5 h-3.5" />
-                          <span>{isProcessingThis ? 'Updating...' : 'Mark as read'}</span>
+                          <Check className={`w-3.5 h-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-blue-600'}`} />
+                          <span className={isBlack ? 'text-[#C0BDB5] hover:text-[#F2F0EA]' : ''}>{isProcessingThis ? 'Updating...' : 'Mark as read'}</span>
                         </button>
                       )}
                     </div>
@@ -515,12 +640,18 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
       )}
 
       {/* 5. Zero-Hallucination & Safe Activity Guarantee */}
-      <div className="p-4 rounded-3xl bg-white/40 backdrop-blur-md border border-white/60 flex items-center justify-between text-xs text-slate-500">
+      <div className={`p-4 rounded-3xl backdrop-blur-md border flex items-center justify-between text-xs ${
+        isBlack
+          ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#C0BDB5]'
+          : 'bg-white/40 border-white/60 text-slate-500'
+      }`}>
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <ShieldCheck className={`w-4 h-4 ${isBlack ? 'text-[#35B887]' : 'text-emerald-600'}`} />
           <span>Activity events are generated strictly from verified user actions and live company postings.</span>
         </div>
-        <span className="font-mono text-[10px] text-slate-400 hidden sm:inline">ZERO FABRICATED UPDATES</span>
+        <span className={`font-mono text-[10px] hidden sm:inline ${
+          isBlack ? 'text-[#92949A]' : 'text-slate-400'
+        }`}>ZERO FABRICATED UPDATES</span>
       </div>
     </div>
   );
