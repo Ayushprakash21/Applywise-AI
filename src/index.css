@@ -300,52 +300,52 @@ html, body {
 :root[data-theme="black"],
 body.theme-black,
 .theme-black {
-  /* 1. Background System */
-  --be-bg-primary: #08090B;          /* Primary application background */
+  /* 1. Core Surfaces */
+  --be-bg-primary: #090A0C;          /* Main application background */
   --be-bg-secondary: #0D0F12;        /* Secondary background */
-  --be-bg-sidebar: #101216;          /* Sidebar background */
-  --be-bg-card: #13161B;             /* Primary card surface */
+  --be-bg-sidebar: #111318;          /* Sidebar background */
+  --be-bg-card: #14171C;             /* Primary card surface */
   --be-bg-elevated: #191D23;         /* Elevated card surface */
-  --be-bg-input: #0B0D10;            /* Input background */
-  --be-bg-modal: #111419;            /* Modal background */
+  --be-bg-input: #0D1014;            /* Input surface */
+  --be-bg-modal: #15181E;            /* Modal surface */
+  --be-border-divider: rgba(255, 255, 255, 0.09); /* Dividers */
+  --be-border-subtle: rgba(255, 255, 255, 0.09);  /* Neutral border */
 
-  /* 2. Champagne Gold Palette (Restrained Accent, Never Dominant) */
+  /* 2. Champagne Gold Palette (Restrained Luxury Accent) */
   --be-gold-primary: #C6A66A;        /* Primary champagne */
-  --be-gold-light: #E2C58A;          /* Light champagne */
-  --be-gold-deep: #927343;           /* Deep antique gold */
-  --be-gold-muted: #786341;          /* Muted gold */
-  --be-gold-border: rgba(198, 166, 106, 0.25); /* Fine gold border */
-  --be-gold-hover: rgba(198, 166, 106, 0.08);  /* Subtle gold hover surface */
+  --be-gold-hover: #D9BB80;          /* Hover champagne */
+  --be-gold-soft: #A98B57;           /* Soft gold */
+  --be-gold-muted: #88734F;          /* Muted gold */
+  --be-gold-border: rgba(198, 166, 106, 0.30); /* Gold border */
+  --be-gold-hover-bg: rgba(198, 166, 106, 0.08);  /* Gold hover surface */
   --be-gold-subtle: rgba(198, 166, 106, 0.12); /* Subtle accent */
 
   /* 3. Neutral Typography Palette */
-  --be-text-primary: #F0EEE9;        /* Primary high-contrast text */
-  --be-text-secondary: #B7B4AD;      /* Secondary descriptive text */
-  --be-text-muted: #858781;          /* Muted metadata */
-  --be-text-disabled: #5E6268;       /* Disabled text */
-  --be-border-divider: rgba(255, 255, 255, 0.075); /* Fine neutral divider */
-  --be-border-subtle: rgba(255, 255, 255, 0.09);  /* Neutral border */
+  --be-text-primary: #F2F0EA;        /* Main text */
+  --be-text-secondary: #C0BDB5;      /* Secondary text */
+  --be-text-muted: #92949A;          /* Muted text */
+  --be-text-disabled: #737780;       /* Disabled text */
 
-  /* 4. Functional Semantic Status Colors (Preserved & Recognizable) */
-  --be-status-success: #36B887;      /* Emerald - Verified / Live Feed */
-  --be-status-success-bg: rgba(54, 184, 135, 0.12);
-  --be-status-success-border: rgba(54, 184, 135, 0.28);
+  /* 4. Functional Semantic Status Colors */
+  --be-status-success: #35B887;      /* Success / Verified */
+  --be-status-success-bg: rgba(53, 184, 135, 0.12);
+  --be-status-success-border: rgba(53, 184, 135, 0.28);
 
-  --be-status-intelligence: #8B82E9; /* Muted violet - AI / Intelligence */
-  --be-status-intelligence-bg: rgba(139, 130, 233, 0.12);
-  --be-status-intelligence-border: rgba(139, 130, 233, 0.28);
+  --be-status-intelligence: #9483E8; /* AI / Intelligence */
+  --be-status-intelligence-bg: rgba(148, 131, 232, 0.12);
+  --be-status-intelligence-border: rgba(148, 131, 232, 0.28);
 
-  --be-status-info: #75A9D6;         /* Soft blue - Information */
-  --be-status-info-bg: rgba(117, 169, 214, 0.12);
-  --be-status-info-border: rgba(117, 169, 214, 0.28);
+  --be-status-info: #76A9D8;         /* Information */
+  --be-status-info-bg: rgba(118, 169, 216, 0.12);
+  --be-status-info-border: rgba(118, 169, 216, 0.28);
 
-  --be-status-warning: #D9AA61;      /* Muted amber - Warning */
+  --be-status-warning: #D9AA61;      /* Warning */
   --be-status-warning-bg: rgba(217, 170, 97, 0.12);
   --be-status-warning-border: rgba(217, 170, 97, 0.28);
 
-  --be-status-error: #D66F70;        /* Controlled red - Error / Critical */
-  --be-status-error-bg: rgba(214, 111, 112, 0.12);
-  --be-status-error-border: rgba(214, 111, 112, 0.28);
+  --be-status-error: #D67575;        /* Error */
+  --be-status-error-bg: rgba(214, 117, 117, 0.12);
+  --be-status-error-border: rgba(214, 117, 117, 0.28);
 
   /* Tabular Numerals for Numerical Data (Private Banking Precision) */
   font-feature-settings: "tnum" 1, "cv02" 1, "cv03" 1, "cv04" 1;
@@ -359,13 +359,13 @@ body.theme-black,
 .theme-black,
 .theme-black body,
 body.theme-black {
-  background-color: #08090B !important;
-  color: #F0EEE9 !important;
+  background-color: #090A0C !important;
+  color: #F2F0EA !important;
 }
 
 .theme-black ::selection {
   background: rgba(198, 166, 106, 0.28) !important;
-  color: #F0EEE9 !important;
+  color: #F2F0EA !important;
 }
 
 /* Luxury Terminal Scrollbars */
@@ -374,7 +374,7 @@ body.theme-black {
   height: 6px;
 }
 .theme-black ::-webkit-scrollbar-track {
-  background: #08090B !important;
+  background: #090A0C !important;
 }
 .theme-black ::-webkit-scrollbar-thumb {
   background: #242831 !important;
@@ -391,39 +391,39 @@ body.theme-black {
 .theme-black [class*="bg-[#E9EDF3]"],
 .theme-black [class*="bg-[#EEF2F7]"],
 .theme-black .neu-bg {
-  background-color: #08090B !important;
-  color: #F0EEE9 !important;
+  background-color: #090A0C !important;
+  color: #F2F0EA !important;
 }
 
 .theme-black header {
-  background: rgba(16, 18, 22, 0.94) !important;
+  background: rgba(17, 19, 24, 0.94) !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.075) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
 }
 
 .theme-black aside {
-  background: #101216 !important;
+  background: #111318 !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.075) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.09) !important;
 }
 
 .theme-black nav[aria-label="Mobile Navigation"] {
-  background: #101216 !important;
+  background: #111318 !important;
   backdrop-filter: blur(20px) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.075) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.09) !important;
 }
 
 /* Navigation items in sidebar & mobile */
 .theme-black aside button:not([class*="rounded-full"]),
 .theme-black nav button {
-  color: #B7B4AD !important;
+  color: #C0BDB5 !important;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .theme-black aside button:hover:not([class*="border-violet-400"]),
 .theme-black nav button:hover:not([class*="font-bold"]) {
-  color: #F0EEE9 !important;
+  color: #F2F0EA !important;
   background-color: rgba(255, 255, 255, 0.04) !important;
 }
 
@@ -433,7 +433,7 @@ body.theme-black {
 .theme-black aside button[class*="from-blue-600"],
 .theme-black nav button[class*="font-bold"] {
   background: rgba(198, 166, 106, 0.08) !important;
-  border: 1px solid rgba(198, 166, 106, 0.25) !important;
+  border: 1px solid rgba(198, 166, 106, 0.30) !important;
   color: #C6A66A !important;
   box-shadow: none !important;
 }
@@ -449,9 +449,9 @@ body.theme-black {
 }
 
 .theme-black header [class*="font-mono"][class*="uppercase"] {
-  background-color: #101216 !important;
+  background-color: #111318 !important;
   color: #C6A66A !important;
-  border: 1px solid rgba(198, 166, 106, 0.25) !important;
+  border: 1px solid rgba(198, 166, 106, 0.30) !important;
 }
 
 /* 3. Cards, Containers, and Surfaces (Graphite Surfaces · 1px Crisp Borders) */
@@ -472,17 +472,19 @@ body.theme-black {
 .theme-black .neu-surface,
 .theme-black .neu-raised,
 .theme-black .neu-panel,
-.theme-black .neu-glass {
-  background-color: #13161B !important;
-  border-color: rgba(255, 255, 255, 0.075) !important;
-  color: #F0EEE9 !important;
+.theme-black .neu-glass,
+.theme-black .be-card {
+  background-color: #14171C !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  color: #F2F0EA !important;
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Subtle, Controlled Hover Elevation (No luminous halos) */
+/* Subtle, Controlled Hover Elevation */
 .theme-black .glass-card-hover:hover,
-.theme-black .neu-raised-hover:hover {
-  border-color: rgba(198, 166, 106, 0.25) !important;
+.theme-black .neu-raised-hover:hover,
+.theme-black .be-card:hover {
+  border-color: rgba(198, 166, 106, 0.30) !important;
   box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.7) !important;
   transform: translateY(-1px) !important;
 }
@@ -499,17 +501,18 @@ body.theme-black {
 .theme-black .bg-gray-100,
 .theme-black .bg-indigo-50,
 .theme-black .bg-blue-50,
-.theme-black .bg-violet-50 {
+.theme-black .bg-violet-50,
+.theme-black .be-card-elevated {
   background-color: #191D23 !important;
-  border-color: rgba(255, 255, 255, 0.075) !important;
-  color: #F0EEE9 !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  color: #F2F0EA !important;
 }
 
 /* Inset containers */
 .theme-black .neu-inset,
 .theme-black [class*="bg-slate-50/50"] {
-  background-color: #0D0F12 !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background-color: #0D1014 !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4) !important;
 }
 
@@ -525,22 +528,21 @@ body.theme-black {
 .theme-black .text-slate-700,
 .theme-black .text-gray-900,
 .theme-black .text-gray-800 {
-  color: #F0EEE9 !important;
+  color: #F2F0EA !important;
   letter-spacing: -0.015em;
 }
 
 .theme-black p,
-.theme-black span:not([class*="bg-"]):not([class*="text-emerald"]):not([class*="text-rose"]):not([class*="text-amber"]):not([class*="text-blue"]):not([class*="text-violet"]),
 .theme-black .text-slate-600,
 .theme-black .text-slate-500,
 .theme-black .text-gray-600,
 .theme-black .text-gray-500 {
-  color: #B7B4AD !important;
+  color: #C0BDB5 !important;
 }
 
 .theme-black .text-slate-400,
 .theme-black .text-gray-400 {
-  color: #858781 !important;
+  color: #92949A !important;
 }
 
 /* Restrained Champagne Accent Text */
@@ -554,50 +556,97 @@ body.theme-black {
 }
 
 /* 5. Buttons & Interactive Controls (Restrained Luxury Architecture) */
-/* Primary Button: Solid Muted Champagne, Deep Charcoal Text, Zero Outer White Glow */
+/* Primary Button: Champagne Gold Background, Deep Dark #17130C Text, Clear Contrast */
+.theme-black .be-btn-primary,
 .theme-black .neu-button-primary,
 .theme-black button:not(aside button):not(nav button)[class*="bg-blue-600"],
 .theme-black button:not(aside button):not(nav button)[class*="bg-indigo-600"],
 .theme-black button:not(aside button):not(nav button)[class*="bg-[#8065F5]"],
-.theme-black button:not(aside button):not(nav button)[class*="from-blue-600"] {
+.theme-black button:not(aside button):not(nav button)[class*="from-blue-600"],
+.theme-black button:not(aside button):not(nav button)[class*="from-violet-600"] {
   background: #C6A66A !important;
-  color: #0D0F12 !important;
-  font-weight: 600 !important;
-  border: 1px solid #E2C58A !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+  color: #17130C !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(198, 166, 106, 0.30) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
-.theme-black .neu-button-primary:hover,
-.theme-black button:not(aside button):not(nav button)[class*="bg-blue-600"]:hover,
-.theme-black button:not(aside button):not(nav button)[class*="bg-indigo-600"]:hover,
-.theme-black button:not(aside button):not(nav button)[class*="bg-[#8065F5]"]:hover,
-.theme-black button:not(aside button):not(nav button)[class*="from-blue-600"]:hover {
-  background: #E2C58A !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+
+/* Ensure ALL child elements inside primary buttons inherit or strictly display #17130C */
+.theme-black .be-btn-primary *,
+.theme-black .neu-button-primary *,
+.theme-black button:not(aside button):not(nav button)[class*="bg-blue-600"] *,
+.theme-black button:not(aside button):not(nav button)[class*="bg-indigo-600"] *,
+.theme-black button:not(aside button):not(nav button)[class*="bg-[#8065F5]"] *,
+.theme-black button:not(aside button):not(nav button)[class*="from-blue-600"] *,
+.theme-black button:not(aside button):not(nav button)[class*="from-violet-600"] * {
+  color: #17130C !important;
+  fill: #17130C;
+}
+
+.theme-black .be-btn-primary:hover:not(:disabled),
+.theme-black .neu-button-primary:hover:not(:disabled),
+.theme-black button:not(aside button):not(nav button)[class*="bg-blue-600"]:hover:not(:disabled),
+.theme-black button:not(aside button):not(nav button)[class*="bg-indigo-600"]:hover:not(:disabled),
+.theme-black button:not(aside button):not(nav button)[class*="bg-[#8065F5]"]:hover:not(:disabled),
+.theme-black button:not(aside button):not(nav button)[class*="from-blue-600"]:hover:not(:disabled),
+.theme-black button:not(aside button):not(nav button)[class*="from-violet-600"]:hover:not(:disabled) {
+  background: #D9BB80 !important;
+  color: #17130C !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55) !important;
   transform: translateY(-1px) !important;
 }
 
-/* Secondary Button: Graphite Surface, Fine Neutral Border, Off-White Text */
+/* Secondary Button: Graphite Surface, Neutral Border, Off-White Text */
+.theme-black .be-btn-secondary,
 .theme-black .neu-button,
-.theme-black button[class*="border-slate-200"],
-.theme-black button[class*="border-slate-300"] {
+.theme-black button[class*="border-slate-200"]:not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-[#8065F5]"]),
+.theme-black button[class*="border-slate-300"]:not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-[#8065F5]"]) {
   background-color: #191D23 !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #F0EEE9 !important;
+  color: #F2F0EA !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
   transition: all 0.18s ease-in-out !important;
 }
-.theme-black button[class*="border-slate-200"]:hover,
-.theme-black button[class*="border-slate-300"]:hover {
-  background-color: #20242B !important;
-  border-color: rgba(198, 166, 106, 0.3) !important;
-  color: #F0EEE9 !important;
+
+.theme-black .be-btn-secondary *,
+.theme-black .neu-button *,
+.theme-black button[class*="border-slate-200"]:not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-[#8065F5]"]) *,
+.theme-black button[class*="border-slate-300"]:not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-[#8065F5]"]) * {
+  color: #F2F0EA !important;
 }
 
-/* Tertiary / Skip Buttons */
-.theme-black button[class*="text-slate-600"]:hover {
-  color: #F0EEE9 !important;
+.theme-black .be-btn-secondary:hover:not(:disabled),
+.theme-black .neu-button:hover:not(:disabled),
+.theme-black button[class*="border-slate-200"]:not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-[#8065F5]"]):hover:not(:disabled),
+.theme-black button[class*="border-slate-300"]:not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-[#8065F5]"]):hover:not(:disabled) {
+  background-color: #20252D !important;
+  border-color: rgba(198, 166, 106, 0.30) !important;
+  color: #F2F0EA !important;
+}
+
+/* Tertiary / Plain Text Buttons */
+.theme-black .be-btn-tertiary,
+.theme-black button[class*="text-slate-600"]:not([class*="bg-"]):not([class*="border-"]),
+.theme-black button[class*="text-slate-500"]:not([class*="bg-"]):not([class*="border-"]) {
+  background-color: transparent !important;
+  color: #C0BDB5 !important;
+}
+
+.theme-black .be-btn-tertiary:hover:not(:disabled),
+.theme-black button[class*="text-slate-600"]:not([class*="bg-"]):not([class*="border-"]):hover:not(:disabled),
+.theme-black button[class*="text-slate-500"]:not([class*="bg-"]):not([class*="border-"]):hover:not(:disabled) {
+  color: #F2F0EA !important;
   background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Disabled Button Contract */
+.theme-black button:disabled,
+.theme-black button[disabled] {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  filter: grayscale(40%) !important;
 }
 
 /* 6. Inputs, Selects & Forms (Fine Neutral Borders · Champagne ONLY on Focus) */
@@ -605,10 +654,11 @@ body.theme-black {
 .theme-black textarea,
 .theme-black select,
 .theme-black .neu-input,
-.theme-black .glass-input {
-  background-color: #0B0D10 !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #F0EEE9 !important;
+.theme-black .glass-input,
+.theme-black .be-input {
+  background-color: #0D1014 !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  color: #F2F0EA !important;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45) !important;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
@@ -616,43 +666,44 @@ body.theme-black {
 .theme-black textarea:focus,
 .theme-black select:focus,
 .theme-black .neu-input:focus,
-.theme-black .glass-input:focus {
+.theme-black .glass-input:focus,
+.theme-black .be-input:focus {
   border-color: #C6A66A !important;
-  box-shadow: 0 0 0 2px rgba(198, 166, 106, 0.2), inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 0 0 2px rgba(198, 166, 106, 0.20), inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
   outline: none !important;
 }
 .theme-black input::placeholder,
 .theme-black textarea::placeholder {
-  color: #5E6268 !important;
+  color: #737780 !important;
 }
 
 /* 7. Modals, Drawers & Dropdowns (Deep Graphite Modal Surfaces) */
 .theme-black .fixed.inset-0.bg-slate-900\/40,
 .theme-black .fixed.inset-0.bg-black\/50,
 .theme-black [class*="backdrop-blur-sm"] {
-  background-color: rgba(8, 9, 11, 0.88) !important;
+  background-color: rgba(9, 10, 12, 0.88) !important;
 }
 
 .theme-black [role="dialog"],
 .theme-black [class*="rounded-3xl bg-white"],
 .theme-black [class*="rounded-2xl bg-white"],
 .theme-black [class*="rounded-xl bg-white"] {
-  background-color: #111419 !important;
-  border: 1px solid rgba(198, 166, 106, 0.25) !important;
-  color: #F0EEE9 !important;
+  background-color: #15181E !important;
+  border: 1px solid rgba(198, 166, 106, 0.30) !important;
+  color: #F2F0EA !important;
   box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.85) !important;
 }
 
 /* Modal header separators */
 .theme-black [role="dialog"] [class*="border-b"],
 .theme-black [role="dialog"] [class*="border-t"] {
-  border-color: rgba(255, 255, 255, 0.075) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
 }
 
 /* Resume Intelligence Onboarding Modal specifics */
 .theme-black [data-testid="onboarding-progress-container"] {
-  background-color: #0D0F12 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.075) !important;
+  background-color: #0D1014 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
 }
 
 .theme-black [data-testid="onboarding-progress-container"] [class*="bg-slate-200"] {
@@ -666,12 +717,12 @@ body.theme-black {
 }
 
 .theme-black [class*="border-dashed"] {
-  background-color: #0B0D10 !important;
+  background-color: #0D1014 !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .theme-black [class*="border-dashed"]:hover {
-  background-color: #0E1116 !important;
+  background-color: #111419 !important;
   border-color: rgba(198, 166, 106, 0.35) !important;
 }
 
@@ -687,25 +738,25 @@ body.theme-black {
 /* Dropdown menus (user menu, notifications dropdown) */
 .theme-black div[ref="userMenuRef"] div,
 .theme-black div[ref="notifRef"] div {
-  background-color: #13161B !important;
+  background-color: #14171C !important;
   border: 1px solid rgba(255, 255, 255, 0.09) !important;
-  color: #F0EEE9 !important;
+  color: #F2F0EA !important;
   box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.85) !important;
 }
 
 /* 8. Tables, Borders, Dividers & Tooltips */
 .theme-black table {
-  border-color: rgba(255, 255, 255, 0.075) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
 }
 .theme-black th {
-  background-color: #101216 !important;
-  color: #B7B4AD !important;
+  background-color: #111318 !important;
+  color: #C0BDB5 !important;
   font-weight: 600 !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
 }
 .theme-black td {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-  color: #F0EEE9 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
+  color: #F2F0EA !important;
 }
 .theme-black tr:hover td {
   background-color: #191D23 !important;
@@ -715,53 +766,53 @@ body.theme-black {
 .theme-black .border-slate-300,
 .theme-black .divide-slate-100,
 .theme-black .divide-slate-200 {
-  border-color: rgba(255, 255, 255, 0.075) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
 }
 
 /* 9. Badges, Chips & Progress Bars (Preserve Semantic Status Colors!) */
 .theme-black .neu-chip {
   background: #191D23 !important;
-  color: #B7B4AD !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #C0BDB5 !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
   box-shadow: none !important;
 }
 .theme-black .neu-chip:hover {
-  background: #20242B !important;
-  color: #F0EEE9 !important;
-  border-color: rgba(198, 166, 106, 0.25) !important;
+  background: #20252D !important;
+  color: #F2F0EA !important;
+  border-color: rgba(198, 166, 106, 0.30) !important;
   box-shadow: none !important;
 }
 .theme-black .neu-chip.active {
   background: rgba(198, 166, 106, 0.12) !important;
   border-color: #C6A66A !important;
-  color: #F0EEE9 !important;
+  color: #F2F0EA !important;
   box-shadow: none !important;
 }
 
 /* Preserved Semantic Status Badges (Never Gold-Washed) */
 .theme-black [class*="bg-emerald-50"],
 .theme-black [class*="bg-emerald-100"] {
-  background-color: rgba(54, 184, 135, 0.12) !important;
-  border-color: rgba(54, 184, 135, 0.28) !important;
-  color: #36B887 !important;
+  background-color: rgba(53, 184, 135, 0.12) !important;
+  border-color: rgba(53, 184, 135, 0.28) !important;
+  color: #35B887 !important;
 }
 .theme-black [class*="text-emerald-600"],
 .theme-black [class*="text-emerald-700"],
 .theme-black [class*="text-emerald-800"] {
-  color: #36B887 !important;
+  color: #35B887 !important;
 }
 
 .theme-black [class*="bg-rose-50"],
 .theme-black [class*="bg-rose-100"],
 .theme-black [class*="bg-red-50"] {
-  background-color: rgba(214, 111, 112, 0.12) !important;
-  border-color: rgba(214, 111, 112, 0.28) !important;
-  color: #D66F70 !important;
+  background-color: rgba(214, 117, 117, 0.12) !important;
+  border-color: rgba(214, 117, 117, 0.28) !important;
+  color: #D67575 !important;
 }
 .theme-black [class*="text-rose-600"],
 .theme-black [class*="text-rose-700"],
 .theme-black [class*="text-red-600"] {
-  color: #D66F70 !important;
+  color: #D67575 !important;
 }
 
 .theme-black [class*="bg-amber-50"],
@@ -776,6 +827,24 @@ body.theme-black {
   color: #D9AA61 !important;
 }
 
+/* AI / Intelligence Badges */
+.theme-black [class*="bg-violet-50"],
+.theme-black [class*="bg-violet-100"],
+.theme-black [class*="bg-purple-50"] {
+  background-color: rgba(148, 131, 232, 0.12) !important;
+  border-color: rgba(148, 131, 232, 0.28) !important;
+  color: #9483E8 !important;
+}
+
+/* Info Badges */
+.theme-black [class*="bg-blue-50"],
+.theme-black [class*="bg-blue-100"],
+.theme-black [class*="bg-cyan-50"] {
+  background-color: rgba(118, 169, 216, 0.12) !important;
+  border-color: rgba(118, 169, 216, 0.28) !important;
+  color: #76A9D8 !important;
+}
+
 /* Progress bar tracks & fills */
 .theme-black [class*="bg-slate-200"],
 .theme-black [class*="bg-slate-100"] {
@@ -786,7 +855,7 @@ body.theme-black {
   box-shadow: none !important;
 }
 .theme-black [class*="bg-emerald-500"][style*="width"] {
-  background: #36B887 !important;
+  background: #35B887 !important;
   box-shadow: none !important;
 }
 
@@ -794,6 +863,25 @@ body.theme-black {
 .theme-black .blur-\[140px\],
 .theme-black .blur-\[130px\] {
   display: none !important;
+}
+
+/* AI Copilot Floating Launcher & Drawer in BLACK ELITE */
+.theme-black button[aria-label="Open ApplyVise Copilot"] {
+  background-color: #14171C !important;
+  border: 1px solid rgba(198, 166, 106, 0.30) !important;
+  color: #F2F0EA !important;
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.8) !important;
+}
+.theme-black button[aria-label="Open ApplyVise Copilot"]:hover {
+  background-color: #191D23 !important;
+  border-color: rgba(198, 166, 106, 0.50) !important;
+  transform: translateY(-1px) scale(1.02) !important;
+}
+.theme-black button[aria-label="Open ApplyVise Copilot"] span {
+  color: #F2F0EA !important;
+}
+.theme-black button[aria-label="Open ApplyVise Copilot"] span[class*="text-[#9483E8]"] {
+  color: #9483E8 !important;
 }
 
 /* ==========================================================================

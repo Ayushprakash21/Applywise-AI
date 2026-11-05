@@ -553,7 +553,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition order-2 sm:order-1 text-center"
+                  className="be-btn-tertiary px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-semibold text-slate-600 dark:text-[#C0BDB5] hover:bg-slate-100 dark:hover:bg-[rgba(255,255,255,0.05)] transition order-2 sm:order-1 text-center cursor-pointer"
                 >
                   Skip for now
                 </button>
@@ -561,7 +561,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                   type="button"
                   disabled={!selectedFile}
                   onClick={handleProcessFile}
-                  className="px-5 py-2.5 min-h-[44px] bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition flex items-center justify-center space-x-1.5 active:scale-95 touch-target order-1 sm:order-2"
+                  className="be-btn-primary px-5 py-2.5 min-h-[44px] bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white dark:text-[#17130C] rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition flex items-center justify-center space-x-1.5 active:scale-95 touch-target order-1 sm:order-2 cursor-pointer"
                 >
                   <span>Extract & Analyze Profile</span>
                   <ArrowRight className="h-4 w-4" />

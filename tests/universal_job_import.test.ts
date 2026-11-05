@@ -152,9 +152,9 @@ describe('Universal Job Import — Structured Schema.org JSON-LD Extraction', ()
     assert.strictEqual(result.salaryRange?.currency, 'USD');
     assert.strictEqual(result.extractionMethod, 'json_ld');
     assert.strictEqual(result.extractionStatus, 'verified_source');
-    assert.ok(result.requiredSkills.includes('Go'));
-    assert.ok(result.requiredSkills.includes('Distributed Systems'));
-    assert.ok(result.requiredSkills.includes('Kubernetes'));
+    assert.ok(result.requiredSkills?.includes('Go'));
+    assert.ok(result.requiredSkills?.includes('Distributed Systems'));
+    assert.ok(result.requiredSkills?.includes('Kubernetes'));
   });
 
   it('guarantees zero-hallucination when salary or dates are absent in JSON-LD', () => {
@@ -206,8 +206,8 @@ describe('Universal Job Import — ATS Adapters & Raw Text Parsing', () => {
     assert.strictEqual(result.title, 'Staff Backend Architect');
     assert.strictEqual(result.company, 'Figma');
     assert.strictEqual(result.extractionMethod, 'adapter');
-    assert.ok(result.requiredSkills.includes('Rust'));
-    assert.ok(result.requiredSkills.includes('PostgreSQL'));
+    assert.ok(result.requiredSkills?.includes('Rust'));
+    assert.ok(result.requiredSkills?.includes('PostgreSQL'));
   });
 
   it('parses raw pasted job descriptions truthfully without hallucinating missing attributes', async () => {
@@ -234,9 +234,9 @@ describe('Universal Job Import — ATS Adapters & Raw Text Parsing', () => {
     assert.strictEqual(result.extractionMethod, 'manual');
     assert.strictEqual(result.extractionStatus, 'manual_entry');
     assert.strictEqual(result.salaryRange, null, 'Salary should not be hallucinated if not in text');
-    assert.ok(result.requiredSkills.includes('Kubernetes'));
-    assert.ok(result.requiredSkills.includes('Terraform'));
-    assert.ok(result.requiredSkills.includes('Docker'));
+    assert.ok(result.requiredSkills?.includes('Kubernetes'));
+    assert.ok(result.requiredSkills?.includes('Terraform'));
+    assert.ok(result.requiredSkills?.includes('Docker'));
   });
 });
 
@@ -254,7 +254,7 @@ describe('Universal Job Import — Multi-Tenant Persistence & Isolation in authA
     const vacancyId = `vac_imported_${Date.now()}`;
     const importedId = `imp_${Date.now()}`;
 
-    const vacancy: JobVacancy = {
+    const vacancy: any = {
       id: vacancyId,
       source: 'imported',
       title: 'Principal AI Architect',

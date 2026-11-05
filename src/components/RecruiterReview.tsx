@@ -125,7 +125,7 @@ export const RecruiterReview: React.FC<RecruiterReviewProps> = ({
       {/* 1. Header & Application Selector */}
       <div className={`p-6 sm:p-8 rounded-3xl border transition-all shadow-sm ${
         isBlack
-          ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9]'
+          ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA]'
           : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
       }`}>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -178,7 +178,7 @@ export const RecruiterReview: React.FC<RecruiterReviewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Alignment Score Card */}
         <div className={`p-6 rounded-3xl border flex flex-col justify-between ${
-          isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
+          isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
         }`}>
           <div className="space-y-2">
             <span className="text-[10px] font-mono uppercase text-slate-400 font-semibold">
@@ -208,7 +208,7 @@ export const RecruiterReview: React.FC<RecruiterReviewProps> = ({
 
         {/* Strongest Points & Potential Concerns */}
         <div className={`lg:col-span-2 p-6 rounded-3xl border space-y-4 ${
-          isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
+          isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
         }`}>
           <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">
             Executive Recruiter Summary
@@ -259,7 +259,7 @@ export const RecruiterReview: React.FC<RecruiterReviewProps> = ({
 
       {/* 3. Three-Tier Evidence Classification */}
       <div className={`p-6 sm:p-7 rounded-3xl border ${
-        isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
+        isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
       }`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/60 dark:border-slate-800/80">
           <div className="space-y-0.5">
@@ -367,7 +367,7 @@ export const RecruiterReview: React.FC<RecruiterReviewProps> = ({
 
       {/* 4. 12 Review Dimensions Grid */}
       <div className={`p-6 sm:p-7 rounded-3xl border space-y-5 ${
-        isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
+        isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
       }`}>
         <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">
           Detailed 12-Category Screening Matrix

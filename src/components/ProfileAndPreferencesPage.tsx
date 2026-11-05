@@ -304,9 +304,10 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
               <button
                 type="button"
                 onClick={addSkill}
-                className="shrink-0 px-4 py-2 min-h-[44px] neu-button rounded-xl font-semibold transition touch-target"
+                className="shrink-0 px-4 py-2 min-h-[44px] be-btn-primary neu-button rounded-xl font-bold transition touch-target flex items-center space-x-1 cursor-pointer"
               >
-                Add Skill
+                <span>Add Skill</span>
+                <span>+</span>
               </button>
             </div>
 

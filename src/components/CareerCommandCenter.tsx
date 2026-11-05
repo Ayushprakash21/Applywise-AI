@@ -160,27 +160,27 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* 1. WELCOME HERO: CAREER INTELLIGENCE SPACE WITH 3D OBJECT */}
-      <section className="relative overflow-hidden rounded-3xl bg-white/65 backdrop-blur-2xl border border-white/85 p-6 sm:p-8 lg:p-10 shadow-[0_24px_50px_rgba(80,100,150,0.14),0_0_0_1px_rgba(255,255,255,0.4)_inset]">
+      <section className="relative overflow-hidden rounded-3xl bg-white/65 dark:bg-[#14171C] backdrop-blur-2xl border border-white/85 dark:border-[rgba(255,255,255,0.09)] p-6 sm:p-8 lg:p-10 shadow-[0_24px_50px_rgba(80,100,150,0.14),0_0_0_1px_rgba(255,255,255,0.4)_inset] dark:shadow-none transition-colors">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Left Column: Personalized Greeting, Headline & Search */}
           <div className="lg:col-span-7 space-y-5">
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-700 border border-violet-300/30">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-700 dark:bg-[rgba(198,166,106,0.10)] dark:text-[#C6A66A] border border-violet-300/30 dark:border-[rgba(198,166,106,0.25)] font-mono">
                   Career Intelligence Workspace
                 </span>
-                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-[rgba(53,184,135,0.12)] dark:text-[#35B887] border border-emerald-200 dark:border-[rgba(53,184,135,0.28)] font-mono">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span>Active Safe Ingestion</span>
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight flex items-center space-x-2">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-[#F2F0EA] tracking-tight flex items-center space-x-2">
                 <span>Welcome back, {user.fullName ? user.fullName.split(' ')[0] : 'Job Seeker'}!</span>
                 <span className="text-3xl">👋</span>
               </h1>
 
-              <p className="text-sm sm:text-base text-slate-600 mt-2 leading-relaxed max-w-xl">
+              <p className="text-sm sm:text-base text-slate-600 dark:text-[#C0BDB5] mt-2 leading-relaxed max-w-xl">
                 {profile?.currentTitle
                   ? `${profile.currentTitle} ${profile.currentEmployer ? `at ${profile.currentEmployer}` : ''} · ${relevantMatchesCount} opportunities aligned with your background.`
                   : "Your career intelligence workspace is ready. Discover relevant opportunities, understand your fit and prepare stronger applications."}
@@ -189,17 +189,17 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
 
             {/* Quick Hero Search Capsule */}
             <form onSubmit={handleSearchSubmit} className="relative flex items-center max-w-lg">
-              <Search className="absolute left-4 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-4 h-4 w-4 text-slate-400 dark:text-[#92949A]" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search jobs, skills, or companies..."
-                className="w-full pl-11 pr-28 py-3.5 rounded-2xl bg-white/80 border border-slate-200/80 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#8065F5]/30 focus:border-[#8065F5] shadow-xs transition"
+                className="w-full pl-11 pr-28 py-3.5 rounded-2xl bg-white/80 dark:bg-[#0D1014] border border-slate-200/80 dark:border-[rgba(255,255,255,0.12)] text-xs sm:text-sm text-slate-900 dark:text-[#F2F0EA] placeholder:text-slate-400 dark:placeholder:text-[#737780] focus:outline-hidden focus:ring-2 focus:ring-[#8065F5]/30 dark:focus:ring-[#C6A66A]/30 focus:border-[#8065F5] dark:focus:border-[#C6A66A] shadow-xs transition"
               />
               <button
                 type="submit"
-                className="absolute right-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-[#8065F5] text-white text-xs font-bold shadow-md shadow-violet-500/25 hover:shadow-lg hover:shadow-violet-500/35 transition cursor-pointer"
+                className="be-btn-primary absolute right-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-[#8065F5] dark:bg-[#C6A66A] text-white dark:text-[#17130C] text-xs font-bold shadow-md shadow-violet-500/25 dark:shadow-none hover:shadow-lg dark:hover:bg-[#D9BB80] transition cursor-pointer"
               >
                 Search
               </button>
@@ -220,10 +220,10 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
       <section className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-[#F2F0EA] tracking-tight">
               Your Career Command Centre
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-[#C0BDB5] mt-0.5">
               Everything you need to discover, evaluate and manage your next career move.
             </p>
           </div>
@@ -234,23 +234,23 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
           {/* Panel 1: Applications Prepared */}
           <div
             onClick={() => onNavigateTab('applications')}
-            className="group p-5 sm:p-6 rounded-3xl bg-white/65 backdrop-blur-2xl border border-white/85 shadow-[0_16px_40px_rgba(80,100,150,0.1)] hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+            className="group p-5 sm:p-6 rounded-3xl bg-white/65 dark:bg-[#14171C] backdrop-blur-2xl border border-white/85 dark:border-[rgba(255,255,255,0.09)] shadow-[0_16px_40px_rgba(80,100,150,0.1)] dark:shadow-none hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-mono">Applications Prepared</span>
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/20 border border-blue-300/40 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+              <span className="text-xs font-bold text-slate-500 dark:text-[#92949A] uppercase tracking-wider font-mono">Applications Prepared</span>
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/20 dark:bg-[#191D23] border border-blue-300/40 dark:border-[rgba(255,255,255,0.09)] text-blue-600 dark:text-[#76A9D8] flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
                 <FileCheck className="h-5 w-5" />
               </div>
             </div>
             <div className="my-3">
-              <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-mono tracking-tight">
+              <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-[#F2F0EA] font-mono tracking-tight">
                 {preparedCount}
               </div>
-              <p className="text-xs text-slate-500 mt-1 font-medium">
+              <p className="text-xs text-slate-500 dark:text-[#C0BDB5] mt-1 font-medium">
                 {preparedCount > 0 ? 'Targeted & verified materials ready' : 'Your first application journey starts here.'}
               </p>
             </div>
-            <div className="flex items-center text-xs font-semibold text-blue-600 group-hover:translate-x-1 transition-transform">
+            <div className="flex items-center text-xs font-semibold text-blue-600 dark:text-[#C6A66A] group-hover:translate-x-1 transition-transform">
               <span>View Materials</span>
               <ChevronRight className="h-4 w-4 ml-1" />
             </div>
@@ -259,23 +259,23 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
           {/* Panel 2: Submissions Recorded */}
           <div
             onClick={() => onNavigateTab('applications')}
-            className="group p-5 sm:p-6 rounded-3xl bg-white/65 backdrop-blur-2xl border border-white/85 shadow-[0_16px_40px_rgba(80,100,150,0.1)] hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+            className="group p-5 sm:p-6 rounded-3xl bg-white/65 dark:bg-[#14171C] backdrop-blur-2xl border border-white/85 dark:border-[rgba(255,255,255,0.09)] shadow-[0_16px_40px_rgba(80,100,150,0.1)] dark:shadow-none hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-mono">Submissions Recorded</span>
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500/15 to-purple-500/20 border border-indigo-300/40 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+              <span className="text-xs font-bold text-slate-500 dark:text-[#92949A] uppercase tracking-wider font-mono">Submissions Recorded</span>
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500/15 to-purple-500/20 dark:bg-[#191D23] border border-indigo-300/40 dark:border-[rgba(255,255,255,0.09)] text-indigo-600 dark:text-[#C6A66A] flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
                 <Send className="h-5 w-5" />
               </div>
             </div>
             <div className="my-3">
-              <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-mono tracking-tight">
+              <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-[#F2F0EA] font-mono tracking-tight">
                 {submittedCount}
               </div>
-              <p className="text-xs text-slate-500 mt-1 font-medium">
+              <p className="text-xs text-slate-500 dark:text-[#C0BDB5] mt-1 font-medium">
                 Direct to official employer portals
               </p>
             </div>
-            <div className="flex items-center text-xs font-semibold text-indigo-600 group-hover:translate-x-1 transition-transform">
+            <div className="flex items-center text-xs font-semibold text-indigo-600 dark:text-[#C6A66A] group-hover:translate-x-1 transition-transform">
               <span>Track Pipeline</span>
               <ChevronRight className="h-4 w-4 ml-1" />
             </div>
@@ -284,23 +284,23 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
           {/* Panel 3: Upcoming Interviews */}
           <div
             onClick={() => onNavigateTab('interviews')}
-            className="group p-5 sm:p-6 rounded-3xl bg-white/65 backdrop-blur-2xl border border-white/85 shadow-[0_16px_40px_rgba(80,100,150,0.1)] hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+            className="group p-5 sm:p-6 rounded-3xl bg-white/65 dark:bg-[#14171C] backdrop-blur-2xl border border-white/85 dark:border-[rgba(255,255,255,0.09)] shadow-[0_16px_40px_rgba(80,100,150,0.1)] dark:shadow-none hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-mono">Upcoming Interviews</span>
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500/15 to-teal-500/20 border border-emerald-300/40 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+              <span className="text-xs font-bold text-slate-500 dark:text-[#92949A] uppercase tracking-wider font-mono">Upcoming Interviews</span>
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500/15 to-teal-500/20 dark:bg-[#191D23] border border-emerald-300/40 dark:border-[rgba(255,255,255,0.09)] text-emerald-600 dark:text-[#35B887] flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
                 <Calendar className="h-5 w-5" />
               </div>
             </div>
             <div className="my-3">
-              <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-mono tracking-tight">
+              <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-[#F2F0EA] font-mono tracking-tight">
                 {upcomingInterviewsCount}
               </div>
-              <p className="text-xs text-slate-500 mt-1 font-medium">
+              <p className="text-xs text-slate-500 dark:text-[#C0BDB5] mt-1 font-medium">
                 {upcomingInterviewsCount > 0 ? 'Active rounds scheduled with STAR prep' : 'No active rounds scheduled'}
               </p>
             </div>
-            <div className="flex items-center text-xs font-semibold text-emerald-600 group-hover:translate-x-1 transition-transform">
+            <div className="flex items-center text-xs font-semibold text-emerald-600 dark:text-[#C6A66A] group-hover:translate-x-1 transition-transform">
               <span>Interview Prep</span>
               <ChevronRight className="h-4 w-4 ml-1" />
             </div>
@@ -309,23 +309,23 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
           {/* Panel 4: Verified Skills */}
           <div
             onClick={() => onNavigateTab('profile')}
-            className="group p-5 sm:p-6 rounded-3xl bg-white/65 backdrop-blur-2xl border border-white/85 shadow-[0_16px_40px_rgba(80,100,150,0.1)] hover:shadow-xl hover:shadow-violet-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+            className="group p-5 sm:p-6 rounded-3xl bg-white/65 dark:bg-[#14171C] backdrop-blur-2xl border border-white/85 dark:border-[rgba(255,255,255,0.09)] shadow-[0_16px_40px_rgba(80,100,150,0.1)] dark:shadow-none hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-mono">Verified Skills</span>
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-500/15 to-purple-500/20 border border-violet-300/40 text-[#8065F5] flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+              <span className="text-xs font-bold text-slate-500 dark:text-[#92949A] uppercase tracking-wider font-mono">Verified Skills</span>
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-500/15 to-purple-500/20 dark:bg-[#191D23] border border-violet-300/40 dark:border-[rgba(255,255,255,0.09)] text-[#8065F5] dark:text-[#9483E8] flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
                 <Award className="h-5 w-5" />
               </div>
             </div>
             <div className="my-3">
-              <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-mono tracking-tight">
+              <div className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-[#F2F0EA] font-mono tracking-tight">
                 {verifiedSkillsCount}/{totalSkillsCount || 0}
               </div>
-              <p className="text-xs text-slate-500 mt-1 font-medium">
+              <p className="text-xs text-slate-500 dark:text-[#C0BDB5] mt-1 font-medium">
                 Extracted strictly from verified work history
               </p>
             </div>
-            <div className="flex items-center text-xs font-semibold text-[#8065F5] group-hover:translate-x-1 transition-transform">
+            <div className="flex items-center text-xs font-semibold text-[#8065F5] dark:text-[#C6A66A] group-hover:translate-x-1 transition-transform">
               <span>Inspect Profile</span>
               <ChevronRight className="h-4 w-4 ml-1" />
             </div>
@@ -336,67 +336,67 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <div
             onClick={() => onNavigateTab('applications')}
-            className="p-3.5 rounded-2xl bg-white/50 border border-white/80 hover:bg-white/80 transition cursor-pointer flex items-center justify-between"
+            className="p-3.5 rounded-2xl bg-white/50 dark:bg-[#191D23] border border-white/80 dark:border-[rgba(255,255,255,0.09)] hover:bg-white/80 dark:hover:bg-[#20252D] transition cursor-pointer flex items-center justify-between"
           >
             <div>
-              <span className="text-[11px] text-slate-500 font-medium">Active Applications</span>
-              <p className="text-base font-bold text-slate-900 font-mono">{activeAppsCount}</p>
+              <span className="text-[11px] text-slate-500 dark:text-[#92949A] font-medium">Active Applications</span>
+              <p className="text-base font-bold text-slate-900 dark:text-[#F2F0EA] font-mono">{activeAppsCount}</p>
             </div>
-            <Briefcase className="w-4 h-4 text-blue-500" />
+            <Briefcase className="w-4 h-4 text-blue-500 dark:text-[#76A9D8]" />
           </div>
 
           <div
             onClick={() => onNavigateTab('matches')}
-            className="p-3.5 rounded-2xl bg-white/50 border border-white/80 hover:bg-white/80 transition cursor-pointer flex items-center justify-between"
+            className="p-3.5 rounded-2xl bg-white/50 dark:bg-[#191D23] border border-white/80 dark:border-[rgba(255,255,255,0.09)] hover:bg-white/80 dark:hover:bg-[#20252D] transition cursor-pointer flex items-center justify-between"
           >
             <div>
-              <span className="text-[11px] text-slate-500 font-medium">Relevant Job Matches</span>
-              <p className="text-base font-bold text-slate-900 font-mono">{relevantMatchesCount}</p>
+              <span className="text-[11px] text-slate-500 dark:text-[#92949A] font-medium">Relevant Job Matches</span>
+              <p className="text-base font-bold text-slate-900 dark:text-[#F2F0EA] font-mono">{relevantMatchesCount}</p>
             </div>
-            <Sparkles className="w-4 h-4 text-indigo-500" />
+            <Sparkles className="w-4 h-4 text-indigo-500 dark:text-[#C6A66A]" />
           </div>
 
           <div
             onClick={() => onNavigateTab('interviews')}
-            className="p-3.5 rounded-2xl bg-white/50 border border-white/80 hover:bg-white/80 transition cursor-pointer flex items-center justify-between"
+            className="p-3.5 rounded-2xl bg-white/50 dark:bg-[#191D23] border border-white/80 dark:border-[rgba(255,255,255,0.09)] hover:bg-white/80 dark:hover:bg-[#20252D] transition cursor-pointer flex items-center justify-between"
           >
             <div>
-              <span className="text-[11px] text-slate-500 font-medium">Upcoming Interviews</span>
-              <p className="text-base font-bold text-slate-900 font-mono">{upcomingInterviewsCount}</p>
+              <span className="text-[11px] text-slate-500 dark:text-[#92949A] font-medium">Upcoming Interviews</span>
+              <p className="text-base font-bold text-slate-900 dark:text-[#F2F0EA] font-mono">{upcomingInterviewsCount}</p>
             </div>
-            <Calendar className="w-4 h-4 text-emerald-500" />
+            <Calendar className="w-4 h-4 text-emerald-500 dark:text-[#35B887]" />
           </div>
 
           <div
             onClick={() => onNavigateTab('profile')}
-            className="p-3.5 rounded-2xl bg-white/50 border border-white/80 hover:bg-white/80 transition cursor-pointer flex items-center justify-between"
+            className="p-3.5 rounded-2xl bg-white/50 dark:bg-[#191D23] border border-white/80 dark:border-[rgba(255,255,255,0.09)] hover:bg-white/80 dark:hover:bg-[#20252D] transition cursor-pointer flex items-center justify-between"
           >
             <div>
-              <span className="text-[11px] text-slate-500 font-medium">Profile Completion</span>
-              <p className="text-base font-bold text-slate-900 font-mono">{profileScore}%</p>
+              <span className="text-[11px] text-slate-500 dark:text-[#92949A] font-medium">Profile Completion</span>
+              <p className="text-base font-bold text-slate-900 dark:text-[#F2F0EA] font-mono">{profileScore}%</p>
             </div>
-            <UserCheck className="w-4 h-4 text-violet-500" />
+            <UserCheck className="w-4 h-4 text-violet-500 dark:text-[#9483E8]" />
           </div>
         </div>
       </section>
 
       {/* 3. RECOMMENDED PRIORITY ACTION BANNER */}
-      <section className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-[#8065F5]/15 border border-violet-300/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <section className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-[#8065F5]/15 dark:bg-[#14171C] border border-violet-300/40 dark:border-[rgba(255,255,255,0.09)] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5 transition-colors">
         <div className="flex items-start space-x-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-[#8065F5] text-white flex items-center justify-center shadow-md shadow-violet-500/25 shrink-0 mt-0.5">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-[#8065F5] dark:bg-[#191D23] text-white dark:text-[#9483E8] border border-transparent dark:border-[rgba(148,131,232,0.30)] flex items-center justify-center shadow-md shadow-violet-500/25 dark:shadow-none shrink-0 mt-0.5">
             <Zap className="h-6 w-6" />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center space-x-2">
-              <span className="text-[10px] font-mono uppercase font-bold text-blue-700 bg-blue-100/80 px-2.5 py-0.5 rounded-full border border-blue-200">
+              <span className="text-[10px] font-mono uppercase font-bold text-blue-700 bg-blue-100/80 dark:bg-[rgba(198,166,106,0.12)] dark:text-[#C6A66A] px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-[rgba(198,166,106,0.25)]">
                 Recommended Priority Action
               </span>
-              <span className="text-xs text-slate-500 font-mono">Answers: "What should I do next?"</span>
+              <span className="text-xs text-slate-500 dark:text-[#92949A] font-mono">Answers: "What should I do next?"</span>
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-[#F2F0EA] tracking-tight">
               {nextAction.title}
             </h3>
-            <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-[#C0BDB5] max-w-2xl leading-relaxed">
               {nextAction.description}
             </p>
           </div>
@@ -405,7 +405,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
         <button
           type="button"
           onClick={() => handleExecuteAction(nextAction.actionType)}
-          className="px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-[#8065F5] text-white text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 shrink-0 shadow-md shadow-violet-500/25 hover:shadow-lg hover:shadow-violet-500/35 transition cursor-pointer"
+          className="be-btn-primary px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-[#8065F5] dark:bg-[#C6A66A] text-white dark:text-[#17130C] text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 shrink-0 shadow-md shadow-violet-500/25 dark:shadow-none hover:shadow-lg dark:hover:bg-[#D9BB80] transition cursor-pointer"
         >
           <span>{nextAction.actionLabel || 'Take Action'}</span>
           <ArrowRight className="h-4 w-4" />

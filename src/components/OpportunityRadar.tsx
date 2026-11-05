@@ -197,7 +197,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
       {/* 1. Header & Radar Controls */}
       <div className={`p-6 sm:p-8 rounded-3xl border transition-all shadow-sm ${
         isBlack
-          ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9]'
+          ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA]'
           : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
       }`}>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -225,14 +225,14 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
             {onOpenImportModal && (
               <button
                 onClick={onOpenImportModal}
-                className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shadow-xs ${
+                className={`be-btn-primary flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs ${
                   isBlack
-                    ? 'bg-gradient-to-r from-[#C6A66A] to-[#E8D49E] text-[#08090B] hover:opacity-95'
+                    ? 'bg-[#C6A66A] hover:bg-[#D9BB80] text-[#17130C] border border-[rgba(198,166,106,0.30)]'
                     : 'bg-indigo-600 hover:bg-indigo-700 text-white'
                 }`}
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>+ Import Job</span>
+                <Plus className={`w-3.5 h-3.5 ${isBlack ? 'text-[#17130C]' : 'text-white'}`} />
+                <span className={isBlack ? 'text-[#17130C] font-bold' : 'text-white'}>+ Import Job</span>
               </button>
             )}
 
@@ -240,20 +240,28 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
               <button
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
+                className={`be-btn-secondary flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer disabled:opacity-50 ${
+                  isBlack
+                    ? 'bg-[#191D23] border border-[rgba(255,255,255,0.12)] text-[#F2F0EA] hover:border-[rgba(198,166,106,0.30)] hover:bg-[#20252D]'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+                }`}
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-                <span>{isRefreshing ? 'Refreshing Feeds...' : 'Refresh Feeds'}</span>
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''} ${isBlack ? 'text-[#C6A66A]' : ''}`} />
+                <span className={isBlack ? 'text-[#F2F0EA]' : ''}>{isRefreshing ? 'Refreshing Feeds...' : 'Refresh Feeds'}</span>
               </button>
             )}
 
-            <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+            <div className={`flex items-center p-1 rounded-xl text-xs ${
+              isBlack
+                ? 'bg-[#0D1014] border border-[rgba(255,255,255,0.09)]'
+                : 'bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700'
+            }`}>
               <button
                 onClick={() => setViewMode('dossier')}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold transition ${
+                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
                   viewMode === 'dossier'
-                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                    ? isBlack ? 'bg-[#191D23] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                    : isBlack ? 'text-[#C0BDB5] hover:text-[#F2F0EA]' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <List className="w-3.5 h-3.5" />
@@ -263,8 +271,8 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 onClick={() => setViewMode('spatial')}
                 className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold transition ${
                   viewMode === 'spatial'
-                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                    ? isBlack ? 'bg-[#191D23] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                    : isBlack ? 'text-[#C0BDB5] hover:text-[#F2F0EA]' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <Radio className="w-3.5 h-3.5" />
@@ -274,8 +282,8 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 onClick={() => setViewMode('signals')}
                 className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold transition ${
                   viewMode === 'signals'
-                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                    ? isBlack ? 'bg-[#191D23] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                    : isBlack ? 'text-[#C0BDB5] hover:text-[#F2F0EA]' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <TrendingUp className="w-3.5 h-3.5" />
@@ -309,7 +317,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Filter by title, company, or verified competency..."
-              className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition"
+              className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#0D1014] border border-slate-200/80 dark:border-[rgba(255,255,255,0.10)] text-xs text-slate-900 dark:text-[#F2F0EA] focus:outline-none focus:border-indigo-500 dark:focus:border-[#C6A66A] transition"
             />
           </div>
 
@@ -328,8 +336,8 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 onClick={() => setFilterMode(f.id as any)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
                   filterMode === f.id
-                    ? isBlack ? 'bg-[#C6A66A] text-[#0D0F12] shadow-xs' : 'bg-indigo-600 text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                    ? isBlack ? 'bg-[#C6A66A] text-[#17130C] shadow-xs font-bold' : 'bg-indigo-600 text-white'
+                    : isBlack ? 'bg-[#191D23] border border-[rgba(255,255,255,0.09)] text-[#C0BDB5] hover:text-[#F2F0EA] hover:border-[rgba(198,166,106,0.30)]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                 }`}
               >
                 {f.label}
@@ -354,7 +362,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
               <div
                 key={sig.id}
                 className={`p-5 rounded-3xl border transition-all flex flex-col justify-between space-y-4 ${
-                  isBlack ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] hover:border-[rgba(198,166,106,0.25)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
+                  isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.25)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
                 }`}
               >
                 <div className="space-y-2.5">
@@ -430,27 +438,29 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                   <div
                     key={vac.id}
                     onClick={() => onSelectVacancy(vac)}
-                    className={`p-5 sm:p-6 rounded-3xl border transition-all cursor-pointer hover:border-indigo-400/80 shadow-2xs ${
+                    className={`p-5 sm:p-6 rounded-3xl border transition-all cursor-pointer shadow-2xs ${
                       isBlack
-                        ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9] hover:border-[rgba(198,166,106,0.3)]'
-                        : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
+                        ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA] hover:border-[rgba(198,166,106,0.30)]'
+                        : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl hover:border-indigo-400/80'
                     }`}
                   >
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                       {/* Left: Role, Company, Location */}
                       <div className="space-y-2 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="text-base sm:text-lg font-bold tracking-tight">
+                          <h2 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-[#F2F0EA]">
                             {vac.title}
                           </h2>
                           {vac.source === 'imported' && (
-                            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[rgba(198,166,106,0.12)] text-[#E8D49E] border border-[rgba(198,166,106,0.3)]">
+                            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[rgba(198,166,106,0.12)] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]">
                               <Sparkles className="w-2.5 h-2.5 text-[#C6A66A]" />
                               <span>Imported ({vac.importedProvenance?.extractionMethod || 'user'})</span>
                             </span>
                           )}
                           <span className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
-                            matchScore >= 80
+                            isBlack
+                              ? 'bg-[rgba(198,166,106,0.12)] text-[#C6A66A] border border-[rgba(198,166,106,0.25)]'
+                              : matchScore >= 80
                               ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60'
                               : matchScore >= 60
                               ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-200/60'
@@ -458,14 +468,14 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                           }`}>
                             {matchScore}% ALIGNMENT
                           </span>
-                          <span className="text-[11px] font-mono text-slate-400">
+                          <span className="text-[11px] font-mono text-slate-400 dark:text-[#92949A]">
                             {formatFreshness(vac.lastCheckedAt || vac.postedDate)}
                           </span>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                          <span className="flex items-center space-x-1 font-semibold text-slate-700 dark:text-slate-300">
-                            <Building className="w-3.5 h-3.5 text-indigo-500" />
+                        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-[#C0BDB5]">
+                          <span className="flex items-center space-x-1 font-semibold text-slate-700 dark:text-[#F2F0EA]">
+                            <Building className="w-3.5 h-3.5 text-indigo-500 dark:text-[#C6A66A]" />
                             <span>{vac.company}</span>
                           </span>
                           <span>·</span>
@@ -476,7 +486,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                           {vac.salaryRange?.raw && (
                             <>
                               <span>·</span>
-                              <span className="flex items-center space-x-1 font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                              <span className="flex items-center space-x-1 font-mono font-semibold text-emerald-600 dark:text-[#35B887]">
                                 <DollarSign className="w-3.5 h-3.5" />
                                 <span>{vac.salaryRange.raw}</span>
                               </span>
@@ -489,11 +499,15 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                         {/* Missing Skills / Skills to Strengthen (Constructive Tone) */}
                         {missingSkills.length > 0 && (
                           <div className="pt-2 flex flex-wrap items-center gap-1.5 text-xs">
-                            <span className="text-[11px] text-slate-400 font-medium">Skills to strengthen:</span>
+                            <span className="text-[11px] text-slate-400 dark:text-[#92949A] font-medium">Skills to strengthen:</span>
                             {missingSkills.slice(0, 3).map((sk, idx) => (
                               <span
                                 key={idx}
-                                className="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium"
+                                className={`text-[10px] px-2 py-0.5 rounded font-medium ${
+                                  isBlack
+                                    ? 'bg-[#191D23] border border-[rgba(255,255,255,0.09)] text-[#C0BDB5]'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                                }`}
                               >
                                 {sk}
                               </span>
@@ -507,8 +521,13 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                         <button
                           onClick={e => toggleCompare(vac, e)}
                           title="Compare opening"
+                          aria-label="Compare opening"
                           className={`p-2 rounded-xl text-xs transition cursor-pointer ${
-                            isCompared
+                            isBlack
+                              ? isCompared
+                                ? 'bg-[#C6A66A] text-[#17130C]'
+                                : 'bg-[#191D23] border border-[rgba(255,255,255,0.10)] text-[#C0BDB5] hover:border-[rgba(198,166,106,0.30)] hover:text-[#F2F0EA]'
+                              : isCompared
                               ? 'bg-indigo-600 text-white'
                               : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                           }`}
@@ -519,8 +538,13 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                         <button
                           onClick={e => toggleSave(vac.id, e)}
                           title={isSaved ? 'Saved' : 'Save opportunity'}
+                          aria-label={isSaved ? 'Saved' : 'Save opportunity'}
                           className={`p-2 rounded-xl text-xs transition cursor-pointer ${
-                            isSaved
+                            isBlack
+                              ? isSaved
+                                ? 'bg-[#D9AA61] text-[#17130C]'
+                                : 'bg-[#191D23] border border-[rgba(255,255,255,0.10)] text-[#C0BDB5] hover:border-[rgba(198,166,106,0.30)] hover:text-[#F2F0EA]'
+                              : isSaved
                               ? 'bg-amber-400 text-black'
                               : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                           }`}
@@ -531,7 +555,12 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                         <button
                           onClick={e => dismissVacancy(vac.id, e)}
                           title="Dismiss opening"
-                          className="p-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-red-500 hover:bg-slate-200 transition cursor-pointer"
+                          aria-label="Dismiss opening"
+                          className={`p-2 rounded-xl text-xs transition cursor-pointer ${
+                            isBlack
+                              ? 'bg-[#191D23] border border-[rgba(255,255,255,0.10)] text-[#92949A] hover:text-[#D67575] hover:border-[rgba(214,117,117,0.30)]'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-red-500 hover:bg-slate-200'
+                          }`}
                         >
                           <XCircle className="w-4 h-4" />
                         </button>
@@ -543,7 +572,12 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                               onPrepareApplication(vac.id);
                             }}
                             title="Move to Application Control"
-                            className="px-3 py-2 rounded-xl bg-[rgba(198,166,106,0.12)] hover:bg-[rgba(198,166,106,0.22)] text-[#E8D49E] border border-[rgba(198,166,106,0.25)] text-xs font-semibold transition flex items-center space-x-1"
+                            aria-label="Move to Application Control"
+                            className={`px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-1 cursor-pointer ${
+                              isBlack
+                                ? 'bg-[rgba(198,166,106,0.12)] hover:bg-[rgba(198,166,106,0.22)] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]'
+                                : 'bg-[rgba(198,166,106,0.12)] hover:bg-[rgba(198,166,106,0.22)] text-[#E8D49E] border border-[rgba(198,166,106,0.25)]'
+                            }`}
                           >
                             <Zap className="w-3.5 h-3.5 text-[#C6A66A]" />
                             <span className="hidden sm:inline">Track</span>
@@ -552,10 +586,15 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
 
                         <button
                           onClick={() => onSelectVacancy(vac)}
-                          className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-xs transition flex items-center space-x-1"
+                          aria-label={`Review Dossier for ${vac.title}`}
+                          className={`be-btn-primary px-3.5 py-2 rounded-xl font-bold text-xs shadow-xs transition flex items-center space-x-1 cursor-pointer ${
+                            isBlack
+                              ? 'bg-[#C6A66A] hover:bg-[#D9BB80] text-[#17130C] border border-[rgba(198,166,106,0.30)]'
+                              : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                          }`}
                         >
-                          <span>Review Dossier</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
+                          <span className={isBlack ? 'text-[#17130C] font-bold' : 'text-white'}>Review Dossier</span>
+                          <ChevronRight className={`w-3.5 h-3.5 ${isBlack ? 'text-[#17130C]' : 'text-white'}`} />
                         </button>
                       </div>
                     </div>

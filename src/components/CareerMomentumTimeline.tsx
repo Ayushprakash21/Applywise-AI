@@ -89,20 +89,20 @@ export const CareerMomentumTimeline: React.FC<CareerMomentumTimelineProps> = ({
   const progressPct = Math.round((completedStages / stages.length) * 100);
 
   return (
-    <div className={`p-5 sm:p-6 rounded-3xl bg-white/65 backdrop-blur-2xl border border-white/85 shadow-[0_16px_40px_rgba(80,100,150,0.1)] ${className}`}>
+    <div className={`p-5 sm:p-6 rounded-3xl bg-white/65 dark:bg-[#14171C] backdrop-blur-2xl border border-white/85 dark:border-[rgba(255,255,255,0.09)] shadow-[0_16px_40px_rgba(80,100,150,0.1)] dark:shadow-none transition-colors ${className}`}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-200/60 gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-200/60 dark:border-[rgba(255,255,255,0.09)] gap-3">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-700 border border-blue-400/20 uppercase tracking-wider">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-700 dark:bg-[rgba(198,166,106,0.12)] dark:text-[#C6A66A] border border-blue-400/20 dark:border-[rgba(198,166,106,0.25)] uppercase tracking-wider font-mono">
               Journey Progression
             </span>
-            <span className="text-xs text-slate-400 font-mono">Real ground-truth verification</span>
+            <span className="text-xs text-slate-400 dark:text-[#92949A] font-mono">Real ground-truth verification</span>
           </div>
-          <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight mt-1">
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-[#F2F0EA] tracking-tight mt-1">
             Career Momentum Timeline
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-[#C0BDB5] mt-0.5">
             Stage-by-stage progression derived strictly from your authentic account activity.
           </p>
         </div>
@@ -110,12 +110,12 @@ export const CareerMomentumTimeline: React.FC<CareerMomentumTimelineProps> = ({
         {/* Overall Progress Indicator */}
         <div className="flex items-center space-x-3 self-start sm:self-auto shrink-0">
           <div className="text-right">
-            <span className="text-[10px] uppercase font-semibold text-slate-400 font-mono block">Progression</span>
-            <span className="text-xs font-bold text-slate-900 font-mono">
+            <span className="text-[10px] uppercase font-semibold text-slate-400 dark:text-[#92949A] font-mono block">Progression</span>
+            <span className="text-xs font-bold text-slate-900 dark:text-[#F2F0EA] font-mono">
               {completedStages} of {stages.length} Milestones
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/15 via-indigo-500/20 to-[#8065F5]/25 border border-violet-300/40 flex items-center justify-center font-mono text-xs font-bold text-[#8065F5] shadow-xs">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/15 via-indigo-500/20 to-[#8065F5]/25 dark:bg-[rgba(198,166,106,0.12)] border border-violet-300/40 dark:border-[rgba(198,166,106,0.30)] flex items-center justify-center font-mono text-xs font-bold text-[#8065F5] dark:text-[#C6A66A] shadow-xs">
             {progressPct}%
           </div>
         </div>
@@ -125,11 +125,11 @@ export const CareerMomentumTimeline: React.FC<CareerMomentumTimelineProps> = ({
       <div className="pt-6 overflow-x-auto pb-2 scrollbar-none">
         <div className="min-w-[720px] relative">
           {/* Background Connecting Rail */}
-          <div className="absolute top-5 left-6 right-6 h-1 bg-slate-200/70 rounded-full" />
+          <div className="absolute top-5 left-6 right-6 h-1 bg-slate-200/70 dark:bg-[#191D23] rounded-full" />
 
           {/* Active Filled Rail */}
           <div
-            className="absolute top-5 left-6 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-[#8065F5] rounded-full transition-all duration-700"
+            className="absolute top-5 left-6 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-[#8065F5] dark:from-[#A98B57] dark:via-[#C6A66A] dark:to-[#D9BB80] rounded-full transition-all duration-700"
             style={{ width: `${Math.max(0, ((completedStages - 1) / (stages.length - 1)) * 100)}%` }}
           />
 
@@ -147,10 +147,10 @@ export const CareerMomentumTimeline: React.FC<CareerMomentumTimelineProps> = ({
                   <div
                     className={`relative z-10 w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 ${
                       stage.completed
-                        ? 'bg-gradient-to-tr from-emerald-500 to-teal-400 text-white shadow-md shadow-emerald-500/30 scale-100 group-hover:scale-110'
+                        ? 'bg-gradient-to-tr from-emerald-500 to-teal-400 dark:from-[#35B887] dark:to-[#2EA376] text-white shadow-md shadow-emerald-500/30 scale-100 group-hover:scale-110'
                         : stage.current
-                        ? 'bg-gradient-to-tr from-blue-600 to-[#8065F5] text-white shadow-md shadow-violet-500/35 ring-4 ring-violet-500/20 animate-pulse'
-                        : 'bg-white/90 border border-slate-300 text-slate-400 group-hover:border-slate-400 group-hover:text-slate-600'
+                        ? 'bg-gradient-to-tr from-blue-600 to-[#8065F5] dark:bg-[#C6A66A] text-white dark:text-[#17130C] shadow-md shadow-violet-500/35 dark:shadow-none ring-4 ring-violet-500/20 dark:ring-[rgba(198,166,106,0.30)] animate-pulse'
+                        : 'bg-white/90 dark:bg-[#191D23] border border-slate-300 dark:border-[rgba(255,255,255,0.10)] text-slate-400 dark:text-[#92949A] group-hover:border-slate-400 dark:group-hover:border-[rgba(198,166,106,0.30)] group-hover:text-slate-600 dark:group-hover:text-[#F2F0EA]'
                     }`}
                   >
                     {stage.completed ? (
@@ -162,13 +162,17 @@ export const CareerMomentumTimeline: React.FC<CareerMomentumTimelineProps> = ({
 
                   {/* Stage Label */}
                   <span className={`text-[11px] font-bold tracking-tight mt-2.5 transition-colors line-clamp-1 ${
-                    stage.completed ? 'text-slate-900 group-hover:text-blue-600' : stage.current ? 'text-[#8065F5]' : 'text-slate-500'
+                    stage.completed
+                      ? 'text-slate-900 dark:text-[#F2F0EA] group-hover:text-blue-600 dark:group-hover:text-[#C6A66A]'
+                      : stage.current
+                      ? 'text-[#8065F5] dark:text-[#C6A66A]'
+                      : 'text-slate-500 dark:text-[#92949A]'
                   }`}>
                     {stage.label}
                   </span>
 
                   {/* Stage Context Description */}
-                  <span className="text-[10px] text-slate-400 mt-0.5 line-clamp-2 max-w-[110px] leading-tight">
+                  <span className="text-[10px] text-slate-400 dark:text-[#92949A] mt-0.5 line-clamp-2 max-w-[110px] leading-tight">
                     {stage.desc}
                   </span>
                 </div>

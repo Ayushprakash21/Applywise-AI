@@ -132,7 +132,7 @@ export const ApplicationControl: React.FC<ApplicationControlProps> = ({
       {/* 1. Header & Stage Governance */}
       <div className={`p-6 sm:p-8 rounded-3xl border transition-all shadow-sm ${
         isBlack
-          ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9]'
+          ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA]'
           : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
       }`}>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -259,7 +259,7 @@ export const ApplicationControl: React.FC<ApplicationControlProps> = ({
                 key={app.id}
                 className={`p-6 rounded-3xl border transition-all ${
                   isBlack
-                    ? 'bg-[#13161B] border-[rgba(255,255,255,0.075)] text-[#F0EEE9] hover:border-[rgba(198,166,106,0.25)]'
+                    ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA] hover:border-[rgba(198,166,106,0.25)]'
                     : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
                 }`}
               >

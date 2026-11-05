@@ -189,12 +189,12 @@ export const AICopilot: React.FC<AICopilotProps> = ({
           <div className="relative">
             <BrandLogo size="xs" showWordmark={false} />
             <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#9483E8] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#9483E8]"></span>
             </span>
           </div>
-          <span className="text-xs font-bold tracking-tight">AI Copilot</span>
-          <span className="px-1.5 py-0.2 rounded-md bg-blue-600/30 text-blue-300 border border-blue-500/40 text-[10px] font-mono">
+          <span className="text-xs font-bold tracking-tight text-white">AI Copilot</span>
+          <span className="px-1.5 py-0.2 rounded-md bg-[rgba(148,131,232,0.15)] text-[#9483E8] border border-[rgba(148,131,232,0.30)] text-[10px] font-mono font-semibold">
             {usage?.remaining !== undefined ? `${usage.remaining} left` : 'AI'}
           </span>
         </button>

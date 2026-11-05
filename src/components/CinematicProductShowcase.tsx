@@ -886,12 +886,14 @@ export const CinematicProductShowcase: React.FC<CinematicProductShowcaseProps> =
             {SHOWCASE_ITEMS.map((item, idx) => (
               <button
                 key={item.id}
+                type="button"
                 onClick={() => setActiveIndex(idx)}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   idx === activeIndex ? 'w-6 bg-slate-900' : 'w-2 bg-slate-400/60 hover:bg-slate-500'
                 }`}
                 title={item.title}
-              />
+                aria-label={item.title}
+              ></button>
             ))}
           </div>
 
