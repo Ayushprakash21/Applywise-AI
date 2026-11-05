@@ -25,11 +25,15 @@ import {
   TrendingUp,
   AlertTriangle,
   Globe,
-  Plus
+  Plus,
+  X,
+  Award,
+  Info
 } from 'lucide-react';
 import { JobVacancy, OpportunitySignal, UserProfile } from '../types/index.ts';
 import { api } from '../services/api.ts';
 import { JobComparisonDrawer } from './JobComparisonDrawer.tsx';
+import { evaluateCandidateJobMatch } from '../utils/explainableMatcher.ts';
 
 export interface OpportunityRadarProps {
   vacancies: JobVacancy[];
@@ -57,9 +61,37 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
   // View & Filter State
   const [viewMode, setViewMode] = useState<'dossier' | 'signals' | 'spatial'>('dossier');
   const [filterMode, setFilterMode] = useState<'all' | 'high_match' | 'imported' | 'direct' | 'remote' | 'salary' | 'visa'>('all');
+  const [sourceTypeFilter, setSourceTypeFilter] = useState<'all' | 'official_ats' | 'authorized_feed' | 'imported'>('all');
+  const [countryFilter, setCountryFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [locationFilter, setLocationFilter] = useState('All');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedBreakdownVacancy, setSelectedBreakdownVacancy] = useState<JobVacancy | null>(null);
+
+  const getProvenanceBadge = (source: string, provenance?: any) => {
+    if (source.startsWith('gh_') || source.includes('greenhouse')) {
+      return { label: 'Official Greenhouse ATS', accent: 'text-[#35B887] border-[rgba(53,184,135,0.30)] bg-[rgba(53,184,135,0.10)]' };
+    }
+    if (source.startsWith('lever_') || source.includes('lever')) {
+      return { label: 'Official Lever ATS', accent: 'text-[#35B887] border-[rgba(53,184,135,0.30)] bg-[rgba(53,184,135,0.10)]' };
+    }
+    if (source.startsWith('ashby_') || source.includes('ashby')) {
+      return { label: 'Official Ashby ATS', accent: 'text-[#35B887] border-[rgba(53,184,135,0.30)] bg-[rgba(53,184,135,0.10)]' };
+    }
+    if (source.startsWith('workable_') || source.includes('workable')) {
+      return { label: 'Official Workable ATS', accent: 'text-[#35B887] border-[rgba(53,184,135,0.30)] bg-[rgba(53,184,135,0.10)]' };
+    }
+    if (source.startsWith('smartrec_')) {
+      return { label: 'Official SmartRecruiters ATS', accent: 'text-[#35B887] border-[rgba(53,184,135,0.30)] bg-[rgba(53,184,135,0.10)]' };
+    }
+    if (source.startsWith('recruitee_')) {
+      return { label: 'Official Recruitee ATS', accent: 'text-[#35B887] border-[rgba(53,184,135,0.30)] bg-[rgba(53,184,135,0.10)]' };
+    }
+    if (source === 'imported') {
+      return { label: `Imported (${provenance?.extractionMethod || 'user'})`, accent: 'text-[#C6A66A] border-[rgba(198,166,106,0.30)] bg-[rgba(198,166,106,0.10)]' };
+    }
+    return { label: 'Authorized Board Feed', accent: 'text-[#76A9D8] border-[rgba(118,169,216,0.30)] bg-[rgba(118,169,216,0.10)]' };
+  };
 
   // Hiring Signals State
   const [signals, setSignals] = useState<OpportunitySignal[]>([]);
@@ -150,7 +182,35 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
     ) === idx;
   });
 
+  const availableCountries = Array.from(
+    new Set(uniqueVacancies.map(v => v.country).filter(Boolean))
+  ).sort();
+
   const filteredVacancies = uniqueVacancies.filter(v => {
+    // Country filter
+    if (countryFilter !== 'All' && v.country && v.country.toLowerCase() !== countryFilter.toLowerCase()) {
+      return false;
+    }
+
+    // Source type filter
+    if (sourceTypeFilter === 'official_ats') {
+      const isAts = v.source.startsWith('gh_') || v.source.includes('greenhouse') ||
+                    v.source.startsWith('lever_') || v.source.includes('lever') ||
+                    v.source.startsWith('ashby_') || v.source.includes('ashby') ||
+                    v.source.startsWith('workable_') || v.source.includes('workable') ||
+                    v.source.startsWith('smartrec_') || v.source.startsWith('recruitee_');
+      if (!isAts) return false;
+    } else if (sourceTypeFilter === 'authorized_feed') {
+      const isAts = v.source.startsWith('gh_') || v.source.includes('greenhouse') ||
+                    v.source.startsWith('lever_') || v.source.includes('lever') ||
+                    v.source.startsWith('ashby_') || v.source.includes('ashby') ||
+                    v.source.startsWith('workable_') || v.source.includes('workable') ||
+                    v.source.startsWith('smartrec_') || v.source.startsWith('recruitee_');
+      if (isAts || v.source === 'imported') return false;
+    } else if (sourceTypeFilter === 'imported') {
+      if (v.source !== 'imported') return false;
+    }
+
     // Search query filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -310,39 +370,82 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="mt-6 pt-5 border-t border-slate-200/60 dark:border-slate-800/80 flex flex-col md:flex-row gap-3">
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Filter by title, company, or verified competency..."
-              className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#0D1014] border border-slate-200/80 dark:border-[rgba(255,255,255,0.10)] text-xs text-slate-900 dark:text-[#F2F0EA] focus:outline-none focus:border-indigo-500 dark:focus:border-[#C6A66A] transition"
-            />
-          </div>
+        <div className="mt-6 pt-5 border-t border-slate-200/60 dark:border-slate-800/80 space-y-3">
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Filter by title, company, or verified competency..."
+                className="w-full px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-[#0D1014] border border-slate-200/80 dark:border-[rgba(255,255,255,0.10)] text-xs text-slate-900 dark:text-[#F2F0EA] focus:outline-none focus:border-indigo-500 dark:focus:border-[#C6A66A] transition"
+              />
+            </div>
 
-          <div className="flex flex-wrap gap-2">
-            {[
-              { id: 'all', label: 'All Openings' },
-              { id: 'high_match', label: 'High Match (70%+)' },
-              { id: 'imported', label: `Imported by Me (${uniqueVacancies.filter(v => v.source === 'imported').length})` },
-              { id: 'direct', label: 'Direct Feed' },
-              { id: 'remote', label: 'Remote Only' },
-              { id: 'salary', label: 'Salary Disclosed' },
-              { id: 'visa', label: 'Visa Sponsorship' },
-            ].map(f => (
-              <button
-                key={f.id}
-                onClick={() => setFilterMode(f.id as any)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                  filterMode === f.id
-                    ? isBlack ? 'bg-[#C6A66A] text-[#17130C] shadow-xs font-bold' : 'bg-indigo-600 text-white'
-                    : isBlack ? 'bg-[#191D23] border border-[rgba(255,255,255,0.09)] text-[#C0BDB5] hover:text-[#F2F0EA] hover:border-[rgba(198,166,106,0.30)]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+            {availableCountries.length > 0 && (
+              <select
+                value={countryFilter}
+                onChange={e => setCountryFilter(e.target.value)}
+                className={`px-3.5 py-2.5 rounded-2xl text-xs font-semibold focus:outline-none transition ${
+                  isBlack
+                    ? 'bg-[#0D1014] border border-[rgba(255,255,255,0.10)] text-[#F2F0EA] focus:border-[#C6A66A]'
+                    : 'bg-slate-50 border border-slate-200 text-slate-900'
                 }`}
               >
-                {f.label}
-              </button>
-            ))}
+                <option value="All">All Countries ({availableCountries.length})</option>
+                {availableCountries.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            {/* Source Type Filter */}
+            <div className="flex flex-wrap gap-1.5 items-center">
+              <span className="text-[10px] font-mono text-slate-400 dark:text-[#92949A] mr-1 uppercase">Provenance:</span>
+              {[
+                { id: 'all', label: 'All Sources' },
+                { id: 'official_ats', label: 'Official ATS Boards' },
+                { id: 'authorized_feed', label: 'Authorized Feeds' },
+                { id: 'imported', label: 'Candidate Imported' },
+              ].map(st => (
+                <button
+                  key={st.id}
+                  onClick={() => setSourceTypeFilter(st.id as any)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
+                    sourceTypeFilter === st.id
+                      ? isBlack ? 'bg-[rgba(198,166,106,0.20)] text-[#C6A66A] border border-[rgba(198,166,106,0.40)] font-bold' : 'bg-indigo-100 text-indigo-700'
+                      : isBlack ? 'bg-[#0D1014] text-[#92949A] border border-[rgba(255,255,255,0.06)] hover:text-[#F2F0EA]' : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {st.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Criteria Pills */}
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { id: 'all', label: 'All' },
+                { id: 'high_match', label: 'High Match (70%+)' },
+                { id: 'remote', label: 'Remote Only' },
+                { id: 'salary', label: 'Salary Disclosed' },
+                { id: 'visa', label: 'Visa Sponsorship' },
+              ].map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => setFilterMode(f.id as any)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
+                    filterMode === f.id
+                      ? isBlack ? 'bg-[#C6A66A] text-[#17130C] shadow-xs font-bold' : 'bg-indigo-600 text-white'
+                      : isBlack ? 'bg-[#191D23] border border-[rgba(255,255,255,0.09)] text-[#C0BDB5] hover:text-[#F2F0EA]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -451,23 +554,35 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                           <h2 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-[#F2F0EA]">
                             {vac.title}
                           </h2>
-                          {vac.source === 'imported' && (
-                            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[rgba(198,166,106,0.12)] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]">
-                              <Sparkles className="w-2.5 h-2.5 text-[#C6A66A]" />
-                              <span>Imported ({vac.importedProvenance?.extractionMethod || 'user'})</span>
-                            </span>
-                          )}
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
-                            isBlack
-                              ? 'bg-[rgba(198,166,106,0.12)] text-[#C6A66A] border border-[rgba(198,166,106,0.25)]'
-                              : matchScore >= 80
-                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60'
-                              : matchScore >= 60
-                              ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-200/60'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                          }`}>
-                            {matchScore}% ALIGNMENT
-                          </span>
+                          {(() => {
+                            const prov = getProvenanceBadge(vac.source, vac.importedProvenance);
+                            return (
+                              <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${prov.accent}`}>
+                                <ShieldCheck className="w-2.5 h-2.5" />
+                                <span>{prov.label}</span>
+                              </span>
+                            );
+                          })()}
+                          <button
+                            type="button"
+                            onClick={e => {
+                              e.stopPropagation();
+                              setSelectedBreakdownVacancy(vac);
+                            }}
+                            title="View explainable 6-dimension match score breakdown"
+                            className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold flex items-center space-x-1 transition cursor-pointer hover:opacity-80 ${
+                              isBlack
+                                ? 'bg-[rgba(198,166,106,0.12)] text-[#C6A66A] border border-[rgba(198,166,106,0.25)]'
+                                : matchScore >= 80
+                                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60'
+                                : matchScore >= 60
+                                ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-200/60'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                            }`}
+                          >
+                            <span>{matchScore}% ALIGNMENT</span>
+                            <Info className="w-2.5 h-2.5" />
+                          </button>
                           <span className="text-[11px] font-mono text-slate-400 dark:text-[#92949A]">
                             {formatFreshness(vac.lastCheckedAt || vac.postedDate)}
                           </span>
@@ -584,6 +699,24 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                           </button>
                         )}
 
+                        {vac.url && (
+                          <a
+                            href={vac.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={e => e.stopPropagation()}
+                            className={`px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-1 cursor-pointer ${
+                              isBlack
+                                ? 'bg-[#191D23] hover:bg-[#C6A66A] text-[#C6A66A] hover:text-[#17130C] border border-[rgba(198,166,106,0.25)]'
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                            }`}
+                            title="Apply directly on employer site"
+                          >
+                            <span>Apply on Site</span>
+                            <ExternalLink className="w-3 h-3 ml-0.5" />
+                          </a>
+                        )}
+
                         <button
                           onClick={() => onSelectVacancy(vac)}
                           aria-label={`Review Dossier for ${vac.title}`}
@@ -641,6 +774,167 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
           }}
         />
       )}
+
+      {/* Explainable Match Breakdown Modal */}
+      {selectedBreakdownVacancy && (() => {
+        const breakdown = evaluateCandidateJobMatch(selectedBreakdownVacancy, {
+          profile: profile || {},
+          targetRole: profile?.currentTitle,
+          totalExperienceYears: profile?.totalExperienceYears,
+        });
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-[#15181E] border border-[rgba(198,166,106,0.30)] p-6 space-y-5 shadow-2xl text-[#F2F0EA]">
+              {/* Header */}
+              <div className="flex items-start justify-between border-b border-[rgba(255,255,255,0.09)] pb-4">
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[rgba(198,166,106,0.15)] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]">
+                      ALGORITHM 2.0 (EXPLAINABLE)
+                    </span>
+                    <span className="text-xs font-mono text-[#92949A]">{breakdown.tier}</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-[#F2F0EA]">
+                    {selectedBreakdownVacancy.title}
+                  </h3>
+                  <p className="text-xs text-[#92949A]">
+                    at <strong className="text-[#F2F0EA]">{selectedBreakdownVacancy.company}</strong> · {selectedBreakdownVacancy.location || 'Global'}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setSelectedBreakdownVacancy(null)}
+                  className="p-1.5 rounded-xl bg-[#0D1014] text-[#92949A] hover:text-[#F2F0EA] transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Overall Score Highlight */}
+              <div className="p-4 rounded-2xl bg-[#0D1014] border border-[rgba(255,255,255,0.09)] flex items-center justify-between">
+                <div className="space-y-0.5 max-w-md">
+                  <div className="text-[10px] font-mono font-bold text-[#92949A] uppercase">Overall Match Alignment</div>
+                  <div className="text-xs text-[#C0BDB5] leading-relaxed">{breakdown.recommendationReason}</div>
+                </div>
+                <div className="text-3xl font-bold font-mono text-[#C6A66A]">
+                  {breakdown.overallScore}<span className="text-sm text-[#92949A]">/100</span>
+                </div>
+              </div>
+
+              {/* 6-Dimension Breakdown */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-[#C6A66A]">
+                  Explainable 6-Dimension Weighting Breakdown
+                </h4>
+
+                {/* Dim 1: Core Skills */}
+                <div className="p-3.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.06)] space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-[#F2F0EA]">1. Core Skills Match ({breakdown.dimensions.coreSkills.weight})</span>
+                    <span className="font-mono font-bold text-[#C6A66A]">{breakdown.dimensions.coreSkills.score} / {breakdown.dimensions.coreSkills.maxScore}</span>
+                  </div>
+                  {breakdown.dimensions.coreSkills.matchedSkills.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      <span className="text-[10px] text-[#92949A]">Matched:</span>
+                      {breakdown.dimensions.coreSkills.matchedSkills.map((sk, idx) => (
+                        <span key={idx} className="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-medium bg-[rgba(53,184,135,0.12)] text-[#35B887] border border-[rgba(53,184,135,0.25)]">
+                          <CheckCircle2 className="w-2.5 h-2.5" />
+                          <span>{sk}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {breakdown.dimensions.coreSkills.missingSkills.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      <span className="text-[10px] text-[#92949A]">Missing:</span>
+                      {breakdown.dimensions.coreSkills.missingSkills.slice(0, 4).map((sk, idx) => (
+                        <span key={idx} className="px-2 py-0.5 rounded text-[10px] font-medium bg-[#191D23] text-[#D9AA61] border border-[rgba(217,170,97,0.25)]">
+                          {sk}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Dim 2: Experience */}
+                <div className="p-3.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.06)] space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-[#F2F0EA]">2. Experience Level & Seniority ({breakdown.dimensions.experience.weight})</span>
+                    <span className="font-mono font-bold text-[#C6A66A]">{breakdown.dimensions.experience.score} / {breakdown.dimensions.experience.maxScore}</span>
+                  </div>
+                  <p className="text-xs text-[#C0BDB5]">{breakdown.dimensions.experience.assessment}</p>
+                </div>
+
+                {/* Dim 3: Role Alignment */}
+                <div className="p-3.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.06)] space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-[#F2F0EA]">3. Role & Title Alignment ({breakdown.dimensions.roleAlignment.weight})</span>
+                    <span className="font-mono font-bold text-[#C6A66A]">{breakdown.dimensions.roleAlignment.score} / {breakdown.dimensions.roleAlignment.maxScore}</span>
+                  </div>
+                  <p className="text-xs text-[#C0BDB5]">{breakdown.dimensions.roleAlignment.assessment}</p>
+                </div>
+
+                {/* Dim 4: Mandatory Qualifications */}
+                <div className="p-3.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.06)] space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-[#F2F0EA]">4. Mandatory Qualifications Gate ({breakdown.dimensions.mandatoryQualifications.weight})</span>
+                    <span className={`font-mono font-bold ${breakdown.dimensions.mandatoryQualifications.hasMandatoryGaps ? 'text-[#D67575]' : 'text-[#35B887]'}`}>
+                      {breakdown.dimensions.mandatoryQualifications.score} / {breakdown.dimensions.mandatoryQualifications.maxScore}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#C0BDB5]">{breakdown.dimensions.mandatoryQualifications.assessment}</p>
+                </div>
+
+                {/* Dim 5: Geo & Work Mode */}
+                <div className="p-3.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.06)] space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-[#F2F0EA]">5. Geographic & Work Mode Compatibility ({breakdown.dimensions.geoAndWorkMode.weight})</span>
+                    <span className="font-mono font-bold text-[#C6A66A]">{breakdown.dimensions.geoAndWorkMode.score} / {breakdown.dimensions.geoAndWorkMode.maxScore}</span>
+                  </div>
+                  <p className="text-xs text-[#C0BDB5]">{breakdown.dimensions.geoAndWorkMode.assessment}</p>
+                </div>
+
+                {/* Dim 6: Candidate Preferences */}
+                <div className="p-3.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.06)] space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-[#F2F0EA]">6. Candidate Preferences Alignment ({breakdown.dimensions.candidatePreferences.weight})</span>
+                    <span className="font-mono font-bold text-[#C6A66A]">{breakdown.dimensions.candidatePreferences.score} / {breakdown.dimensions.candidatePreferences.maxScore}</span>
+                  </div>
+                  <p className="text-xs text-[#C0BDB5]">{breakdown.dimensions.candidatePreferences.assessment}</p>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="pt-2 flex items-center justify-between border-t border-[rgba(255,255,255,0.09)]">
+                <span className="text-[10px] font-mono text-[#92949A]">
+                  Zero Score Fabrication · Evaluated {new Date(breakdown.evaluatedAt).toLocaleDateString()}
+                </span>
+
+                <div className="flex items-center space-x-2">
+                  {selectedBreakdownVacancy.url && (
+                    <a
+                      href={selectedBreakdownVacancy.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-2 rounded-xl bg-[#191D23] border border-[rgba(198,166,106,0.30)] text-xs font-semibold text-[#C6A66A] hover:bg-[#C6A66A] hover:text-[#17130C] transition flex items-center space-x-1.5"
+                    >
+                      <span>Apply on Site</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                  <button
+                    onClick={() => setSelectedBreakdownVacancy(null)}
+                    className="px-4 py-2 rounded-xl bg-[#C6A66A] text-[#17130C] text-xs font-bold hover:bg-[#D9BB80] transition shadow-xs cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

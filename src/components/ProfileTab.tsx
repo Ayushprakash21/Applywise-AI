@@ -19,6 +19,8 @@ import {
   Save
 } from 'lucide-react';
 import { UserProfile, VerifiedSkill, ExperienceItem } from '../types/index.ts';
+import { getUserInitials } from './ProfileIdentityComponent.tsx';
+import { ProfilePhotoCropModal } from './ProfilePhotoCropModal.tsx';
 
 interface ProfileTabProps {
   profile: UserProfile | null;
@@ -37,6 +39,9 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   const [formData, setFormData] = useState<UserProfile | null>(profile);
   const [resumeTextInput, setResumeTextInput] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedFileForCrop, setSelectedFileForCrop] = useState<File | null>(null);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Sync state if profile changes
   React.useEffect(() => {
@@ -407,6 +412,22 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           </div>
         </div>
       )}
+      <ProfilePhotoCropModal
+        isOpen={cropModalOpen}
+        imageFile={selectedFileForCrop}
+        onClose={() => {
+          setCropModalOpen(false);
+          setSelectedFileForCrop(null);
+        }}
+        onSaveCroppedImage={async (croppedDataUrl) => {
+          if (profile?.id && typeof localStorage !== "undefined") {
+            localStorage.setItem(`applyvise_user_photo_${profile.id}`, croppedDataUrl);
+          }
+          await onUpdateProfile({ photoUrl: croppedDataUrl });
+          setCropModalOpen(false);
+          setSelectedFileForCrop(null);
+        }}
+      />
     </div>
   );
 };

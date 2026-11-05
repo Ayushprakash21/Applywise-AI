@@ -1,7 +1,15 @@
 // worker/jobConnectors.ts
 // Dedicated Provider Adapter Architecture & Live Job Ingestion Engine for ApplyVise AI
 
-export type ConnectorType = 'ats_greenhouse' | 'ats_lever' | 'ats_ashby' | 'aggregator_api' | 'json_ld';
+export type ConnectorType =
+  | 'ats_greenhouse'
+  | 'ats_lever'
+  | 'ats_ashby'
+  | 'ats_workable'
+  | 'ats_smartrecruiters'
+  | 'ats_recruitee'
+  | 'aggregator_api'
+  | 'json_ld';
 export type WorkArrangement = 'remote' | 'hybrid' | 'onsite';
 export type EmploymentType = 'full-time' | 'part-time' | 'contract' | 'internship';
 export type ExperienceLevel = 'entry' | 'mid' | 'senior' | 'lead' | 'executive';
@@ -441,6 +449,385 @@ export class LeverAdapter implements JobProviderAdapter {
   }
 }
 
+export class AshbyAdapter implements JobProviderAdapter {
+  constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly company: string,
+    public readonly organizationName: string,
+    public readonly rateLimitSeconds: number = 600
+  ) {}
+
+  public readonly type: ConnectorType = 'ats_ashby';
+  public get endpoint(): string {
+    return `https://api.ashbyhq.com/posting-api/job-board/${encodeURIComponent(this.organizationName)}`;
+  }
+
+  async fetchJobs(): Promise<AdapterFetchResult> {
+    const metrics: IngestionMetrics = { totalFetched: 0, totalAccepted: 0, totalRejected: 0, totalDuplicated: 0 };
+    const url = this.endpoint;
+    if (!isSafePublicUrl(url)) {
+      return { jobs: [], metrics, status: 'offline', error: 'Unsafe URL rejected' };
+    }
+
+    try {
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
+        signal: AbortSignal.timeout(9000),
+      });
+
+      if (res.status === 429) {
+        return { jobs: [], metrics, status: 'rate_limited', statusCode: 429, error: 'Rate limit exceeded (HTTP 429)' };
+      }
+      if (res.status === 404) {
+        return { jobs: [], metrics, status: 'offline', statusCode: 404, error: 'Ashby board not found (HTTP 404)' };
+      }
+      if (!res.ok) {
+        return { jobs: [], metrics, status: 'degraded', statusCode: res.status, error: `Ashby returned HTTP ${res.status}` };
+      }
+
+      const data = (await res.json()) as { jobs?: any[] };
+      const rawJobs = Array.isArray(data?.jobs) ? data.jobs : [];
+      metrics.totalFetched = rawJobs.length;
+
+      const results: LiveJobItem[] = [];
+      const now = new Date().toISOString();
+      const ttl = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+
+      for (const item of rawJobs) {
+        if (!item.title || !item.id) {
+          metrics.totalRejected++;
+          continue;
+        }
+
+        const isRemote = !!item.isRemote;
+        const workArrangement: WorkArrangement = isRemote ? 'remote' : 'onsite';
+        const locationStr = item.location || (isRemote ? 'Remote' : 'Global');
+        const cleanDesc = sanitizeIngestedDescription(item.descriptionHtml || item.description || '');
+
+        let salaryMin: number | undefined;
+        let salaryMax: number | undefined;
+        let salaryCurrency = 'USD';
+        let salaryRaw: string | undefined;
+
+        if (item.compensation) {
+          salaryRaw = item.compensation.compensationTierSummary || undefined;
+          if (typeof item.compensation.min === 'number') salaryMin = item.compensation.min;
+          if (typeof item.compensation.max === 'number') salaryMax = item.compensation.max;
+          if (item.compensation.currencyCode) salaryCurrency = item.compensation.currencyCode;
+        }
+
+        results.push({
+          id: `ashby_${this.organizationName}_${item.id}`,
+          source: `ashby_${this.organizationName}`,
+          sourceJobId: String(item.id),
+          title: String(item.title).trim(),
+          company: this.company,
+          location: locationStr,
+          country: isRemote ? 'Global' : 'United States',
+          workArrangement,
+          employmentType: 'full-time',
+          experienceLevel: 'mid',
+          salaryRaw,
+          salaryMin,
+          salaryMax,
+          salaryCurrency,
+          url: item.jobUrl || item.applyUrl || `https://jobs.ashbyhq.com/${this.organizationName}/${item.id}`,
+          description: cleanDesc,
+          requirements: item.department ? [item.department] : [],
+          tags: [this.company, 'Ashby ATS', workArrangement],
+          publishedAt: item.publishedAt || now,
+          retrievedAt: now,
+          firstSeenAt: now,
+          lastVerifiedAt: now,
+          expiresAt: ttl,
+          isActive: true,
+          lastCheckedAt: now,
+        });
+        metrics.totalAccepted++;
+      }
+
+      return { jobs: results, metrics, status: 'healthy', statusCode: 200 };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { jobs: [], metrics, status: 'offline', error: msg };
+    }
+  }
+}
+
+export class WorkableAdapter implements JobProviderAdapter {
+  constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly company: string,
+    public readonly accountName: string,
+    public readonly rateLimitSeconds: number = 600
+  ) {}
+
+  public readonly type: ConnectorType = 'ats_workable';
+  public get endpoint(): string {
+    return `https://apply.workable.com/api/v1/widget/accounts/${encodeURIComponent(this.accountName)}`;
+  }
+
+  async fetchJobs(): Promise<AdapterFetchResult> {
+    const metrics: IngestionMetrics = { totalFetched: 0, totalAccepted: 0, totalRejected: 0, totalDuplicated: 0 };
+    const url = this.endpoint;
+    if (!isSafePublicUrl(url)) {
+      return { jobs: [], metrics, status: 'offline', error: 'Unsafe URL rejected' };
+    }
+
+    try {
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
+        signal: AbortSignal.timeout(9000),
+      });
+
+      if (res.status === 429) {
+        return { jobs: [], metrics, status: 'rate_limited', statusCode: 429, error: 'Rate limit exceeded (HTTP 429)' };
+      }
+      if (res.status === 404) {
+        return { jobs: [], metrics, status: 'offline', statusCode: 404, error: 'Workable account not found (HTTP 404)' };
+      }
+      if (!res.ok) {
+        return { jobs: [], metrics, status: 'degraded', statusCode: res.status, error: `Workable returned HTTP ${res.status}` };
+      }
+
+      const data = (await res.json()) as { jobs?: any[] };
+      const rawJobs = Array.isArray(data?.jobs) ? data.jobs : [];
+      metrics.totalFetched = rawJobs.length;
+
+      const results: LiveJobItem[] = [];
+      const now = new Date().toISOString();
+      const ttl = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+
+      for (const item of rawJobs) {
+        if (!item.title || !item.shortcode) {
+          metrics.totalRejected++;
+          continue;
+        }
+
+        const isRemote = !!(item.telecommuting || item.workplace === 'remote');
+        const isHybrid = item.workplace === 'hybrid';
+        const workArrangement: WorkArrangement = isRemote ? 'remote' : isHybrid ? 'hybrid' : 'onsite';
+        const locParts = [item.city, item.country].filter(Boolean);
+        const locationStr = locParts.length > 0 ? locParts.join(', ') : (isRemote ? 'Remote' : 'Global');
+        const cleanDesc = sanitizeIngestedDescription(item.description || '');
+
+        results.push({
+          id: `workable_${this.accountName}_${item.shortcode}`,
+          source: `workable_${this.accountName}`,
+          sourceJobId: String(item.shortcode),
+          title: String(item.title).trim(),
+          company: this.company,
+          location: locationStr,
+          country: item.country || (isRemote ? 'Global' : 'United States'),
+          workArrangement,
+          employmentType: 'full-time',
+          experienceLevel: 'mid',
+          url: item.url || `https://apply.workable.com/${this.accountName}/j/${item.shortcode}/`,
+          description: cleanDesc,
+          requirements: item.department ? [item.department] : [],
+          tags: [this.company, 'Workable ATS', workArrangement],
+          publishedAt: item.created_at || now,
+          retrievedAt: now,
+          firstSeenAt: now,
+          lastVerifiedAt: now,
+          expiresAt: ttl,
+          isActive: true,
+          lastCheckedAt: now,
+        });
+        metrics.totalAccepted++;
+      }
+
+      return { jobs: results, metrics, status: 'healthy', statusCode: 200 };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { jobs: [], metrics, status: 'offline', error: msg };
+    }
+  }
+}
+
+export class SmartRecruitersAdapter implements JobProviderAdapter {
+  constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly company: string,
+    public readonly companyIdentifier: string,
+    public readonly rateLimitSeconds: number = 600
+  ) {}
+
+  public readonly type: ConnectorType = 'ats_smartrecruiters';
+  public get endpoint(): string {
+    return `https://api.smartrecruiters.com/v1/companies/${encodeURIComponent(this.companyIdentifier)}/postings`;
+  }
+
+  async fetchJobs(): Promise<AdapterFetchResult> {
+    const metrics: IngestionMetrics = { totalFetched: 0, totalAccepted: 0, totalRejected: 0, totalDuplicated: 0 };
+    const url = this.endpoint;
+    if (!isSafePublicUrl(url)) {
+      return { jobs: [], metrics, status: 'offline', error: 'Unsafe URL rejected' };
+    }
+
+    try {
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
+        signal: AbortSignal.timeout(9000),
+      });
+
+      if (res.status === 429) {
+        return { jobs: [], metrics, status: 'rate_limited', statusCode: 429, error: 'Rate limit exceeded (HTTP 429)' };
+      }
+      if (res.status === 404) {
+        return { jobs: [], metrics, status: 'offline', statusCode: 404, error: 'SmartRecruiters company not found (HTTP 404)' };
+      }
+      if (!res.ok) {
+        return { jobs: [], metrics, status: 'degraded', statusCode: res.status, error: `SmartRecruiters returned HTTP ${res.status}` };
+      }
+
+      const data = (await res.json()) as { content?: any[] };
+      const rawJobs = Array.isArray(data?.content) ? data.content : [];
+      metrics.totalFetched = rawJobs.length;
+
+      const results: LiveJobItem[] = [];
+      const now = new Date().toISOString();
+      const ttl = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+
+      for (const item of rawJobs) {
+        if (!item.name || !item.id) {
+          metrics.totalRejected++;
+          continue;
+        }
+
+        const isRemote = !!item.location?.remote;
+        const workArrangement: WorkArrangement = isRemote ? 'remote' : 'onsite';
+        const locParts = [item.location?.city, item.location?.country].filter(Boolean);
+        const locationStr = locParts.length > 0 ? locParts.join(', ') : (isRemote ? 'Remote' : 'Global');
+
+        results.push({
+          id: `smartrec_${this.companyIdentifier}_${item.id}`,
+          source: `smartrec_${this.companyIdentifier}`,
+          sourceJobId: String(item.id),
+          title: String(item.name).trim(),
+          company: this.company,
+          location: locationStr,
+          country: item.location?.country || (isRemote ? 'Global' : 'United States'),
+          workArrangement,
+          employmentType: 'full-time',
+          experienceLevel: 'mid',
+          url: `https://jobs.smartrecruiters.com/${this.companyIdentifier}/${item.id}`,
+          description: `Role at ${this.company}: ${item.name}. Ref: ${item.refNumber || 'N/A'}`,
+          requirements: item.department?.label ? [item.department.label] : [],
+          tags: [this.company, 'SmartRecruiters ATS', workArrangement],
+          publishedAt: item.releasedDate || now,
+          retrievedAt: now,
+          firstSeenAt: now,
+          lastVerifiedAt: now,
+          expiresAt: ttl,
+          isActive: true,
+          lastCheckedAt: now,
+        });
+        metrics.totalAccepted++;
+      }
+
+      return { jobs: results, metrics, status: 'healthy', statusCode: 200 };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { jobs: [], metrics, status: 'offline', error: msg };
+    }
+  }
+}
+
+export class RecruiteeAdapter implements JobProviderAdapter {
+  constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly company: string,
+    public readonly companyHandle: string,
+    public readonly rateLimitSeconds: number = 600
+  ) {}
+
+  public readonly type: ConnectorType = 'ats_recruitee';
+  public get endpoint(): string {
+    return `https://${encodeURIComponent(this.companyHandle)}.recruitee.com/api/offers/`;
+  }
+
+  async fetchJobs(): Promise<AdapterFetchResult> {
+    const metrics: IngestionMetrics = { totalFetched: 0, totalAccepted: 0, totalRejected: 0, totalDuplicated: 0 };
+    const url = this.endpoint;
+    if (!isSafePublicUrl(url)) {
+      return { jobs: [], metrics, status: 'offline', error: 'Unsafe URL rejected' };
+    }
+
+    try {
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'ApplyViseAI-JobDiscovery/2.0' },
+        signal: AbortSignal.timeout(9000),
+      });
+
+      if (res.status === 429) {
+        return { jobs: [], metrics, status: 'rate_limited', statusCode: 429, error: 'Rate limit exceeded (HTTP 429)' };
+      }
+      if (res.status === 404) {
+        return { jobs: [], metrics, status: 'offline', statusCode: 404, error: 'Recruitee board not found (HTTP 404)' };
+      }
+      if (!res.ok) {
+        return { jobs: [], metrics, status: 'degraded', statusCode: res.status, error: `Recruitee returned HTTP ${res.status}` };
+      }
+
+      const data = (await res.json()) as { offers?: any[] };
+      const rawJobs = Array.isArray(data?.offers) ? data.offers : [];
+      metrics.totalFetched = rawJobs.length;
+
+      const results: LiveJobItem[] = [];
+      const now = new Date().toISOString();
+      const ttl = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+
+      for (const item of rawJobs) {
+        if (!item.title || !item.id) {
+          metrics.totalRejected++;
+          continue;
+        }
+
+        const isRemote = !!item.remote;
+        const workArrangement: WorkArrangement = isRemote ? 'remote' : 'onsite';
+        const locParts = [item.city || item.location, item.country].filter(Boolean);
+        const locationStr = locParts.length > 0 ? locParts.join(', ') : (isRemote ? 'Remote' : 'Europe');
+        const cleanDesc = sanitizeIngestedDescription(item.description || '');
+
+        results.push({
+          id: `recruitee_${this.companyHandle}_${item.id}`,
+          source: `recruitee_${this.companyHandle}`,
+          sourceJobId: String(item.id),
+          title: String(item.title).trim(),
+          company: this.company,
+          location: locationStr,
+          country: item.country || (isRemote ? 'Global' : 'Netherlands'),
+          workArrangement,
+          employmentType: 'full-time',
+          experienceLevel: 'mid',
+          url: item.careers_url || `https://${this.companyHandle}.recruitee.com/o/${item.slug || item.id}`,
+          description: cleanDesc,
+          requirements: item.department ? [item.department] : [],
+          tags: [this.company, 'Recruitee ATS', workArrangement],
+          publishedAt: item.published_at || now,
+          retrievedAt: now,
+          firstSeenAt: now,
+          lastVerifiedAt: now,
+          expiresAt: ttl,
+          isActive: true,
+          lastCheckedAt: now,
+        });
+        metrics.totalAccepted++;
+      }
+
+      return { jobs: results, metrics, status: 'healthy', statusCode: 200 };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { jobs: [], metrics, status: 'offline', error: msg };
+    }
+  }
+}
+
 export class RemotiveAdapter implements JobProviderAdapter {
   public readonly id = 'remotive';
   public readonly name = 'Remotive Global';
@@ -753,6 +1140,19 @@ export const SOURCE_ADAPTERS: JobProviderAdapter[] = [
   // 3. Official Lever ATS Connectors (Direct Company Boards)
   new LeverAdapter('lever_spotify', 'Spotify Careers', 'Spotify', 'spotify', 600),
   new LeverAdapter('lever_palantir', 'Palantir Careers', 'Palantir Technologies', 'palantir', 600),
+
+  // 4. Official Ashby ATS Connectors (Direct Company Boards)
+  new AshbyAdapter('ashby_notion', 'Notion Careers', 'Notion', 'notion', 600),
+  new AshbyAdapter('ashby_linear', 'Linear Careers', 'Linear', 'linear', 600),
+
+  // 5. Official Workable ATS Connectors
+  new WorkableAdapter('workable_invision', 'InVision Careers', 'InVision', 'invision', 600),
+
+  // 6. Official SmartRecruiters ATS Connectors
+  new SmartRecruitersAdapter('smartrec_visa', 'Visa Careers', 'Visa', 'Visa', 600),
+
+  // 7. Official Recruitee ATS Connectors
+  new RecruiteeAdapter('recruitee_bunq', 'bunq Careers', 'bunq', 'bunq', 600),
 ];
 
 // Backward-compatible registry format
@@ -786,30 +1186,148 @@ export const SOURCE_REGISTRY: ConnectorDefinition[] = SOURCE_ADAPTERS.map(adapte
 // DEDUPLICATION & NORMALIZATION
 // ============================================================================
 
+export function generateMultiKeyJobFingerprint(job: Partial<LiveJobItem>): {
+  canonicalHash: string;
+  compositeHash: string;
+} {
+  const normCompany = (job.company || '')
+    .toLowerCase()
+    .replace(/\b(inc|incorporated|llc|ltd|limited|corp|corporation|co)\b/gi, '')
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+  const normTitle = (job.title || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+  const normLocation = (job.location || 'remote')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+
+  const compositeHash = `${normCompany}::${normTitle}::${normLocation}`;
+
+  let canonicalUrl = job.url || '';
+  try {
+    const parsed = new URL(canonicalUrl);
+    ['utm_source', 'utm_medium', 'utm_campaign', 'gh_jid', 'lever-source', 'ref'].forEach(p => parsed.searchParams.delete(p));
+    canonicalUrl = parsed.origin + parsed.pathname.toLowerCase().replace(/\/+$/, '');
+  } catch {
+    canonicalUrl = canonicalUrl.toLowerCase().trim();
+  }
+
+  return {
+    canonicalHash: canonicalUrl,
+    compositeHash,
+  };
+}
+
 export function deduplicateJobs(jobs: LiveJobItem[]): { unique: LiveJobItem[]; duplicatedCount: number } {
   const seenKeys = new Set<string>();
   const deduplicated: LiveJobItem[] = [];
   let duplicatedCount = 0;
 
   for (const job of jobs) {
-    const normCompany = job.company
-      .toLowerCase()
-      .replace(/\b(inc|incorporated|llc|ltd|limited|corp|corporation|co)\b/gi, '')
-      .replace(/[^a-z0-9]/g, '')
-      .trim();
-    const normTitle = job.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '')
-      .trim();
-    const key = `${normCompany}::${normTitle}`;
+    const { canonicalHash, compositeHash } = generateMultiKeyJobFingerprint(job);
+    const legacyKey = `${(job.company || '').toLowerCase().replace(/\b(inc|llc|ltd|corp)\b/gi, '').replace(/[^a-z0-9]/g, '')}::${(job.title || '').toLowerCase().replace(/[^a-z0-9]/g, '')}`;
 
-    if (!seenKeys.has(key)) {
-      seenKeys.add(key);
-      deduplicated.push(job);
-    } else {
+    if (seenKeys.has(canonicalHash) || seenKeys.has(compositeHash) || seenKeys.has(legacyKey)) {
       duplicatedCount++;
+    } else {
+      if (canonicalHash) seenKeys.add(canonicalHash);
+      seenKeys.add(compositeHash);
+      seenKeys.add(legacyKey);
+      deduplicated.push(job);
     }
   }
 
   return { unique: deduplicated, duplicatedCount };
 }
+
+/**
+ * Detects employer career page ATS provider, token, and public endpoint
+ */
+export async function detectCompanyATSAndFeed(careersUrl: string): Promise<{
+  detectedAts: ConnectorType;
+  publicBoardToken?: string;
+  publicEndpoint?: string;
+  companyName?: string;
+}> {
+  if (!isSafePublicUrl(careersUrl)) {
+    return { detectedAts: 'json_ld' };
+  }
+
+  try {
+    const url = new URL(careersUrl);
+    const host = url.hostname.toLowerCase();
+    const pathname = url.pathname;
+
+    // 1. Ashby: jobs.ashbyhq.com/{org}
+    if (host.includes('ashbyhq.com')) {
+      const match = pathname.match(/^\/([^/]+)/);
+      const org = match ? match[1] : '';
+      return {
+        detectedAts: 'ats_ashby',
+        publicBoardToken: org,
+        publicEndpoint: `https://api.ashbyhq.com/posting-api/job-board/${org}`,
+      };
+    }
+
+    // 2. Greenhouse: boards.greenhouse.io/{token} or greenhouse.io/embed/job_board?for={token}
+    if (host.includes('greenhouse.io')) {
+      const match = pathname.match(/^\/([^/]+)/) || url.searchParams.get('for');
+      const token = typeof match === 'string' ? match : (match ? match[1] : '');
+      return {
+        detectedAts: 'ats_greenhouse',
+        publicBoardToken: token,
+        publicEndpoint: `https://boards-api.greenhouse.io/v1/boards/${token}/jobs?content=true`,
+      };
+    }
+
+    // 3. Lever: jobs.lever.co/{company}
+    if (host.includes('lever.co')) {
+      const match = pathname.match(/^\/([^/]+)/);
+      const company = match ? match[1] : '';
+      return {
+        detectedAts: 'ats_lever',
+        publicBoardToken: company,
+        publicEndpoint: `https://api.lever.co/v0/postings/${company}?mode=json`,
+      };
+    }
+
+    // 4. Workable: apply.workable.com/{account}
+    if (host.includes('workable.com')) {
+      const match = pathname.match(/^\/([^/]+)/);
+      const account = match ? match[1] : '';
+      return {
+        detectedAts: 'ats_workable',
+        publicBoardToken: account,
+        publicEndpoint: `https://apply.workable.com/api/v1/widget/accounts/${account}`,
+      };
+    }
+
+    // 5. SmartRecruiters: jobs.smartrecruiters.com/{company}
+    if (host.includes('smartrecruiters.com')) {
+      const match = pathname.match(/^\/([^/]+)/);
+      const comp = match ? match[1] : '';
+      return {
+        detectedAts: 'ats_smartrecruiters',
+        publicBoardToken: comp,
+        publicEndpoint: `https://api.smartrecruiters.com/v1/companies/${comp}/postings`,
+      };
+    }
+
+    // 6. Recruitee: {company}.recruitee.com
+    if (host.includes('recruitee.com')) {
+      const sub = host.split('.')[0];
+      return {
+        detectedAts: 'ats_recruitee',
+        publicBoardToken: sub,
+        publicEndpoint: `https://${sub}.recruitee.com/api/offers/`,
+      };
+    }
+
+    return { detectedAts: 'json_ld' };
+  } catch {
+    return { detectedAts: 'json_ld' };
+  }
+}

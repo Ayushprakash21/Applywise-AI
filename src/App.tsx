@@ -457,6 +457,22 @@ export default function App() {
     }
   };
 
+  const handleUpdateUserPhoto = async (newPhotoUrl: string | null) => {
+    if (currentUser) {
+      if (newPhotoUrl) {
+        localStorage.setItem(`applyvise_user_photo_${currentUser.id}`, newPhotoUrl);
+      } else {
+        localStorage.removeItem(`applyvise_user_photo_${currentUser.id}`);
+      }
+      setCurrentUser(prev => prev ? { ...prev, photoUrl: newPhotoUrl } : prev);
+      if (profile) {
+        await api.updateProfile({ photoUrl: newPhotoUrl }).catch(() => {});
+        setProfile(prev => prev ? { ...prev, photoUrl: newPhotoUrl } : prev);
+      }
+      showToast(newPhotoUrl ? 'Profile photo updated and saved.' : 'Profile photo removed.');
+    }
+  };
+
   const handleSelectTab = (tab: DashboardTab) => {
     if (tab === 'settings') {
       setSettingsModalOpen(true);
@@ -590,6 +606,7 @@ export default function App() {
           <DashboardShell
             user={currentUser}
             activeTab={activeTab}
+            onUpdateUserPhoto={handleUpdateUserPhoto}
             onSelectTab={handleSelectTab}
             notifications={notifications}
           onMarkNotificationRead={async id => {
@@ -946,6 +963,8 @@ export default function App() {
         isOpen={settingsModalOpen}
         onClose={() => setSettingsModalOpen(false)}
         settings={settings}
+        user={currentUser}
+        onUpdateUserPhoto={handleUpdateUserPhoto}
         onSaveSettings={async upd => {
           const res = await api.updateSettings(upd);
           setSettings(res.settings);

@@ -1,5 +1,8 @@
 import React from 'react';
-import { Shield, FileText, Sliders, AlertTriangle, X, CheckCircle2 } from 'lucide-react';
+import { Shield, FileText, Sliders, AlertTriangle, X, CheckCircle2, Upload, Trash2, Camera, User } from 'lucide-react';
+import { AuthUser } from '../services/api.ts';
+import { getUserInitials } from './ProfileIdentityComponent.tsx';
+import { ProfilePhotoCropModal } from './ProfilePhotoCropModal.tsx';
 import { AutomationSettings } from '../types/index.ts';
 
 interface PrivacyPolicyModalProps {
@@ -84,6 +87,7 @@ export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({ isOpen, 
           </button>
         </div>
       </div>
+
     </div>
   );
 };
@@ -176,6 +180,8 @@ interface AccountSettingsModalProps {
   settings: AutomationSettings | null;
   onSaveSettings: (settings: Partial<AutomationSettings>) => Promise<void>;
   onToggleEmergencyStop: () => void;
+  user?: AuthUser | null;
+  onUpdateUserPhoto?: (photoUrl: string | null) => Promise<void> | void;
 }
 
 export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
@@ -184,9 +190,64 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
   settings,
   onSaveSettings,
   onToggleEmergencyStop,
+  user,
+  onUpdateUserPhoto,
 }) => {
   const [localSettings, setLocalSettings] = React.useState<AutomationSettings | null>(settings);
   const [saving, setSaving] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const [currentPhoto, setCurrentPhoto] = React.useState<string | null>(() => {
+    if (user?.photoUrl) return user.photoUrl;
+    if (typeof localStorage !== 'undefined' && user?.id) {
+      return localStorage.getItem(`applyvise_user_photo_${user.id}`);
+    }
+    return null;
+  });
+
+  React.useEffect(() => {
+    if (user?.photoUrl) {
+      setCurrentPhoto(user.photoUrl);
+    } else if (typeof localStorage !== 'undefined' && user?.id) {
+      const stored = localStorage.getItem(`applyvise_user_photo_${user.id}`);
+      setCurrentPhoto(stored);
+    }
+  }, [user?.photoUrl, user?.id]);
+
+  const [selectedFileForCrop, setSelectedFileForCrop] = React.useState<File | null>(null);
+  const [cropModalOpen, setCropModalOpen] = React.useState<boolean>(false);
+
+  const initials = getUserInitials(user?.fullName, user?.email);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    setSelectedFileForCrop(file);
+    setCropModalOpen(true);
+  };
+
+  const handleSaveCropped = async (croppedDataUrl: string) => {
+    setCurrentPhoto(croppedDataUrl);
+    if (user?.id && typeof localStorage !== 'undefined') {
+      localStorage.setItem(`applyvise_user_photo_${user.id}`, croppedDataUrl);
+    }
+    if (onUpdateUserPhoto) {
+      await onUpdateUserPhoto(croppedDataUrl);
+    }
+    setCropModalOpen(false);
+    setSelectedFileForCrop(null);
+  };
+
+  const handleRemovePhoto = () => {
+    setCurrentPhoto(null);
+    if (user?.id && typeof localStorage !== 'undefined') {
+      localStorage.removeItem(`applyvise_user_photo_${user.id}`);
+    }
+    if (onUpdateUserPhoto) {
+      onUpdateUserPhoto(null);
+    }
+  };
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -235,6 +296,59 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
         </div>
 
         <div className="p-4 sm:p-6 overflow-y-auto space-y-5 text-xs text-slate-700 flex-1">
+          {/* Profile Photograph & Avatar Management */}
+          <div className="p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#14171C] space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-800 dark:text-[#F2F0EA] block text-xs">
+                Account Identity & Photograph
+              </span>
+              <span className="text-[10px] text-slate-500 dark:text-[#92949A]">
+                {currentPhoto ? 'Custom Photograph Active' : 'Monogram Initials Active'}
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-full border border-slate-200 dark:border-[rgba(198,166,106,0.35)] bg-slate-100 dark:bg-[#111318] flex items-center justify-center font-bold text-sm text-slate-700 dark:text-[#C6A66A] overflow-hidden shrink-0 shadow-xs">
+                {currentPhoto ? (
+                  <img src={currentPhoto} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                ) : (
+                  <span className="tracking-tight select-none">{initials}</span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#C6A66A] dark:hover:bg-[#D9BB80] dark:text-[#17130C] transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  <span>{currentPhoto ? 'Change Photo' : 'Upload Photo'}</span>
+                </button>
+
+                {currentPhoto && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition flex items-center space-x-1.5 cursor-pointer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Remove Photo</span>
+                  </button>
+                )}
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-[#92949A] leading-relaxed">
+              Upload a personal photo for your executive account identity. If no photo is uploaded, your initials monogram ({initials}) is displayed.
+            </p>
+          </div>
           {/* Operating Mode */}
           <div className="space-y-2">
             <label className="font-bold text-slate-800 block">Operating Mode</label>
@@ -372,6 +486,15 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({
           </button>
         </div>
       </div>
+      <ProfilePhotoCropModal
+        isOpen={cropModalOpen}
+        imageFile={selectedFileForCrop}
+        onClose={() => {
+          setCropModalOpen(false);
+          setSelectedFileForCrop(null);
+        }}
+        onSaveCroppedImage={handleSaveCropped}
+      />
     </div>
   );
 };

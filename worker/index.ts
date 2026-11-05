@@ -20,7 +20,7 @@ import { validateStateTransition } from '../src/utils/rules.ts';
 import { ApplicationRecord, ApplicationStatus, JobVacancy, UserImportedJobRecord, ExtractedJobData } from '../src/types/index.ts';
 import { executeUniversalJobExtraction, normalizeJobUrl } from './jobImportEngine.ts';
 
-import { SOURCE_REGISTRY, isSafePublicUrl, LiveJobItem } from './jobConnectors.ts';
+import { SOURCE_REGISTRY, SOURCE_ADAPTERS, detectCompanyATSAndFeed, isSafePublicUrl, LiveJobItem } from './jobConnectors.ts';
 import { runIncrementalJobSync } from './jobSyncManager.ts';
 import { runCentralIntegrityAudit, evaluateTransferableSkills } from './integrityEngine.ts';
 import { careerIntelligenceEngine } from './careerIntelligenceEngine.ts';
@@ -3898,6 +3898,208 @@ app.get('/api/admin/sources/health', requireAdmin, async (c) => {
       serverTime: new Date().toISOString(),
       warning: `Graceful fallback: ${msg}`
     });
+  }
+});
+
+// ============================================================================
+// GLOBAL CAREER DISCOVERY ENGINE (GCDE) API ENDPOINTS
+// ============================================================================
+
+app.get('/api/admin/sources/intelligence', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const [summary, sources, geographicCoverage] = await Promise.all([
+      store.getGlobalSourceIntelligenceSummary(),
+      store.getJobSources(),
+      store.getGeographicCoverageSummary(),
+    ]);
+    return c.json({ success: true, summary, sources, geographicCoverage });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.get('/api/admin/sources/companies', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const query = c.req.query('query');
+    const country = c.req.query('country');
+    const detectedAts = c.req.query('detectedAts');
+    const limit = c.req.query('limit');
+
+    const companies = await store.getCompanyDirectory({
+      query,
+      country,
+      detectedAts,
+      limit: limit ? Number(limit) : undefined,
+    });
+    return c.json({ success: true, companies });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.post('/api/admin/sources/companies', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const body = await c.req.json();
+    if (!body.name || !body.careersUrl) {
+      return c.json({ success: false, error: 'Company name and careers URL required' }, 400);
+    }
+
+    let detectedAts = body.detectedAts;
+    let publicBoardToken = body.publicBoardToken;
+    let publicEndpoint = body.publicEndpoint;
+    if (!detectedAts || detectedAts === 'custom_web') {
+      const detection = await detectCompanyATSAndFeed(body.careersUrl);
+      if (detection.detectedAts !== 'json_ld') {
+        detectedAts = detection.detectedAts.replace('ats_', '');
+        publicBoardToken = detection.publicBoardToken;
+        publicEndpoint = detection.publicEndpoint;
+      }
+    }
+
+    let domain = body.domain;
+    if (!domain) {
+      try {
+        domain = new URL(body.careersUrl).hostname.replace(/^www\./, '');
+      } catch {
+        domain = `${body.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
+      }
+    }
+
+    const company = await store.addCompanyDirectory({
+      name: body.name,
+      domain,
+      careersUrl: body.careersUrl,
+      country: body.country || 'United States',
+      region: body.region || 'north_america',
+      industry: body.industry || 'Technology',
+      detectedAts: detectedAts || 'custom_web',
+      publicBoardToken,
+      publicEndpoint,
+      discoverySource: 'admin_curated',
+      verificationStatus: 'verified',
+    });
+
+    if (publicEndpoint) {
+      await store.addJobSource({
+        name: `${company.name} Careers`,
+        companyId: company.id,
+        companyName: company.name,
+        domain: company.domain,
+        category: 'official_careers',
+        atsProvider: company.detectedAts as any,
+        officialCareersUrl: company.careersUrl,
+        publicEndpoint,
+        adapterType: `ats_${company.detectedAts}`,
+        country: company.country,
+        region: company.region,
+        languages: ['en'],
+        permissionStatus: 'authorized',
+        rateLimitSeconds: 600,
+        isEnabled: true,
+        priority: 1,
+        healthStatus: 'healthy',
+      });
+    }
+
+    return c.json({ success: true, company });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.get('/api/admin/sources/coverage', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const coverage = await store.getGeographicCoverageSummary();
+    return c.json({ success: true, coverage });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.post('/api/admin/sources/sync', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const { sourceId } = await c.req.json<{ sourceId?: string }>();
+    const adapter = SOURCE_ADAPTERS.find(a => a.id === sourceId);
+    if (adapter) {
+      const result = await adapter.fetchJobs();
+      if (result.jobs.length > 0) {
+        await store.saveLiveJobs(result.jobs);
+      }
+      await store.updateJobSourceStatus(adapter.id, {
+        healthStatus: result.status,
+        totalActive: result.metrics.totalAccepted,
+        totalDiscovered: result.metrics.totalFetched,
+        lastSyncAt: new Date().toISOString(),
+      });
+      return c.json({ success: true, message: `Synced ${result.jobs.length} jobs from ${adapter.name}`, result });
+    }
+    return c.json({ success: true, message: 'Sync triggered successfully' });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.get('/api/opportunity-radar/recommendations', requireAuth, async (c) => {
+  try {
+    const user = c.get('user') as AuthUser;
+    const store: D1Store = c.get('store');
+    let recs = await store.getCandidateJobRecommendations(user.id);
+    if (recs.length === 0) {
+      recs = await store.computeCandidateJobRecommendations(user.id);
+    }
+    return c.json({ success: true, recommendations: recs });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.post('/api/opportunity-radar/refresh-recommendations', requireAuth, async (c) => {
+  try {
+    const user = c.get('user') as AuthUser;
+    const store: D1Store = c.get('store');
+    const recs = await store.computeCandidateJobRecommendations(user.id);
+    return c.json({ success: true, recommendations: recs });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.get('/api/opportunity-radar/live-jobs', async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const query = c.req.query('query');
+    const country = c.req.query('country');
+    const location = c.req.query('location');
+    const workArrangement = c.req.query('workArrangement');
+    const sourceType = c.req.query('sourceType');
+    const limit = c.req.query('limit');
+    const page = c.req.query('page');
+
+    const result = await store.searchLiveJobs({
+      query,
+      location: country && country !== 'All' ? country : location,
+      workArrangement,
+      source: sourceType,
+      limit: limit ? Number(limit) : undefined,
+      page: page ? Number(page) : undefined,
+    });
+
+    return c.json({ success: true, ...result });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
   }
 });
 

@@ -263,6 +263,8 @@ export interface UserProfile {
   email: string;
   phone: string;
   location: string;
+  photoUrl?: string | null;
+  avatarUrl?: string | null;
   workAuthorizationCountry?: string;
   workAuthorizationStatus?: string;
   workAuthorization?: string[];
@@ -1294,4 +1296,227 @@ export interface MembershipHistoryItem {
   details: Record<string, any>;
   timestamp: string;
 }
+
+// ============================================================================
+// GLOBAL CAREER DISCOVERY ENGINE (GCDE) TYPES
+// ============================================================================
+
+export type AtsProviderType =
+  | 'greenhouse'
+  | 'lever'
+  | 'ashby'
+  | 'workable'
+  | 'smartrecruiters'
+  | 'recruitee'
+  | 'remotive'
+  | 'arbeitnow'
+  | 'jobicy'
+  | 'custom_web';
+
+export type JobSourceCategory =
+  | 'official_careers'
+  | 'ats_boards'
+  | 'general_portals'
+  | 'regional_boards'
+  | 'gov_portals'
+  | 'public_feeds'
+  | 'partner_apis'
+  | 'user_imported';
+
+export type JobSourcePermission = 'authorized' | 'public_feed' | 'linking_only' | 'partner_agreement';
+
+export type JobSourceHealth = 'healthy' | 'empty' | 'degraded' | 'rate_limited' | 'offline';
+
+export type JobLifecycleStatus =
+  | 'DISCOVERED'
+  | 'ACTIVE'
+  | 'UPDATED'
+  | 'EXPIRING'
+  | 'EXPIRED'
+  | 'REMOVED'
+  | 'SOURCE_UNAVAILABLE'
+  | 'UNDER_REVIEW';
+
+export interface CompanyDirectoryItem {
+  id: string;
+  name: string;
+  domain: string;
+  careersUrl: string;
+  country: string;
+  region: 'north_america' | 'europe' | 'asia_pacific' | 'middle_east' | 'africa' | 'global';
+  industry: string;
+  companySize?: string;
+  detectedAts: AtsProviderType;
+  publicBoardToken?: string;
+  publicEndpoint?: string;
+  discoverySource: 'admin_curated' | 'sitemap' | 'public_directory' | 'ats_registry' | 'candidate_import';
+  verificationStatus: 'verified' | 'pending' | 'unsupported';
+  lastCheckedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  activeVacanciesCount?: number;
+}
+
+export interface GlobalJobSource {
+  id: string;
+  name: string;
+  companyId?: string;
+  companyName: string;
+  domain: string;
+  category: JobSourceCategory;
+  atsProvider?: AtsProviderType;
+  officialCareersUrl: string;
+  publicEndpoint: string;
+  adapterType: string;
+  country: string;
+  region: string;
+  languages: string[];
+  permissionStatus: JobSourcePermission;
+  rateLimitSeconds: number;
+  isEnabled: boolean;
+  priority: number;
+  lastSyncAt?: string;
+  lastAttemptAt?: string;
+  healthStatus: JobSourceHealth;
+  totalDiscovered: number;
+  totalActive: number;
+  errorCount: number;
+  nextSyncAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CanonicalLiveJob {
+  id: string;
+  source: string;
+  sourceJobId: string;
+  companyId?: string;
+  title: string;
+  company: string;
+  companyLogo?: string;
+  location: string;
+  country: string;
+  region: string;
+  workArrangement: 'remote' | 'hybrid' | 'onsite';
+  employmentType: 'full-time' | 'part-time' | 'contract' | 'internship';
+  experienceLevel: 'entry' | 'mid' | 'senior' | 'lead' | 'executive';
+  salaryRaw?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  salaryCurrency?: string;
+  url: string;
+  canonicalUrl?: string;
+  description: string;
+  responsibilities: string[];
+  requirements: string[];
+  preferredSkills: string[];
+  tags: string[];
+  sourceType: 'official_employer' | 'authorized_aggregator' | 'candidate_imported';
+  lifecycleStatus: JobLifecycleStatus;
+  extractionMethod: string;
+  extractionConfidence: number;
+  publishedAt: string;
+  firstSeenAt: string;
+  retrievedAt: string;
+  lastVerifiedAt: string;
+  expiresAt: string;
+  isActive: boolean;
+  lastCheckedAt: string;
+  rawPayload?: string;
+  matchScore?: number;
+  matchBreakdown?: ExplainableMatchBreakdown;
+}
+
+export interface ExplainableMatchBreakdown {
+  overallScore: number;
+  tier: 'Strong Fit' | 'Good Fit' | 'Moderate Fit' | 'Low Fit';
+  algorithmVersion: string;
+  dimensions: {
+    coreSkills: {
+      score: number; // 0 - 30
+      maxScore: 30;
+      weight: '30%';
+      matchedSkills: string[];
+      missingSkills: string[];
+    };
+    experience: {
+      score: number; // 0 - 25
+      maxScore: 25;
+      weight: '25%';
+      candidateYears: number;
+      requiredLevel: string;
+      assessment: string;
+    };
+    roleAlignment: {
+      score: number; // 0 - 20
+      maxScore: 20;
+      weight: '20%';
+      targetRoleMatch: boolean;
+      titleSimilarity: number;
+      assessment: string;
+    };
+    mandatoryQualifications: {
+      score: number; // 0 - 10
+      maxScore: 10;
+      weight: '10%';
+      hasMandatoryGaps: boolean;
+      gaps: string[];
+      assessment: string;
+    };
+    geoAndWorkMode: {
+      score: number; // 0 - 10
+      maxScore: 10;
+      weight: '10%';
+      candidateLocation: string;
+      jobLocation: string;
+      workArrangementMatch: boolean;
+      assessment: string;
+    };
+    candidatePreferences: {
+      score: number; // 0 - 5
+      maxScore: 5;
+      weight: '5%';
+      salaryMatch: boolean;
+      industryMatch: boolean;
+      assessment: string;
+    };
+  };
+  recommendationReason: string;
+  confidence: number;
+  evaluatedAt: string;
+}
+
+export interface CountryCoverageStat {
+  country: string;
+  region: string;
+  code: string;
+  activeJobsCount: number;
+  verifiedCompaniesCount: number;
+  sourcesCount: number;
+  healthySourcesCount: number;
+  coverageStatus: 'strong' | 'moderate' | 'limited' | 'gap';
+}
+
+export interface GeographicCoverageSummary {
+  totalCountries: number;
+  totalRegions: number;
+  totalActiveJobs: number;
+  totalVerifiedCompanies: number;
+  countries: CountryCoverageStat[];
+  regionDistribution: Record<string, number>;
+}
+
+export interface GlobalSourceIntelligenceSummary {
+  totalSources: number;
+  activeSources: number;
+  healthySources: number;
+  degradedSources: number;
+  totalDiscoveredCompanies: number;
+  verifiedCareerPages: number;
+  totalActiveVacancies: number;
+  expiredOrPruned: number;
+  averageIngestionDurationMs: number;
+  lastGlobalSyncAt?: string;
+}
+
 

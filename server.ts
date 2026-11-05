@@ -17,6 +17,7 @@ import { jobDiscovery } from './server/jobDiscovery.ts';
 import { matchingEngine } from './server/matchingEngine.ts';
 import { careerIntelligenceEngine } from './server/careerIntelligenceEngine.ts';
 import { submissionAdapter } from './server/submissionAdapter.ts';
+import { SOURCE_ADAPTERS, detectCompanyATSAndFeed } from './worker/jobConnectors.ts';
 import {
   initialVacancies,
   initialIntegrations,
@@ -2487,14 +2488,188 @@ app.get('/api/admin/resumes/:resumeId/history', requireAdmin, (req: Authenticate
 });
 
 app.get('/api/admin/sources/health', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  const sources = authAndStore.getJobSources();
+  const summary = authAndStore.getGlobalSourceIntelligenceSummary();
   res.json({
     success: true,
-    totalCachedJobs: initialVacancies.length,
-    sources: [],
+    totalCachedJobs: summary.totalActiveVacancies || initialVacancies.length,
+    sources: sources.map(s => ({
+      source_name: s.name,
+      status: s.healthStatus,
+      total_jobs: s.totalActive,
+      last_sync: s.lastSyncAt,
+    })),
     recentRuns: [],
     recentErrors: [],
     serverTime: new Date().toISOString(),
   });
+});
+
+app.get('/api/admin/sources/intelligence', requireAdmin, (_req: AuthenticatedRequest, res: Response) => {
+  try {
+    const summary = authAndStore.getGlobalSourceIntelligenceSummary();
+    const sources = authAndStore.getJobSources();
+    const geographicCoverage = authAndStore.getGeographicCoverageSummary();
+    res.json({ success: true, summary, sources, geographicCoverage });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/admin/sources/companies', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { query, country, detectedAts, limit } = req.query;
+    const companies = authAndStore.getCompanyDirectory({
+      query: query as string,
+      country: country as string,
+      detectedAts: detectedAts as string,
+      limit: limit ? Number(limit) : undefined,
+    });
+    res.json({ success: true, companies });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/sources/companies', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const body = req.body;
+    if (!body.name || !body.careersUrl) {
+      return res.status(400).json({ success: false, error: 'Company name and careers URL required' });
+    }
+
+    let detectedAts = body.detectedAts;
+    let publicBoardToken = body.publicBoardToken;
+    let publicEndpoint = body.publicEndpoint;
+    if (!detectedAts || detectedAts === 'custom_web') {
+      const detection = await detectCompanyATSAndFeed(body.careersUrl);
+      if (detection.detectedAts !== 'json_ld') {
+        detectedAts = detection.detectedAts.replace('ats_', '');
+        publicBoardToken = detection.publicBoardToken;
+        publicEndpoint = detection.publicEndpoint;
+      }
+    }
+
+    let domain = body.domain;
+    if (!domain) {
+      try {
+        domain = new URL(body.careersUrl).hostname.replace(/^www\./, '');
+      } catch {
+        domain = `${body.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
+      }
+    }
+
+    const company = authAndStore.addCompanyDirectory({
+      name: body.name,
+      domain,
+      careersUrl: body.careersUrl,
+      country: body.country || 'United States',
+      region: body.region || 'north_america',
+      industry: body.industry || 'Technology',
+      detectedAts: detectedAts || 'custom_web',
+      publicBoardToken,
+      publicEndpoint,
+      discoverySource: 'admin_curated',
+      verificationStatus: 'verified',
+    });
+
+    if (publicEndpoint) {
+      authAndStore.addJobSource({
+        name: `${company.name} Careers`,
+        companyId: company.id,
+        companyName: company.name,
+        domain: company.domain,
+        category: 'official_careers',
+        atsProvider: company.detectedAts as any,
+        officialCareersUrl: company.careersUrl,
+        publicEndpoint,
+        adapterType: `ats_${company.detectedAts}`,
+        country: company.country,
+        region: company.region,
+        languages: ['en'],
+        permissionStatus: 'authorized',
+        rateLimitSeconds: 600,
+        isEnabled: true,
+        priority: 1,
+        healthStatus: 'healthy',
+      });
+    }
+
+    res.json({ success: true, company });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/admin/sources/coverage', requireAdmin, (_req: AuthenticatedRequest, res: Response) => {
+  try {
+    const coverage = authAndStore.getGeographicCoverageSummary();
+    res.json({ success: true, coverage });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/sources/sync', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { sourceId } = req.body;
+    const adapter = SOURCE_ADAPTERS.find(a => a.id === sourceId);
+    if (adapter) {
+      const result = await adapter.fetchJobs();
+      if (result.jobs.length > 0) {
+        authAndStore.saveLiveJobs(result.jobs);
+      }
+      authAndStore.updateJobSourceStatus(adapter.id, {
+        healthStatus: result.status,
+        totalActive: result.metrics.totalAccepted,
+        totalDiscovered: result.metrics.totalFetched,
+        lastSyncAt: new Date().toISOString(),
+      });
+      return res.json({ success: true, message: `Synced ${result.jobs.length} jobs from ${adapter.name}`, result });
+    }
+    res.json({ success: true, message: 'Sync triggered successfully' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/opportunity-radar/recommendations', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    let recs = authAndStore.getCandidateJobRecommendations(req.user!.id);
+    if (recs.length === 0) {
+      recs = authAndStore.computeCandidateJobRecommendations(req.user!.id);
+    }
+    res.json({ success: true, recommendations: recs });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/opportunity-radar/refresh-recommendations', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const recs = authAndStore.computeCandidateJobRecommendations(req.user!.id);
+    res.json({ success: true, recommendations: recs });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/opportunity-radar/live-jobs', (req: Request, res: Response) => {
+  try {
+    const { query, country, location, workArrangement, sourceType, limit, page } = req.query;
+    const result = authAndStore.getGlobalLiveJobs({
+      query: query as string,
+      country: country as string,
+      location: location as string,
+      workArrangement: workArrangement as string,
+      sourceType: sourceType as string,
+      limit: limit ? Number(limit) : undefined,
+      page: page ? Number(page) : undefined,
+    });
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // ============================================================================

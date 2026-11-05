@@ -47,7 +47,13 @@ import {
   AdminAssignMembershipRequest,
   AdminExtendMembershipRequest,
   AdminUpdateMembershipStatusRequest,
-  MembershipHistoryItem
+  MembershipHistoryItem,
+  CompanyDirectoryItem,
+  GlobalJobSource,
+  CanonicalLiveJob,
+  ExplainableMatchBreakdown,
+  GeographicCoverageSummary,
+  GlobalSourceIntelligenceSummary
 } from '../types/index.ts';
 
 export interface DashboardSummary {
@@ -113,6 +119,8 @@ export interface AuthUser {
   role: string;
   isVerified: boolean;
   createdAt: string;
+  photoUrl?: string | null;
+  avatarUrl?: string | null;
 }
 
 function getAuthHeader(): Record<string, string> {
@@ -377,6 +385,79 @@ export const api = {
       recentErrors: any[];
       serverTime: string;
     }>('/api/admin/sources/health'),
+
+  getGlobalSourceIntelligence: () =>
+    fetchJson<{
+      success: boolean;
+      summary: GlobalSourceIntelligenceSummary;
+      sources: GlobalJobSource[];
+      geographicCoverage: GeographicCoverageSummary;
+    }>('/api/admin/sources/intelligence'),
+
+  getCompanyDirectory: (params?: { query?: string; country?: string; detectedAts?: string; limit?: number }) => {
+    const q = new URLSearchParams();
+    if (params?.query) q.set('query', params.query);
+    if (params?.country) q.set('country', params.country);
+    if (params?.detectedAts) q.set('detectedAts', params.detectedAts);
+    if (params?.limit) q.set('limit', String(params.limit));
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return fetchJson<{ success: boolean; companies: CompanyDirectoryItem[] }>(`/api/admin/sources/companies${qs}`);
+  },
+
+  addCompanyDirectory: (item: Partial<CompanyDirectoryItem>) =>
+    fetchJson<{ success: boolean; company: CompanyDirectoryItem }>('/api/admin/sources/companies', {
+      method: 'POST',
+      body: JSON.stringify(item),
+    }),
+
+  getGeographicCoverage: () =>
+    fetchJson<{ success: boolean; coverage: GeographicCoverageSummary }>('/api/admin/sources/coverage'),
+
+  triggerSourceSync: (sourceId?: string) =>
+    fetchJson<{ success: boolean; message: string; results?: any }>('/api/admin/sources/sync', {
+      method: 'POST',
+      body: JSON.stringify({ sourceId }),
+    }),
+
+  getCandidateJobRecommendations: (limit = 20) =>
+    fetchJson<{
+      success: boolean;
+      recommendations: Array<{ vacancy: JobVacancy; matchBreakdown: ExplainableMatchBreakdown }>;
+    }>(`/api/opportunity-radar/recommendations?limit=${limit}`),
+
+  refreshCandidateJobRecommendations: () =>
+    fetchJson<{
+      success: boolean;
+      recommendations: Array<{ vacancy: JobVacancy; matchBreakdown: ExplainableMatchBreakdown }>;
+    }>('/api/opportunity-radar/refresh-recommendations', { method: 'POST' }),
+
+  getGlobalLiveJobs: (params?: {
+    query?: string;
+    country?: string;
+    location?: string;
+    workArrangement?: string;
+    sourceType?: string;
+    limit?: number;
+    page?: number;
+  }) => {
+    const q = new URLSearchParams();
+    if (params?.query) q.set('query', params.query);
+    if (params?.country) q.set('country', params.country);
+    if (params?.location) q.set('location', params.location);
+    if (params?.workArrangement) q.set('workArrangement', params.workArrangement);
+    if (params?.sourceType) q.set('sourceType', params.sourceType);
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.page) q.set('page', String(params.page));
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return fetchJson<{
+      success: boolean;
+      jobs: CanonicalLiveJob[];
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    }>(`/api/opportunity-radar/live-jobs${qs}`);
+  },
 
   // --- ADMIN RESUME MANAGEMENT ---
   getAdminResumes: (params?: { page?: number; limit?: number; search?: string; status?: string; format?: string }) => {

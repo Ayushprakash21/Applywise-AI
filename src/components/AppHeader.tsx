@@ -20,6 +20,7 @@ import { BrandLogo } from './BrandLogo.tsx';
 import { AuthUser } from '../services/api.ts';
 import { NotificationItem, AutomationSettings, AccountUsageStats } from '../types/index.ts';
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
+import { ProfileIdentityComponent } from './ProfileIdentityComponent.tsx';
 
 interface AppHeaderProps {
   user: AuthUser;
@@ -260,106 +261,21 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               )}
             </div>
 
-            {/* User Profile Menu */}
-            <div className="relative" ref={userMenuRef}>
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="h-8.5 pl-2 pr-2.5 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 flex items-center space-x-2 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition active:scale-95"
-              >
-                <div className="h-6 w-6 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                  {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
-                </div>
-                <span className="text-xs font-semibold text-slate-800 hidden sm:block max-w-[110px] truncate">
-                  {user.fullName || user.email}
-                </span>
-                <ChevronDown className="h-3 w-3 text-slate-400" />
-              </button>
-
-              {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-60 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-slate-200/90 shadow-[0_12px_32px_-4px_rgba(15,23,42,0.12)] overflow-hidden py-1.5 animate-in fade-in duration-150 z-50 text-xs">
-                  <div className="px-3.5 py-2.5 border-b border-slate-100 bg-slate-50/60">
-                    <p className="font-bold text-slate-900 truncate">{user.fullName || 'User'}</p>
-                    <p className="text-slate-500 text-[11px] truncate">{user.email}</p>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className="inline-block px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-blue-100 text-blue-800 uppercase">
-                        {isFounderAccount ? 'Founder Access' : plan}
-                      </span>
-                      {isAdmin && (
-                        <span className="inline-block px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-slate-900 text-white uppercase">
-                          Admin
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="py-1">
-                    {/* Admin Console Shortcut if admin */}
-                    {isAdmin && onOpenAdmin && (
-                      <button
-                        onClick={() => { setShowUserMenu(false); onOpenAdmin(); }}
-                        className="w-full px-3.5 py-2 text-left text-slate-900 hover:bg-slate-100 flex items-center space-x-2 font-bold transition border-b border-slate-100"
-                      >
-                        <ShieldAlert className="h-4 w-4 text-indigo-600" />
-                        <span>Administrator Console</span>
-                      </button>
-                    )}
-
-                    {onOpenPricing && (
-                      <button
-                        onClick={() => { setShowUserMenu(false); onOpenPricing(); }}
-                        className="w-full px-3.5 py-2 text-left text-blue-600 hover:bg-blue-50 flex items-center space-x-2 font-semibold transition"
-                      >
-                        <Sparkles className="h-4 w-4 text-blue-500" />
-                        <span>{isFounderAccount ? 'Plan: Founder Access' : plan === 'pro' ? 'Subscription & Billing' : 'Upgrade to Pro'}</span>
-                      </button>
-                    )}
-
-                    {onOpenAbout && (
-                      <button
-                        onClick={() => { setShowUserMenu(false); onOpenAbout(); }}
-                        className="w-full px-3.5 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-2 transition"
-                      >
-                        <Info className="h-4 w-4 text-slate-400" />
-                        <span>About ApplyVise AI</span>
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => { setShowUserMenu(false); onOpenSettingsModal(); }}
-                      className="w-full px-3.5 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-2 transition"
-                    >
-                      <Sliders className="h-4 w-4 text-slate-400" />
-                      <span>Automation Settings</span>
-                    </button>
-
-                    <button
-                      onClick={() => { setShowUserMenu(false); onOpenPrivacy(); }}
-                      className="w-full px-3.5 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-2 transition"
-                    >
-                      <Shield className="h-4 w-4 text-slate-400" />
-                      <span>Privacy Policy</span>
-                    </button>
-
-                    <button
-                      onClick={() => { setShowUserMenu(false); onOpenTerms(); }}
-                      className="w-full px-3.5 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-2 transition"
-                    >
-                      <FileText className="h-4 w-4 text-slate-400" />
-                      <span>Terms of Use</span>
-                    </button>
-                  </div>
-
-                  <div className="border-t border-slate-100 pt-1">
-                    <button
-                      onClick={() => { setShowUserMenu(false); onLogout(); }}
-                      className="w-full px-3.5 py-2 text-left text-rose-600 hover:bg-rose-50 flex items-center space-x-2 font-semibold transition"
-                    >
-                      <LogOut className="h-4 w-4 text-rose-500" />
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+            {/* User Profile Identity & Account Menu */}
+            <div className="relative max-w-[calc(100vw-2rem)]" ref={userMenuRef}>
+              <ProfileIdentityComponent
+                user={user}
+                plan={plan}
+                isFounderAccount={isFounderAccount}
+                isAdmin={isAdmin}
+                onSelectTab={onSelectTab as any}
+                onOpenSettingsModal={onOpenSettingsModal}
+                onOpenPrivacy={onOpenPrivacy}
+                onOpenPricing={onOpenPricing || (() => {})}
+                onOpenAbout={onOpenAbout || (() => {})}
+                onOpenAdmin={onOpenAdmin}
+                onLogout={onLogout}
+              />
             </div>
           </div>
         </div>

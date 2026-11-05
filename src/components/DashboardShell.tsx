@@ -34,6 +34,7 @@ import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
 import { AuthUser } from '../services/api.ts';
 import { NotificationItem, AutomationSettings, AccountUsageStats } from '../types/index.ts';
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
+import { ProfileIdentityComponent } from './ProfileIdentityComponent.tsx';
 
 export type DashboardTab =
   | 'desk'
@@ -74,6 +75,7 @@ export interface DashboardShellProps {
   onOpenAbout: () => void;
   onOpenAdmin?: () => void;
   onLogout: () => void;
+  onUpdateUserPhoto?: (photoUrl: string | null) => Promise<void> | void;
   plan?: 'free' | 'pro' | 'black';
   usage?: AccountUsageStats | null;
   children: React.ReactNode;
@@ -102,6 +104,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   onOpenAbout,
   onOpenAdmin,
   onLogout,
+  onUpdateUserPhoto,
   plan = 'free',
   usage,
   children,
@@ -285,117 +288,22 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               )}
             </div>
 
-            {/* User Profile Menu */}
-            <div className="relative" ref={userMenuRef}>
-              <button
-                type="button"
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center space-x-2.5 p-1.5 pr-3 rounded-full bg-white/70 hover:bg-white border border-white/85 shadow-2xs transition text-left cursor-pointer"
-              >
-                <div className={`w-8 h-8 rounded-full ${plan === 'black' ? 'bg-[#111318] text-[#C6A66A] border border-[rgba(198,166,106,0.35)] shadow-xs' : 'bg-gradient-to-tr from-blue-600 to-[#8065F5] text-white shadow-xs'} font-bold flex items-center justify-center text-xs`}>
-                  {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
-                </div>
-                <div className="hidden md:block">
-                  <div className="text-xs font-bold text-slate-900 truncate max-w-[120px] flex items-center gap-1.5">
-                    <span>{user.fullName || 'User'}</span>
-                    {plan === 'black' && <RoyalCrownLogo size="xs" />}
-                  </div>
-                  <div className="text-[10px] text-slate-500 font-medium">
-                    {plan === 'black' ? (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-mono font-medium text-[9px] tracking-wider uppercase bg-[#111318] text-[#C6A66A] border border-[rgba(198,166,106,0.25)]">
-                        BLACK ELITE
-                      </span>
-                    ) : isFounderAccount ? (
-                      'PRO · FOUNDER'
-                    ) : (
-                      plan.toUpperCase()
-                    )}
-                  </div>
-                </div>
-                <ChevronDown className="h-3.5 w-3.5 text-slate-400 hidden sm:block" />
-              </button>
-
-              {userMenuOpen && (
-                <div className="absolute right-0 mt-2.5 w-64 max-w-[calc(100vw-2rem)] rounded-3xl bg-white/85 backdrop-blur-2xl border border-white/90 shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
-                  <div className="p-3 border-b border-slate-100">
-                    <p className="text-xs font-bold text-slate-900 truncate">{user.fullName}</p>
-                    <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
-                    {plan === 'black' ? (
-                      <div className="mt-2 inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium tracking-wide bg-[#111318] text-[#C6A66A] border border-[rgba(198,166,106,0.25)]">
-                        <RoyalCrownLogo size="xs" />
-                        <span>BLACK ELITE Member</span>
-                      </div>
-                    ) : (
-                      <div className="mt-2 inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200">
-                        <span>{isFounderAccount ? 'Founder Lifetime Access' : `${plan.toUpperCase()} Plan`}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="py-1 text-xs space-y-0.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onSelectTab('profile');
-                        setUserMenuOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 flex items-center space-x-2 cursor-pointer transition"
-                    >
-                      <User className="h-4 w-4 text-slate-500" />
-                      <span>My Profile</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onSelectTab('settings');
-                        setUserMenuOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 flex items-center space-x-2 cursor-pointer transition"
-                    >
-                      <Sliders className="h-4 w-4 text-slate-500" />
-                      <span>Settings</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onSelectTab('subscription');
-                        setUserMenuOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 flex items-center space-x-2 cursor-pointer transition"
-                    >
-                      <Award className="h-4 w-4 text-slate-500" />
-                      <span>Subscription</span>
-                    </button>
-                    {isAdmin && onOpenAdmin && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onOpenAdmin();
-                          setUserMenuOpen(false);
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-xl text-violet-700 hover:bg-violet-50 font-semibold flex items-center space-x-2 cursor-pointer transition"
-                      >
-                        <KeyRound className="h-4 w-4 text-violet-600" />
-                        <span>Admin Console</span>
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="pt-1 border-t border-slate-100">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onLogout();
-                        setUserMenuOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 font-medium flex items-center space-x-2 cursor-pointer transition text-xs"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+            {/* User Profile Identity & Account Menu */}
+            <div className="relative max-w-[calc(100vw-2rem)]" ref={userMenuRef}>
+              <ProfileIdentityComponent
+                user={user}
+                plan={plan}
+                isFounderAccount={isFounderAccount}
+                isAdmin={isAdmin}
+                onSelectTab={onSelectTab}
+                onOpenSettingsModal={onOpenSettingsModal}
+                onOpenPrivacy={onOpenPrivacy}
+                onOpenPricing={onOpenPricing}
+                onOpenAbout={onOpenAbout}
+                onOpenAdmin={onOpenAdmin}
+                onLogout={onLogout}
+                onUpdateUserPhoto={onUpdateUserPhoto}
+              />
             </div>
           </div>
         </div>

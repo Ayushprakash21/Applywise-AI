@@ -51,6 +51,12 @@ export const PricingPage: React.FC<PricingPageProps> = ({
 
   const isFreeAccess = isPermanentFreeAccessAccount(currentUser);
 
+  // Unified theme awareness: respects plan, allowlist, and active DOM attribute
+  const isBlack = currentPlanId === 'black' || isFreeAccess || (typeof document !== 'undefined' && (
+    document.body.classList.contains('theme-black') ||
+    document.documentElement.getAttribute('data-theme') === 'black'
+  ));
+
   const handleSelectPlan = async (planId: PlanId) => {
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -135,28 +141,38 @@ export const PricingPage: React.FC<PricingPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans">
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${
+      isBlack ? 'bg-[#08090B] text-[#F0EEE9]' : 'bg-[#F8FAFC] text-slate-800'
+    }`}>
       {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/70">
+      <header className={`sticky top-0 z-40 backdrop-blur-md border-b transition-colors ${
+        isBlack ? 'bg-[#101216]/90 border-[rgba(255,255,255,0.09)] text-[#F0EEE9]' : 'bg-white/80 border-slate-200/70 text-slate-800'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <BrandLogo size="md" onClick={onNavigateHome} />
+          <BrandLogo size="md" variant={isBlack ? 'dark' : 'light'} onClick={onNavigateHome} />
 
           <div className="flex items-center space-x-3">
             <button
               onClick={onNavigateHome}
-              className="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition cursor-pointer"
+              className={`px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                isBlack ? 'text-[#B7B4AD] hover:text-[#F0EEE9]' : 'text-slate-600 hover:text-slate-900'
+              }`}
             >
               Home
             </button>
             {currentUser ? (
               <div className="flex items-center gap-1.5">
-                {currentPlanId === 'black' ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full bg-[#090B12] text-[#D6B46A] border border-[#D6B46A]/50 shadow-xs">
+                {currentPlanId === 'black' || isFreeAccess ? (
+                  <span className="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full bg-[#0B0D10] text-[#C6A66A] border border-[rgba(198,166,106,0.35)] shadow-xs">
                     <RoyalCrownLogo size="xs" />
                     <span>BLACK ELITE</span>
                   </span>
                 ) : (
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                    isBlack
+                      ? 'bg-[rgba(117,169,214,0.18)] text-[#75A9D6] border-[rgba(117,169,214,0.30)]'
+                      : 'bg-blue-50 text-blue-700 border-blue-200'
+                  }`}>
                     Plan: {currentPlanId.toUpperCase()}
                   </span>
                 )}
@@ -164,7 +180,11 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             ) : (
               <button
                 onClick={() => onOpenAuth('signup')}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-blue-500/20 transition flex items-center space-x-1.5 cursor-pointer"
+                className={`px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition flex items-center space-x-1.5 cursor-pointer ${
+                  isBlack
+                    ? 'bg-[#C6A66A] hover:bg-[#E2C58A] text-[#08090B] font-bold'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'
+                }`}
               >
                 <span>Sign Up Free</span>
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -176,45 +196,71 @@ export const PricingPage: React.FC<PricingPageProps> = ({
 
       {/* Hero & Controls */}
       <section className="pt-16 pb-12 max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-6">
-        <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold shadow-xs">
-          <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+        <div className={`inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs ${
+          isBlack
+            ? 'bg-[rgba(198,166,106,0.12)] border border-[rgba(198,166,106,0.30)] text-[#C6A66A]'
+            : 'bg-blue-50 border border-blue-200/80 text-blue-700'
+        }`}>
+          <Sparkles className={`h-3.5 w-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-blue-600'}`} />
           <span>Simple, Honest Career Plans</span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+        <h1 className={`text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight ${
+          isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
+        }`}>
           Invest in Your Career with <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-700">
+          <span className={`text-transparent bg-clip-text ${
+            isBlack
+              ? 'bg-gradient-to-r from-[#E2C58A] via-[#C6A66A] to-[#E2C58A]'
+              : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-700'
+          }`}>
             Intelligent AI Capabilities
           </span>
         </h1>
 
-        <p className="max-w-2xl mx-auto text-xs sm:text-sm text-slate-600 leading-relaxed">
+        <p className={`max-w-2xl mx-auto text-xs sm:text-sm leading-relaxed ${
+          isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'
+        }`}>
           Transparent subscriptions designed to maximize your application results with zero-hallucination resume intelligence.
         </p>
 
         {/* User Membership & Entitlement Status Card */}
         {currentUser && (
-          <div className="max-w-2xl mx-auto p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm text-left space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+          <div className={`max-w-2xl mx-auto p-5 rounded-2xl border shadow-sm text-left space-y-3 ${
+            isBlack
+              ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)] text-[#F0EEE9]'
+              : 'bg-white border border-slate-200/90 text-slate-800'
+          }`}>
+            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b ${
+              isBlack ? 'border-[rgba(255,255,255,0.09)]' : 'border-slate-100'
+            }`}>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                <span className={`text-[10px] font-bold uppercase tracking-wider block ${
+                  isBlack ? 'text-[#858781]' : 'text-slate-400'
+                }`}>
                   {subDetails?.membershipSource === 'ADMIN_GRANT'
                     ? 'Administratively Granted Membership'
-                    : subDetails?.isPermanentFreeAccess
+                    : subDetails?.isPermanentFreeAccess || isFreeAccess
                     ? 'Permanent Founder Access'
                     : 'Current Membership Status'}
                 </span>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <h3 className="text-base font-bold text-slate-900">
-                    {subDetails?.planName || (currentPlanId === 'black' ? 'BLACK ELITE' : currentPlanId === 'pro' ? 'ApplyVise Pro' : 'ApplyVise Free')}
+                  <h3 className={`text-base font-bold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'}`}>
+                    {subDetails?.planName || (currentPlanId === 'black' || isFreeAccess ? 'BLACK by ApplyVise AI — Founder Elite Access' : currentPlanId === 'pro' ? 'ApplyVise Pro' : 'ApplyVise Free')}
                   </h3>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                     subDetails?.status === 'expired'
-                      ? 'bg-red-50 text-red-600 border border-red-200'
-                      : subDetails?.planId === 'black' || currentPlanId === 'black'
-                      ? 'bg-[#090B12] text-[#D6B46A] border border-[#D6B46A]/50'
+                      ? isBlack
+                        ? 'bg-[rgba(214,111,112,0.18)] text-[#D66F70] border border-[rgba(214,111,112,0.30)]'
+                        : 'bg-red-50 text-red-600 border border-red-200'
+                      : subDetails?.planId === 'black' || currentPlanId === 'black' || isFreeAccess
+                      ? 'bg-[#0B0D10] text-[#C6A66A] border border-[rgba(198,166,106,0.35)]'
                       : currentPlanId === 'pro'
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                      ? isBlack
+                        ? 'bg-[rgba(117,169,214,0.18)] text-[#75A9D6] border border-[rgba(117,169,214,0.30)]'
+                        : 'bg-blue-50 text-blue-700 border border-blue-200'
+                      : isBlack
+                      ? 'bg-[#191D23] text-[#B7B4AD] border border-[rgba(255,255,255,0.08)]'
                       : 'bg-slate-100 text-slate-700'
                   }`}>
                     {subDetails?.status === 'expired' ? 'Expired' : (subDetails?.status || 'Active')}
@@ -223,8 +269,12 @@ export const PricingPage: React.FC<PricingPageProps> = ({
               </div>
 
               {subDetails?.membershipSource === 'ADMIN_GRANT' && (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold self-start sm:self-center">
-                  <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold self-start sm:self-center border ${
+                  isBlack
+                    ? 'bg-[rgba(198,166,106,0.15)] border-[rgba(198,166,106,0.30)] text-[#C6A66A]'
+                    : 'bg-amber-50 border-amber-200 text-amber-800'
+                }`}>
+                  <ShieldCheck className={`w-3.5 h-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-amber-600'}`} />
                   <span>Admin Granted</span>
                 </div>
               )}
@@ -232,8 +282,8 @@ export const PricingPage: React.FC<PricingPageProps> = ({
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div>
-                <span className="text-slate-400 text-[11px] block">Membership Source</span>
-                <span className="font-semibold text-slate-800">
+                <span className={`text-[11px] block ${isBlack ? 'text-[#858781]' : 'text-slate-400'}`}>Membership Source</span>
+                <span className={`font-semibold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-800'}`}>
                   {subDetails?.membershipSource === 'ADMIN_GRANT'
                     ? 'Admin Provisioned'
                     : subDetails?.membershipSource === 'PAYMENT'
@@ -242,25 +292,25 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 text-[11px] block">Activation Date</span>
-                <span className="font-semibold text-slate-800">
+                <span className={`text-[11px] block ${isBlack ? 'text-[#858781]' : 'text-slate-400'}`}>Activation Date</span>
+                <span className={`font-semibold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-800'}`}>
                   {subDetails?.currentPeriodStart
                     ? new Date(subDetails.currentPeriodStart).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-                    : 'Active'}
+                    : new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 text-[11px] block">Expiry Date</span>
-                <span className="font-semibold text-slate-800">
-                  {subDetails?.billingInterval === 'permanent' || subDetails?.validityType === 'lifetime' || !subDetails?.currentPeriodEnd
+                <span className={`text-[11px] block ${isBlack ? 'text-[#858781]' : 'text-slate-400'}`}>Expiry Date</span>
+                <span className={`font-semibold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-800'}`}>
+                  {subDetails?.billingInterval === 'permanent' || subDetails?.validityType === 'lifetime' || isFreeAccess || !subDetails?.currentPeriodEnd
                     ? 'Lifetime'
                     : new Date(subDetails.currentPeriodEnd).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 text-[11px] block">Remaining Validity</span>
-                <span className="font-semibold text-slate-800">
-                  {subDetails?.billingInterval === 'permanent' || subDetails?.validityType === 'lifetime'
+                <span className={`text-[11px] block ${isBlack ? 'text-[#858781]' : 'text-slate-400'}`}>Remaining Validity</span>
+                <span className={`font-semibold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-800'}`}>
+                  {subDetails?.billingInterval === 'permanent' || subDetails?.validityType === 'lifetime' || isFreeAccess
                     ? 'Lifetime'
                     : subDetails?.status === 'expired' || (subDetails?.remainingDays !== undefined && subDetails.remainingDays <= 0)
                     ? 'Expired'
@@ -272,12 +322,16 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             </div>
 
             {subDetails?.status === 'expired' && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs space-y-1">
-                <div className="font-bold flex items-center gap-1.5 text-red-900">
-                  <AlertCircle className="w-4 h-4 text-red-600" />
+              <div className={`p-3 rounded-xl text-xs space-y-1 border ${
+                isBlack
+                  ? 'bg-[rgba(214,111,112,0.12)] border-[rgba(214,111,112,0.30)] text-[#F0EEE9]'
+                  : 'bg-red-50 border-red-200 text-red-800'
+              }`}>
+                <div className={`font-bold flex items-center gap-1.5 ${isBlack ? 'text-[#D66F70]' : 'text-red-900'}`}>
+                  <AlertCircle className="w-4 h-4 text-[#D66F70]" />
                   <span>Membership Expired</span>
                 </div>
-                <p className="text-[11px] text-red-700 leading-relaxed">
+                <p className={`text-[11px] leading-relaxed ${isBlack ? 'text-[#B7B4AD]' : 'text-red-700'}`}>
                   Your administrative membership period has expired. Features like deep AI tailoring, advanced analysis, and unlimited copilot interactions are no longer active on the Free tier. Choose a plan below to restore access.
                 </p>
               </div>
@@ -288,12 +342,20 @@ export const PricingPage: React.FC<PricingPageProps> = ({
         {/* Currency & Billing Toggles */}
         <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
           {/* Monthly / Annual Toggle */}
-          <div className="inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200">
+          <div className={`inline-flex p-1 rounded-2xl border ${
+            isBlack
+              ? 'bg-[#0B0D10] border-[rgba(255,255,255,0.09)]'
+              : 'bg-slate-100 border-slate-200'
+          }`}>
             <button
               onClick={() => setBillingInterval('monthly')}
               className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
                 billingInterval === 'monthly'
-                  ? 'bg-white text-slate-900 shadow-xs'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
+                    : 'bg-white text-slate-900 shadow-xs'
+                  : isBlack
+                  ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -303,53 +365,98 @@ export const PricingPage: React.FC<PricingPageProps> = ({
               onClick={() => setBillingInterval('annual')}
               className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-1.5 cursor-pointer ${
                 billingInterval === 'annual'
-                  ? 'bg-white text-slate-900 shadow-xs'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
+                    : 'bg-white text-slate-900 shadow-xs'
+                  : isBlack
+                  ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               <span>Annual Billing</span>
-              <span className="px-1.5 py-0.2 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">Save 17%</span>
+              <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-bold border ${
+                isBlack
+                  ? 'bg-[rgba(54,184,135,0.18)] text-[#36B887] border-[rgba(54,184,135,0.30)]'
+                  : 'bg-emerald-100 text-emerald-800 border-transparent'
+              }`}>
+                Save 17%
+              </span>
             </button>
           </div>
 
           {/* Currency Toggle */}
-          <div className="inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200 text-xs font-semibold">
+          <div className={`inline-flex p-1 rounded-2xl border text-xs font-semibold ${
+            isBlack
+              ? 'bg-[#0B0D10] border-[rgba(255,255,255,0.09)]'
+              : 'bg-slate-100 border-slate-200'
+          }`}>
             <button
               onClick={() => setCurrency('INR')}
-              className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${currency === 'INR' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
+              className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+                currency === 'INR'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
+                    : 'bg-white text-slate-900 shadow-xs'
+                  : isBlack
+                  ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
+                  : 'text-slate-500'
+              }`}
             >
               INR (₹)
             </button>
             <button
               onClick={() => setCurrency('USD')}
-              className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${currency === 'USD' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
+              className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+                currency === 'USD'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
+                    : 'bg-white text-slate-900 shadow-xs'
+                  : isBlack
+                  ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
+                  : 'text-slate-500'
+              }`}
             >
               USD ($)
             </button>
           </div>
         </div>
 
+        {/* Permanent Free Access Active Banner */}
         {isFreeAccess && (
-          <div className="max-w-xl mx-auto p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-300 text-emerald-950 text-xs font-medium flex items-center space-x-3 shadow-sm mb-6 text-left">
-            <Sparkles className="h-6 w-6 text-emerald-600 shrink-0" />
+          <div className={`max-w-xl mx-auto p-4 rounded-2xl border text-xs font-medium flex items-center space-x-3 shadow-sm mb-6 text-left ${
+            isBlack
+              ? 'bg-[#13161B] border-[rgba(54,184,135,0.35)] text-[#F0EEE9]'
+              : 'bg-emerald-50 border border-emerald-300 text-emerald-950'
+          }`}>
+            <Sparkles className={`h-6 w-6 shrink-0 ${isBlack ? 'text-[#36B887]' : 'text-emerald-600'}`} />
             <div>
-              <p className="font-extrabold text-sm text-slate-900">Permanent Free Access Active</p>
-              <p className="text-slate-600 mt-0.5">
-                Your account ({currentUser?.email}) has lifetime unrestricted access to all ApplyVise Pro features, AI Copilot, and automation tools without subscription charges.
+              <p className={`font-extrabold text-sm ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'}`}>
+                Permanent Free Access Active
+              </p>
+              <p className={`mt-0.5 leading-relaxed ${isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'}`}>
+                Your account (<span className={isBlack ? 'text-[#36B887] font-semibold' : 'text-emerald-700 font-semibold'}>{currentUser?.email}</span>) has lifetime unrestricted access to all ApplyVise Pro features, AI Copilot, and automation tools without subscription charges.
               </p>
             </div>
           </div>
         )}
 
         {successMessage && (
-          <div className="max-w-md mx-auto p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
+          <div className={`max-w-md mx-auto p-3.5 rounded-2xl border text-xs font-medium ${
+            isBlack
+              ? 'bg-[rgba(54,184,135,0.15)] border-[rgba(54,184,135,0.35)] text-[#36B887]'
+              : 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+          }`}>
             {successMessage}
           </div>
         )}
 
         {errorMessage && (
-          <div className="max-w-md mx-auto p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs font-medium flex items-center justify-center space-x-2">
-            <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+          <div className={`max-w-md mx-auto p-3.5 rounded-2xl border text-xs font-medium flex items-center justify-center space-x-2 ${
+            isBlack
+              ? 'bg-[rgba(214,111,112,0.15)] border-[rgba(214,111,112,0.35)] text-[#D66F70]'
+              : 'bg-red-50 border border-red-200 text-red-800'
+          }`}>
+            <AlertCircle className="h-4 w-4 shrink-0 text-[#D66F70]" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -359,37 +466,49 @@ export const PricingPage: React.FC<PricingPageProps> = ({
       <section className="pb-20 max-w-7xl mx-auto px-4 sm:px-6 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
           {/* 1. Free Plan Card */}
-          <div className={`p-6 sm:p-8 rounded-3xl bg-white border ${currentPlanId === 'free' ? 'border-blue-400 ring-2 ring-blue-100' : 'border-slate-200/80'} shadow-sm flex flex-col justify-between space-y-6`}>
+          <div className={`p-6 sm:p-8 rounded-3xl border shadow-sm flex flex-col justify-between space-y-6 ${
+            isBlack
+              ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)]'
+              : `bg-white border ${currentPlanId === 'free' ? 'border-blue-400 ring-2 ring-blue-100' : 'border-slate-200/80'}`
+          }`}>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">{SUBSCRIPTION_PLANS.free.name}</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">{SUBSCRIPTION_PLANS.free.tagline}</p>
+                  <h3 className={`text-xl font-bold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'}`}>
+                    {SUBSCRIPTION_PLANS.free.name}
+                  </h3>
+                  <p className={`text-xs mt-0.5 ${isBlack ? 'text-[#858781]' : 'text-slate-500'}`}>
+                    {SUBSCRIPTION_PLANS.free.tagline}
+                  </p>
                 </div>
-                {currentPlanId === 'free' && currentUser && (
-                  <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                {currentPlanId === 'free' && currentUser && !isFreeAccess && (
+                  <span className={`text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full border ${
+                    isBlack
+                      ? 'bg-[#191D23] text-[#B7B4AD] border-[rgba(255,255,255,0.09)]'
+                      : 'bg-slate-100 text-slate-700 border-slate-200'
+                  }`}>
                     Current Plan
                   </span>
                 )}
               </div>
 
               <div className="pt-2">
-                <span className="text-4xl font-extrabold text-slate-900">
+                <span className={`text-4xl font-extrabold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'}`}>
                   {currency === 'INR' ? '₹0' : '$0'}
                 </span>
-                <span className="text-xs text-slate-500 ml-1.5">forever free</span>
+                <span className={`text-xs ml-1.5 ${isBlack ? 'text-[#858781]' : 'text-slate-500'}`}>forever free</span>
               </div>
 
-              <p className="text-xs text-slate-600 leading-relaxed pt-1">
+              <p className={`text-xs leading-relaxed pt-1 ${isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'}`}>
                 {SUBSCRIPTION_PLANS.free.description}
               </p>
 
-              <div className="border-t border-slate-100 pt-4 space-y-2.5">
-                <span className="text-xs font-bold text-slate-900">Included in Free:</span>
-                <ul className="space-y-2 text-xs text-slate-600">
+              <div className={`border-t pt-4 space-y-2.5 ${isBlack ? 'border-[rgba(255,255,255,0.09)]' : 'border-slate-100'}`}>
+                <span className={`text-xs font-bold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'}`}>Included in Free:</span>
+                <ul className={`space-y-2 text-xs ${isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'}`}>
                   {SUBSCRIPTION_PLANS.free.features.map(f => (
                     <li key={f} className="flex items-start space-x-2.5">
-                      <Check className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <Check className={`h-4 w-4 shrink-0 mt-0.5 ${isBlack ? 'text-[#36B887]' : 'text-emerald-600'}`} />
                       <span>{f}</span>
                     </li>
                   ))}
@@ -400,10 +519,14 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             <button
               onClick={() => handleSelectPlan('free')}
               disabled={currentPlanId === 'free' && !!currentUser}
-              className={`w-full py-3 min-h-[44px] rounded-xl text-xs font-semibold transition touch-target cursor-pointer ${
+              className={`w-full py-3 min-h-[44px] rounded-xl text-xs font-semibold transition touch-target cursor-pointer border ${
                 currentPlanId === 'free' && currentUser
-                  ? 'bg-slate-100 text-slate-400 cursor-default'
-                  : 'border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#858781] border-[rgba(255,255,255,0.08)] cursor-default'
+                    : 'bg-slate-100 text-slate-400 border-transparent cursor-default'
+                  : isBlack
+                  ? 'bg-[#191D23] hover:bg-[#20252D] text-[#F0EEE9] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs'
+                  : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs'
               }`}
             >
               {currentPlanId === 'free' && currentUser ? 'Active Free Tier' : 'Get Started Free'}
@@ -411,42 +534,56 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           </div>
 
           {/* 2. Pro Plan Card */}
-          <div className={`p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-white to-blue-50/40 border-2 ${currentPlanId === 'pro' ? 'border-blue-600 ring-4 ring-blue-100' : 'border-blue-500 shadow-xl shadow-blue-500/10'} flex flex-col justify-between space-y-6 relative overflow-hidden`}>
+          <div className={`p-6 sm:p-8 rounded-3xl border flex flex-col justify-between space-y-6 relative overflow-hidden ${
+            isBlack
+              ? 'bg-[#13161B] border-[rgba(117,169,214,0.35)] shadow-xl shadow-black/40'
+              : `bg-gradient-to-b from-white to-blue-50/40 border-2 ${currentPlanId === 'pro' ? 'border-blue-600 ring-4 ring-blue-100' : 'border-blue-500 shadow-xl shadow-blue-500/10'}`
+          }`}>
             {/* Badge */}
-            <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-mono uppercase font-bold px-4 py-1 rounded-bl-xl shadow-xs">
+            <div className={`absolute top-0 right-0 text-[10px] font-mono uppercase font-bold px-4 py-1 rounded-bl-xl shadow-xs border-l border-b ${
+              isBlack
+                ? 'bg-[rgba(117,169,214,0.18)] text-[#75A9D6] border-[rgba(117,169,214,0.35)]'
+                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent'
+            }`}>
               {currentPlanId === 'pro' && !isFreeAccess ? 'YOUR ACTIVE PLAN' : 'POPULAR CHOICE'}
             </div>
 
             <div className="space-y-4">
               <div>
-                <h3 className="text-xl font-bold text-slate-900">{SUBSCRIPTION_PLANS.pro.name}</h3>
-                <p className="text-xs text-blue-600 font-semibold mt-0.5">{SUBSCRIPTION_PLANS.pro.tagline}</p>
+                <h3 className={`text-xl font-bold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'}`}>
+                  {SUBSCRIPTION_PLANS.pro.name}
+                </h3>
+                <p className={`text-xs font-semibold mt-0.5 ${isBlack ? 'text-[#75A9D6]' : 'text-blue-600'}`}>
+                  {SUBSCRIPTION_PLANS.pro.tagline}
+                </p>
               </div>
 
               <div className="pt-2">
-                <span className="text-4xl font-extrabold text-slate-900">
+                <span className={`text-4xl font-extrabold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'}`}>
                   {currency === 'INR'
                     ? (billingInterval === 'annual' ? '₹665' : '₹799')
                     : (billingInterval === 'annual' ? '$8.32' : '$9.99')}
                 </span>
-                <span className="text-xs text-slate-500 ml-1.5">/ month</span>
+                <span className={`text-xs ml-1.5 ${isBlack ? 'text-[#858781]' : 'text-slate-500'}`}>/ month</span>
                 {billingInterval === 'annual' && (
-                  <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">
+                  <p className={`text-[11px] font-semibold mt-0.5 ${isBlack ? 'text-[#36B887]' : 'text-emerald-600'}`}>
                     Billed annually ({currency === 'INR' ? '₹7,990/yr' : '$99.90/yr'})
                   </p>
                 )}
               </div>
 
-              <p className="text-xs text-slate-600 leading-relaxed pt-1">
+              <p className={`text-xs leading-relaxed pt-1 ${isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'}`}>
                 {SUBSCRIPTION_PLANS.pro.description}
               </p>
 
-              <div className="border-t border-blue-100 pt-4 space-y-2.5">
-                <span className="text-xs font-bold text-slate-900">Everything in Free, plus:</span>
-                <ul className="space-y-2 text-xs text-slate-700">
+              <div className={`border-t pt-4 space-y-2.5 ${isBlack ? 'border-[rgba(255,255,255,0.09)]' : 'border-blue-100'}`}>
+                <span className={`text-xs font-bold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'}`}>
+                  Everything in Free, plus:
+                </span>
+                <ul className={`space-y-2 text-xs ${isBlack ? 'text-[#B7B4AD]' : 'text-slate-700'}`}>
                   {SUBSCRIPTION_PLANS.pro.features.slice(1).map(f => (
                     <li key={f} className="flex items-start space-x-2.5">
-                      <Check className="h-4 w-4 text-blue-600 shrink-0 mt-0.5 font-bold" />
+                      <Check className={`h-4 w-4 shrink-0 mt-0.5 font-bold ${isBlack ? 'text-[#75A9D6]' : 'text-blue-600'}`} />
                       <span className="font-medium">{f}</span>
                     </li>
                   ))}
@@ -457,12 +594,18 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             <button
               onClick={() => handleSelectPlan('pro')}
               disabled={isFreeAccess || loadingPlan === 'pro' || (currentPlanId === 'pro' && !!currentUser)}
-              className={`w-full py-3 min-h-[44px] rounded-xl text-xs font-semibold shadow-md transition flex items-center justify-center space-x-1.5 touch-target cursor-pointer ${
+              className={`w-full py-3 min-h-[44px] rounded-xl text-xs font-semibold shadow-md transition flex items-center justify-center space-x-1.5 touch-target cursor-pointer border ${
                 isFreeAccess
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white cursor-default'
+                  ? isBlack
+                    ? 'bg-[rgba(54,184,135,0.18)] text-[#36B887] border-[rgba(54,184,135,0.35)] cursor-default'
+                    : 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white border-transparent cursor-default'
                   : currentPlanId === 'pro' && currentUser
-                  ? 'bg-blue-600 text-white cursor-default'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/25'
+                  ? isBlack
+                    ? 'bg-[#191D23] text-[#75A9D6] border-[rgba(117,169,214,0.35)] cursor-default'
+                    : 'bg-blue-600 text-white border-transparent cursor-default'
+                  : isBlack
+                  ? 'bg-[#C6A66A] hover:bg-[#E2C58A] text-[#08090B] font-bold border-[rgba(198,166,106,0.30)] shadow-xs'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white border-transparent shadow-blue-500/25'
               }`}
             >
               {loadingPlan === 'pro' ? (
@@ -520,8 +663,8 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                     <span className="text-xs text-slate-400">/ month</span>
                   </div>
                   {billingInterval === 'annual' && (
-                    <p className="text-[11px] text-[#D6B46A] font-semibold mt-1">
-                      Billed annually ({currency === 'INR' ? '₹15,990/yr' : '$199.90/yr'}) · Save 17%
+                    <p className="text-[11px] text-[#D6B46A] font-semibold mt-0.5">
+                      Billed annually ({currency === 'INR' ? '₹15,990/yr' : '$199.90/yr'})
                     </p>
                   )}
                 </div>
@@ -530,20 +673,20 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                   {SUBSCRIPTION_PLANS.black.description}
                 </p>
 
-                {/* Doubled PRO Limits Highlight Box */}
-                <div className="p-3.5 rounded-2xl bg-[#151821] border border-[#D6B46A]/30 space-y-1.5">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#D6B46A] flex items-center gap-1.5">
+                {/* Measurable Doubled Limits Box (Executive Guarantee) */}
+                <div className="rounded-2xl bg-gradient-to-br from-[#12141D] to-[#1A1D2B] p-4 border border-[#D6B46A]/30 space-y-2.5">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-[#D6B46A] flex items-center gap-1.5">
                     <Zap className="w-3.5 h-3.5 text-[#D6B46A]" />
                     <span>Exact 2× Pro Measurable Entitlements:</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  </span>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="bg-black/40 p-2 rounded-xl border border-white/5">
-                      <span className="block text-slate-400 text-[10px]">AI Requests</span>
-                      <span className="font-bold text-white">600 / month</span>
+                      <span className="block text-slate-400 text-[10px]">AI Copilot Volume</span>
+                      <span className="font-bold text-white">600 req / month</span>
                       <span className="text-[9px] text-[#D6B46A] block">(2× Pro 300)</span>
                     </div>
                     <div className="bg-black/40 p-2 rounded-xl border border-white/5">
-                      <span className="block text-slate-400 text-[10px]">Daily Apps</span>
+                      <span className="block text-slate-400 text-[10px]">Daily Auto-Apply</span>
                       <span className="font-bold text-white">50 / day</span>
                       <span className="text-[9px] text-[#D6B46A] block">(2× Pro 25)</span>
                     </div>
@@ -609,26 +752,46 @@ export const PricingPage: React.FC<PricingPageProps> = ({
         {/* Feature Comparison Table (FREE | PRO | BLACK) */}
         <div className="mt-24 space-y-6">
           <div className="text-center space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold uppercase tracking-wider mb-2">
-              <Shield className="w-3.5 h-3.5 text-blue-600" />
+            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-2 border ${
+              isBlack
+                ? 'bg-[rgba(198,166,106,0.12)] border-[rgba(198,166,106,0.30)] text-[#C6A66A]'
+                : 'bg-slate-100 border-slate-200 text-slate-700'
+            }`}>
+              <Shield className={`w-3.5 h-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-blue-600'}`} />
               <span>Full Tier Transparency</span>
             </div>
-            <h2 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className={`text-xl sm:text-3xl font-extrabold tracking-tight ${
+              isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
+            }`}>
               Feature Entitlements Breakdown
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto">
+            <p className={`text-xs sm:text-sm max-w-xl mx-auto ${
+              isBlack ? 'text-[#858781]' : 'text-slate-500'
+            }`}>
               Compare allowances across Free, ApplyVise Pro, and the ultra-premium BLACK Elite membership.
             </p>
           </div>
 
-          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
+          <div className={`rounded-3xl border overflow-hidden shadow-xs ${
+            isBlack
+              ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)]'
+              : 'bg-white border-slate-200'
+          }`}>
             <div className="overflow-x-auto overflow-touch">
               <table className="w-full text-left text-xs min-w-[700px]">
-                <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold">
+                <thead className={`border-b font-bold ${
+                  isBlack
+                    ? 'bg-[#0B0D10] border-[rgba(255,255,255,0.09)] text-[#F0EEE9]'
+                    : 'bg-slate-50/80 border-slate-200 text-slate-600'
+                }`}>
                   <tr>
                     <th className="py-4 px-6 text-sm">Entitlement / Capability</th>
                     <th className="py-4 px-4 text-center w-36">ApplyVise Free</th>
-                    <th className="py-4 px-4 text-center w-44 text-blue-600 font-extrabold bg-blue-50/30">
+                    <th className={`py-4 px-4 text-center w-44 font-extrabold ${
+                      isBlack
+                        ? 'text-[#75A9D6] bg-[rgba(117,169,214,0.08)]'
+                        : 'text-blue-600 bg-blue-50/30'
+                    }`}>
                       ApplyVise Pro
                     </th>
                     <th className="py-4 px-4 text-center w-52 bg-[#090B12] text-[#D6B46A] font-black">
@@ -639,53 +802,65 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
+                <tbody className={`divide-y ${
+                  isBlack
+                    ? 'divide-[rgba(255,255,255,0.06)] text-[#B7B4AD]'
+                    : 'divide-slate-100 text-slate-700'
+                }`}>
                   {COMPARISON_FEATURES.map(feat => (
                     <tr
                       key={feat.name}
-                      className={`hover:bg-slate-50/60 transition ${
-                        feat.isBlackExclusive ? 'bg-amber-50/15' : ''
+                      className={`transition ${
+                        isBlack
+                          ? feat.isBlackExclusive ? 'bg-[rgba(198,166,106,0.05)] hover:bg-[#191D23]/60' : 'hover:bg-[#191D23]/50'
+                          : feat.isBlackExclusive ? 'bg-amber-50/15 hover:bg-slate-50/60' : 'hover:bg-slate-50/60'
                       }`}
                     >
                       <td className="py-3.5 px-6">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-900">{feat.name}</span>
+                          <span className={`font-semibold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'}`}>{feat.name}</span>
                           {feat.isBlackExclusive && (
                             <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-[#090B12] text-[#D6B46A] border border-[#D6B46A]/40">
                               ELITE
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">{feat.description}</div>
+                        <div className={`text-[11px] mt-0.5 ${isBlack ? 'text-[#858781]' : 'text-slate-500'}`}>{feat.description}</div>
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         {feat.freeLimit ? (
-                          <span className="font-medium text-slate-600">{feat.freeLimit}</span>
+                          <span className={`font-medium ${isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'}`}>{feat.freeLimit}</span>
                         ) : feat.includedInFree ? (
-                          <Check className="h-4 w-4 text-emerald-600 mx-auto" />
+                          <Check className={`h-4 w-4 mx-auto ${isBlack ? 'text-[#36B887]' : 'text-emerald-600'}`} />
                         ) : (
-                          <span className="text-slate-300">—</span>
+                          <span className={isBlack ? 'text-[#737780]' : 'text-slate-300'}>—</span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-center bg-blue-50/20">
+                      <td className={`py-3.5 px-4 text-center ${
+                        isBlack ? 'bg-[rgba(117,169,214,0.05)]' : 'bg-blue-50/20'
+                      }`}>
                         {feat.proLimit ? (
-                          <span className="font-bold text-blue-700">{feat.proLimit}</span>
+                          <span className={`font-bold ${isBlack ? 'text-[#75A9D6]' : 'text-blue-700'}`}>{feat.proLimit}</span>
                         ) : feat.includedInPro ? (
-                          <Check className="h-4 w-4 text-blue-600 font-bold mx-auto" />
+                          <Check className={`h-4 w-4 font-bold mx-auto ${isBlack ? 'text-[#75A9D6]' : 'text-blue-600'}`} />
                         ) : (
-                          <span className="text-slate-300">—</span>
+                          <span className={isBlack ? 'text-[#737780]' : 'text-slate-300'}>—</span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-center bg-slate-950/5 font-bold">
+                      <td className={`py-3.5 px-4 text-center font-bold ${
+                        isBlack ? 'bg-[#090B12]/60' : 'bg-slate-950/5'
+                      }`}>
                         {feat.blackLimit ? (
-                          <span className="text-slate-900 font-extrabold flex items-center justify-center gap-1">
+                          <span className={`font-extrabold flex items-center justify-center gap-1 ${
+                            isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
+                          }`}>
                             {feat.isBlackExclusive && <RoyalCrownLogo size="xs" />}
                             <span>{feat.blackLimit}</span>
                           </span>
                         ) : feat.includedInBlack ? (
-                          <Check className="h-4 w-4 text-amber-600 font-black mx-auto" />
+                          <Check className="h-4 w-4 text-[#C6A66A] font-black mx-auto" />
                         ) : (
-                          <span className="text-slate-300">—</span>
+                          <span className={isBlack ? 'text-[#737780]' : 'text-slate-300'}>—</span>
                         )}
                       </td>
                     </tr>
@@ -698,32 +873,74 @@ export const PricingPage: React.FC<PricingPageProps> = ({
 
         {/* FAQ Section */}
         <div className="mt-20 max-w-3xl mx-auto space-y-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 text-center">Frequently Asked Questions</h2>
+          <h2 className={`text-xl sm:text-2xl font-bold text-center ${
+            isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
+          }`}>
+            Frequently Asked Questions
+          </h2>
           <div className="space-y-4 text-xs">
-            <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-1.5 shadow-2xs">
-              <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+            <div className={`p-5 rounded-2xl border space-y-1.5 shadow-2xs ${
+              isBlack
+                ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)]'
+                : 'bg-white border-slate-200'
+            }`}>
+              <h4 className={`font-bold text-sm flex items-center gap-2 ${
+                isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
+              }`}>
                 <RoyalCrownLogo size="xs" />
                 <span>What is BLACK by ApplyVise AI?</span>
               </h4>
-              <p className="text-slate-600 leading-relaxed">
+              <p className={`leading-relaxed ${
+                isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'
+              }`}>
                 BLACK is ApplyVise AI&apos;s ultimate membership tier positioned above Pro. It delivers exactly 2× the measurable AI request volume (600 requests/mo), daily application throughput (50/day), resume tailorings (60/mo), and interview prep sessions (20/mo), along with exclusive multi-role strategy mapping and priority AI execution.
               </p>
             </div>
-            <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-1.5 shadow-2xs">
-              <h4 className="font-bold text-slate-900 text-sm">Can I upgrade from Pro to BLACK?</h4>
-              <p className="text-slate-600 leading-relaxed">
+            <div className={`p-5 rounded-2xl border space-y-1.5 shadow-2xs ${
+              isBlack
+                ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)]'
+                : 'bg-white border-slate-200'
+            }`}>
+              <h4 className={`font-bold text-sm ${
+                isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
+              }`}>
+                Can I upgrade from Pro to BLACK?
+              </h4>
+              <p className={`leading-relaxed ${
+                isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'
+              }`}>
                 Yes. You can upgrade from Pro to BLACK at any time with a single click. Your new 2× limits and exclusive capabilities activate immediately.
               </p>
             </div>
-            <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-1.5 shadow-2xs">
-              <h4 className="font-bold text-slate-900 text-sm">Can I cancel my subscription at any time?</h4>
-              <p className="text-slate-600 leading-relaxed">
+            <div className={`p-5 rounded-2xl border space-y-1.5 shadow-2xs ${
+              isBlack
+                ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)]'
+                : 'bg-white border-slate-200'
+            }`}>
+              <h4 className={`font-bold text-sm ${
+                isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
+              }`}>
+                Can I cancel my subscription at any time?
+              </h4>
+              <p className={`leading-relaxed ${
+                isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'
+              }`}>
                 Yes. You can cancel with a single click. Your entitlements remain active until the end of your billing cycle, after which your account reverts to Free without deleting any saved applications or resumes.
               </p>
             </div>
-            <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-1.5 shadow-2xs">
-              <h4 className="font-bold text-slate-900 text-sm">Does ApplyVise AI invent fake experience on my resume?</h4>
-              <p className="text-slate-600 leading-relaxed">
+            <div className={`p-5 rounded-2xl border space-y-1.5 shadow-2xs ${
+              isBlack
+                ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)]'
+                : 'bg-white border-slate-200'
+            }`}>
+              <h4 className={`font-bold text-sm ${
+                isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
+              }`}>
+                Does ApplyVise AI invent fake experience on my resume?
+              </h4>
+              <p className={`leading-relaxed ${
+                isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'
+              }`}>
                 Never. ApplyVise AI enforces a strict zero-hallucination verification engine across Free, Pro, and BLACK tiers. Every bullet point and company on tailored documents must provably originate from your verified master profile.
               </p>
             </div>
@@ -732,7 +949,11 @@ export const PricingPage: React.FC<PricingPageProps> = ({
       </section>
 
       {/* Footer */}
-      <footer className="mt-auto bg-slate-900 text-slate-400 py-10 text-xs">
+      <footer className={`mt-auto py-10 text-xs border-t ${
+        isBlack
+          ? 'bg-[#101216] border-[rgba(255,255,255,0.09)] text-[#858781]'
+          : 'bg-slate-900 border-transparent text-slate-400'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <BrandLogo variant="dark" size="sm" onClick={onNavigateHome} />
           <div className="flex items-center space-x-6">

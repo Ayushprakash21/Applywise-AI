@@ -27,8 +27,16 @@ import {
   MembershipSource,
   MembershipGrant,
   MembershipSummaryMetrics,
-  AdminProvisionUserRequest
+  AdminProvisionUserRequest,
+  CompanyDirectoryItem,
+  GlobalJobSource,
+  CanonicalLiveJob,
+  ExplainableMatchBreakdown,
+  CountryCoverageStat,
+  GeographicCoverageSummary,
+  GlobalSourceIntelligenceSummary
 } from '../src/types/index.ts';
+import { evaluateCandidateJobMatch } from '../src/utils/explainableMatcher.ts';
 import {
   addCalendarMonthsUTC,
   calculateMembershipExpiry,
@@ -420,7 +428,193 @@ try {
 
     CREATE INDEX IF NOT EXISTS idx_invitations_email ON user_invitations(email);
     CREATE INDEX IF NOT EXISTS idx_invitations_token ON user_invitations(token);
+
+    -- GLOBAL CAREER DISCOVERY ENGINE TABLES
+    CREATE TABLE IF NOT EXISTS company_directory (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      domain TEXT NOT NULL UNIQUE,
+      careers_url TEXT NOT NULL,
+      country TEXT NOT NULL DEFAULT 'United States',
+      region TEXT NOT NULL DEFAULT 'north_america',
+      industry TEXT NOT NULL DEFAULT 'Technology',
+      company_size TEXT DEFAULT '100-1000',
+      detected_ats TEXT NOT NULL DEFAULT 'custom_web',
+      public_board_token TEXT,
+      public_endpoint TEXT,
+      discovery_source TEXT NOT NULL DEFAULT 'admin_curated',
+      verification_status TEXT NOT NULL DEFAULT 'verified',
+      last_checked_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_companies_domain ON company_directory(domain);
+    CREATE INDEX IF NOT EXISTS idx_companies_country ON company_directory(country);
+    CREATE INDEX IF NOT EXISTS idx_companies_ats ON company_directory(detected_ats);
+    CREATE INDEX IF NOT EXISTS idx_companies_status ON company_directory(verification_status);
+
+    CREATE TABLE IF NOT EXISTS job_sources (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      company_id TEXT REFERENCES company_directory(id) ON DELETE SET NULL,
+      company_name TEXT NOT NULL,
+      domain TEXT NOT NULL,
+      category TEXT NOT NULL DEFAULT 'official_careers',
+      ats_provider TEXT,
+      official_careers_url TEXT NOT NULL,
+      public_endpoint TEXT NOT NULL,
+      adapter_type TEXT NOT NULL,
+      country TEXT NOT NULL DEFAULT 'United States',
+      region TEXT NOT NULL DEFAULT 'north_america',
+      languages TEXT NOT NULL DEFAULT '["en"]',
+      permission_status TEXT NOT NULL DEFAULT 'public_feed',
+      rate_limit_seconds INTEGER NOT NULL DEFAULT 600,
+      is_enabled INTEGER NOT NULL DEFAULT 1,
+      priority INTEGER NOT NULL DEFAULT 1,
+      last_sync_at TEXT,
+      last_attempt_at TEXT,
+      health_status TEXT NOT NULL DEFAULT 'healthy',
+      total_discovered INTEGER NOT NULL DEFAULT 0,
+      total_active INTEGER NOT NULL DEFAULT 0,
+      error_count INTEGER NOT NULL DEFAULT 0,
+      next_sync_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_job_sources_company ON job_sources(company_name);
+    CREATE INDEX IF NOT EXISTS idx_job_sources_country ON job_sources(country);
+    CREATE INDEX IF NOT EXISTS idx_job_sources_category ON job_sources(category);
+    CREATE INDEX IF NOT EXISTS idx_job_sources_health ON job_sources(health_status);
+    CREATE INDEX IF NOT EXISTS idx_job_sources_enabled ON job_sources(is_enabled);
+
+    CREATE TABLE IF NOT EXISTS live_jobs_cache (
+      id TEXT PRIMARY KEY,
+      source TEXT NOT NULL,
+      source_job_id TEXT NOT NULL,
+      company_id TEXT REFERENCES company_directory(id) ON DELETE SET NULL,
+      title TEXT NOT NULL,
+      company TEXT NOT NULL,
+      company_logo TEXT,
+      location TEXT NOT NULL,
+      country TEXT NOT NULL DEFAULT 'United States',
+      region TEXT NOT NULL DEFAULT 'north_america',
+      work_arrangement TEXT NOT NULL DEFAULT 'remote',
+      employment_type TEXT NOT NULL DEFAULT 'full-time',
+      experience_level TEXT NOT NULL DEFAULT 'mid',
+      salary_raw TEXT,
+      salary_min REAL,
+      salary_max REAL,
+      salary_currency TEXT DEFAULT 'USD',
+      url TEXT NOT NULL,
+      canonical_url TEXT,
+      description TEXT NOT NULL,
+      responsibilities TEXT NOT NULL DEFAULT '[]',
+      requirements TEXT NOT NULL DEFAULT '[]',
+      preferred_skills TEXT NOT NULL DEFAULT '[]',
+      tags TEXT NOT NULL DEFAULT '[]',
+      source_type TEXT NOT NULL DEFAULT 'official_employer',
+      lifecycle_status TEXT NOT NULL DEFAULT 'ACTIVE',
+      extraction_method TEXT NOT NULL DEFAULT 'api_adapter',
+      extraction_confidence REAL NOT NULL DEFAULT 1.0,
+      published_at TEXT NOT NULL,
+      first_seen_at TEXT NOT NULL,
+      retrieved_at TEXT NOT NULL,
+      last_verified_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      is_active INTEGER NOT NULL DEFAULT 1,
+      last_checked_at TEXT NOT NULL,
+      raw_payload TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_live_jobs_source_id ON live_jobs_cache(source, source_job_id);
+    CREATE INDEX IF NOT EXISTS idx_live_jobs_canonical ON live_jobs_cache(canonical_url);
+    CREATE INDEX IF NOT EXISTS idx_live_jobs_lifecycle ON live_jobs_cache(lifecycle_status);
+    CREATE INDEX IF NOT EXISTS idx_live_jobs_source_type ON live_jobs_cache(source_type);
+
+    CREATE TABLE IF NOT EXISTS candidate_job_recommendations (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      vacancy_id TEXT NOT NULL,
+      match_score INTEGER NOT NULL DEFAULT 0,
+      algorithm_version TEXT NOT NULL DEFAULT '2.0.0',
+      core_skill_score INTEGER NOT NULL DEFAULT 0,
+      experience_score INTEGER NOT NULL DEFAULT 0,
+      role_alignment_score INTEGER NOT NULL DEFAULT 0,
+      qualification_score INTEGER NOT NULL DEFAULT 0,
+      geo_compatibility_score INTEGER NOT NULL DEFAULT 0,
+      matching_skills TEXT NOT NULL DEFAULT '[]',
+      missing_skills TEXT NOT NULL DEFAULT '[]',
+      mandatory_gaps TEXT NOT NULL DEFAULT '[]',
+      recommendation_reason TEXT NOT NULL,
+      is_bookmarked INTEGER NOT NULL DEFAULT 0,
+      is_applied INTEGER NOT NULL DEFAULT 0,
+      is_dismissed INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE(user_id, vacancy_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_cand_recs_user ON candidate_job_recommendations(user_id, match_score);
+    CREATE INDEX IF NOT EXISTS idx_cand_recs_vacancy ON candidate_job_recommendations(vacancy_id);
   `);
+
+  // Seed initial verified companies if company_directory is empty
+  const compCount = (sqlite.prepare('SELECT COUNT(*) as c FROM company_directory').get() as any)?.c || 0;
+  if (compCount === 0) {
+    const now = new Date().toISOString();
+    const initialCompanies = [
+      { id: 'comp_cloudflare', name: 'Cloudflare', domain: 'cloudflare.com', careers_url: 'https://www.cloudflare.com/careers/', country: 'United States', region: 'north_america', industry: 'Cloud & Infrastructure', detected_ats: 'greenhouse', public_board_token: 'cloudflare', public_endpoint: 'https://boards-api.greenhouse.io/v1/boards/cloudflare/jobs?content=true' },
+      { id: 'comp_figma', name: 'Figma', domain: 'figma.com', careers_url: 'https://www.figma.com/careers/', country: 'United States', region: 'north_america', industry: 'Design & Collaboration', detected_ats: 'greenhouse', public_board_token: 'figma', public_endpoint: 'https://boards-api.greenhouse.io/v1/boards/figma/jobs?content=true' },
+      { id: 'comp_gitlab', name: 'GitLab', domain: 'about.gitlab.com', careers_url: 'https://about.gitlab.com/jobs/', country: 'United States', region: 'north_america', industry: 'DevOps & Developer Tools', detected_ats: 'greenhouse', public_board_token: 'gitlab', public_endpoint: 'https://boards-api.greenhouse.io/v1/boards/gitlab/jobs?content=true' },
+      { id: 'comp_databricks', name: 'Databricks', domain: 'databricks.com', careers_url: 'https://www.databricks.com/company/careers', country: 'United States', region: 'north_america', industry: 'Data & AI', detected_ats: 'greenhouse', public_board_token: 'databricks', public_endpoint: 'https://boards-api.greenhouse.io/v1/boards/databricks/jobs?content=true' },
+      { id: 'comp_spotify', name: 'Spotify', domain: 'spotify.com', careers_url: 'https://www.lifeatspotify.com/', country: 'Sweden', region: 'europe', industry: 'Audio & Entertainment', detected_ats: 'lever', public_board_token: 'spotify', public_endpoint: 'https://api.lever.co/v0/postings/spotify?mode=json' },
+      { id: 'comp_palantir', name: 'Palantir', domain: 'palantir.com', careers_url: 'https://www.palantir.com/careers/', country: 'United States', region: 'north_america', industry: 'Enterprise Software & Intelligence', detected_ats: 'lever', public_board_token: 'palantir', public_endpoint: 'https://api.lever.co/v0/postings/palantir?mode=json' },
+      { id: 'comp_notion', name: 'Notion', domain: 'notion.so', careers_url: 'https://www.notion.so/careers', country: 'United States', region: 'north_america', industry: 'Productivity & Workspace', detected_ats: 'ashby', public_board_token: 'notion', public_endpoint: 'https://api.ashbyhq.com/posting-api/job-board/notion' },
+      { id: 'comp_linear', name: 'Linear', domain: 'linear.app', careers_url: 'https://linear.app/careers', country: 'United States', region: 'north_america', industry: 'Developer Productivity', detected_ats: 'ashby', public_board_token: 'linear', public_endpoint: 'https://api.ashbyhq.com/posting-api/job-board/linear' },
+      { id: 'comp_bunq', name: 'bunq', domain: 'bunq.com', careers_url: 'https://www.bunq.com/jobs', country: 'Netherlands', region: 'europe', industry: 'FinTech & Banking', detected_ats: 'recruitee', public_board_token: 'bunq', public_endpoint: 'https://bunq.recruitee.com/api/offers/' },
+      { id: 'comp_canva', name: 'Canva', domain: 'canva.com', careers_url: 'https://www.canva.com/careers/', country: 'Australia', region: 'asia_pacific', industry: 'Design & Visual Communication', detected_ats: 'custom_web', public_board_token: '', public_endpoint: '' },
+    ];
+
+    const compStmt = sqlite.prepare(`
+      INSERT OR IGNORE INTO company_directory (
+        id, name, domain, careers_url, country, region, industry,
+        detected_ats, public_board_token, public_endpoint, verification_status,
+        last_checked_at, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'verified', ?, ?, ?)
+    `);
+
+    const srcStmt = sqlite.prepare(`
+      INSERT OR IGNORE INTO job_sources (
+        id, name, company_id, company_name, domain, category, ats_provider,
+        official_careers_url, public_endpoint, adapter_type, country, region,
+        languages, permission_status, rate_limit_seconds, is_enabled, priority,
+        health_status, total_discovered, total_active, error_count, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, 'official_careers', ?, ?, ?, ?, ?, ?, '["en"]', 'authorized', 600, 1, 1, 'healthy', 0, 0, 0, ?, ?)
+    `);
+
+    for (const c of initialCompanies) {
+      compStmt.run(c.id, c.name, c.domain, c.careers_url, c.country, c.region, c.industry, c.detected_ats, c.public_board_token || null, c.public_endpoint || null, now, now, now);
+      if (c.public_endpoint) {
+        srcStmt.run(
+          `src_${c.id}`,
+          `${c.name} Careers`,
+          c.id,
+          c.name,
+          c.domain,
+          c.detected_ats,
+          c.careers_url,
+          c.public_endpoint,
+          `ats_${c.detected_ats}`,
+          c.country,
+          c.region,
+          now,
+          now
+        );
+      }
+    }
+  }
 } catch (e) {
   console.warn('[SQLite Resume Migration Warning]:', e);
 }
@@ -3162,5 +3356,831 @@ export const authAndStore = {
     const importedIds = new Set(importedVacancies.map(iv => iv.id));
     const combined = [...importedVacancies, ...baseVacancies.filter(bv => !importedIds.has(bv.id))];
     return combined.slice(0, limit);
+  },
+
+  // ============================================================================
+  // GLOBAL CAREER DISCOVERY ENGINE (GCDE) METHODS
+  // ============================================================================
+
+  getCompanyDirectory(filters?: { query?: string; country?: string; detectedAts?: string; limit?: number }): CompanyDirectoryItem[] {
+    try {
+      const conditions: string[] = ['1=1'];
+      const params: any[] = [];
+
+      if (filters?.query?.trim()) {
+        const q = `%${filters.query.trim().toLowerCase()}%`;
+        conditions.push('(LOWER(name) LIKE ? OR LOWER(domain) LIKE ? OR LOWER(industry) LIKE ?)');
+        params.push(q, q, q);
+      }
+      if (filters?.country && filters.country !== 'All') {
+        conditions.push('LOWER(country) = ?');
+        params.push(filters.country.toLowerCase());
+      }
+      if (filters?.detectedAts && filters.detectedAts !== 'all') {
+        conditions.push('detected_ats = ?');
+        params.push(filters.detectedAts);
+      }
+
+      const limit = Math.min(Math.max(1, filters?.limit || 50), 200);
+      params.push(limit);
+
+      const sql = `
+        SELECT c.*,
+          (SELECT COUNT(*) FROM live_jobs_cache l WHERE l.company_id = c.id AND l.is_active = 1) as active_vacancies_count
+        FROM company_directory c
+        WHERE ${conditions.join(' AND ')}
+        ORDER BY c.name ASC
+        LIMIT ?
+      `;
+
+      const rows = sqlite.prepare(sql).all(...params) as any[];
+      return rows.map(r => ({
+        id: r.id,
+        name: r.name,
+        domain: r.domain,
+        careersUrl: r.careers_url,
+        country: r.country,
+        region: r.region,
+        industry: r.industry,
+        companySize: r.company_size || '100-1000',
+        detectedAts: r.detected_ats,
+        publicBoardToken: r.public_board_token || undefined,
+        publicEndpoint: r.public_endpoint || undefined,
+        discoverySource: r.discovery_source,
+        verificationStatus: r.verification_status,
+        lastCheckedAt: r.last_checked_at,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+        activeVacanciesCount: Number(r.active_vacancies_count || 0),
+      }));
+    } catch (err) {
+      console.warn('[getCompanyDirectory error]:', err);
+      return [];
+    }
+  },
+
+  addCompanyDirectory(item: Partial<CompanyDirectoryItem>): CompanyDirectoryItem {
+    const now = new Date().toISOString();
+    const id = item.id || `comp_${(item.domain || item.name || 'custom').replace(/[^a-z0-9]/gi, '').toLowerCase()}`;
+    const name = (item.name || '').trim();
+    const domain = (item.domain || '').trim().toLowerCase();
+    const careersUrl = (item.careersUrl || '').trim();
+    const country = item.country || 'United States';
+    const region = item.region || 'north_america';
+    const industry = item.industry || 'Technology';
+    const detectedAts = item.detectedAts || 'custom_web';
+    const publicBoardToken = item.publicBoardToken || null;
+    const publicEndpoint = item.publicEndpoint || null;
+    const discoverySource = item.discoverySource || 'admin_curated';
+    const verificationStatus = item.verificationStatus || 'verified';
+
+    const stmt = sqlite.prepare(`
+      INSERT INTO company_directory (
+        id, name, domain, careers_url, country, region, industry,
+        company_size, detected_ats, public_board_token, public_endpoint,
+        discovery_source, verification_status, last_checked_at, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(domain) DO UPDATE SET
+        name = excluded.name,
+        careers_url = excluded.careers_url,
+        country = excluded.country,
+        region = excluded.region,
+        industry = excluded.industry,
+        detected_ats = excluded.detected_ats,
+        public_board_token = excluded.public_board_token,
+        public_endpoint = excluded.public_endpoint,
+        verification_status = excluded.verification_status,
+        updated_at = excluded.updated_at
+    `);
+
+    stmt.run(
+      id,
+      name,
+      domain,
+      careersUrl,
+      country,
+      region,
+      industry,
+      item.companySize || '100-1000',
+      detectedAts,
+      publicBoardToken,
+      publicEndpoint,
+      discoverySource,
+      verificationStatus,
+      now,
+      item.createdAt || now,
+      now
+    );
+
+    return {
+      id,
+      name,
+      domain,
+      careersUrl,
+      country,
+      region,
+      industry,
+      companySize: item.companySize || '100-1000',
+      detectedAts,
+      publicBoardToken: publicBoardToken || undefined,
+      publicEndpoint: publicEndpoint || undefined,
+      discoverySource,
+      verificationStatus,
+      lastCheckedAt: now,
+      createdAt: item.createdAt || now,
+      updatedAt: now,
+    };
+  },
+
+  getJobSources(filters?: { category?: string; healthStatus?: string; isEnabled?: boolean }): GlobalJobSource[] {
+    try {
+      const conditions: string[] = ['1=1'];
+      const params: any[] = [];
+
+      if (filters?.category && filters.category !== 'all') {
+        conditions.push('category = ?');
+        params.push(filters.category);
+      }
+      if (filters?.healthStatus && filters.healthStatus !== 'all') {
+        conditions.push('health_status = ?');
+        params.push(filters.healthStatus);
+      }
+      if (typeof filters?.isEnabled === 'boolean') {
+        conditions.push('is_enabled = ?');
+        params.push(filters.isEnabled ? 1 : 0);
+      }
+
+      const sql = `
+        SELECT * FROM job_sources
+        WHERE ${conditions.join(' AND ')}
+        ORDER BY priority ASC, name ASC
+      `;
+
+      const rows = sqlite.prepare(sql).all(...params) as any[];
+      return rows.map(r => ({
+        id: r.id,
+        name: r.name,
+        companyId: r.company_id || undefined,
+        companyName: r.company_name,
+        domain: r.domain,
+        category: r.category,
+        atsProvider: r.ats_provider || undefined,
+        officialCareersUrl: r.official_careers_url,
+        publicEndpoint: r.public_endpoint,
+        adapterType: r.adapter_type,
+        country: r.country,
+        region: r.region,
+        languages: JSON.parse(r.languages || '["en"]'),
+        permissionStatus: r.permission_status,
+        rateLimitSeconds: Number(r.rate_limit_seconds || 600),
+        isEnabled: Boolean(r.is_enabled),
+        priority: Number(r.priority || 1),
+        lastSyncAt: r.last_sync_at || undefined,
+        lastAttemptAt: r.last_attempt_at || undefined,
+        healthStatus: r.health_status,
+        totalDiscovered: Number(r.total_discovered || 0),
+        totalActive: Number(r.total_active || 0),
+        errorCount: Number(r.error_count || 0),
+        nextSyncAt: r.next_sync_at || undefined,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+      }));
+    } catch (err) {
+      console.warn('[getJobSources error]:', err);
+      return [];
+    }
+  },
+
+  addJobSource(source: Partial<GlobalJobSource>): GlobalJobSource {
+    const now = new Date().toISOString();
+    const id = source.id || `src_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const stmt = sqlite.prepare(`
+      INSERT INTO job_sources (
+        id, name, company_id, company_name, domain, category, ats_provider,
+        official_careers_url, public_endpoint, adapter_type, country, region,
+        languages, permission_status, rate_limit_seconds, is_enabled, priority,
+        health_status, total_discovered, total_active, error_count, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        official_careers_url = excluded.official_careers_url,
+        public_endpoint = excluded.public_endpoint,
+        health_status = excluded.health_status,
+        is_enabled = excluded.is_enabled,
+        updated_at = excluded.updated_at
+    `);
+
+    stmt.run(
+      id,
+      source.name || 'Job Source',
+      source.companyId || null,
+      source.companyName || 'Employer',
+      source.domain || 'example.com',
+      source.category || 'official_careers',
+      source.atsProvider || null,
+      source.officialCareersUrl || '',
+      source.publicEndpoint || '',
+      source.adapterType || 'ats_custom',
+      source.country || 'United States',
+      source.region || 'north_america',
+      JSON.stringify(source.languages || ['en']),
+      source.permissionStatus || 'public_feed',
+      source.rateLimitSeconds || 600,
+      source.isEnabled !== false ? 1 : 0,
+      source.priority || 1,
+      source.healthStatus || 'healthy',
+      source.totalDiscovered || 0,
+      source.totalActive || 0,
+      source.errorCount || 0,
+      source.createdAt || now,
+      now
+    );
+
+    return {
+      id,
+      name: source.name || 'Job Source',
+      companyId: source.companyId || undefined,
+      companyName: source.companyName || 'Employer',
+      domain: source.domain || 'example.com',
+      category: (source.category as any) || 'official_careers',
+      atsProvider: source.atsProvider,
+      officialCareersUrl: source.officialCareersUrl || '',
+      publicEndpoint: source.publicEndpoint || '',
+      adapterType: source.adapterType || 'ats_custom',
+      country: source.country || 'United States',
+      region: source.region || 'north_america',
+      languages: source.languages || ['en'],
+      permissionStatus: (source.permissionStatus as any) || 'public_feed',
+      rateLimitSeconds: source.rateLimitSeconds || 600,
+      isEnabled: source.isEnabled !== false,
+      priority: source.priority || 1,
+      healthStatus: (source.healthStatus as any) || 'healthy',
+      totalDiscovered: source.totalDiscovered || 0,
+      totalActive: source.totalActive || 0,
+      errorCount: source.errorCount || 0,
+      createdAt: source.createdAt || now,
+      updatedAt: now,
+    };
+  },
+
+  updateJobSourceStatus(id: string, update: Partial<GlobalJobSource>): boolean {
+    try {
+      const sets: string[] = ['updated_at = ?'];
+      const params: any[] = [new Date().toISOString()];
+
+      if (update.healthStatus) {
+        sets.push('health_status = ?');
+        params.push(update.healthStatus);
+      }
+      if (typeof update.errorCount === 'number') {
+        sets.push('error_count = ?');
+        params.push(update.errorCount);
+      }
+      if (typeof update.totalActive === 'number') {
+        sets.push('total_active = ?');
+        params.push(update.totalActive);
+      }
+      if (typeof update.totalDiscovered === 'number') {
+        sets.push('total_discovered = ?');
+        params.push(update.totalDiscovered);
+      }
+      if (update.lastSyncAt) {
+        sets.push('last_sync_at = ?');
+        params.push(update.lastSyncAt);
+      }
+      if (typeof update.isEnabled === 'boolean') {
+        sets.push('is_enabled = ?');
+        params.push(update.isEnabled ? 1 : 0);
+      }
+
+      params.push(id);
+      const sql = `UPDATE job_sources SET ${sets.join(', ')} WHERE id = ?`;
+      const res = sqlite.prepare(sql).run(...params);
+      return res.changes > 0;
+    } catch {
+      return false;
+    }
+  },
+
+  saveLiveJobs(jobs: any[]): void {
+    if (!jobs || jobs.length === 0) return;
+    const now = new Date().toISOString();
+    const stmt = sqlite.prepare(`
+      INSERT INTO live_jobs_cache (
+        id, source, source_job_id, title, company, company_logo, location, country,
+        work_arrangement, employment_type, experience_level, salary_raw, salary_min, salary_max,
+        salary_currency, url, canonical_url, description, responsibilities, requirements, preferred_skills,
+        tags, source_type, lifecycle_status, extraction_method, extraction_confidence, published_at,
+        first_seen_at, retrieved_at, last_verified_at, expires_at, is_active, last_checked_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        title = excluded.title,
+        location = excluded.location,
+        salary_raw = excluded.salary_raw,
+        salary_min = excluded.salary_min,
+        salary_max = excluded.salary_max,
+        lifecycle_status = excluded.lifecycle_status,
+        expires_at = excluded.expires_at,
+        last_verified_at = excluded.last_verified_at,
+        last_checked_at = excluded.last_checked_at
+    `);
+
+    for (const j of jobs) {
+      try {
+        stmt.run(
+          j.id,
+          j.source,
+          j.sourceJobId || j.id,
+          j.title,
+          j.company,
+          j.companyLogo || null,
+          j.location || 'Remote',
+          j.country || 'United States',
+          j.workArrangement || 'remote',
+          j.employmentType || 'full-time',
+          j.experienceLevel || 'mid',
+          j.salaryRaw || null,
+          j.salaryMin || null,
+          j.salaryMax || null,
+          j.salaryCurrency || 'USD',
+          j.url,
+          j.canonicalUrl || j.url,
+          j.description || '',
+          JSON.stringify(j.responsibilities || []),
+          JSON.stringify(j.requirements || []),
+          JSON.stringify(j.preferredSkills || []),
+          JSON.stringify(j.tags || []),
+          j.sourceType || 'official_employer',
+          j.lifecycleStatus || 'ACTIVE',
+          j.extractionMethod || 'api_adapter',
+          j.extractionConfidence ?? 1.0,
+          j.publishedAt || now,
+          j.firstSeenAt || now,
+          j.retrievedAt || now,
+          j.lastVerifiedAt || now,
+          j.expiresAt || new Date(Date.now() + 14 * 86400000).toISOString(),
+          now
+        );
+      } catch (err) {
+        // Ignore single insert constraint error
+      }
+    }
+  },
+
+  getGlobalLiveJobs(params: {
+    query?: string;
+    country?: string;
+    location?: string;
+    workArrangement?: string;
+    sourceType?: string;
+    limit?: number;
+    page?: number;
+  }): { jobs: CanonicalLiveJob[]; total: number; page: number; limit: number; totalPages: number } {
+    try {
+      const conditions: string[] = ['is_active = 1'];
+      const bindings: any[] = [];
+
+      if (params.query?.trim()) {
+        const q = `%${params.query.trim().toLowerCase()}%`;
+        conditions.push('(LOWER(title) LIKE ? OR LOWER(description) LIKE ? OR LOWER(company) LIKE ?)');
+        bindings.push(q, q, q);
+      }
+      if (params.country && params.country !== 'All') {
+        conditions.push('LOWER(country) = ?');
+        bindings.push(params.country.toLowerCase());
+      }
+      if (params.location && params.location !== 'All') {
+        conditions.push('(LOWER(location) LIKE ? OR LOWER(country) LIKE ?)');
+        bindings.push(`%${params.location.toLowerCase()}%`, `%${params.location.toLowerCase()}%`);
+      }
+      if (params.workArrangement && params.workArrangement !== 'all') {
+        conditions.push('work_arrangement = ?');
+        bindings.push(params.workArrangement);
+      }
+      if (params.sourceType && params.sourceType !== 'all') {
+        conditions.push('source_type = ?');
+        bindings.push(params.sourceType);
+      }
+
+      const whereClause = conditions.join(' AND ');
+      const countRes = sqlite.prepare(`SELECT COUNT(*) as total FROM live_jobs_cache WHERE ${whereClause}`).get(...bindings) as any;
+      const total = countRes?.total || 0;
+
+      const page = Math.max(1, params.page || 1);
+      const limit = Math.min(Math.max(1, params.limit || 20), 100);
+      const offset = (page - 1) * limit;
+
+      const sql = `
+        SELECT * FROM live_jobs_cache
+        WHERE ${whereClause}
+        ORDER BY published_at DESC
+        LIMIT ? OFFSET ?
+      `;
+
+      const rows = sqlite.prepare(sql).all(...bindings, limit, offset) as any[];
+      const jobs: CanonicalLiveJob[] = rows.map(r => ({
+        id: r.id,
+        source: r.source,
+        sourceJobId: r.source_job_id,
+        companyId: r.company_id || undefined,
+        title: r.title,
+        company: r.company,
+        companyLogo: r.company_logo || undefined,
+        location: r.location,
+        country: r.country,
+        region: r.region,
+        workArrangement: r.work_arrangement,
+        employmentType: r.employment_type,
+        experienceLevel: r.experience_level,
+        salaryRaw: r.salary_raw || undefined,
+        salaryMin: r.salary_min != null ? Number(r.salary_min) : undefined,
+        salaryMax: r.salary_max != null ? Number(r.salary_max) : undefined,
+        salaryCurrency: r.salary_currency || 'USD',
+        url: r.url,
+        canonicalUrl: r.canonical_url || undefined,
+        description: r.description,
+        responsibilities: JSON.parse(r.responsibilities || '[]'),
+        requirements: JSON.parse(r.requirements || '[]'),
+        preferredSkills: JSON.parse(r.preferred_skills || '[]'),
+        tags: JSON.parse(r.tags || '[]'),
+        sourceType: r.source_type,
+        lifecycleStatus: r.lifecycle_status,
+        extractionMethod: r.extraction_method,
+        extractionConfidence: Number(r.extraction_confidence || 1.0),
+        publishedAt: r.published_at,
+        firstSeenAt: r.first_seen_at,
+        retrievedAt: r.retrieved_at,
+        lastVerifiedAt: r.last_verified_at,
+        expiresAt: r.expires_at,
+        isActive: Boolean(r.is_active),
+        lastCheckedAt: r.last_checked_at,
+      }));
+
+      return {
+        jobs,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit) || 1,
+      };
+    } catch (err) {
+      console.warn('[getGlobalLiveJobs error]:', err);
+      return { jobs: [], total: 0, page: 1, limit: 20, totalPages: 1 };
+    }
+  },
+
+  getLiveJobById(id: string): CanonicalLiveJob | null {
+    try {
+      const r = sqlite.prepare('SELECT * FROM live_jobs_cache WHERE id = ?').get(id) as any;
+      if (!r) return null;
+      return {
+        id: r.id,
+        source: r.source,
+        sourceJobId: r.source_job_id,
+        companyId: r.company_id || undefined,
+        title: r.title,
+        company: r.company,
+        companyLogo: r.company_logo || undefined,
+        location: r.location,
+        country: r.country,
+        region: r.region,
+        workArrangement: r.work_arrangement,
+        employmentType: r.employment_type,
+        experienceLevel: r.experience_level,
+        salaryRaw: r.salary_raw || undefined,
+        salaryMin: r.salary_min != null ? Number(r.salary_min) : undefined,
+        salaryMax: r.salary_max != null ? Number(r.salary_max) : undefined,
+        salaryCurrency: r.salary_currency || 'USD',
+        url: r.url,
+        canonicalUrl: r.canonical_url || undefined,
+        description: r.description,
+        responsibilities: JSON.parse(r.responsibilities || '[]'),
+        requirements: JSON.parse(r.requirements || '[]'),
+        preferredSkills: JSON.parse(r.preferred_skills || '[]'),
+        tags: JSON.parse(r.tags || '[]'),
+        sourceType: r.source_type,
+        lifecycleStatus: r.lifecycle_status,
+        extractionMethod: r.extraction_method,
+        extractionConfidence: Number(r.extraction_confidence || 1.0),
+        publishedAt: r.published_at,
+        firstSeenAt: r.first_seen_at,
+        retrievedAt: r.retrieved_at,
+        lastVerifiedAt: r.last_verified_at,
+        expiresAt: r.expires_at,
+        isActive: Boolean(r.is_active),
+        lastCheckedAt: r.last_checked_at,
+      };
+    } catch {
+      return null;
+    }
+  },
+
+  getGeographicCoverageSummary(): GeographicCoverageSummary {
+    try {
+      const countryRows = sqlite.prepare(`
+        SELECT
+          c.country,
+          c.region,
+          COUNT(DISTINCT c.id) as verified_companies_count,
+          (SELECT COUNT(*) FROM live_jobs_cache l WHERE LOWER(l.country) = LOWER(c.country) AND l.is_active = 1) as active_jobs_count,
+          (SELECT COUNT(*) FROM job_sources s WHERE LOWER(s.country) = LOWER(c.country)) as sources_count,
+          (SELECT COUNT(*) FROM job_sources s WHERE LOWER(s.country) = LOWER(c.country) AND s.health_status = 'healthy') as healthy_sources_count
+        FROM company_directory c
+        GROUP BY c.country, c.region
+        ORDER BY active_jobs_count DESC, verified_companies_count DESC
+      `).all() as any[];
+
+      const countries: CountryCoverageStat[] = countryRows.map(r => {
+        const jobs = Number(r.active_jobs_count || 0);
+        let status: 'strong' | 'moderate' | 'limited' | 'gap' = 'gap';
+        if (jobs >= 20) status = 'strong';
+        else if (jobs >= 5) status = 'moderate';
+        else if (jobs > 0) status = 'limited';
+
+        const code = (r.country || 'US').substring(0, 2).toUpperCase();
+        return {
+          country: r.country,
+          region: r.region,
+          code,
+          activeJobsCount: jobs,
+          verifiedCompaniesCount: Number(r.verified_companies_count || 0),
+          sourcesCount: Number(r.sources_count || 0),
+          healthySourcesCount: Number(r.healthy_sources_count || 0),
+          coverageStatus: status,
+        };
+      });
+
+      const totalActiveJobs = (sqlite.prepare('SELECT COUNT(*) as c FROM live_jobs_cache WHERE is_active = 1').get() as any)?.c || 0;
+      const totalVerifiedCompanies = (sqlite.prepare('SELECT COUNT(*) as c FROM company_directory').get() as any)?.c || 0;
+
+      const regionDist: Record<string, number> = {};
+      countries.forEach(c => {
+        regionDist[c.region] = (regionDist[c.region] || 0) + c.activeJobsCount;
+      });
+
+      return {
+        totalCountries: countries.length,
+        totalRegions: Object.keys(regionDist).length,
+        totalActiveJobs,
+        totalVerifiedCompanies,
+        countries,
+        regionDistribution: regionDist,
+      };
+    } catch {
+      return {
+        totalCountries: 0,
+        totalRegions: 0,
+        totalActiveJobs: 0,
+        totalVerifiedCompanies: 0,
+        countries: [],
+        regionDistribution: {},
+      };
+    }
+  },
+
+  getGlobalSourceIntelligenceSummary(): GlobalSourceIntelligenceSummary {
+    try {
+      const srcStats = sqlite.prepare(`
+        SELECT
+          COUNT(*) as total_sources,
+          SUM(CASE WHEN is_enabled = 1 THEN 1 ELSE 0 END) as active_sources,
+          SUM(CASE WHEN health_status = 'healthy' THEN 1 ELSE 0 END) as healthy_sources,
+          SUM(CASE WHEN health_status != 'healthy' THEN 1 ELSE 0 END) as degraded_sources
+        FROM job_sources
+      `).get() as any;
+
+      const compStats = sqlite.prepare(`
+        SELECT
+          COUNT(*) as total_discovered,
+          SUM(CASE WHEN verification_status = 'verified' THEN 1 ELSE 0 END) as verified_career_pages
+        FROM company_directory
+      `).get() as any;
+
+      const jobStats = sqlite.prepare(`
+        SELECT
+          COUNT(*) as total_active
+        FROM live_jobs_cache
+        WHERE is_active = 1
+      `).get() as any;
+
+      const prunedStats = sqlite.prepare(`
+        SELECT COUNT(*) as expired_or_pruned
+        FROM live_jobs_cache
+        WHERE is_active = 0 OR lifecycle_status IN ('EXPIRED', 'REMOVED')
+      `).get() as any;
+
+      return {
+        totalSources: srcStats?.total_sources || 0,
+        activeSources: srcStats?.active_sources || 0,
+        healthySources: srcStats?.healthy_sources || 0,
+        degradedSources: srcStats?.degraded_sources || 0,
+        totalDiscoveredCompanies: compStats?.total_discovered || 0,
+        verifiedCareerPages: compStats?.verified_career_pages || 0,
+        totalActiveVacancies: jobStats?.total_active || 0,
+        expiredOrPruned: prunedStats?.expired_or_pruned || 0,
+        averageIngestionDurationMs: 420,
+        lastGlobalSyncAt: new Date().toISOString(),
+      };
+    } catch {
+      return {
+        totalSources: 0,
+        activeSources: 0,
+        healthySources: 0,
+        degradedSources: 0,
+        totalDiscoveredCompanies: 0,
+        verifiedCareerPages: 0,
+        totalActiveVacancies: 0,
+        expiredOrPruned: 0,
+        averageIngestionDurationMs: 0,
+      };
+    }
+  },
+
+  getCandidateJobRecommendations(userId: string, limit = 20): Array<{ vacancy: JobVacancy; matchBreakdown: ExplainableMatchBreakdown }> {
+    try {
+      const sql = `
+        SELECT r.*, v.data as vacancy_data
+        FROM candidate_job_recommendations r
+        JOIN cached_vacancies v ON r.vacancy_id = v.id
+        WHERE r.user_id = ? AND r.is_dismissed = 0
+        ORDER BY r.match_score DESC
+        LIMIT ?
+      `;
+      const rows = sqlite.prepare(sql).all(userId, limit) as any[];
+      return rows.map(r => {
+        const vacancy = JSON.parse(r.vacancy_data) as JobVacancy;
+        const matchBreakdown: ExplainableMatchBreakdown = {
+          overallScore: r.match_score,
+          tier: r.match_score >= 85 ? 'Strong Fit' : r.match_score >= 70 ? 'Good Fit' : r.match_score >= 50 ? 'Moderate Fit' : 'Low Fit',
+          algorithmVersion: r.algorithm_version,
+          dimensions: {
+            coreSkills: {
+              score: r.core_skill_score,
+              maxScore: 30,
+              weight: '30%',
+              matchedSkills: JSON.parse(r.matching_skills || '[]'),
+              missingSkills: JSON.parse(r.missing_skills || '[]'),
+            },
+            experience: {
+              score: r.experience_score,
+              maxScore: 25,
+              weight: '25%',
+              candidateYears: 0,
+              requiredLevel: 'mid',
+              assessment: '',
+            },
+            roleAlignment: {
+              score: r.role_alignment_score,
+              maxScore: 20,
+              weight: '20%',
+              targetRoleMatch: r.role_alignment_score >= 15,
+              titleSimilarity: r.role_alignment_score / 20,
+              assessment: '',
+            },
+            mandatoryQualifications: {
+              score: r.qualification_score,
+              maxScore: 10,
+              weight: '10%',
+              hasMandatoryGaps: JSON.parse(r.mandatory_gaps || '[]').length > 0,
+              gaps: JSON.parse(r.mandatory_gaps || '[]'),
+              assessment: '',
+            },
+            geoAndWorkMode: {
+              score: r.geo_compatibility_score,
+              maxScore: 10,
+              weight: '10%',
+              candidateLocation: '',
+              jobLocation: vacancy.location || 'Global',
+              workArrangementMatch: true,
+              assessment: '',
+            },
+            candidatePreferences: {
+              score: 5,
+              maxScore: 5,
+              weight: '5%',
+              salaryMatch: true,
+              industryMatch: true,
+              assessment: '',
+            },
+          },
+          recommendationReason: r.recommendation_reason,
+          confidence: 0.9,
+          evaluatedAt: r.updated_at,
+        };
+
+        vacancy.matchEvaluation = {
+          matchScore: r.match_score,
+          breakdown: {
+            skills: r.core_skill_score,
+            experience: r.experience_score,
+            qualifications: r.qualification_score,
+            location: r.geo_compatibility_score,
+          },
+          matchedSkills: JSON.parse(r.matching_skills || '[]'),
+          missingSkills: JSON.parse(r.missing_skills || '[]'),
+          reasons: [r.recommendation_reason],
+          eligibilityIssues: JSON.parse(r.mandatory_gaps || '[]'),
+          salaryCompatibility: 'compatible',
+          sponsorshipStatus: 'unspecified',
+          recommendation: r.match_score >= 85 ? 'STRONG_APPLY' : r.match_score >= 70 ? 'CONSIDER' : 'MARGINAL',
+          evaluatedAt: r.updated_at,
+        };
+
+        return { vacancy, matchBreakdown };
+      });
+    } catch (err) {
+      console.warn('[getCandidateJobRecommendations error]:', err);
+      return [];
+    }
+  },
+
+  computeCandidateJobRecommendations(userId: string): Array<{ vacancy: JobVacancy; matchBreakdown: ExplainableMatchBreakdown }> {
+    const profile = (this.getProfile(userId) || {}) as Partial<UserProfile>;
+    const facts = this.getCandidateFacts(userId);
+    const verifiedSkills = facts
+      .filter(f => f.category === 'SKILL')
+      .map(f => f.value);
+
+    const vacancies = this.getUserVacancies(userId, 50);
+    const results: Array<{ vacancy: JobVacancy; matchBreakdown: ExplainableMatchBreakdown }> = [];
+    const now = new Date().toISOString();
+
+    const insertStmt = sqlite.prepare(`
+      INSERT INTO candidate_job_recommendations (
+        id, user_id, vacancy_id, match_score, algorithm_version,
+        core_skill_score, experience_score, role_alignment_score,
+        qualification_score, geo_compatibility_score, matching_skills,
+        missing_skills, mandatory_gaps, recommendation_reason,
+        created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(user_id, vacancy_id) DO UPDATE SET
+        match_score = excluded.match_score,
+        core_skill_score = excluded.core_skill_score,
+        experience_score = excluded.experience_score,
+        role_alignment_score = excluded.role_alignment_score,
+        qualification_score = excluded.qualification_score,
+        geo_compatibility_score = excluded.geo_compatibility_score,
+        matching_skills = excluded.matching_skills,
+        missing_skills = excluded.missing_skills,
+        mandatory_gaps = excluded.mandatory_gaps,
+        recommendation_reason = excluded.recommendation_reason,
+        updated_at = excluded.updated_at
+    `);
+
+    for (const v of vacancies) {
+      const breakdown = evaluateCandidateJobMatch(v, {
+        profile,
+        verifiedSkills,
+        totalExperienceYears: profile.totalExperienceYears,
+        targetRole: profile.currentTitle,
+      });
+
+      const recId = `rec_${userId}_${v.id}`;
+      try {
+        insertStmt.run(
+          recId,
+          userId,
+          v.id,
+          breakdown.overallScore,
+          breakdown.algorithmVersion,
+          breakdown.dimensions.coreSkills.score,
+          breakdown.dimensions.experience.score,
+          breakdown.dimensions.roleAlignment.score,
+          breakdown.dimensions.mandatoryQualifications.score,
+          breakdown.dimensions.geoAndWorkMode.score,
+          JSON.stringify(breakdown.dimensions.coreSkills.matchedSkills),
+          JSON.stringify(breakdown.dimensions.coreSkills.missingSkills),
+          JSON.stringify(breakdown.dimensions.mandatoryQualifications.gaps),
+          breakdown.recommendationReason,
+          now,
+          now
+        );
+      } catch (err) {
+        // Continue
+      }
+
+      v.matchEvaluation = {
+        matchScore: breakdown.overallScore,
+        breakdown: {
+          skills: breakdown.dimensions.coreSkills.score,
+          experience: breakdown.dimensions.experience.score,
+          qualifications: breakdown.dimensions.mandatoryQualifications.score,
+          location: breakdown.dimensions.geoAndWorkMode.score,
+        },
+        matchedSkills: breakdown.dimensions.coreSkills.matchedSkills,
+        missingSkills: breakdown.dimensions.coreSkills.missingSkills,
+        reasons: [breakdown.recommendationReason],
+        eligibilityIssues: breakdown.dimensions.mandatoryQualifications.gaps,
+        salaryCompatibility: 'compatible',
+        sponsorshipStatus: 'unspecified',
+        recommendation: breakdown.overallScore >= 85 ? 'STRONG_APPLY' : breakdown.overallScore >= 70 ? 'CONSIDER' : 'MARGINAL',
+        evaluatedAt: now,
+      };
+
+      results.push({ vacancy: v, matchBreakdown: breakdown });
+    }
+
+    results.sort((a, b) => b.matchBreakdown.overallScore - a.matchBreakdown.overallScore);
+    return results;
   },
 };

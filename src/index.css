@@ -516,6 +516,16 @@ body.theme-black {
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4) !important;
 }
 
+/* Safety Net: Neutralize inadvertent light gradients in black theme */
+.theme-black [class*="from-white"],
+.theme-black [class*="from-emerald-50"],
+.theme-black [class*="from-blue-50"],
+.theme-black [class*="from-teal-50"],
+.theme-black [class*="to-blue-50"],
+.theme-black [class*="from-slate-50"] {
+  background-image: none !important;
+}
+
 /* 4. Typography Mapping (Executive Editorial Hierarchy) */
 .theme-black h1,
 .theme-black h2,

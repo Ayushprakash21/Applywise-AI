@@ -47,10 +47,8 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
   const [isProcessingAll, setIsProcessingAll] = useState(false);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
-  const isBlack = typeof document !== 'undefined' && (
-    document.body.classList.contains('theme-black') ||
-    document.documentElement.getAttribute('data-theme') === 'black'
-  );
+  // Executive Notifications workspace is permanently styled in luxury BLACK ELITE
+  const isBlack = true;
 
   // Statistics strictly derived from actual notification records
   const totalCount = notifications.length;
@@ -513,12 +511,8 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
                 key={notification.id}
                 className={`p-4 sm:p-5 rounded-3xl transition-all duration-200 relative border ${
                   isUnread
-                    ? isBlack
-                      ? 'bg-[#14171C] backdrop-blur-2xl border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.30)] shadow-2xs hover:shadow-md border-l-4 border-l-blue-600'
-                      : 'bg-white/85 backdrop-blur-2xl border-white shadow-2xs hover:shadow-md border-l-4 border-l-blue-600'
-                    : isBlack
-                      ? 'bg-[#14171C]/75 backdrop-blur-xl border-[rgba(255,255,255,0.06)] shadow-2xs hover:bg-[#14171C] opacity-90'
-                      : 'bg-white/55 backdrop-blur-xl border-white/80 shadow-2xs hover:bg-white/75 opacity-90'
+                    ? 'bg-[#14171C] backdrop-blur-2xl border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.30)] shadow-2xs hover:shadow-md border-l-4 border-l-blue-600'
+                    : 'bg-[#14171C]/75 backdrop-blur-xl border-[rgba(255,255,255,0.06)] shadow-2xs hover:bg-[#14171C] opacity-90'
                 }`}
               >
                 <div className="flex items-start gap-3.5 sm:gap-4">
@@ -535,9 +529,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
                       {/* Title */}
                       <h4
                         className={`text-xs sm:text-sm font-bold truncate ${
-                          isUnread
-                            ? isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'
-                            : isBlack ? 'text-[#C0BDB5]' : 'text-slate-700'
+                          isUnread ? 'text-[#F2F0EA]' : 'text-[#C0BDB5]'
                         }`}
                       >
                         {notification.title}
@@ -552,47 +544,33 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
 
                       {/* New Status Indicator */}
                       {isUnread && (
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border animate-pulse ${
-                          isBlack
-                            ? 'bg-[rgba(198,166,106,0.15)] text-[#C6A66A] border-[rgba(198,166,106,0.30)]'
-                            : 'bg-blue-100 text-blue-700 border border-blue-200'
-                        }`}>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border animate-pulse bg-[rgba(198,166,106,0.15)] text-[#C6A66A] border-[rgba(198,166,106,0.30)]">
                           New
                         </span>
                       )}
 
                       {/* Timestamp */}
-                      <span className={`ml-auto text-[11px] font-medium font-mono ${
-                        isBlack ? 'text-[#92949A]' : 'text-slate-400'
-                      }`}>
+                      <span className="ml-auto text-[11px] font-medium font-mono text-[#92949A]">
                         {formatTime(notification.timestamp)}
                       </span>
                     </div>
 
                     {/* Notification Message */}
-                    <p className={`text-xs sm:text-sm leading-relaxed break-words ${
-                      isBlack ? 'text-[#C0BDB5]' : 'text-slate-600'
-                    }`}>
+                    <p className="text-xs sm:text-sm leading-relaxed break-words text-[#C0BDB5]">
                       {notification.message}
                     </p>
 
                     {/* Contextual Actions Bar */}
-                    <div className={`mt-3 flex flex-wrap items-center gap-2.5 pt-2 border-t ${
-                      isBlack ? 'border-[rgba(255,255,255,0.08)]' : 'border-slate-100/70'
-                    }`}>
+                    <div className="mt-3 flex flex-wrap items-center gap-2.5 pt-2 border-t border-[rgba(255,255,255,0.08)]">
                       {/* Related Destination Action (if supported by metadata or type) */}
                       {(notification.type === 'match' || notification.vacancyId) && onNavigateToJobs && (
                         <button
                           type="button"
                           onClick={onNavigateToJobs}
-                          className={`be-btn-primary px-3 py-1.5 rounded-xl text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer border ${
-                            isBlack
-                              ? 'bg-[#C6A66A] hover:bg-[#D9BB80] text-[#17130C] border-[rgba(198,166,106,0.30)]'
-                              : 'bg-blue-50/80 hover:bg-blue-100 border-blue-200/80 text-blue-700'
-                          }`}
+                          className="be-btn-primary px-3 py-1.5 rounded-xl text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer border bg-[#C6A66A] hover:bg-[#D9BB80] text-[#17130C] border-[rgba(198,166,106,0.30)]"
                         >
-                          <span className={isBlack ? 'text-[#17130C] font-bold' : ''}>Explore Opportunity</span>
-                          <ArrowRight className={`w-3 h-3 ${isBlack ? 'text-[#17130C]' : ''}`} />
+                          <span className="text-[#17130C] font-bold">Explore Opportunity</span>
+                          <ArrowRight className="w-3 h-3 text-[#17130C]" />
                         </button>
                       )}
 
@@ -603,14 +581,10 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
                           <button
                             type="button"
                             onClick={onNavigateToApplications}
-                            className={`px-3 py-1.5 rounded-xl text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer border ${
-                              isBlack
-                                ? 'bg-[#191D23] hover:bg-[#20252D] text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)]'
-                                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                            }`}
+                            className="px-3 py-1.5 rounded-xl text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer border bg-[#191D23] hover:bg-[#20252D] text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)]"
                           >
                             <span>View Applications</span>
-                            <ExternalLink className={`w-3 h-3 ${isBlack ? 'text-[#C6A66A]' : ''}`} />
+                            <ExternalLink className="w-3 h-3 text-[#C6A66A]" />
                           </button>
                         )}
 
@@ -620,14 +594,10 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
                           type="button"
                           onClick={() => handleMarkOne(notification.id)}
                           disabled={isProcessingThis}
-                          className={`ml-auto px-2.5 py-1 rounded-lg text-[11px] font-semibold transition flex items-center gap-1.5 cursor-pointer border ${
-                            isBlack
-                              ? 'bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs'
-                              : 'text-slate-500 hover:text-blue-600 border-transparent p-1'
-                          }`}
+                          className="ml-auto px-3 py-1.5 rounded-xl text-[11px] font-semibold transition flex items-center gap-1.5 cursor-pointer border bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.35)] shadow-2xs"
                         >
-                          <Check className={`w-3.5 h-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-blue-600'}`} />
-                          <span className={isBlack ? 'text-[#C0BDB5] hover:text-[#F2F0EA]' : ''}>{isProcessingThis ? 'Updating...' : 'Mark as read'}</span>
+                          <Check className="w-3.5 h-3.5 text-[#C6A66A]" />
+                          <span>{isProcessingThis ? 'Updating...' : 'Mark as read'}</span>
                         </button>
                       )}
                     </div>

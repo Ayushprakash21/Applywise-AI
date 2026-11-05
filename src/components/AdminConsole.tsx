@@ -32,6 +32,7 @@ import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
 import { AdminFounderProfile } from './AdminFounderProfile.tsx';
 import { AdminResumeManagement } from './AdminResumeManagement.tsx';
 import { AdminUserProvisioning } from './AdminUserProvisioning.tsx';
+import { GlobalSourceIntelligence } from './GlobalSourceIntelligence.tsx';
 import { getEffectivePlan } from '../config/freeAccess.ts';
 
 interface AdminConsoleProps {
@@ -49,7 +50,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
   onLogout,
 }) => {
   const plan = getEffectivePlan(currentUser);
-  const isBlack = plan.isBlack || (typeof document !== 'undefined' && (document.body.classList.contains('theme-black') || document.documentElement.getAttribute('data-theme') === 'black'));
+  // Executive Admin Console is strictly and permanently styled in luxury BLACK ELITE
+  const isBlack = true;
   const [activeTab, setActiveTab] = useState<ExtendedAdminTab>('overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -188,29 +190,29 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#090A0C] text-[#F2F0EA] flex flex-col font-sans theme-black" data-theme="black">
       {/* Top Fixed Admin Navigation Bar */}
-      <header className="sticky top-0 z-50 w-full bg-slate-900 text-white border-b border-slate-800 shadow-xl backdrop-blur-md">
+      <header className="sticky top-0 z-50 w-full bg-[#111318] text-[#F2F0EA] border-b border-[rgba(255,255,255,0.09)] shadow-xl backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <BrandLogo size="sm" variant="dark" onClick={onNavigateHome} />
-            <div className="h-5 w-px bg-slate-800" />
+            <div className="h-5 w-px bg-[rgba(255,255,255,0.09)]" />
             <div className="flex items-center space-x-2">
-              <Shield className="h-4 w-4 text-indigo-400" />
-              <span className="text-xs font-bold tracking-wide uppercase text-indigo-200">
+              <Shield className="h-4 w-4 text-[#C6A66A]" />
+              <span className="text-xs font-bold tracking-wide uppercase text-[#F2F0EA]">
                 Admin Console
               </span>
-              <span className="hidden sm:inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 text-[10px] font-mono">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="hidden sm:inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-[rgba(53,184,135,0.15)] border border-[rgba(53,184,135,0.30)] text-[#35B887] text-[10px] font-mono">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#35B887] animate-pulse" />
                 <span>Authorized</span>
               </span>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-                        <button
+            <button
               onClick={onNavigateHome}
-              className="h-8 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700/80 shadow-xs flex items-center space-x-1.5 transition"
+              className="h-8 px-3 rounded-xl bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] text-xs font-semibold border border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Back to App</span>
@@ -220,22 +222,22 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               onClick={loadData}
               title="Refresh console data"
               disabled={loading}
-              className="h-8 w-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/80 shadow-xs flex items-center justify-center transition disabled:opacity-50"
+              className="h-8 w-8 rounded-xl bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] border border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs flex items-center justify-center transition disabled:opacity-50 cursor-pointer"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-[#C6A66A]' : 'text-[#C6A66A]'}`} />
             </button>
 
-            <div className="h-5 w-px bg-slate-800" />
+            <div className="h-5 w-px bg-[rgba(255,255,255,0.09)]" />
 
             <div className="flex items-center space-x-2 pl-1">
-              <div className="h-7 w-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
+              <div className="h-7 w-7 rounded-lg bg-[#C6A66A] text-[#17130C] flex items-center justify-center font-bold text-xs">
                 {currentUser.fullName ? currentUser.fullName[0].toUpperCase() : 'A'}
               </div>
               <div className="hidden md:block text-left">
-                <p className="text-xs font-semibold text-white leading-tight truncate max-w-[130px]">
+                <p className="text-xs font-semibold text-[#F2F0EA] leading-tight truncate max-w-[130px]">
                   {currentUser.fullName}
                 </p>
-                <p className="text-[10px] text-indigo-300 font-mono">
+                <p className="text-[10px] text-[#C6A66A] font-mono">
                   {currentUser.role.toUpperCase()}
                 </p>
               </div>
@@ -531,17 +533,13 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             </div>
 
             {/* Quick Actions / Guide */}
-            <div className={`p-5 rounded-2xl text-xs space-y-2 border transition ${
-              isBlack
-                ? 'bg-[#14171C] border-[rgba(198,166,106,0.30)] text-[#F2F0EA] shadow-xs admin-security-card'
-                : 'bg-indigo-50/70 border-indigo-200/70 text-indigo-900'
-            }`}>
-              <div className={`font-bold flex items-center space-x-2 ${isBlack ? 'text-[#F2F0EA]' : 'text-indigo-950'}`}>
-                <Shield className={`h-4 w-4 ${isBlack ? 'text-[#C6A66A]' : 'text-indigo-600'}`} />
+            <div className="p-5 rounded-2xl text-xs space-y-2 border transition bg-[#14171C] border-[rgba(198,166,106,0.30)] text-[#F2F0EA] shadow-xs admin-security-card">
+              <div className="font-bold flex items-center space-x-2 text-[#F2F0EA]">
+                <Shield className="h-4 w-4 text-[#C6A66A]" />
                 <span>Administrator Provisioning & Security Architecture</span>
               </div>
-              <p className={`leading-relaxed ${isBlack ? 'text-[#C0BDB5]' : 'text-indigo-800'}`}>
-                Administrative privileges in ApplyVise AI are strictly enforced on the server by verifying the authenticated user's session token against the <code className={`px-1.5 py-0.5 rounded font-mono font-medium ${isBlack ? 'bg-[#0D1014] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]' : 'bg-indigo-100/90'}`}>users.role</code> column in Cloudflare D1. Client-supplied roles or emails are never trusted. To provision new administrators from the command line, use <code className={`px-1.5 py-0.5 rounded font-mono font-medium ${isBlack ? 'bg-[#0D1014] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]' : 'bg-indigo-100/90'}`}>npm run admin:promote &lt;email&gt;</code>.
+              <p className="leading-relaxed text-[#C0BDB5]">
+                Administrative privileges in ApplyVise AI are strictly enforced on the server by verifying the authenticated user's session token against the <code className="px-1.5 py-0.5 rounded font-mono font-medium bg-[#0D1014] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]">users.role</code> column in Cloudflare D1. Client-supplied roles or emails are never trusted. To provision new administrators from the command line, use <code className="px-1.5 py-0.5 rounded font-mono font-medium bg-[#0D1014] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]">npm run admin:promote &lt;email&gt;</code>.
               </p>
             </div>
           </div>
@@ -552,30 +550,30 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
           <div className="space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">User Account Management</h2>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <h2 className="text-xl font-bold text-[#F2F0EA]">User Account Management</h2>
+                <p className="text-xs text-[#C0BDB5] mt-0.5">
                   View persisted user records, monitor verification status, and manage administrative privileges
                 </p>
               </div>
 
               {/* Search Box */}
               <div className="relative w-full sm:w-72">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#92949A]" />
                 <input
                   type="text"
                   value={userSearch}
                   onChange={e => setUserSearch(e.target.value)}
                   placeholder="Search user email or name..."
-                  className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-600 shadow-xs"
+                  className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-[rgba(255,255,255,0.12)] bg-[#0D1014] text-xs text-[#F2F0EA] placeholder-[#737780] focus:outline-none focus:border-[rgba(198,166,106,0.50)] shadow-xs"
                 />
               </div>
             </div>
 
             {/* Users Table */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] overflow-hidden">
+            <div className="bg-[#14171C] rounded-2xl border border-[rgba(255,255,255,0.09)] shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-600">
-                  <thead className="bg-slate-50 border-b border-slate-200/70 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <table className="w-full text-left text-xs text-[#C0BDB5]">
+                  <thead className="bg-[#0D1014] border-b border-[rgba(255,255,255,0.09)] text-[11px] font-semibold text-[#92949A] uppercase tracking-wider">
                     <tr>
                       <th className="px-5 py-3.5">User</th>
                       <th className="px-5 py-3.5">Role</th>
@@ -585,62 +583,64 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                       <th className="px-5 py-3.5 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
                     {users.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-5 py-8 text-center text-slate-400">
+                        <td colSpan={6} className="px-5 py-8 text-center text-[#737780]">
                           {loading ? 'Loading user records...' : 'No users found matching search query.'}
                         </td>
                       </tr>
                     ) : (
                       users.map(u => (
-                        <tr key={u.id} className="hover:bg-slate-50/70 transition">
+                        <tr key={u.id} className="hover:bg-[#191D23]/60 transition">
                           <td className="px-5 py-3.5">
-                            <div className="font-semibold text-slate-900">{u.fullName}</div>
-                            <div className="text-[11px] text-slate-500 font-mono">{u.email}</div>
+                            <div className="font-semibold text-[#F2F0EA]">{u.fullName}</div>
+                            <div className="text-[11px] text-[#92949A] font-mono">{u.email}</div>
                           </td>
                           <td className="px-5 py-3.5">
                             {u.role === 'admin' ? (
-                              <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-extrabold text-[10px] tracking-wide uppercase">
+                              <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-[rgba(198,166,106,0.18)] border border-[rgba(198,166,106,0.35)] text-[#C6A66A] font-extrabold text-[10px] tracking-wide uppercase">
                                 <Shield className="h-3 w-3" />
                                 <span>ADMIN</span>
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium text-[10px] uppercase">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#191D23] border border-[rgba(255,255,255,0.09)] text-[#C0BDB5] font-medium text-[10px] uppercase">
                                 User
                               </span>
                             )}
                           </td>
                           <td className="px-5 py-3.5">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                              u.planId === 'pro'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-slate-100 text-slate-600'
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
+                              u.planId === 'black'
+                                ? 'bg-[rgba(198,166,106,0.18)] text-[#C6A66A] border-[rgba(198,166,106,0.35)]'
+                                : u.planId === 'pro'
+                                ? 'bg-[rgba(118,169,216,0.18)] text-[#76A9D8] border-[rgba(118,169,216,0.35)]'
+                                : 'bg-[#191D23] text-[#92949A] border-[rgba(255,255,255,0.09)]'
                             }`}>
                               {u.planId || 'free'}
                             </span>
                           </td>
                           <td className="px-5 py-3.5">
-                            <span className="inline-flex items-center space-x-1 text-emerald-700">
+                            <span className="inline-flex items-center space-x-1 text-[#35B887]">
                               <CheckCircle2 className="h-3.5 w-3.5" />
                               <span className="text-[11px] font-medium">Verified</span>
                             </span>
                           </td>
-                          <td className="px-5 py-3.5 text-[11px] text-slate-500 font-mono">
+                          <td className="px-5 py-3.5 text-[11px] text-[#92949A] font-mono">
                             {new Date(u.createdAt).toLocaleDateString()}
                           </td>
                           <td className="px-5 py-3.5 text-right">
                             {u.id === currentUser.id ? (
-                              <span className="text-[11px] text-slate-400 italic">Current Session</span>
+                              <span className="text-[11px] text-[#737780] italic">Current Session</span>
                             ) : (
                               <button
                                 type="button"
                                 disabled={updatingUserId === u.id}
                                 onClick={() => handleToggleRole(u)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xs border transition ${
+                                className={`px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xs border transition cursor-pointer ${
                                   u.role === 'admin'
-                                    ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
-                                    : 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
+                                    ? 'bg-[rgba(214,117,117,0.15)] text-[#D67575] border-[rgba(214,117,117,0.30)] hover:bg-[rgba(214,117,117,0.25)]'
+                                    : 'bg-[#191D23] text-[#C6A66A] border-[rgba(198,166,106,0.30)] hover:bg-[#20252D]'
                                 }`}
                               >
                                 {updatingUserId === u.id ? (
@@ -685,109 +685,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
 
         {/* TAB: JOB SOURCES & INGESTION RUNS */}
         {activeTab === 'sources' && (
-          <div className="space-y-6">
-            {/* Header & Overview */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900 tracking-tight">Job Source Ingestion Health</h2>
-                <p className="text-xs text-slate-500">Live connectors, ingestion runs, duplicate filtering, and edge sync logs</p>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <span className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-mono font-bold border border-slate-200">
-                  {sourcesData?.totalCachedJobs ?? (stats?.totalVacancies || 0)} Total Active Jobs
-                </span>
-                <button
-                  onClick={loadData}
-                  className="px-3.5 py-1.5 rounded-xl neu-button text-xs font-semibold flex items-center space-x-1.5"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                  <span>Refresh</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Connector Status Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-              {(sourcesData?.sources && sourcesData.sources.length > 0
-                ? sourcesData.sources
-                : [
-                    { source_name: 'Greenhouse ATS', status: 'healthy', total_jobs: 142 },
-                    { source_name: 'Lever ATS', status: 'healthy', total_jobs: 68 },
-                    { source_name: 'Remotive', status: 'healthy', total_jobs: 35 },
-                    { source_name: 'Arbeitnow', status: 'healthy', total_jobs: 20 },
-                    { source_name: 'Jobicy', status: 'healthy', total_jobs: 15 },
-                  ]
-              ).map((src: any, i: number) => (
-                <div key={i} className="p-4 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900 truncate">{src.source_name || src.name}</span>
-                    <span className={`h-2 w-2 rounded-full ${src.status === 'healthy' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                  </div>
-                  <div className="flex items-baseline justify-between pt-1">
-                    <span className="text-xl font-bold font-mono text-slate-900">{src.total_jobs ?? '—'}</span>
-                    <span className="text-[10px] text-slate-400 font-mono">active jobs</span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 font-mono truncate">
-                    Status: <strong className="text-emerald-600 capitalize">{src.status || 'Active'}</strong>
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Ingestion Runs Table */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-              <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
-                <div className="flex items-center space-x-2">
-                  <Cpu className="h-4 w-4 text-cyan-600" />
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">
-                    Recent Ingestion Pipeline Runs
-                  </h3>
-                </div>
-                <span className="text-xs text-slate-500 font-mono">Cloudflare Cron Trigger: */10 * * * *</span>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-500 uppercase font-mono text-[10px] border-b border-slate-200">
-                    <tr>
-                      <th className="py-3 px-4">Run Timestamp</th>
-                      <th className="py-3 px-4">Connector</th>
-                      <th className="py-3 px-4">Fetched</th>
-                      <th className="py-3 px-4">Saved / Cached</th>
-                      <th className="py-3 px-4">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {sourcesData?.recentRuns && sourcesData.recentRuns.length > 0 ? (
-                      sourcesData.recentRuns.map((run: any, idx: number) => (
-                        <tr key={idx} className="hover:bg-slate-50/70 transition">
-                          <td className="py-3 px-4 font-mono text-slate-600">
-                            {new Date(run.started_at || run.timestamp).toLocaleString()}
-                          </td>
-                          <td className="py-3 px-4 font-bold text-slate-900">
-                            {run.source_name || run.connector || 'Aggregator Feed'}
-                          </td>
-                          <td className="py-3 px-4 font-mono text-slate-700">{run.jobs_fetched ?? run.fetched ?? 0}</td>
-                          <td className="py-3 px-4 font-mono text-emerald-600 font-bold">{run.jobs_saved ?? run.saved ?? 0}</td>
-                          <td className="py-3 px-4">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              {run.status || 'COMPLETED'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={5} className="py-6 text-center text-slate-400 italic">
-                          Automated ingestion runs execute every 10 minutes via Cloudflare Cron Triggers.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+          <div title="Job Source Ingestion Health — Recent Ingestion Pipeline Runs">
+            <GlobalSourceIntelligence />
           </div>
         )}
 
@@ -796,19 +695,19 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
           <div className="space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Security Audit Trail</h2>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <h2 className="text-xl font-bold text-[#F2F0EA]">Security Audit Trail</h2>
+                <p className="text-xs text-[#C0BDB5] mt-0.5">
                   Immutable record of system actions, role modifications, logins, and integrity events
                 </p>
               </div>
 
               {/* Severity Filter */}
               <div className="flex items-center space-x-2">
-                <Filter className="h-3.5 w-3.5 text-slate-400" />
+                <Filter className="h-3.5 w-3.5 text-[#92949A]" />
                 <select
                   value={logSeverity}
                   onChange={e => setLogSeverity(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-700 shadow-xs focus:outline-none"
+                  className="px-3 py-1.5 rounded-xl border border-[rgba(255,255,255,0.12)] bg-[#0D1014] text-xs font-medium text-[#F2F0EA] shadow-xs focus:outline-none focus:border-[rgba(198,166,106,0.50)]"
                 >
                   <option value="all">All Severities</option>
                   <option value="info">Info Only</option>
@@ -818,10 +717,10 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] overflow-hidden">
+            <div className="bg-[#14171C] rounded-2xl border border-[rgba(255,255,255,0.09)] shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-600">
-                  <thead className="bg-slate-50 border-b border-slate-200/70 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <table className="w-full text-left text-xs text-[#C0BDB5]">
+                  <thead className="bg-[#0D1014] border-b border-[rgba(255,255,255,0.09)] text-[11px] font-semibold text-[#92949A] uppercase tracking-wider">
                     <tr>
                       <th className="px-5 py-3.5">Timestamp</th>
                       <th className="px-5 py-3.5">Severity</th>
@@ -831,40 +730,40 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                       <th className="px-5 py-3.5">Details</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
                     {auditLogs.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-5 py-8 text-center text-slate-400">
+                        <td colSpan={6} className="px-5 py-8 text-center text-[#737780]">
                           {loading ? 'Loading audit records...' : 'No audit records match the current filter.'}
                         </td>
                       </tr>
                     ) : (
                       auditLogs.map(log => (
-                        <tr key={log.id} className="hover:bg-slate-50/70 transition">
-                          <td className="px-5 py-3.5 text-[11px] text-slate-500 font-mono whitespace-nowrap">
+                        <tr key={log.id} className="hover:bg-[#191D23]/60 transition">
+                          <td className="px-5 py-3.5 text-[11px] text-[#92949A] font-mono whitespace-nowrap">
                             {new Date(log.timestamp).toLocaleString()}
                           </td>
                           <td className="px-5 py-3.5 whitespace-nowrap">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
                               log.severity === 'security'
-                                ? 'bg-red-100 text-red-800'
+                                ? 'bg-[rgba(214,117,117,0.18)] text-[#D67575] border-[rgba(214,117,117,0.35)]'
                                 : log.severity === 'warning'
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-slate-100 text-slate-600'
+                                ? 'bg-[rgba(217,170,97,0.18)] text-[#D9AA61] border-[rgba(217,170,97,0.35)]'
+                                : 'bg-[#191D23] text-[#92949A] border-[rgba(255,255,255,0.09)]'
                             }`}>
                               {log.severity || 'info'}
                             </span>
                           </td>
-                          <td className="px-5 py-3.5 font-medium text-slate-700 whitespace-nowrap">
+                          <td className="px-5 py-3.5 font-medium text-[#F2F0EA] whitespace-nowrap">
                             {log.actor}
                           </td>
-                          <td className="px-5 py-3.5 font-mono text-[11px] font-semibold text-indigo-700 whitespace-nowrap">
+                          <td className="px-5 py-3.5 font-mono text-[11px] font-semibold text-[#C6A66A] whitespace-nowrap">
                             {log.action}
                           </td>
-                          <td className="px-5 py-3.5 text-slate-800 max-w-[180px] truncate" title={log.target}>
+                          <td className="px-5 py-3.5 text-[#C0BDB5] max-w-[180px] truncate" title={log.target}>
                             {log.target}
                           </td>
-                          <td className="px-5 py-3.5 text-slate-600 max-w-xs truncate" title={log.details}>
+                          <td className="px-5 py-3.5 text-[#92949A] max-w-xs truncate" title={log.details}>
                             {log.details}
                           </td>
                         </tr>
@@ -881,105 +780,105 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
         {activeTab === 'system' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-slate-900">System Health & Edge Infrastructure</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <h2 className="text-xl font-bold text-[#F2F0EA]">System Health & Edge Infrastructure</h2>
+              <p className="text-xs text-[#C0BDB5] mt-0.5">
                 Current operational status of Cloudflare Worker bindings, D1 database, and external integrations
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Database Health Card */}
-              <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] space-y-4">
+              <div className="p-6 rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.09)] shadow-xs space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Database className="h-5 w-5 text-indigo-600" />
-                    <h3 className="text-sm font-bold text-slate-900">Cloudflare D1 Database</h3>
+                    <Database className="h-5 w-5 text-[#C6A66A]" />
+                    <h3 className="text-sm font-bold text-[#F2F0EA]">Cloudflare D1 Database</h3>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[rgba(53,184,135,0.15)] text-[#35B887] border border-[rgba(53,184,135,0.30)] text-[10px] font-bold uppercase">
                     Connected
                   </span>
                 </div>
-                <div className="space-y-2 text-xs text-slate-600">
-                  <div className="flex justify-between py-1 border-b border-slate-100">
+                <div className="space-y-2 text-xs text-[#C0BDB5]">
+                  <div className="flex justify-between py-1 border-b border-[rgba(255,255,255,0.06)]">
                     <span>Database ID</span>
-                    <span className="font-mono text-slate-900">36c07326-65a2-44cf-8f38-4df1a7103cd5</span>
+                    <span className="font-mono text-[#F2F0EA]">36c07326-65a2-44cf-8f38-4df1a7103cd5</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
+                  <div className="flex justify-between py-1 border-b border-[rgba(255,255,255,0.06)]">
                     <span>Database Engine</span>
-                    <span className="font-semibold text-slate-900">SQLite at the Edge</span>
+                    <span className="font-semibold text-[#F2F0EA]">SQLite at the Edge</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
+                  <div className="flex justify-between py-1 border-b border-[rgba(255,255,255,0.06)]">
                     <span>Persisted Accounts</span>
-                    <span className="font-bold text-slate-900">{systemHealth?.database?.userCount ?? 0}</span>
+                    <span className="font-bold text-[#F2F0EA]">{systemHealth?.database?.userCount ?? 0}</span>
                   </div>
                   <div className="flex justify-between py-1">
                     <span>Total Applications</span>
-                    <span className="font-bold text-slate-900">{systemHealth?.database?.applicationsCount ?? 0}</span>
+                    <span className="font-bold text-[#F2F0EA]">{systemHealth?.database?.applicationsCount ?? 0}</span>
                   </div>
                 </div>
               </div>
 
               {/* Edge Runtime Card */}
-              <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] space-y-4">
+              <div className="p-6 rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.09)] shadow-xs space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Cpu className="h-5 w-5 text-blue-600" />
-                    <h3 className="text-sm font-bold text-slate-900">Worker Edge Runtime</h3>
+                    <Cpu className="h-5 w-5 text-[#76A9D8]" />
+                    <h3 className="text-sm font-bold text-[#F2F0EA]">Worker Edge Runtime</h3>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold uppercase">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[rgba(118,169,216,0.15)] text-[#76A9D8] border border-[rgba(118,169,216,0.30)] text-[10px] font-bold uppercase">
                     Operational
                   </span>
                 </div>
-                <div className="space-y-2 text-xs text-slate-600">
-                  <div className="flex justify-between py-1 border-b border-slate-100">
+                <div className="space-y-2 text-xs text-[#C0BDB5]">
+                  <div className="flex justify-between py-1 border-b border-[rgba(255,255,255,0.06)]">
                     <span>Environment</span>
-                    <span className="font-semibold text-slate-900">Cloudflare Workers (Edge)</span>
+                    <span className="font-semibold text-[#F2F0EA]">Cloudflare Workers (Edge)</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
+                  <div className="flex justify-between py-1 border-b border-[rgba(255,255,255,0.06)]">
                     <span>Compatibility Flags</span>
-                    <span className="font-mono text-slate-900">nodejs_compat</span>
+                    <span className="font-mono text-[#F2F0EA]">nodejs_compat</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
+                  <div className="flex justify-between py-1 border-b border-[rgba(255,255,255,0.06)]">
                     <span>Server Time (UTC)</span>
-                    <span className="font-mono text-slate-900">{systemHealth?.serverTime ? new Date(systemHealth.serverTime).toUTCString() : '...'}</span>
+                    <span className="font-mono text-[#F2F0EA]">{systemHealth?.serverTime ? new Date(systemHealth.serverTime).toUTCString() : '...'}</span>
                   </div>
                   <div className="flex justify-between py-1">
                     <span>Observability</span>
-                    <span className="font-semibold text-emerald-700">Enabled</span>
+                    <span className="font-semibold text-[#35B887]">Enabled</span>
                   </div>
                 </div>
               </div>
 
               {/* Integrations Status */}
-              <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] space-y-4 md:col-span-2">
-                <h3 className="text-sm font-bold text-slate-900">Service Integrations</h3>
+              <div className="p-6 rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.09)] shadow-xs space-y-4 md:col-span-2">
+                <h3 className="text-sm font-bold text-[#F2F0EA]">Service Integrations</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2">
+                  <div className="p-4 rounded-xl bg-[#191D23] border border-[rgba(255,255,255,0.09)] space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-800">Google OAuth GIS</span>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase">Active</span>
+                      <span className="font-semibold text-[#F2F0EA]">Google OAuth GIS</span>
+                      <span className="px-2 py-0.5 rounded-full bg-[rgba(53,184,135,0.15)] text-[#35B887] border border-[rgba(53,184,135,0.30)] text-[10px] font-bold uppercase">Active</span>
                     </div>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-[#C0BDB5]">
                       Tokeninfo audience checking & email_verified cryptographic validation active.
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2">
+                  <div className="p-4 rounded-xl bg-[#191D23] border border-[rgba(255,255,255,0.09)] space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-800">Gemini 2.5 AI</span>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase">Ready</span>
+                      <span className="font-semibold text-[#F2F0EA]">Gemini 2.5 AI</span>
+                      <span className="px-2 py-0.5 rounded-full bg-[rgba(53,184,135,0.15)] text-[#35B887] border border-[rgba(53,184,135,0.30)] text-[10px] font-bold uppercase">Ready</span>
                     </div>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-[#C0BDB5]">
                       Context-aware profile extraction, document tailoring, and ATS analysis.
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2">
+                  <div className="p-4 rounded-xl bg-[#191D23] border border-[rgba(255,255,255,0.09)] space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-800">Live Job Connectors</span>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase">Active</span>
+                      <span className="font-semibold text-[#F2F0EA]">Live Job Connectors</span>
+                      <span className="px-2 py-0.5 rounded-full bg-[rgba(53,184,135,0.15)] text-[#35B887] border border-[rgba(53,184,135,0.30)] text-[10px] font-bold uppercase">Active</span>
                     </div>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-[#C0BDB5]">
                       Greenhouse, Lever, Remotive, and Jobicy synchronized via background crons.
                     </p>
                   </div>
