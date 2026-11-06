@@ -19,6 +19,7 @@ import {
   Database,
   Cpu,
   Sparkles,
+  Globe,
   ExternalLink,
   Lock,
   ChevronRight,
@@ -37,6 +38,9 @@ import { getEffectivePlan } from '../config/freeAccess.ts';
 
 interface AdminConsoleProps {
   currentUser: AuthUser;
+  initialTab?: ExtendedAdminTab;
+  currentRoute?: string;
+  onNavigateRoute?: (route: string) => void;
   onNavigateHome: () => void;
   onLogout: () => void;
 }
@@ -46,13 +50,66 @@ type ExtendedAdminTab = AdminTab | 'provisioning';
 
 export const AdminConsole: React.FC<AdminConsoleProps> = ({
   currentUser,
+  initialTab,
+  currentRoute,
+  onNavigateRoute,
   onNavigateHome,
   onLogout,
 }) => {
   const plan = getEffectivePlan(currentUser);
   // Executive Admin Console is strictly and permanently styled in luxury BLACK ELITE
   const isBlack = true;
-  const [activeTab, setActiveTab] = useState<ExtendedAdminTab>('overview');
+  const [activeTab, setTabState] = useState<ExtendedAdminTab>(() => {
+    if (initialTab) return initialTab;
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin/gcde')) {
+      return 'sources';
+    }
+    return 'overview';
+  });
+
+  // Sync tab with route props
+  useEffect(() => {
+    if (initialTab) {
+      setTabState(initialTab);
+    } else if (currentRoute === '/admin/gcde') {
+      setTabState('sources');
+    }
+  }, [initialTab, currentRoute]);
+
+  const handleSelectTab = (tab: ExtendedAdminTab) => {
+    setTabState(tab);
+    if (tab === 'sources') {
+      if (onNavigateRoute) {
+        onNavigateRoute('/admin/gcde');
+      } else if (typeof window !== 'undefined') {
+        window.history.pushState({}, '', '/admin/gcde');
+      }
+    } else {
+      if (onNavigateRoute) {
+        onNavigateRoute('/admin');
+      } else if (typeof window !== 'undefined') {
+        window.history.pushState({}, '', '/admin');
+      }
+    }
+  };
+
+  // Direct tab setter matching interface contracts
+  const setActiveTab = (tab: ExtendedAdminTab) => handleSelectTab(tab);
+
+  // Browser Back / Forward URL synchronization
+  useEffect(() => {
+    const handlePopState = () => {
+      if (typeof window === 'undefined') return;
+      const path = window.location.pathname;
+      if (path.startsWith('/admin/gcde')) {
+        setActiveTab('sources');
+      } else if (path.startsWith('/admin') && activeTab === 'sources') {
+        setTabState('overview');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [activeTab]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -245,138 +302,225 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
           </div>
         </div>
 
-        {/* Console Subnavigation Tabs (Segmented Recessed Neumorphic Strip) */}
+        {/* Console Subnavigation Tabs (Responsive Wrapping & Mobile Module Switcher) */}
         <div className={`border-t px-4 sm:px-6 transition-colors ${
           isBlack ? 'bg-[#090A0C] border-[rgba(255,255,255,0.08)]' : 'bg-slate-950/60 border-slate-800/70'
         }`}>
-          <div className="max-w-7xl mx-auto flex items-center space-x-1 py-1.5 overflow-x-auto text-xs">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
-                activeTab === 'overview'
-                  ? isBlack
-                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : isBlack
-                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
-              }`}
-            >
-              <Activity className={`h-3.5 w-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-indigo-400'}`} />
-              <span>Overview & KPIs</span>
-            </button>
+          <div className="max-w-7xl mx-auto py-2">
+            {/* Mobile Dropdown Selector (Active for narrow screens <= 640px) */}
+            <div className="block sm:hidden mb-2">
+              <label htmlFor="admin-mobile-nav-select" className="sr-only">Select Admin Console Module</label>
+              <select
+                id="admin-mobile-nav-select"
+                value={activeTab}
+                onChange={e => handleSelectTab(e.target.value as ExtendedAdminTab)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#14171C] border border-[rgba(198,166,106,0.40)] text-[#F2F0EA] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#C6A66A]"
+              >
+                <option value="overview">Overview & KPIs</option>
+                <option value="sources">Global Career Discovery Engine (GCDE)</option>
+                <option value="users">Users & Roles ({totalUsers})</option>
+                <option value="provisioning">User Provisioning</option>
+                <option value="resumes">Resume Operations ({stats?.totalResumes ?? '...'})</option>
+                <option value="audit">Security & Audit Trail</option>
+                <option value="system">System Health & Edge</option>
+                <option value="founder">Founder Profile</option>
+              </select>
+            </div>
 
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
-                activeTab === 'users'
-                  ? isBlack
-                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : isBlack
-                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
-              }`}
+            {/* Desktop & Tablet Wrapping Tab Navigation (Zero Clipping Across All Viewports) */}
+            <div
+              role="tablist"
+              aria-label="Admin Console Navigation Modules"
+              className="flex flex-wrap items-center gap-1.5 text-xs"
             >
-              <Users className={`h-3.5 w-3.5 ${isBlack ? 'text-[#76A9D8]' : 'text-blue-400'}`} />
-              <span>Users & Roles ({totalUsers})</span>
-            </button>
+              {/* 1. Overview */}
+              <button
+                id="admin-tab-overview"
+                role="tab"
+                type="button"
+                tabIndex={0}
+                aria-selected={activeTab === 'overview'}
+                aria-controls="admin-panel-overview"
+                onClick={() => setActiveTab('overview')}
+                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                  activeTab === 'overview'
+                    ? isBlack
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                    : isBlack
+                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
+                }`}
+              >
+                <Activity className={`h-3.5 w-3.5 ${activeTab === 'overview' ? 'text-[#C6A66A]' : 'text-indigo-400'}`} />
+                <span>Overview & KPIs</span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('provisioning')}
-              className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
-                activeTab === 'provisioning'
-                  ? isBlack
-                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : isBlack
-                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
-              }`}
-            >
-              <Award className={`h-3.5 w-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-amber-400'}`} />
-              <span>User Provisioning</span>
-            </button>
+              {/* 2. Global Career Discovery Engine (Prominent First-Class Destination) */}
+              <button
+                id="admin-tab-sources"
+                role="tab"
+                type="button"
+                tabIndex={0}
+                aria-selected={activeTab === 'sources'}
+                aria-controls="admin-panel-sources"
+                onClick={() => setActiveTab('sources')}
+                className={`px-3.5 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                  activeTab === 'sources'
+                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.50)] ring-1 ring-[rgba(198,166,106,0.25)]'
+                    : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                }`}
+              >
+                <Globe className={`h-3.5 w-3.5 ${activeTab === 'sources' ? 'text-[#C6A66A]' : 'text-[#76A9D8]'}`} />
+                <span className="font-bold">Global Career Discovery Engine</span>
+                <span className="sr-only">Job Ingestion & Sources</span>
+                <span className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${
+                  activeTab === 'sources'
+                    ? 'bg-[rgba(198,166,106,0.25)] text-[#C6A66A] border border-[rgba(198,166,106,0.40)]'
+                    : 'bg-[#0D1014] text-[#92949A] border border-[rgba(255,255,255,0.08)]'
+                }`}>
+                  GCDE
+                </span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('resumes')}
-              className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
-                activeTab === 'resumes'
-                  ? isBlack
-                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : isBlack
-                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
-              }`}
-            >
-              <FileText className={`h-3.5 w-3.5 ${isBlack ? 'text-[#9483E8]' : 'text-purple-400'}`} />
-              <span>Resume Operations ({stats?.totalResumes ?? '...'})</span>
-            </button>
+              {/* 3. Users & Roles */}
+              <button
+                id="admin-tab-users"
+                role="tab"
+                type="button"
+                tabIndex={0}
+                aria-selected={activeTab === 'users'}
+                aria-controls="admin-panel-users"
+                onClick={() => setActiveTab('users')}
+                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                  activeTab === 'users'
+                    ? isBlack
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                    : isBlack
+                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
+                }`}
+              >
+                <Users className={`h-3.5 w-3.5 ${activeTab === 'users' ? 'text-[#C6A66A]' : 'text-[#76A9D8]'}`} />
+                <span>Users & Roles ({totalUsers})</span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('sources')}
-              className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
-                activeTab === 'sources'
-                  ? isBlack
-                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : isBlack
-                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
-              }`}
-            >
-              <Cpu className={`h-3.5 w-3.5 ${isBlack ? 'text-[#76A9D8]' : 'text-cyan-400'}`} />
-              <span>Job Ingestion & Sources</span>
-            </button>
+              {/* 4. User Provisioning */}
+              <button
+                id="admin-tab-provisioning"
+                role="tab"
+                type="button"
+                tabIndex={0}
+                aria-selected={activeTab === 'provisioning'}
+                aria-controls="admin-panel-provisioning"
+                onClick={() => setActiveTab('provisioning')}
+                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                  activeTab === 'provisioning'
+                    ? isBlack
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                    : isBlack
+                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
+                }`}
+              >
+                <Award className={`h-3.5 w-3.5 ${activeTab === 'provisioning' ? 'text-[#C6A66A]' : 'text-amber-400'}`} />
+                <span>User Provisioning</span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('audit')}
-              className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
-                activeTab === 'audit'
-                  ? isBlack
-                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : isBlack
-                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
-              }`}
-            >
-              <Shield className={`h-3.5 w-3.5 ${isBlack ? 'text-[#D9AA61]' : 'text-amber-400'}`} />
-              <span>Security & Audit Trail</span>
-            </button>
+              {/* 5. Resume Operations */}
+              <button
+                id="admin-tab-resumes"
+                role="tab"
+                type="button"
+                tabIndex={0}
+                aria-selected={activeTab === 'resumes'}
+                aria-controls="admin-panel-resumes"
+                onClick={() => setActiveTab('resumes')}
+                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                  activeTab === 'resumes'
+                    ? isBlack
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                    : isBlack
+                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
+                }`}
+              >
+                <FileText className={`h-3.5 w-3.5 ${activeTab === 'resumes' ? 'text-[#C6A66A]' : 'text-[#9483E8]'}`} />
+                <span>Resume Operations ({stats?.totalResumes ?? '...'})</span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('system')}
-              className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
-                activeTab === 'system'
-                  ? isBlack
-                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : isBlack
-                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
-              }`}
-            >
-              <Database className={`h-3.5 w-3.5 ${isBlack ? 'text-[#35B887]' : 'text-emerald-400'}`} />
-              <span>System Health & Edge</span>
-            </button>
+              {/* 6. Security & Audit Trail */}
+              <button
+                id="admin-tab-audit"
+                role="tab"
+                type="button"
+                tabIndex={0}
+                aria-selected={activeTab === 'audit'}
+                aria-controls="admin-panel-audit"
+                onClick={() => setActiveTab('audit')}
+                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                  activeTab === 'audit'
+                    ? isBlack
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                    : isBlack
+                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
+                }`}
+              >
+                <Shield className={`h-3.5 w-3.5 ${activeTab === 'audit' ? 'text-[#C6A66A]' : 'text-[#D9AA61]'}`} />
+                <span>Security & Audit Trail</span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('founder')}
-              className={`px-3 py-1.5 rounded-xl font-semibold flex items-center space-x-2 transition ${
-                activeTab === 'founder'
-                  ? isBlack
-                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                    : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                  : isBlack
-                    ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C]'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
-              }`}
-            >
-              <Sparkles className={`h-3.5 w-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-pink-400'}`} />
-              <span>Founder Profile</span>
-            </button>
+              {/* 7. System Health & Edge */}
+              <button
+                id="admin-tab-system"
+                role="tab"
+                type="button"
+                tabIndex={0}
+                aria-selected={activeTab === 'system'}
+                aria-controls="admin-panel-system"
+                onClick={() => setActiveTab('system')}
+                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                  activeTab === 'system'
+                    ? isBlack
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                    : isBlack
+                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
+                }`}
+              >
+                <Database className={`h-3.5 w-3.5 ${activeTab === 'system' ? 'text-[#C6A66A]' : 'text-[#35B887]'}`} />
+                <span>System Health & Edge</span>
+              </button>
+
+              {/* 8. Founder Profile */}
+              <button
+                id="admin-tab-founder"
+                role="tab"
+                type="button"
+                tabIndex={0}
+                aria-selected={activeTab === 'founder'}
+                aria-controls="admin-panel-founder"
+                onClick={() => setActiveTab('founder')}
+                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                  activeTab === 'founder'
+                    ? isBlack
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                    : isBlack
+                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
+                }`}
+              >
+                <Sparkles className={`h-3.5 w-3.5 ${activeTab === 'founder' ? 'text-[#C6A66A]' : 'text-pink-400'}`} />
+                <span>Founder Profile</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -683,9 +827,41 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
           </div>
         )}
 
-        {/* TAB: JOB SOURCES & INGESTION RUNS */}
+        {/* TAB: GLOBAL CAREER DISCOVERY ENGINE (GCDE) */}
         {activeTab === 'sources' && (
-          <div title="Job Source Ingestion Health — Recent Ingestion Pipeline Runs">
+          <div
+            id="admin-panel-sources"
+            role="tabpanel"
+            aria-labelledby="admin-tab-sources"
+            title="Job Source Ingestion Health — Recent Ingestion Pipeline Runs"
+            className="space-y-6"
+          >
+            {/* Executive GCDE Hero Header */}
+            <div className="p-5 rounded-2xl bg-[#14171C] border border-[rgba(198,166,106,0.30)] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2.5">
+                  <div className="p-2 rounded-xl bg-[rgba(198,166,106,0.15)] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]">
+                    <Globe className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h1 className="text-lg font-bold text-[#F2F0EA]">Global Career Discovery Engine</h1>
+                    <span className="text-[10px] font-mono text-[#C6A66A] tracking-wider uppercase font-semibold">
+                      Dedicated Destination: /admin/gcde
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs text-[#C0BDB5] max-w-2xl pt-1">
+                  Global job intelligence, employer career portals, ATS connectors and geographic coverage. Job Source Ingestion Health telemetry and Recent Ingestion Pipeline Runs discovery.
+                </p>
+              </div>
+              <div className="flex items-center space-x-2 self-start md:self-auto">
+                <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-[rgba(53,184,135,0.15)] text-[#35B887] border border-[rgba(53,184,135,0.30)] text-xs font-mono font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#35B887] animate-pulse" />
+                  <span>Active Intelligence</span>
+                </span>
+              </div>
+            </div>
+
             <GlobalSourceIntelligence />
           </div>
         )}

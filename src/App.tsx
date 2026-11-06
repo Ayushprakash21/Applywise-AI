@@ -79,6 +79,7 @@ const KNOWN_ROUTES = new Set([
   '/about',
   '/pricing',
   '/admin',
+  '/admin/gcde',
   '/admin/login',
   '/login',
   '/signin',
@@ -202,6 +203,14 @@ export default function App() {
       setActiveTab('notifications');
     }
   }, [currentRoute, currentUser, activeTab]);
+
+  // Redirect candidate / non-admin users away from admin routes
+  useEffect(() => {
+    if (!isCheckingSession && currentUser && currentUser.role !== 'admin' && (currentRoute === '/admin' || currentRoute === '/admin/gcde')) {
+      showToast('Access denied: Administrator privileges required.');
+      navigateTo('/');
+    }
+  }, [currentUser, isCheckingSession, currentRoute]);
 
   // Redirect unauthenticated users away from protected routes to login
   useEffect(() => {
@@ -554,10 +563,13 @@ export default function App() {
           onNavigateHome={() => navigateTo('/')}
           onSubscriptionUpdated={loadUserData}
         />
-      ) : currentRoute === '/admin' ? (
+      ) : currentRoute === '/admin' || currentRoute === '/admin/gcde' ? (
         currentUser && currentUser.role === 'admin' ? (
           <AdminConsole
             currentUser={currentUser}
+            initialTab={currentRoute === '/admin/gcde' ? 'sources' : 'overview'}
+            currentRoute={currentRoute}
+            onNavigateRoute={route => navigateTo(route)}
             onNavigateHome={() => navigateTo('/')}
             onLogout={async () => {
               await handleLogout();
@@ -568,7 +580,7 @@ export default function App() {
           <AdminLoginPage
             onSuccess={adminUser => {
               setCurrentUser(adminUser);
-              navigateTo('/admin');
+              navigateTo(currentRoute);
             }}
             onNavigateHome={() => navigateTo('/')}
           />
