@@ -15,7 +15,11 @@ import {
   EyeOff,
   Edit3,
   Trash2,
-  Plus
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  GitMerge,
+  Split
 } from 'lucide-react';
 import { api } from '../services/api.ts';
 import { UserProfile, ExperienceItem } from '../types/index.ts';
@@ -47,23 +51,119 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [editingExpIndex, setEditingExpIndex] = useState<number | null>(null);
   const [editExpForm, setEditExpForm] = useState<ExperienceItem | null>(null);
+  const [expandedEvidenceIndex, setExpandedEvidenceIndex] = useState<number | null>(null);
 
   const handleStartEdit = (index: number) => {
     if (!extractedProfile) return;
+    const item = extractedProfile.experiences[index];
+    const resp = item.responsibilities && item.responsibilities.length > 0
+      ? item.responsibilities
+      : (item.description ? item.description.split(/\s*•\s*/).map(s => s.trim()).filter(Boolean) : []);
     setEditingExpIndex(index);
-    setEditExpForm({ ...extractedProfile.experiences[index] });
+    setEditExpForm({ ...item, responsibilities: resp });
   };
 
   const handleSaveEdit = () => {
     if (editingExpIndex === null || !editExpForm || !extractedProfile) return;
     const updated = [...extractedProfile.experiences];
-    updated[editingExpIndex] = { ...editExpForm };
+    const cleanResp = (editExpForm.responsibilities || []).map(r => r.trim()).filter(Boolean);
+    const hasDates = Boolean(editExpForm.startDate && (editExpForm.endDate || editExpForm.current));
+    const hasCore = Boolean(editExpForm.company?.trim() && editExpForm.role?.trim());
+    updated[editingExpIndex] = {
+      ...editExpForm,
+      responsibilities: cleanResp,
+      achievements: cleanResp.slice(0, 5),
+      description: cleanResp.join(' • '),
+      isDateUncertain: !hasDates,
+      needsVerification: !hasDates || !hasCore,
+      confidenceCategory: hasDates && hasCore ? 'High confidence' : 'Needs review',
+      validationWarnings: [],
+    };
     setExtractedProfile({
       ...extractedProfile,
       experiences: updated,
     });
     setEditingExpIndex(null);
     setEditExpForm(null);
+  };
+
+  const handleMergeWithNext = (index: number) => {
+    if (!extractedProfile || index < 0 || index >= extractedProfile.experiences.length - 1) return;
+    const curr = extractedProfile.experiences[index];
+    const next = extractedProfile.experiences[index + 1];
+    const mergedResp = Array.from(
+      new Set([
+        ...(curr.responsibilities || []),
+        ...(next.responsibilities || []),
+        ...(curr.description ? curr.description.split(/\s*•\s*/).filter(Boolean) : []),
+        ...(next.description ? next.description.split(/\s*•\s*/).filter(Boolean) : []),
+      ].map(s => s.trim()).filter(Boolean))
+    );
+    const mergedEvidence = Array.from(
+      new Set([...(curr.sourceEvidence || []), ...(next.sourceEvidence || [])].filter(Boolean))
+    );
+    const merged: ExperienceItem = {
+      ...curr,
+      company: curr.company && curr.company !== 'Employer not detected' ? curr.company : next.company,
+      role: curr.role && curr.role !== 'Title not detected' ? curr.role : next.role,
+      location: curr.location || next.location,
+      startDate: curr.startDate || next.startDate,
+      endDate: curr.current ? 'Present' : (curr.endDate || next.endDate),
+      current: Boolean(curr.current || next.current),
+      responsibilities: mergedResp,
+      achievements: mergedResp.slice(0, 5),
+      description: mergedResp.join(' • '),
+      sourceEvidence: mergedEvidence,
+      sourceText: [curr.sourceText, next.sourceText].filter(Boolean).join('\n'),
+    };
+    const updated = [...extractedProfile.experiences];
+    updated.splice(index, 2, merged);
+    setExtractedProfile({
+      ...extractedProfile,
+      experiences: updated,
+    });
+  };
+
+  const handleSplitRecord = (index: number) => {
+    if (!extractedProfile) return;
+    const item = extractedProfile.experiences[index];
+    const existingResp = item.responsibilities && item.responsibilities.length > 0
+      ? item.responsibilities
+      : (item.description ? item.description.split(/\s*•\s*/).map(s => s.trim()).filter(Boolean) : []);
+    const midpoint = Math.ceil(existingResp.length / 2);
+    const firstHalf = existingResp.slice(0, midpoint);
+    const secondHalf = existingResp.slice(midpoint);
+
+    const updatedFirst: ExperienceItem = {
+      ...item,
+      responsibilities: firstHalf,
+      achievements: firstHalf.slice(0, 5),
+      description: firstHalf.join(' • '),
+    };
+    const newSecond: ExperienceItem = {
+      id: crypto.randomUUID(),
+      company: item.company,
+      role: '',
+      startDate: '',
+      endDate: '',
+      current: false,
+      location: item.location || '',
+      description: secondHalf.join(' • '),
+      responsibilities: secondHalf,
+      achievements: secondHalf.slice(0, 5),
+      verifiedSkillsUsed: [],
+      needsVerification: true,
+      confidenceCategory: 'Needs review',
+      sourceEvidence: item.sourceEvidence,
+    };
+    const updated = [...extractedProfile.experiences];
+    updated.splice(index, 1, updatedFirst, newSecond);
+    setExtractedProfile({
+      ...extractedProfile,
+      experiences: updated,
+    });
+    setEditingExpIndex(index + 1);
+    setEditExpForm(newSecond);
   };
 
   const handleDeleteExp = (index: number) => {
@@ -751,7 +851,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                   </button>
                 </div>
 
-                <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
                   {extractedProfile.experiences.map((exp, i) => {
                     const isEditing = editingExpIndex === i;
 
@@ -843,6 +943,20 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                             </div>
                           </div>
 
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Responsibilities (one bullet per line)</label>
+                            <textarea
+                              rows={3}
+                              value={(editExpForm.responsibilities || []).join('\n')}
+                              onChange={e => setEditExpForm({
+                                ...editExpForm,
+                                responsibilities: e.target.value.split('\n')
+                              })}
+                              placeholder="Enter key responsibilities, one per line"
+                              className="w-full px-2.5 py-1.5 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+
                           <div className="flex items-center justify-between pt-1">
                             <button
                               type="button"
@@ -874,7 +988,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                       );
                     }
 
-                    // Format clean date display according to requirements
+                    // Format honest date display (never invents default dates)
                     let dateDisplay = '';
                     if (exp.startDate && (exp.endDate || exp.current)) {
                       dateDisplay = `${exp.startDate} – ${exp.current ? 'Present' : exp.endDate}`;
@@ -884,30 +998,61 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                       dateDisplay = 'Present';
                     }
 
+                    const confidenceCategory =
+                      exp.confidenceCategory ||
+                      (exp.needsVerification || exp.isDateUncertain
+                        ? 'Needs review'
+                        : exp.company && exp.role && dateDisplay
+                          ? 'High confidence'
+                          : 'Medium confidence');
+
+                    const badgeStyle =
+                      confidenceCategory === 'High confidence'
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : confidenceCategory === 'Medium confidence'
+                          ? 'bg-blue-50 text-blue-700 border-blue-200'
+                          : 'bg-amber-50 text-amber-700 border-amber-200';
+
+                    const responsibilities =
+                      exp.responsibilities && exp.responsibilities.length > 0
+                        ? exp.responsibilities
+                        : (exp.achievements && exp.achievements.length > 0
+                            ? exp.achievements
+                            : (exp.description ? exp.description.split(/\s*•\s*/).filter(Boolean) : []));
+
+                    const evidenceLines =
+                      exp.sourceEvidence && exp.sourceEvidence.length > 0
+                        ? exp.sourceEvidence
+                        : (exp.sourceText ? exp.sourceText.split('\n').filter(Boolean) : []);
+
+                    const isEvidenceExpanded = expandedEvidenceIndex === i;
+
                     return (
-                      <div key={i} className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1 relative group">
+                      <div key={i} className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1.5 relative group">
                         <div className="flex items-start justify-between gap-2">
-                          <div>
-                            {/* COMPANY NAME (Prominent & Uppercase/Bold) */}
-                            <div className="font-extrabold text-slate-900 text-xs tracking-tight">
-                              {exp.company || 'Employer not detected'}
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="font-extrabold text-slate-900 text-xs tracking-tight">
+                                {exp.company || 'Employer not detected'}
+                              </span>
+                              <span className={`px-1.5 py-0.5 rounded border text-[10px] font-semibold ${badgeStyle}`}>
+                                {confidenceCategory}
+                              </span>
                             </div>
-                            {/* Job Title | Location */}
                             <div className="text-blue-700 font-semibold text-xs mt-0.5">
-                              {exp.role && exp.role.toLowerCase() !== 'present' ? exp.role : 'Designation not detected'}
+                              {exp.role && exp.role.toLowerCase() !== 'present' ? exp.role : 'Title not detected'}
                               {exp.location ? <span className="text-slate-500 font-normal"> | {exp.location}</span> : null}
                             </div>
                           </div>
 
-                          <div className="flex items-center space-x-2">
-                            {/* Start Date – End Date */}
+                          <div className="flex items-center space-x-1 shrink-0">
                             {dateDisplay ? (
                               <span className="font-medium text-slate-600 text-[11px] whitespace-nowrap bg-white px-2 py-0.5 rounded border border-slate-200">
                                 {dateDisplay}
                               </span>
                             ) : (
                               <span className="text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap">
-                                Employment dates not detected — Please verify
+                                Dates need review
                               </span>
                             )}
 
@@ -915,15 +1060,75 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                               type="button"
                               onClick={() => handleStartEdit(i)}
                               className="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-white border border-transparent hover:border-slate-200 transition"
-                              title="Edit this employment record"
+                              title="Edit record"
                             >
                               <Edit3 className="h-3.5 w-3.5" />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleSplitRecord(i)}
+                              className="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-white border border-transparent hover:border-slate-200 transition"
+                              title="Split into two records"
+                            >
+                              <Split className="h-3.5 w-3.5" />
+                            </button>
+
+                            {i < extractedProfile.experiences.length - 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleMergeWithNext(i)}
+                                className="p-1 rounded-md text-slate-400 hover:text-emerald-600 hover:bg-white border border-transparent hover:border-slate-200 transition"
+                                title="Merge with next record"
+                              >
+                                <GitMerge className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteExp(i)}
+                              className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-white border border-transparent hover:border-slate-200 transition"
+                              title="Delete record"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           </div>
                         </div>
 
-                        {exp.description && (
-                          <p className="text-slate-500 mt-1 line-clamp-2 leading-relaxed text-[11px]">{exp.description}</p>
+                        {exp.validationWarnings && exp.validationWarnings.length > 0 && (
+                          <div className="text-[10px] text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-1">
+                            {exp.validationWarnings[0]}
+                          </div>
+                        )}
+
+                        {responsibilities.length > 0 && (
+                          <ul className="list-disc pl-4 space-y-0.5 text-slate-600 text-[11px] leading-relaxed">
+                            {responsibilities.slice(0, 3).map((r, rIdx) => (
+                              <li key={rIdx}>{r}</li>
+                            ))}
+                            {responsibilities.length > 3 && (
+                              <li className="text-slate-400 list-none">+{responsibilities.length - 3} more responsibilities</li>
+                            )}
+                          </ul>
+                        )}
+
+                        {evidenceLines.length > 0 && (
+                          <div className="pt-0.5">
+                            <button
+                              type="button"
+                              onClick={() => setExpandedEvidenceIndex(isEvidenceExpanded ? null : i)}
+                              className="text-[10px] font-semibold text-slate-500 hover:text-blue-600 flex items-center space-x-1"
+                            >
+                              {isEvidenceExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                              <span>{isEvidenceExpanded ? 'Hide Source Evidence' : 'View Source Evidence'}</span>
+                            </button>
+                            {isEvidenceExpanded && (
+                              <pre className="mt-1 p-2 bg-white border border-slate-200 rounded text-[10px] text-slate-600 whitespace-pre-wrap font-mono leading-snug">
+                                {evidenceLines.join('\n')}
+                              </pre>
+                            )}
+                          </div>
                         )}
                       </div>
                     );

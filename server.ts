@@ -403,7 +403,7 @@ app.post(
       }
 
       const existingProfile = authAndStore.getProfile(req.user!.id);
-      const detailed = await resumeEngine.structureProfileDetailed(extraction.text, existingProfile);
+      const detailed = await resumeEngine.structureProfileDetailed(extraction.text, existingProfile, extraction.blocks);
 
       // Record document in DB
       authAndStore.saveResumeDocument(req.user!.id, {
@@ -2437,7 +2437,7 @@ app.post('/api/admin/resumes/:resumeId/reprocess', requireAdmin, async (req: Aut
 
     const currentProfile = authAndStore.getProfile(resume.userId);
     const existingFacts = authAndStore.getCandidateFacts(resume.userId);
-    const detailed = await resumeEngine.structureProfileDetailed(extraction.text, currentProfile);
+    const detailed = await resumeEngine.structureProfileDetailed(extraction.text, currentProfile, extraction.blocks);
 
     // Calculate safe diff against existing candidate facts
     const diffSummary = calculateExtractionDiff(detailed.extractedFields, currentProfile, existingFacts);

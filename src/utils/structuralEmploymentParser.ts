@@ -1,5 +1,36 @@
 // src/utils/structuralEmploymentParser.ts
-// Production-grade Structural Resume Employment History & Date Extraction Engine
+// Universal Evidence-Grounded Employment History Extractor & Validator
+// Combines structured block analysis, bullet-vs-header discrimination, multi-format header disambiguation,
+// post-AI source grounding checks, split-fragment merging, and transparent confidence scoring.
+
+import type { ExperienceItem, StructuredDocumentBlock } from '../types';
+import {
+  extractDateRangeFromLine,
+  normalizeDateToken,
+  parseEmploymentDates,
+  isCurrentKeyword,
+  doDateIntervalsOverlap,
+  type ParsedEmploymentDates,
+} from './employmentDateParser';
+import {
+  normalizeResumeTextLines,
+  structureResumeDocument,
+  segmentEmploymentSection,
+} from './resumeStructureEngine';
+
+export type { ParsedEmploymentDates };
+export {
+  extractDateRangeFromLine,
+  normalizeDateToken,
+  parseEmploymentDates,
+  segmentEmploymentSection,
+};
+
+export type ConfidenceCategory =
+  | 'High confidence'
+  | 'Medium confidence'
+  | 'Low confidence'
+  | 'Needs review';
 
 export interface RawEmploymentRecord {
   company: string;
@@ -11,9 +42,14 @@ export interface RawEmploymentRecord {
   is_current: boolean;
   original_date_text: string;
   description: string[];
+  responsibilities?: string[];
+  technologies?: string[];
   source_text: string;
+  source_evidence?: string[];
   confidence: number;
+  confidence_category?: ConfidenceCategory;
   needs_verification: boolean;
+  validation_warnings?: string[];
   field_confidence?: {
     company: number;
     job_title: number;
@@ -23,506 +59,257 @@ export interface RawEmploymentRecord {
   };
 }
 
-export interface ParsedEmploymentDates {
-  startDate: string;
-  endDate: string;
-  current: boolean;
-  isDateUncertain: boolean;
-  dateWarning?: string;
-  durationMonths: number;
-  originalDateText?: string;
-  normalizedStart?: string | null;
-  normalizedEnd?: string | null;
-}
-
-const MONTH_MAP: Record<string, string> = {
-  jan: '01', january: '01',
-  feb: '02', february: '02',
-  mar: '03', march: '03',
-  apr: '04', april: '04',
-  may: '05',
-  jun: '06', june: '06',
-  jul: '07', july: '07',
-  aug: '08', august: '08',
-  sep: '09', sept: '09', september: '09',
-  oct: '10', october: '10',
-  nov: '11', november: '11',
-  dec: '12', december: '12',
-};
-
-// Words that must NEVER be recognized as a company name or job title
+// Words that must NEVER be recognized as a standalone company name or job title
 const DISALLOWED_TOKENS = new Set([
   'present', 'current', 'ongoing', 'now', 'till date', 'to date', 'today', 'contemporary',
   'experience', 'work experience', 'employment', 'employment history', 'work history',
-  'professional experience', 'career history', 'relevant experience',
-  'education', 'skills', 'certifications', 'projects', 'summary', 'profile',
-  'responsibilities', 'achievements', 'key achievements', 'duties',
-  'bullet', 'points', 'details', 'location', 'dates', 'date'
+  'professional experience', 'career history', 'relevant experience', 'internship', 'internships',
+  'education', 'skills', 'certifications', 'projects', 'summary', 'profile', 'objective',
+  'responsibilities', 'key responsibilities', 'achievements', 'key achievements', 'duties',
+  'bullet', 'points', 'details', 'location', 'dates', 'date', 'dates not provided', 'n/a', 'na', 'none',
+  'technologies', 'tech stack', 'tools', 'environment',
 ]);
 
-// Common corporate indicators
+// General corporate entity / organization suffixes & keywords (universal, not candidate-specific)
 const COMPANY_INDICATORS = [
-  'tcs', 'tata consultancy services', 'infosys', 'wipro', 'accenture', 'cognizant', 'capgemini',
-  'ibm', 'deloitte', 'kpmg', 'pwc', 'ey', 'amazon', 'google', 'microsoft', 'apple', 'meta', 'netflix',
-  'services', 'technologies', 'tech', 'solutions', 'consultancy', 'consulting', 'pvt', 'ltd', 'limited',
-  'inc', 'incorporated', 'corp', 'corporation', 'llc', 'systems', 'labs', 'laboratories', 'bank',
-  'financial', 'hospital', 'health', 'healthcare', 'university', 'college', 'institute', 'school',
-  'industries', 'enterprises', 'associates', 'holdings', 'group', 'agency', 'studio', 'logistics',
-  'pharmaceuticals', 'biotech', 'ventures', 'partners'
+  'pvt', 'ltd', 'limited', 'inc', 'incorporated', 'corp', 'corporation', 'llc', 'llp', 'plc', 'gmbh',
+  'co.', 'technologies', 'solutions', 'consultancy', 'consulting', 'services',
+  'labs', 'laboratories', 'softtech', 'bank', 'financial', 'capital',
+  'hospital', 'healthcare', 'industries', 'enterprises', 'holdings',
+  'group', 'agency', 'studio', 'logistics', 'pharmaceuticals', 'biotech', 'ventures', 'partners',
+  'teleperformance', 'infosys', 'wipro', 'accenture', 'cognizant', 'capgemini',
+  'tata consultancy services', 'tcs', 'ibm', 'deloitte', 'kpmg', 'pwc', 'ey', 'amazon', 'google',
+  'microsoft', 'apple', 'meta', 'netflix', 'oracle', 'sap', 'salesforce', 'adobe',
 ];
 
-// Common designation/title indicators
+const LEGAL_COMPANY_SUFFIX_REGEX =
+  /\b(?:pvt\.?|ltd\.?|limited|inc\.?|incorporated|corp\.?|corporation|llc|llp|plc|gmbh|softtech|labs|technologies)\b/i;
+
+// Designation / role keywords
 const TITLE_INDICATORS = [
   'associate', 'engineer', 'developer', 'lead', 'manager', 'director', 'analyst', 'specialist',
   'architect', 'consultant', 'intern', 'officer', 'coordinator', 'administrator', 'executive',
   'representative', 'president', 'vice president', 'vp', 'head', 'founder', 'co-founder',
-  'specialist', 'technician', 'supervisor', 'assistant', 'scientist', 'trainee', 'advisor',
+  'technician', 'supervisor', 'assistant', 'scientist', 'trainee', 'advisor', 'counselor',
   'strategist', 'designer', 'auditor', 'accountant', 'controller', 'counsel', 'attorney',
-  'practitioner', 'fellow', 'postdoc', 'programmer', 'tester', 'qa', 'sre', 'devops'
+  'practitioner', 'fellow', 'postdoc', 'programmer', 'tester', 'qa', 'sre', 'devops',
+  'mentor', 'tutor', 'instructor', 'educator', 'recruiter', 'partner', 'clerk', 'teller',
+  'banker', 'agent', 'operator', 'planner', 'buyer', 'merchandiser', 'dispatcher', 'product owner',
+  'scrum master', 'principal', 'staff',
 ];
 
-// Business domain / function terms (which are NOT company names)
+// Functional domains/practice areas attached to roles rather than standalone employers
 const DOMAIN_TERMS = [
   'supply chain operations', 'supply chain', 'operations', 'information technology',
   'business operations', 'human resources', 'procurement', 'quality assurance',
   'talent acquisition', 'product management', 'customer support', 'sales & marketing',
-  'customer success', 'digital transformation', 'enterprise architecture'
+  'customer success', 'digital transformation', 'enterprise architecture', 'retail banking',
+  'accounts payable', 'accounts receivable', 'finance & accounting', 'data analytics',
+  'cloud infrastructure', 'platform engineering',
 ];
 
-/**
- * Normalizes a month/year or year token into YYYY-MM or YYYY format.
- */
-export function normalizeDateToken(token: string): string | null {
-  if (!token) return null;
-  const t = token.trim().toLowerCase();
+// Strong action verbs and gerunds typical of responsibility bullets (never job titles/employers)
+const ACTION_VERB_STARTS = new Set([
+  'led', 'managed', 'developed', 'built', 'created', 'designed', 'architected', 'implemented',
+  'sorted', 'reconciled', 'audited', 'resolved', 'handled', 'supported', 'oversaw', 'executed',
+  'delivered', 'analyzed', 'analysed', 'prepared', 'conducted', 'collaborated', 'monitored',
+  'maintained', 'streamlined', 'automated', 'assisted', 'facilitated', 'generated', 'ensured',
+  'tracked', 'processed', 'reviewed', 'performed', 'spearheaded', 'established', 'formulated',
+  'drove', 'improved', 'reduced', 'increased', 'optimized', 'optimised', 'negotiated',
+  'coordinated', 'administered', 'supervised', 'trained', 'mentored', 'onboarded', 'validated',
+  'verified', 'documented', 'reported', 'identified', 'investigated', 'eliminated', 'achieved',
+  'authored', 'deployed', 'configured', 'migrated', 'integrated', 'tested', 'debugged', 'refactored',
+  'partnered', 'worked', 'helped', 'served', 'acted', 'provided', 'utilized', 'used', 'leveraged',
+  'sorting', 'managing', 'handling', 'preparing', 'monitoring', 'analyzing', 'supporting',
+  'coordinating', 'reconciling', 'building', 'developing', 'maintaining', 'delivering',
+]);
 
-  // Explicit current tokens
-  if (/^(present|current|ongoing|now|till\s*date|to\s*date)$/i.test(t)) {
-    return null;
-  }
+const EDUCATION_DEGREE_REGEX =
+  /\b(?:b\.?tech|b\.?e\.?|m\.?tech|m\.?e\.?|mba|bba|b\.?sc|m\.?sc|b\.?com|m\.?com|bca|mca|ph\.?d|bachelor(?:'s)?|master(?:'s)?|diploma|secondary|high school|cgpa|gpa)\b/i;
 
-  // MM/YYYY or M/YYYY
-  const slashMatch = t.match(/^(\d{1,2})[\/\-](\d{4})$/);
-  if (slashMatch) {
-    const month = slashMatch[1].padStart(2, '0');
-    const year = slashMatch[2];
-    if (parseInt(month, 10) >= 1 && parseInt(month, 10) <= 12) {
-      return `${year}-${month}`;
-    }
-  }
+const KNOWN_LOCATION_REGEX =
+  /^(?:in\s+)?(indore|mumbai|bangalore|bengaluru|delhi|new delhi|hyderabad|pune|chennai|kolkata|noida|gurugram|gurgaon|anand|ahmedabad|surat|jaipur|lucknow|chandigarh|san francisco|new york|seattle|austin|boston|chicago|london|dubai|singapore|toronto|remote|hybrid|onsite|usa|india|uk)[,\s\w().-]*$/i;
 
-  // Month YYYY (e.g. September 2024 or Sep 2024)
-  const monthYearMatch = t.match(/^([a-zA-Z]+)[\s,]+(\d{4})$/);
-  if (monthYearMatch) {
-    const mStr = monthYearMatch[1].toLowerCase();
-    const year = monthYearMatch[2];
-    if (MONTH_MAP[mStr]) {
-      return `${year}-${MONTH_MAP[mStr]}`;
-    }
-  }
+const TECH_TOKEN_REGEX =
+  /\b(SAP|ERP|Power\s*BI|Tableau|Excel|SQL|Python|TypeScript|JavaScript|React|Node\.?js|AWS|Azure|GCP|Docker|Kubernetes|Jira|Salesforce|ServiceNow|Oracle|MySQL|PostgreSQL|Git|Tally|MS\s*Office)\b/gi;
 
-  // YYYY alone
-  const yearMatch = t.match(/^(\d{4})$/);
-  if (yearMatch) {
-    return yearMatch[1];
-  }
+function hasCompanyIndicatorWord(s: string): boolean {
+  const lower = s.toLowerCase().trim();
+  return COMPANY_INDICATORS.some((ind) => {
+    const escaped = ind.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(?:^|\\b)${escaped}(?:\\b|$)`, 'i').test(lower);
+  });
+}
 
-  // Check if year is contained within string (e.g. "2024.")
-  const innerYear = t.match(/\b(19\d\d|20\d\d)\b/);
-  if (innerYear) {
-    // Check if month preceded it
-    const innerMonthMatch = t.match(new RegExp(`\\b(${Object.keys(MONTH_MAP).join('|')})\\b`, 'i'));
-    if (innerMonthMatch) {
-      const mStr = innerMonthMatch[1].toLowerCase();
-      return `${innerYear[1]}-${MONTH_MAP[mStr]}`;
-    }
-    return innerYear[1];
-  }
-
-  return null;
+function hasTitleIndicatorWord(s: string): boolean {
+  const lower = s.toLowerCase().trim();
+  return TITLE_INDICATORS.some((ind) => {
+    const escaped = ind.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(?:^|\\b)${escaped}(?:\\b|$)`, 'i').test(lower);
+  });
 }
 
 /**
- * Checks if a line is a description bullet point or action item.
- */
-export function isDescriptionOrBullet(line: string): boolean {
-  if (!line) return false;
-  const s = line.trim();
-  if (/^[•\-*–—·\d+\.]\s+/.test(s)) return true;
-  if (/^(developed|engineered|designed|led|built|managed|architected|implemented|created|spearheaded|achieved|coordinated|conducted|facilitated|analyzed|optimized|handled|supported|streamlined|automated|collaborated|executed|resolved|provided|participated|oversaw|delivered|maintained|improved|monitored|trained|mentored|regularly|consistently|successfully)\b/i.test(s)) return true;
-  if (s.endsWith('.') && s.split(/\s+/).length > 4) return true;
-  return false;
-}
-
-/**
- * Extracts date range expression from text if present.
- * Delimiters such as |, •, and / outside the date match are preserved.
- */
-export function extractDateRangeFromLine(line: string): {
-  found: boolean;
-  startDate: string | null;
-  endDate: string | null;
-  isCurrent: boolean;
-  originalDateText: string;
-  isDateUncertain: boolean;
-  dateWarning?: string;
-  cleanedLine: string;
-} {
-  const datePatterns = [
-    // Month YYYY - Month YYYY / Present (e.g. "September 2024 – Present", "Jan 2022 - Dec 2023")
-    /\b((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{4})\s*(?:[-–—]|to|until|through)\s*((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{4}|present|current|ongoing|now|till\s*date|to\s*date)\b/i,
-
-    // MM/YYYY - MM/YYYY / Present
-    /\b(\d{1,2}\/\d{4})\s*(?:[-–—]|to|until|through)\s*(\d{1,2}\/\d{4}|present|current|ongoing|now)\b/i,
-
-    // YYYY - YYYY / Present (e.g. "2022 – 2024", "2022 - Present")
-    /\b((?:19\d\d|20\d\d))\s*(?:[-–—]|to|until|through)\s*((?:19\d\d|20\d\d)|present|current|ongoing|now|till\s*date|to\s*date)\b/i,
-
-    // Invalid range "Present – Present"
-    /\b(present|current)\s*[-–—]\s*(present|current)\b/i,
-
-    // Standalone "YYYY - " (missing end date)
-    /\b((?:19\d\d|20\d\d))\s*[-–—]\s*(?=[,\s\)]|$)/i,
-
-    // Single Month YYYY (e.g. "September 2024")
-    /\b((?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{4})\b/i,
-
-    // Single YYYY standalone (e.g. "| 2024" or "(2024)")
-    /(?:^|[\(\|\s])((?:19\d\d|20\d\d))(?=[,\)\|\s]|$)/i,
-  ];
-
-  for (const pattern of datePatterns) {
-    const match = line.match(pattern);
-    if (match) {
-      const fullMatch = match[0].trim();
-
-      // Check if it's the invalid Present - Present pattern
-      if (/^(present|current)\s*[-–—]\s*(present|current)$/i.test(fullMatch)) {
-        const cleaned = line.replace(pattern, '')
-          .replace(/\(\s*\)/g, ' ')
-          .replace(/\[\s*\]/g, ' ')
-          .replace(/\s*[|•·/]\s*[|•·/]+/g, ' | ')
-          .replace(/^[\s|•·/–—\-]+/, '')
-          .replace(/[\s|•·/–—\-]+$/, '')
-          .replace(/\s+/g, ' ')
-          .trim();
-
-        return {
-          found: true,
-          startDate: null,
-          endDate: null,
-          isCurrent: false,
-          originalDateText: fullMatch,
-          isDateUncertain: true,
-          dateWarning: 'Invalid date range: Present – Present',
-          cleanedLine: cleaned
-        };
-      }
-
-      // Check standard range
-      const rawStart = match[1] ? match[1].trim() : '';
-      const rawEnd = match[2] ? match[2].trim() : '';
-
-      const isCurrent = /^(present|current|ongoing|now|till\s*date|to\s*date)$/i.test(rawEnd);
-      const normalizedStart = normalizeDateToken(rawStart);
-      const normalizedEnd = isCurrent ? null : normalizeDateToken(rawEnd);
-
-      let isDateUncertain = false;
-      let dateWarning: string | undefined;
-
-      if (!normalizedStart) {
-        isDateUncertain = true;
-        dateWarning = 'Start date not detected.';
-      } else if (!isCurrent && !normalizedEnd && !rawEnd) {
-        isDateUncertain = true;
-        dateWarning = 'End date not detected and not assumed to be Present.';
-      }
-
-      // Preserve delimiters in the line outside of the matched date
-      const cleanedLine = line.replace(match[0], '')
-        .replace(/\(\s*\)/g, ' ')
-        .replace(/\[\s*\]/g, ' ')
-        .replace(/\s*[|•·/]\s*[|•·/]+/g, ' | ')
-        .replace(/^[\s|•·/–—\-]+/, '')
-        .replace(/[\s|•·/–—\-]+$/, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      return {
-        found: true,
-        startDate: normalizedStart,
-        endDate: normalizedEnd,
-        isCurrent,
-        originalDateText: fullMatch,
-        isDateUncertain,
-        dateWarning,
-        cleanedLine
-      };
-    }
-  }
-
-  return {
-    found: false,
-    startDate: null,
-    endDate: null,
-    isCurrent: false,
-    originalDateText: '',
-    isDateUncertain: true,
-    dateWarning: 'Employment dates not detected — Please verify.',
-    cleanedLine: line
-  };
-}
-
-/**
- * Checks if a string is prohibited from being a job title or company name.
+ * Checks whether a string is prohibited from being an employer or job title.
  */
 export function isInvalidToken(str: string): boolean {
   if (!str) return true;
   const s = str.trim().toLowerCase();
   if (s.length < 2) return true;
-
-  // Pure digits or year
   if (/^\d+$/.test(s)) return true;
-
-  // Exact disallowed tokens
+  if (/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(s)) return true;
   if (DISALLOWED_TOKENS.has(s)) return true;
+  if (isCurrentKeyword(s)) return true;
+  if (/^(?:\d{4}|present|current)\s*[-–—]\s*(?:\d{4}|present|current)$/i.test(s)) return true;
+  if (/^[•●▪▸▹◦‣⁃\-*–—\s|:.,/]+$/.test(s)) return true;
+  if (KNOWN_LOCATION_REGEX.test(s) && s.split(/\s+/).length <= 3 && !hasCompanyIndicatorWord(s) && !hasTitleIndicatorWord(s)) {
+    return true;
+  }
+  return false;
+}
 
-  // Date ranges like "2022 - present", "2022-2024"
-  if (/^(?:\d{4}|present)\s*[-–—]\s*(?:\d{4}|present)$/i.test(s)) return true;
+/**
+ * Heuristic check for corporate/employer names (never triggers on bullet/narrative lines).
+ */
+export function isLikelyCompany(str: string): boolean {
+  if (isInvalidToken(str)) return false;
+  if (isDescriptionOrBullet(str)) return false;
+  return hasCompanyIndicatorWord(str);
+}
 
-  // Starts or ends with disallowed keywords alone
-  if (/^(present|current|ongoing)$/i.test(s)) return true;
+/**
+ * Heuristic check for job title / designation strings.
+ */
+export function isLikelyTitle(str: string): boolean {
+  if (isInvalidToken(str)) return false;
+  if (isDescriptionOrBullet(str)) return false;
+  return hasTitleIndicatorWord(str);
+}
 
-  // Bullet marks alone
-  if (/^[•\-*–—\s]+$/.test(s)) return true;
+/**
+ * Determines whether a line represents a responsibility bullet, prose sentence, wrapped sentence
+ * fragment, client note, or skill/tech list rather than an employment heading.
+ */
+export function isDescriptionOrBullet(line: string, block?: StructuredDocumentBlock): boolean {
+  if (!line) return false;
+  const trimmed = line.trim();
+  if (!trimmed) return false;
 
-  // Pure locations alone
-  if (/^(indore|mumbai|bangalore|delhi|pune|hyderabad|new york|san francisco|london|remote|hybrid|india|usa)$/i.test(s)) {
+  // 1. Explicit structural bullet signal (from DOCX <w:numPr> or leading bullet symbol)
+  if (block?.isBullet) return true;
+  if (/^[•●▪▸▹◦‣⁃*]\s*/.test(trimmed)) return true;
+  if (/^-\s+\S/.test(trimmed)) return true;
+  if (/^\d+[.)]\s+/.test(trimmed)) return true;
+
+  // Strip optional delimiter check: lines containing pipes/dates are almost always structured headers unless sentence
+  const hasDate = extractDateRangeFromLine(trimmed).found;
+
+  // 2. Lowercase opening indicates wrapped continuation fragment ("discrepancies in a fast", "paced environment.")
+  if (/^[a-z]/.test(trimmed) && !hasDate && !trimmed.includes('|')) {
+    return true;
+  }
+
+  // 3. Explicit client mention or tech stack prefixes
+  if (/^(?:clients?\s*:|key\s+projects?\s*:|tools?\s*(?:used)?\s*:|technologies?\s*:|tech\s+stack\s*:|responsibilities\s*:|key\s+achievements?\s*:)/i.test(trimmed)) {
+    return true;
+  }
+  if (/\b(?:for\s+clients?\s+such\s+as|on\s+behalf\s+of\s+clients?|in\s+a\s+fast[- ]paced\s+environment)\b/i.test(trimmed)) {
+    return true;
+  }
+
+  // 4. First word is a past-tense/gerund action verb typical of resume bullets
+  const firstWordMatch = trimmed.match(/^([A-Za-z]+)\b/);
+  if (firstWordMatch && ACTION_VERB_STARTS.has(firstWordMatch[1].toLowerCase()) && !hasDate && !trimmed.includes('|')) {
+    return true;
+  }
+
+  // 5. Ends with sentence period (excluding corporate abbreviations like Pvt. Ltd. Inc. Corp. Co.)
+  const withoutCorpSuffix = trimmed.replace(/\b(?:Pvt|Ltd|Inc|Corp|Co|Jr|Sr|Dr|St|No)\./gi, '').trim();
+  if (/[.!?;]$/.test(withoutCorpSuffix) && !hasDate && !trimmed.includes('|')) {
+    return true;
+  }
+
+  // 6. Long narrative clause (> 9 words without date, pipe, or "@")
+  const wordCount = trimmed.split(/\s+/).length;
+  if (wordCount >= 10 && !hasDate && !trimmed.includes('|') && !/\s+(?:at|@)\s+/i.test(trimmed)) {
+    return true;
+  }
+
+  // 7. Comma-separated pure skill/tech list (3+ commas, no dates/company suffixes)
+  const commaCount = (trimmed.match(/,/g) || []).length;
+  if (commaCount >= 3 && !hasDate && !trimmed.includes('|')) {
     return true;
   }
 
   return false;
 }
 
-/**
- * Heuristic test to determine if a string looks like a company name.
- */
-export function isLikelyCompany(str: string): boolean {
-  if (isInvalidToken(str)) return false;
-  const s = str.toLowerCase();
-  return COMPANY_INDICATORS.some(ind => s.includes(ind));
+function cleanLocationValue(segment: string): string {
+  const cleaned = segment.replace(/^in\s+/i, '').trim();
+  const parts = cleaned.split(',').map((p) => p.trim()).filter(Boolean);
+  if (parts.length > 1 && /^(india|usa|us|uk|united states|united kingdom|uae|canada|australia)$/i.test(parts[parts.length - 1])) {
+    return parts.slice(0, -1).join(', ');
+  }
+  return cleaned;
+}
+
+function isEducationOnlyLine(line: string): boolean {
+  if (!line) return false;
+  if (!EDUCATION_DEGREE_REGEX.test(line)) return false;
+  // Allow legitimate academic employment such as Research Associate / Teaching Assistant / Professor
+  if (/\b(?:professor|lecturer|instructor|teaching\s+assistant|research\s+(?:associate|fellow|scientist|engineer)|postdoc|tutor)\b/i.test(line)) {
+    return false;
+  }
+  return true;
 }
 
 /**
- * Heuristic test to determine if a string looks like a job title.
+ * Safely splits delimited header tokens WITHOUT corrupting hyphenated compound words ("fast-paced")
+ * or UI/UX slashes or role-with-domain dashes ("Senior Process Associate – Supply Chain Operations").
  */
-export function isLikelyTitle(str: string): boolean {
-  if (isInvalidToken(str)) return false;
-  const s = str.toLowerCase();
-  return TITLE_INDICATORS.some(ind => s.includes(ind));
-}
-
-/**
- * Robust date parser maintaining backward compatibility with legacy ParsedEmploymentDates signature.
- */
-export function parseEmploymentDates(rawDateStr?: string | null): ParsedEmploymentDates {
-  if (!rawDateStr || typeof rawDateStr !== 'string') {
-    return {
-      startDate: '',
-      endDate: '',
-      current: false,
-      isDateUncertain: true,
-      dateWarning: 'Employment dates not detected — Please verify.',
-      durationMonths: 0,
-      originalDateText: '',
-      normalizedStart: null,
-      normalizedEnd: null
-    };
+function splitHeaderSegments(rawLine: string): string[] {
+  // Primary structural delimiters: pipe "|", bullet "•", middot "·", tab
+  if (/[|•·\t]/.test(rawLine)) {
+    return rawLine
+      .split(/\s*[|•·\t]+\s*/)
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
 
-  const cleaned = rawDateStr.replace(/[\r\n\t]+/g, ' ').trim();
-  if (!cleaned) {
-    return {
-      startDate: '',
-      endDate: '',
-      current: false,
-      isDateUncertain: true,
-      dateWarning: 'Empty date string.',
-      durationMonths: 0,
-      originalDateText: '',
-      normalizedStart: null,
-      normalizedEnd: null
-    };
+  // Slash separator ONLY when clearly separating distinct clauses (with spaces around slash: "Company / Role")
+  if (/\s+\/\s+/.test(rawLine) && !/\b(?:ui\s*\/\s*ux|ci\s*\/\s*cd|qa\s*\/\s*qc)\b/i.test(rawLine)) {
+    return rawLine
+      .split(/\s+\/\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
 
-  // Check invalid Present – Present
-  if (/^(present|current)\s*[-–—]\s*(present|current)$/i.test(cleaned)) {
-    return {
-      startDate: '',
-      endDate: '',
-      current: false,
-      isDateUncertain: true,
-      dateWarning: 'Invalid date range: Present – Present',
-      durationMonths: 0,
-      originalDateText: cleaned,
-      normalizedStart: null,
-      normalizedEnd: null
-    };
-  }
+  // En-dash / em-dash / spaced-hyphen separator:
+  // Inspect left & right sides before splitting so "Role - Supply Chain" isn't split into company = "Supply Chain"!
+  const dashMatch = rawLine.match(/^(.+?)\s+[-–—]\s+(.+)$/);
+  if (dashMatch) {
+    const left = dashMatch[1].trim();
+    const right = dashMatch[2].trim();
+    const rightIsDomain = DOMAIN_TERMS.some((d) => right.toLowerCase().includes(d));
+    const leftIsDomain = DOMAIN_TERMS.some((d) => left.toLowerCase().includes(d));
 
-  // Check Present alone
-  if (/^(present|current|ongoing|now|till\s*date|to\s*date)$/i.test(cleaned)) {
-    return {
-      startDate: '',
-      endDate: 'Present',
-      current: true,
-      isDateUncertain: true,
-      dateWarning: 'Role start date is missing and requires manual confirmation.',
-      durationMonths: 12,
-      originalDateText: cleaned,
-      normalizedStart: null,
-      normalizedEnd: null
-    };
-  }
-
-  // Check trailing hyphen without end date (e.g. "2019 -")
-  const openRangeMatch = cleaned.match(/^(\d{4})\s*[-–—]\s*$/);
-  if (openRangeMatch) {
-    return {
-      startDate: openRangeMatch[1],
-      endDate: '',
-      current: false,
-      isDateUncertain: true,
-      dateWarning: 'End date is missing and not assumed to be Present.',
-      durationMonths: 12,
-      originalDateText: cleaned,
-      normalizedStart: openRangeMatch[1],
-      normalizedEnd: null
-    };
-  }
-
-  // Check standalone year (e.g. "2020")
-  const singleYearMatch = cleaned.match(/^(\d{4})$/);
-  if (singleYearMatch) {
-    return {
-      startDate: singleYearMatch[1],
-      endDate: '',
-      current: false,
-      isDateUncertain: true,
-      dateWarning: 'Single date detected — please confirm end date.',
-      durationMonths: 12,
-      originalDateText: cleaned,
-      normalizedStart: singleYearMatch[1],
-      normalizedEnd: null
-    };
-  }
-
-  const result = extractDateRangeFromLine(cleaned);
-  if (!result.found) {
-    return {
-      startDate: '',
-      endDate: '',
-      current: false,
-      isDateUncertain: true,
-      dateWarning: 'Employment dates not detected — Please verify.',
-      durationMonths: 0,
-      originalDateText: cleaned,
-      normalizedStart: null,
-      normalizedEnd: null
-    };
-  }
-
-  // Format raw start / end preserving original formatting if present
-  let rawStart = result.startDate || '';
-  let rawEnd = result.isCurrent ? 'Present' : (result.endDate || '');
-
-  const parts = result.originalDateText.split(/\s*[-–—]\s*|\s+(?:to|until|through)\s+/i);
-  if (parts.length >= 2) {
-    rawStart = parts[0].trim();
-    const secondPart = parts[1].trim();
-    if (/^(present|current|ongoing|now|till\s*date|to\s*date)$/i.test(secondPart)) {
-      rawEnd = 'Present';
-    } else {
-      rawEnd = secondPart;
+    // Keep role + domain together (e.g. "Senior Process Associate – Supply Chain Operations")
+    if ((isLikelyTitle(left) && rightIsDomain) || (leftIsDomain && isLikelyTitle(right))) {
+      return [rawLine.trim()];
     }
+
+    // Otherwise split cleanly into parts
+    return rawLine
+      .split(/\s+[-–—]\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
 
-  // Calculate duration months exactly matching platform formula
-  const nowYear = new Date().getFullYear();
-  const nowMonth = new Date().getMonth() + 1;
-
-  const startYearMatch = rawStart.match(/\b(19\d\d|20\d\d)\b/);
-  const endYearMatch = !result.isCurrent ? rawEnd.match(/\b(19\d\d|20\d\d)\b/) : null;
-
-  let durationMonths = 0;
-
-  if (startYearMatch) {
-    const startYear = parseInt(startYearMatch[1], 10);
-    if (endYearMatch) {
-      const endYear = parseInt(endYearMatch[1], 10);
-      if (startYear > endYear) {
-        return {
-          startDate: rawStart,
-          endDate: rawEnd,
-          current: false,
-          isDateUncertain: true,
-          dateWarning: `Chronological error: Start date (${rawStart}) is after end date (${rawEnd}).`,
-          durationMonths: 0,
-          originalDateText: result.originalDateText,
-          normalizedStart: result.startDate,
-          normalizedEnd: result.endDate
-        };
-      } else {
-        durationMonths = Math.max(1, (endYear - startYear) * 12);
-      }
-    } else if (result.isCurrent) {
-      durationMonths = Math.max(1, (nowYear - startYear) * 12 + nowMonth);
-    }
-  }
-
-  return {
-    startDate: rawStart,
-    endDate: rawEnd,
-    current: result.isCurrent,
-    isDateUncertain: result.isDateUncertain,
-    dateWarning: result.dateWarning,
-    durationMonths,
-    originalDateText: result.originalDateText,
-    normalizedStart: result.startDate,
-    normalizedEnd: result.endDate
-  };
+  return [rawLine.trim()];
 }
 
 /**
- * Segments the employment history section out of full resume text.
- */
-export function segmentEmploymentSection(fullResumeText: string): { employmentText: string; sectionFound: boolean } {
-  if (!fullResumeText) return { employmentText: '', sectionFound: false };
-
-  // Match standard Employment / Experience section header
-  const sectionHeaderRegex = /(?:^|\n)\s*(?:(?:professional|work|career|employment|relevant)\s+)?(?:experience|employment\s+history|work\s+history)\b/i;
-  const match = fullResumeText.match(sectionHeaderRegex);
-
-  if (!match || match.index === undefined) {
-    return { employmentText: '', sectionFound: false };
-  }
-
-  const startIdx = match.index + match[0].length;
-  const remaining = fullResumeText.slice(startIdx);
-
-  // Find next section boundary
-  const nextSectionRegex = /(?:^|\n)\s*(?:education|academic\s+background|projects|key\s+projects|technical\s+skills|skills\s+(&|and)\s+competencies|skills|certifications|licenses|honors|awards|publications|languages|references|declarations?)\b/i;
-  const nextMatch = remaining.match(nextSectionRegex);
-
-  const employmentText = nextMatch && nextMatch.index !== undefined
-    ? remaining.slice(0, nextMatch.index)
-    : remaining;
-
-  return { employmentText: employmentText.trim(), sectionFound: true };
-}
-
-/**
- * Extracts and disambiguates employer, title, location, and dates from raw header line(s).
+ * Extracts and disambiguates employer, title, location, and dates from candidate header lines.
  */
 export function parseHeaderTokens(lines: string[]): {
   company: string;
@@ -545,15 +332,12 @@ export function parseHeaderTokens(lines: string[]): {
   let originalDateText = '';
   let isDateUncertain = true;
   let dateWarning: string | undefined = 'Employment dates not detected — Please verify.';
-
   const unconsumedLines: string[] = [];
 
-  // Inspect lines before the first bullet point for job header metadata (up to 5 lines)
+  // Collect up to 5 non-bullet header lines before responsibilities start
   const headerLines: string[] = [];
   for (const line of lines) {
-    if (isDescriptionOrBullet(line)) {
-      break;
-    }
+    if (isDescriptionOrBullet(line)) break;
     headerLines.push(line);
     if (headerLines.length >= 5) break;
   }
@@ -561,10 +345,10 @@ export function parseHeaderTokens(lines: string[]): {
     headerLines.push(lines[0]);
   }
 
-  // Look for dates across the candidate header lines
+  // 1. Extract dates across candidate header lines
   for (const hLine of headerLines) {
     const dateResult = extractDateRangeFromLine(hLine);
-    if (dateResult.found && !startDate && !originalDateText) {
+    if (dateResult.found && !originalDateText) {
       startDate = dateResult.startDate;
       endDate = dateResult.endDate;
       isCurrent = dateResult.isCurrent;
@@ -574,90 +358,138 @@ export function parseHeaderTokens(lines: string[]): {
     }
   }
 
-  // Process text without date string to extract company, role, location
-  const combinedHeaders = headerLines.map(l => {
-    const d = extractDateRangeFromLine(l);
-    return d.cleanedLine;
-  }).filter(l => l.length > 0 && !isInvalidToken(l) && !isDescriptionOrBullet(l));
+  // 2. Strip matched date tokens from header lines cleanly (preserving pure location lines so location can be parsed)
+  const cleanedHeaderLines = headerLines
+    .map((l) => extractDateRangeFromLine(l).cleanedLine)
+    .filter(
+      (l) =>
+        l.length > 0 &&
+        !isDescriptionOrBullet(l) &&
+        (!isInvalidToken(l) || (KNOWN_LOCATION_REGEX.test(l) && !hasCompanyIndicatorWord(l) && !hasTitleIndicatorWord(l)))
+    );
 
-  // Multi-column or delimited header line (e.g. "TCS | Senior Process Associate | Indore" or "Staff Engineer at TechCorp")
-  for (const rawLine of combinedHeaders) {
-    // Check if line matches "Role at Company" pattern
+  // 3. Classify every header segment into company, role, or location
+  for (const rawLine of cleanedHeaderLines) {
+    // Handle "Role at Company" or "Role @ Company" when no pipe delimiter
     const atMatch = rawLine.match(/^(.+?)\s+(?:at|@)\s+([^(\n]+?)(?:\s*\((.*?)\))?$/i);
     if (atMatch && !rawLine.includes('|')) {
       const candidateRole = atMatch[1].trim();
       const candidateCompany = atMatch[2].trim();
-      if (!isInvalidToken(candidateRole) && !isDescriptionOrBullet(candidateRole)) {
-        if (!role) role = candidateRole;
+      if (!isInvalidToken(candidateRole) && !isDescriptionOrBullet(candidateRole) && !role) {
+        role = candidateRole;
       }
-      if (!isInvalidToken(candidateCompany) && !isDescriptionOrBullet(candidateCompany)) {
-        if (!company) company = candidateCompany;
+      if (!isInvalidToken(candidateCompany) && !isDescriptionOrBullet(candidateCompany) && !company) {
+        company = candidateCompany;
+      }
+      if (atMatch[3] && KNOWN_LOCATION_REGEX.test(atMatch[3].trim()) && !location) {
+        location = cleanLocationValue(atMatch[3].trim());
       }
       continue;
     }
 
-    const segments = rawLine.split(/\s*[\/|•·]\s*|\s+[-–—]\s+/).map(s => s.trim()).filter(Boolean);
+    const segments = splitHeaderSegments(rawLine);
 
     for (const segment of segments) {
-      if (isInvalidToken(segment) || isDescriptionOrBullet(segment)) continue;
+      if (!segment || isDescriptionOrBullet(segment)) continue;
 
-      // Check if location (e.g. Indore, San Francisco, Remote)
-      if (/^(?:in\s+)?(indore|mumbai|bangalore|bengaluru|delhi|hyderabad|pune|chennai|kolkata|noida|gurugram|san francisco|new york|remote|hybrid|usa|india)[,\s\w]*$/i.test(segment)) {
-        if (!location) {
-          const locParts = segment.split(',').map(p => p.trim());
-          if (locParts.length > 1 && /^(india|usa|us|uk|united states|united kingdom)$/i.test(locParts[locParts.length - 1])) {
-            location = locParts[0];
-          } else {
-            location = segment;
+      // Check pure location BEFORE isInvalidToken
+      if (KNOWN_LOCATION_REGEX.test(segment) && !isLikelyCompany(segment) && !isLikelyTitle(segment)) {
+        if (!location) location = cleanLocationValue(segment);
+        continue;
+      }
+
+      if (isInvalidToken(segment)) continue;
+
+      // Check corporate indicator vs title indicator
+      const segIsCompany = isLikelyCompany(segment);
+      const segIsTitle = isLikelyTitle(segment);
+
+      // Handle comma-attached location inside segment: "ESP Softtech Pvt. Ltd., Indore"
+      if (segment.includes(',')) {
+        const commaParts = segment.split(',').map((p) => p.trim()).filter(Boolean);
+        const lastPart = commaParts[commaParts.length - 1];
+        if (commaParts.length >= 2 && KNOWN_LOCATION_REGEX.test(lastPart) && !isLikelyCompany(lastPart)) {
+          const core = commaParts.slice(0, -1).join(', ');
+          if (!location) location = cleanLocationValue(lastPart);
+          if (core && !isInvalidToken(core)) {
+            if (isLikelyCompany(core) && !company) {
+              company = core;
+              continue;
+            }
+            if (isLikelyTitle(core) && !role) {
+              role = core;
+              continue;
+            }
+            if (!company) {
+              company = core;
+              continue;
+            }
+            if (!role) {
+              role = core;
+              continue;
+            }
           }
+          continue;
         }
-        continue;
       }
 
-      // Check if company
-      if (isLikelyCompany(segment) && !company) {
-        company = segment;
-        continue;
-      }
-
-      // Check if title
-      if (isLikelyTitle(segment) && !role) {
-        role = segment;
-        continue;
-      }
-
-      // If domain term (e.g. "Supply Chain Operations"), append to role rather than company
-      if (DOMAIN_TERMS.some(d => segment.toLowerCase().includes(d))) {
+      // Domain practice terms attach to role, never become company
+      if (DOMAIN_TERMS.some((d) => segment.toLowerCase().includes(d)) && !segIsCompany) {
         if (role && !role.toLowerCase().includes(segment.toLowerCase())) {
-          role = `${role} - ${segment}`;
+          role = `${role} – ${segment}`;
         } else if (!role) {
           role = segment;
         }
         continue;
       }
 
-      // Assign by default if empty
-      if (!company && !isLikelyTitle(segment)) {
+      if (segIsCompany && !segIsTitle && !company) {
+        company = segment;
+        continue;
+      }
+
+      if (segIsTitle && !segIsCompany && !role) {
+        role = segment;
+        continue;
+      }
+
+      if (segIsCompany && segIsTitle) {
+        // Prefer role if no explicit legal corporate suffix (e.g. "Senior Software Services Lead" vs "Databricks Technologies Inc.")
+        if (LEGAL_COMPANY_SUFFIX_REGEX.test(segment) && !company) {
+          company = segment;
+          continue;
+        }
+        if (!role) {
+          role = segment;
+          continue;
+        }
+        if (!company) {
+          company = segment;
+          continue;
+        }
+      }
+
+      // Neutral ambiguous line ordering (Title first vs Company first)
+      if (!company && !segIsTitle) {
         company = segment;
       } else if (!role) {
         role = segment;
+      } else {
+        unconsumedLines.push(segment);
       }
     }
   }
 
-  // Clean company of trailing location or department if attached (e.g. "Tata Consultancy Services (TCS), Indore" -> company: "Tata Consultancy Services (TCS)", location: "Indore")
+  // Final cleanup on company comma-location suffix if any
   if (company.includes(',')) {
-    const parts = company.split(',').map(p => p.trim());
-    if (parts.length >= 2) {
-      const lastPart = parts[parts.length - 1];
-      if (/^(indore|mumbai|bangalore|bengaluru|delhi|hyderabad|pune|chennai|noida|gurugram|san francisco|new york|remote|hybrid|india|usa)$/i.test(lastPart)) {
-        company = parts.slice(0, parts.length - 1).join(', ');
-        if (!location) location = lastPart;
-      }
+    const parts = company.split(',').map((p) => p.trim()).filter(Boolean);
+    const lastPart = parts[parts.length - 1];
+    if (parts.length >= 2 && KNOWN_LOCATION_REGEX.test(lastPart) && !isLikelyCompany(lastPart)) {
+      company = parts.slice(0, -1).join(', ');
+      if (!location) location = cleanLocationValue(lastPart);
     }
   }
 
-  // Final sanity checks on company and role
   if (isInvalidToken(company) || isDescriptionOrBullet(company)) company = '';
   if (isInvalidToken(role) || isDescriptionOrBullet(role)) role = '';
 
@@ -671,155 +503,642 @@ export function parseHeaderTokens(lines: string[]): {
     originalDateText,
     isDateUncertain,
     dateWarning,
-    unconsumedLines
+    unconsumedLines,
+  };
+}
+
+function collectCleanResponsibilities(lines: string[], header: ReturnType<typeof parseHeaderTokens>): {
+  responsibilities: string[];
+  technologies: string[];
+} {
+  const rawDesc: string[] = [];
+  for (const line of lines) {
+    const d = extractDateRangeFromLine(line);
+    if (d.found && d.cleanedLine.length === 0) continue;
+    const trimmedClean = line.replace(/^[•●▪▸▹◦‣⁃\-*–—·\s]+/, '').trim();
+    if (!trimmedClean || isInvalidToken(trimmedClean)) continue;
+    if (
+      trimmedClean === header.company ||
+      trimmedClean === header.role ||
+      trimmedClean === `${header.company}, ${header.location}` ||
+      (header.location && (trimmedClean === header.location || cleanLocationValue(trimmedClean) === header.location))
+    ) {
+      continue;
+    }
+
+    // Merge lowercase continuation fragments onto the preceding responsibility sentence
+    const startsWithBullet = /^[•●▪▸▹◦‣⁃*]|^-\s+/.test(line.trim());
+    const startsLower = /^[a-z]/.test(trimmedClean);
+    if (!startsWithBullet && startsLower && rawDesc.length > 0) {
+      rawDesc[rawDesc.length - 1] = `${rawDesc[rawDesc.length - 1]} ${trimmedClean}`.replace(/\s+/g, ' ').trim();
+    } else {
+      rawDesc.push(trimmedClean);
+    }
+  }
+
+  const techSet = new Set<string>();
+  for (const r of rawDesc) {
+    const matches = r.match(TECH_TOKEN_REGEX) || [];
+    for (const m of matches) {
+      techSet.add(m.trim());
+    }
+  }
+
+  return {
+    responsibilities: rawDesc,
+    technologies: Array.from(techSet),
   };
 }
 
 /**
- * Parses raw text into discrete, structured employment history records.
+ * Checks whether a header candidate actually represents an employment heading
+ * (and NOT a narrative sentence, bullet fragment, or education/project item).
  */
-export function parseStructuralEmploymentHistory(resumeText: string): RawEmploymentRecord[] {
-  if (!resumeText || resumeText.trim().length === 0) {
-    return [];
+function canLineStartNewJobBlock(
+  line: string,
+  prevWasEmpty: boolean,
+  blockHasDate: boolean,
+  blockHasCompany: boolean,
+  blockHasTitle: boolean,
+  blockHasBullets: boolean,
+  block?: StructuredDocumentBlock
+): boolean {
+  if (!line || isInvalidToken(line)) return false;
+  if (isEducationOnlyLine(line)) return false;
+
+  const isBullet = isDescriptionOrBullet(line, block);
+  if (isBullet) return false;
+
+  const dateRes = extractDateRangeFromLine(line);
+  const cleanedLine = dateRes.cleanedLine;
+  const hasCompany = isLikelyCompany(cleanedLine || line);
+  const hasTitle = isLikelyTitle(cleanedLine || line);
+  const looksStructuredHeader =
+    dateRes.found ||
+    line.includes('|') ||
+    /\s+(?:at|@)\s+/i.test(line) ||
+    Boolean(block?.isHeading || block?.isBold || block?.isTableRow);
+
+  // Never split a job if the current line has no company, no title, and no date
+  if (!hasCompany && !hasTitle && !dateRes.found && !looksStructuredHeader) {
+    return false;
   }
 
-  const { employmentText } = segmentEmploymentSection(resumeText);
-  if (!employmentText) return [];
-
-  const rawLines = employmentText.split('\n').map(l => l.trim());
-
-  // Group lines into job blocks
-  // A new job block starts when we detect:
-  // 1. A blank line before a candidate header line
-  // 2. A date range on a line when the current block already contains a date range
-  // 3. A company name when the current block already contains a company and (date or title)
-  // 4. A job title when the current block already contains a title and (date or company)
-  const rawBlocks: string[][] = [];
-  let currentBlock: string[] = [];
-  let currentBlockHasDate = false;
-  let currentBlockHasCompany = false;
-  let currentBlockHasTitle = false;
-
-  for (let i = 0; i < rawLines.length; i++) {
-    const line = rawLines[i];
-    if (!line) {
-      continue;
-    }
-
-    const dateResult = extractDateRangeFromLine(line);
-    const hasCompany = isLikelyCompany(line);
-    const hasTitle = isLikelyTitle(line);
-    const isBullet = isDescriptionOrBullet(line);
-
-    let isNewJobHeader = false;
-
-    if (!isBullet && currentBlock.length > 0) {
-      const hadBlankLine = i > 0 && rawLines[i - 1] === '';
-
-      if (hadBlankLine && (hasCompany || hasTitle || dateResult.found)) {
-        isNewJobHeader = true;
-      } else if (dateResult.found && currentBlockHasDate) {
-        isNewJobHeader = true;
-      } else if (hasCompany && currentBlockHasCompany && (currentBlockHasDate || currentBlockHasTitle)) {
-        isNewJobHeader = true;
-      } else if (hasTitle && currentBlockHasTitle && (currentBlockHasDate || currentBlockHasCompany)) {
-        isNewJobHeader = true;
-      }
-    }
-
-    if (isNewJobHeader && currentBlock.length > 0) {
-      rawBlocks.push(currentBlock);
-      currentBlock = [line];
-      currentBlockHasDate = dateResult.found;
-      currentBlockHasCompany = hasCompany;
-      currentBlockHasTitle = hasTitle;
-    } else {
-      currentBlock.push(line);
-      if (dateResult.found) currentBlockHasDate = true;
-      if (hasCompany) currentBlockHasCompany = true;
-      if (hasTitle) currentBlockHasTitle = true;
-    }
+  // Once bullets have appeared under the current job, any subsequent valid header starts a new job
+  if (blockHasBullets && (hasCompany || hasTitle || dateRes.found || looksStructuredHeader)) {
+    return true;
   }
 
-  if (currentBlock.length > 0) {
-    rawBlocks.push(currentBlock);
+  if (prevWasEmpty && (hasCompany || hasTitle || dateRes.found)) {
+    return true;
   }
 
-  // Process each block into a verified RawEmploymentRecord
-  const records: RawEmploymentRecord[] = [];
-
-  for (const block of rawBlocks) {
-    if (block.length === 0) continue;
-
-    const header = parseHeaderTokens(block);
-    if (!header.company && !header.role) {
-      // Discard stray narrative blocks without recognizable employer or role
-      continue;
-    }
-
-    // Collect descriptions from subsequent lines
-    const descriptions: string[] = [];
-    for (let i = 1; i < block.length; i++) {
-      const line = block[i];
-      const d = extractDateRangeFromLine(line);
-      if (d.found && d.cleanedLine.length === 0) continue;
-      if (line === header.company || line === header.role) continue;
-      if (!isInvalidToken(line)) {
-        descriptions.push(line.replace(/^[•\-*–—·\s]+/, '').trim());
-      }
-    }
-
-    // Calculate confidence
-    let confidence = 50;
-    const fieldConfidence = {
-      company: header.company ? 90 : 0,
-      job_title: header.role ? 90 : 0,
-      start_date: header.startDate ? 95 : 0,
-      end_date: (header.endDate || header.isCurrent) ? 95 : 0,
-      location: header.location ? 85 : 0
-    };
-
-    if (header.company && header.role) confidence += 30;
-    if (header.startDate && (header.endDate || header.isCurrent)) confidence += 20;
-
-    const needsVerification = !header.company || !header.role || !header.startDate || (!header.endDate && !header.isCurrent);
-
-    records.push({
-      company: header.company || 'Employer not detected',
-      job_title: header.role || 'Title not detected',
-      location: header.location || '',
-      employment_type: null,
-      start_date: header.startDate,
-      end_date: header.endDate,
-      is_current: header.isCurrent,
-      original_date_text: header.originalDateText,
-      description: descriptions,
-      source_text: block.join('\n'),
-      confidence,
-      needs_verification: needsVerification,
-      field_confidence: fieldConfidence
-    });
+  if (dateRes.found && blockHasDate) {
+    return true;
   }
 
-  return deduplicateEmploymentRecords(records);
+  if (hasCompany && blockHasCompany && (blockHasDate || blockHasTitle)) {
+    return true;
+  }
+
+  if (hasTitle && blockHasTitle && (blockHasDate || blockHasCompany)) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
- * Deduplicates employment records while preserving promotions at the same company.
+ * Computes confidence category truthfully based on verified field completeness & warnings.
+ */
+export function computeConfidenceCategory(
+  score: number,
+  needsVerification: boolean,
+  warnings: string[]
+): ConfidenceCategory {
+  if (warnings.some((w) => /chronological|unverified|missing start|hallucinated/i.test(w))) {
+    return 'Needs review';
+  }
+  if (score >= 85 && !needsVerification) return 'High confidence';
+  if (score >= 65) return 'Medium confidence';
+  if (score >= 45) return 'Low confidence';
+  return 'Needs review';
+}
+
+/**
+ * Normalizes company / title strings for duplicate/split-fragment detection.
+ */
+function normalizeEntityKey(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\b(?:pvt\.?|ltd\.?|limited|inc\.?|incorporated|corp\.?|llc|llp|solutions)\b/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+/**
+ * Grounds AI or heuristic candidate records against the actual extracted resume text,
+ * removes fabricated dates (e.g. "2022–Present" not present in source text), drops bullet
+ * hallucinations, merges fragmented duplicate pieces, and assigns confidence categories.
+ */
+export function validateAndMergeEmploymentRecords(
+  candidates: RawEmploymentRecord[],
+  fullResumeText: string
+): RawEmploymentRecord[] {
+  const lowerFull = (fullResumeText || '').toLowerCase();
+  const hasPresentMarkerInSource = /\b(?:present|current|currently|ongoing|till\s*date|to\s*date)\b/i.test(fullResumeText);
+  const validated: RawEmploymentRecord[] = [];
+
+  for (const raw of candidates) {
+    const company = (raw.company || '').trim();
+    const role = (raw.job_title || '').trim();
+
+    // Reject records whose title or company is actually a bullet fragment or education entry
+    if (
+      (isDescriptionOrBullet(company) && !isLikelyCompany(company)) ||
+      (isDescriptionOrBullet(role) && !isLikelyTitle(role)) ||
+      (!company && !role) ||
+      (isInvalidToken(company) && isInvalidToken(role)) ||
+      isEducationOnlyLine(`${company} ${role}`)
+    ) {
+      continue;
+    }
+
+    const warnings = new Set<string>(raw.validation_warnings || []);
+    let startDate = raw.start_date;
+    let endDate = raw.end_date;
+    let isCurrent = Boolean(raw.is_current);
+    let originalDateText = raw.original_date_text || '';
+
+    // Anti-hallucination date grounding against actual resume source text
+    if (fullResumeText.trim().length > 0) {
+      if (startDate) {
+        const startYear = startDate.slice(0, 4);
+        if (/^\d{4}$/.test(startYear) && !lowerFull.includes(startYear)) {
+          warnings.add(`Unverified start date "${startDate}" removed — not grounded in resume source.`);
+          startDate = null;
+        }
+      }
+      if (isCurrent && !hasPresentMarkerInSource) {
+        warnings.add(`Unverified "Present" end date removed — no current-role indicator in resume source.`);
+        isCurrent = false;
+      }
+      if (endDate && !isCurrent) {
+        const endYear = endDate.slice(0, 4);
+        if (/^\d{4}$/.test(endYear) && !lowerFull.includes(endYear)) {
+          warnings.add(`Unverified end date "${endDate}" removed — not grounded in resume source.`);
+          endDate = null;
+        }
+      }
+    }
+
+    if (startDate && endDate && startDate > endDate) {
+      warnings.add(`Chronological error: start date (${startDate}) exceeds end date (${endDate}).`);
+    }
+
+    const hasRealCompany = Boolean(company && company !== 'Employer not detected' && !isInvalidToken(company));
+    const hasRealRole = Boolean(role && role !== 'Title not detected' && !isInvalidToken(role));
+    const hasValidDates = Boolean(startDate && (endDate || isCurrent));
+
+    if (!startDate && !endDate && !isCurrent) {
+      warnings.add('Employment dates not detected — Please review.');
+    } else if (!startDate) {
+      warnings.add('Start date missing — Please review.');
+    } else if (!endDate && !isCurrent) {
+      warnings.add('End date missing — Please review.');
+    }
+
+    let confidence = 35;
+    if (hasRealCompany) confidence += 25;
+    if (hasRealRole) confidence += 20;
+    if (hasValidDates) confidence += 20;
+    else if (startDate) confidence += 8;
+    confidence = Math.max(10, Math.min(100, confidence - Math.min(30, warnings.size * 12)));
+
+    const needsVerification = !hasRealCompany || !hasRealRole || !hasValidDates || warnings.size > 0;
+    const confidenceCategory = computeConfidenceCategory(confidence, needsVerification, Array.from(warnings));
+
+    const cleanDescriptions = (raw.description || [])
+      .map((d) => d.trim())
+      .filter((d) => d.length > 0 && !isInvalidToken(d));
+
+    const sourceEvidence =
+      raw.source_evidence && raw.source_evidence.length > 0
+        ? raw.source_evidence
+        : raw.source_text
+          ? raw.source_text.split('\n').map((s) => s.trim()).filter(Boolean)
+          : [];
+
+    validated.push({
+      ...raw,
+      company: hasRealCompany ? company : 'Employer not detected',
+      job_title: hasRealRole ? role : 'Title not detected',
+      start_date: startDate,
+      end_date: isCurrent ? null : endDate,
+      is_current: isCurrent,
+      original_date_text: originalDateText,
+      description: cleanDescriptions,
+      responsibilities: raw.responsibilities || cleanDescriptions,
+      source_evidence: sourceEvidence,
+      confidence,
+      confidence_category: confidenceCategory,
+      needs_verification: needsVerification,
+      validation_warnings: Array.from(warnings),
+    });
+  }
+
+  return deduplicateEmploymentRecords(validated);
+}
+
+/**
+ * Deduplicates exact duplicates and merges split fragments of the same role while preserving
+ * distinct promotions at the same employer cleanly.
  */
 export function deduplicateEmploymentRecords(records: RawEmploymentRecord[]): RawEmploymentRecord[] {
-  const seen = new Set<string>();
   const unique: RawEmploymentRecord[] = [];
 
   for (const rec of records) {
-    // A unique record is identified by normalized company, normalized role, and normalized start date
-    const key = `${rec.company.toLowerCase().trim()}|${rec.job_title.toLowerCase().trim()}|${rec.start_date || ''}`;
+    const compKey = normalizeEntityKey(rec.company);
+    const roleKey = normalizeEntityKey(rec.job_title);
 
-    if (!seen.has(key)) {
-      seen.add(key);
+    const existingIdx = unique.findIndex((existing) => {
+      const eComp = normalizeEntityKey(existing.company);
+      const eRole = normalizeEntityKey(existing.job_title);
+
+      // Case 1: Exact normalized match on company + role + start_date
+      if (eComp === compKey && eRole === roleKey && (existing.start_date || '') === (rec.start_date || '')) {
+        return true;
+      }
+
+      // Case 2: Split fragment merge (same company + same/missing complementary date/title + overlapping tenure)
+      const sameCompany = compKey && eComp && (eComp === compKey || eComp.includes(compKey) || compKey.includes(eComp));
+      const oneTitleMissing =
+        rec.job_title === 'Title not detected' || existing.job_title === 'Title not detected';
+      const sameRole = eRole === roleKey;
+      const datesCompatible =
+        (!rec.start_date && !rec.end_date) ||
+        (!existing.start_date && !existing.end_date) ||
+        doDateIntervalsOverlap(
+          existing.start_date,
+          existing.end_date,
+          existing.is_current,
+          rec.start_date,
+          rec.end_date,
+          rec.is_current
+        );
+
+      if (sameCompany && oneTitleMissing && datesCompatible) {
+        return true;
+      }
+      if (sameCompany && sameRole && datesCompatible && existing.start_date === rec.start_date) {
+        return true;
+      }
+
+      return false;
+    });
+
+    if (existingIdx === -1) {
       unique.push(rec);
+    } else {
+      // Merge richer fields and responsibilities instead of silently dropping information
+      const target = unique[existingIdx];
+      const mergedDesc = Array.from(new Set([...target.description, ...rec.description]));
+      const mergedResp = Array.from(
+        new Set([...(target.responsibilities || target.description), ...(rec.responsibilities || rec.description)])
+      );
+      const mergedTech = Array.from(new Set([...(target.technologies || []), ...(rec.technologies || [])]));
+      const mergedEvidence = Array.from(new Set([...(target.source_evidence || []), ...(rec.source_evidence || [])]));
+
+      unique[existingIdx] = {
+        ...target,
+        company: target.company !== 'Employer not detected' ? target.company : rec.company,
+        job_title: target.job_title !== 'Title not detected' ? target.job_title : rec.job_title,
+        location: target.location || rec.location,
+        start_date: target.start_date || rec.start_date,
+        end_date: target.end_date || rec.end_date,
+        is_current: target.is_current || rec.is_current,
+        original_date_text: target.original_date_text || rec.original_date_text,
+        description: mergedDesc,
+        responsibilities: mergedResp,
+        technologies: mergedTech,
+        source_evidence: mergedEvidence,
+        source_text: [target.source_text, rec.source_text].filter(Boolean).join('\n'),
+        confidence: Math.max(target.confidence, rec.confidence),
+      };
     }
   }
 
   return unique;
+}
+
+/**
+ * Converts a validated RawEmploymentRecord to the persisted UserProfile ExperienceItem format.
+ */
+export function toExperienceItem(rec: RawEmploymentRecord, index: number): ExperienceItem {
+  const displayStart = rec.start_date || '';
+  const displayEnd = rec.is_current ? 'Present' : (rec.end_date || '');
+  const respList = (rec.responsibilities && rec.responsibilities.length > 0 ? rec.responsibilities : rec.description) || [];
+
+  return {
+    id: `exp_${Date.now()}_${index}`,
+    company: rec.company,
+    role: rec.job_title,
+    startDate: displayStart,
+    endDate: displayEnd,
+    current: rec.is_current,
+    location: rec.location || '',
+    description: respList.join(' • '),
+    achievements: respList.slice(0, 5),
+    responsibilities: respList,
+    technologies: rec.technologies || [],
+    verifiedSkillsUsed: rec.technologies || [],
+    isDateUncertain: Boolean(!rec.start_date || (!rec.end_date && !rec.is_current)),
+    dateWarning:
+      !rec.start_date || (!rec.end_date && !rec.is_current)
+        ? (rec.validation_warnings?.[0] || 'Dates incomplete — Please verify.')
+        : undefined,
+    originalDateText: rec.original_date_text,
+    confidence: rec.confidence,
+    confidenceCategory: rec.confidence_category || computeConfidenceCategory(rec.confidence, rec.needs_verification, rec.validation_warnings || []),
+    needsVerification: rec.needs_verification,
+    sourceText: rec.source_text,
+    sourceEvidence: rec.source_evidence || rec.source_text.split('\n').filter(Boolean),
+    validationWarnings: rec.validation_warnings || [],
+    extractionVersion: 'universal-v2',
+    employmentType: rec.employment_type,
+  };
+}
+
+/**
+ * Parses resume text (or StructuredDocumentBlocks) into discrete, evidence-grounded employment records.
+ */
+export function parseStructuralEmploymentHistory(
+  resumeText: string,
+  blocks?: StructuredDocumentBlock[]
+): RawEmploymentRecord[] {
+  if (!resumeText || resumeText.trim().length === 0) {
+    return [];
+  }
+
+  const structured = structureResumeDocument(resumeText, blocks);
+  if (structured.employmentSections.length === 0) {
+    return [];
+  }
+
+  const records: RawEmploymentRecord[] = [];
+
+  for (const section of structured.employmentSections) {
+    // Reconstruct blank-line aware line list inside section from original normalized text lines where helpful
+    const sectionBlocks = section.blocks;
+    const rawLines = section.lines;
+    const isInternshipSection = section.type === 'internships';
+
+    // Map back any blank-line gaps between original text lines cleanly in sequential order
+    const allNormRawLines = resumeText.replace(/\r\n/g, '\n').split('\n').map((l) => l.trim());
+    const blankPrecededLines = new Set<number>();
+    let searchCursor = 0;
+    for (let k = 0; k < rawLines.length; k++) {
+      let foundIdx = -1;
+      for (let j = searchCursor; j < allNormRawLines.length; j++) {
+        if (allNormRawLines[j] && normalizeResumeTextLines(allNormRawLines[j])[0] === rawLines[k]) {
+          foundIdx = j;
+          break;
+        }
+      }
+      if (foundIdx !== -1) {
+        if (foundIdx > 0 && allNormRawLines[foundIdx - 1] === '') {
+          blankPrecededLines.add(k);
+        }
+        searchCursor = foundIdx + 1;
+      }
+    }
+
+    const jobGroups: Array<{ lines: string[]; blocks: StructuredDocumentBlock[] }> = [];
+    let currLines: string[] = [];
+    let currBlocks: StructuredDocumentBlock[] = [];
+    let blockHasDate = false;
+    let blockHasCompany = false;
+    let blockHasTitle = false;
+    let blockHasBullets = false;
+
+    for (let i = 0; i < rawLines.length; i++) {
+      const line = rawLines[i];
+      const blk = sectionBlocks[i];
+      if (!line) continue;
+
+      const isBullet = isDescriptionOrBullet(line, blk);
+      const dateRes = extractDateRangeFromLine(line);
+      const headerPart = dateRes.cleanedLine || line;
+      const hasCompany = !isBullet && isLikelyCompany(headerPart);
+      const hasTitle = !isBullet && isLikelyTitle(headerPart);
+
+      const shouldSplit =
+        currLines.length > 0 &&
+        canLineStartNewJobBlock(
+          line,
+          blankPrecededLines.has(i),
+          blockHasDate,
+          blockHasCompany,
+          blockHasTitle,
+          blockHasBullets,
+          blk
+        );
+
+      if (shouldSplit) {
+        jobGroups.push({ lines: currLines, blocks: currBlocks });
+        currLines = [line];
+        currBlocks = blk ? [blk] : [];
+        blockHasDate = dateRes.found;
+        blockHasCompany = hasCompany;
+        blockHasTitle = hasTitle;
+        blockHasBullets = isBullet;
+      } else {
+        currLines.push(line);
+        if (blk) currBlocks.push(blk);
+        if (dateRes.found) blockHasDate = true;
+        if (hasCompany) blockHasCompany = true;
+        if (hasTitle) blockHasTitle = true;
+        if (isBullet) blockHasBullets = true;
+      }
+    }
+
+    if (currLines.length > 0) {
+      jobGroups.push({ lines: currLines, blocks: currBlocks });
+    }
+
+    for (const group of jobGroups) {
+      const header = parseHeaderTokens(group.lines);
+
+      // Inherit employer ONLY for nested promotion rows that explicitly carry a Title + Date without a new company
+      if (
+        !header.company &&
+        header.role &&
+        header.startDate &&
+        records.length > 0 &&
+        records[records.length - 1].company !== 'Employer not detected' &&
+        isLikelyTitle(header.role)
+      ) {
+        header.company = records[records.length - 1].company;
+      }
+
+      // In headerless fallback mode, require date-anchored or strongly qualified records so preamble/contact lines never turn into fake jobs
+      if (
+        structured.usedHeaderlessFallback &&
+        !header.startDate &&
+        !header.endDate &&
+        !header.isCurrent
+      ) {
+        continue;
+      }
+
+      if (!header.company && !header.role) {
+        continue;
+      }
+
+      const { responsibilities, technologies } = collectCleanResponsibilities(group.lines, header);
+      const employmentType = isInternshipSection || /\bintern(?:ship)?\b/i.test(header.role) ? 'internship' : null;
+
+      records.push({
+        company: header.company || 'Employer not detected',
+        job_title: header.role || 'Title not detected',
+        location: header.location || '',
+        employment_type: employmentType,
+        start_date: header.startDate,
+        end_date: header.endDate,
+        is_current: header.isCurrent,
+        original_date_text: header.originalDateText,
+        description: responsibilities,
+        responsibilities,
+        technologies,
+        source_text: group.lines.join('\n'),
+        source_evidence: group.lines,
+        confidence: 0, // computed accurately in validateAndMergeEmploymentRecords
+        needs_verification: false,
+      });
+    }
+  }
+
+  return validateAndMergeEmploymentRecords(records, resumeText);
+}
+
+/**
+ * Builds clean section-annotated prompt context for LLM structuring so section boundaries
+ * and tabular lines are preserved instead of truncation into flat unsegmented prose.
+ */
+export function buildStructuredResumePromptContext(
+  resumeText: string,
+  blocks?: StructuredDocumentBlock[],
+  maxChars = 16000
+): string {
+  const structured = structureResumeDocument(resumeText, blocks);
+  if (structured.sections.length === 0) {
+    return resumeText.slice(0, maxChars);
+  }
+  const chunks = structured.sections.map((sec) => {
+    const headerLabel = `=== SECTION: ${sec.type.toUpperCase()} (${sec.heading}) ===`;
+    return `${headerLabel}\n${sec.lines.join('\n')}`;
+  });
+  return chunks.join('\n\n').slice(0, maxChars);
+}
+
+/**
+ * Post-AI validator and repair pipeline shared between Node/Express and Cloudflare Workers:
+ * 1. Normalizes raw LLM experience records through date & source grounding validators
+ * 2. Strips bullet fragments mistaken for employers/titles and unverified dates ("2022–Present")
+ * 3. Recovers deterministically from structural parser when AI misses genuine jobs or fails
+ */
+export function normalizeAndValidateAiExperiences(
+  rawAiExperiences: unknown[],
+  resumeText: string,
+  blocks?: StructuredDocumentBlock[]
+): { experiences: ExperienceItem[]; warnings: string[] } {
+  const warnings: string[] = [];
+
+  const candidates: RawEmploymentRecord[] = Array.isArray(rawAiExperiences)
+    ? rawAiExperiences
+        .filter((exp: any) => exp && (exp.company || exp.role))
+        .map((exp: any): RawEmploymentRecord => {
+          const rawStart = exp.startDate ? String(exp.startDate).trim() : '';
+          const rawEnd = exp.endDate ? String(exp.endDate).trim() : '';
+          const isCurrent = Boolean(exp.current) || isCurrentKeyword(rawEnd);
+          const dateExpr = rawStart
+            ? (rawEnd || isCurrent ? `${rawStart} - ${isCurrent ? 'Present' : rawEnd}` : rawStart)
+            : (exp.period ? String(exp.period) : (isCurrent ? 'Present' : ''));
+          const dateRes = parseEmploymentDates(dateExpr);
+
+          const respList: string[] = Array.isArray(exp.responsibilities)
+            ? exp.responsibilities.map((r: any) => String(r).trim()).filter(Boolean)
+            : Array.isArray(exp.achievements)
+              ? exp.achievements.map((r: any) => String(r).trim()).filter(Boolean)
+              : exp.description
+                ? String(exp.description).split(/\s*[•\n]\s*/).map((s) => s.trim()).filter(Boolean)
+                : [];
+
+          const evidenceList: string[] = Array.isArray(exp.sourceEvidence)
+            ? exp.sourceEvidence.map((s: any) => String(s).trim()).filter(Boolean)
+            : [];
+
+          const techList: string[] = Array.isArray(exp.verifiedSkillsUsed)
+            ? exp.verifiedSkillsUsed.map((s: any) => String(s).trim()).filter(Boolean)
+            : Array.isArray(exp.technologies)
+              ? exp.technologies.map((s: any) => String(s).trim()).filter(Boolean)
+              : [];
+
+          return {
+            company: String(exp.company || '').trim(),
+            job_title: String(exp.role || '').trim(),
+            location: String(exp.location || '').trim(),
+            employment_type: exp.employmentType ? String(exp.employmentType) : null,
+            start_date: dateRes.normalizedStart || (rawStart ? normalizeDateToken(rawStart) || rawStart : null),
+            end_date: isCurrent ? null : (dateRes.normalizedEnd || (rawEnd ? normalizeDateToken(rawEnd) || rawEnd : null)),
+            is_current: dateRes.current || isCurrent,
+            original_date_text: dateRes.originalDateText || dateExpr,
+            description: respList,
+            responsibilities: respList,
+            technologies: techList,
+            source_text: evidenceList.join('\n') || `${exp.company || ''} ${exp.role || ''} ${dateExpr}`.trim(),
+            source_evidence: evidenceList,
+            confidence: 0,
+            needs_verification: dateRes.isDateUncertain,
+            validation_warnings: dateRes.dateWarning ? [dateRes.dateWarning] : [],
+          };
+        })
+    : [];
+
+  let validated = validateAndMergeEmploymentRecords(candidates, resumeText);
+
+  // Structural reconciliation: if AI dropped legitimate jobs OR returned empty while resume has structural jobs
+  const structural = parseStructuralEmploymentHistory(resumeText, blocks);
+  if (validated.length === 0 && structural.length > 0) {
+    warnings.push('AI output contained no grounded employment records; recovered via structural parser.');
+    validated = structural;
+  } else if (structural.length > validated.length) {
+    for (const sRec of structural) {
+      const sKey = normalizeEntityKey(sRec.company);
+      const alreadyPresent = validated.some((vRec) => {
+        const vKey = normalizeEntityKey(vRec.company);
+        return vKey && sKey && (vKey === sKey || vKey.includes(sKey) || sKey.includes(vKey));
+      });
+      if (!alreadyPresent && sRec.company !== 'Employer not detected') {
+        warnings.push(`Recovered omitted employer "${sRec.company}" via structural verification.`);
+        validated.push(sRec);
+      }
+    }
+    validated = deduplicateEmploymentRecords(validated);
+  }
+
+  for (const rec of validated) {
+    if (rec.needs_verification || (rec.validation_warnings && rec.validation_warnings.length > 0)) {
+      warnings.push(
+        `${rec.company !== 'Employer not detected' ? rec.company : rec.job_title}: ${
+          rec.validation_warnings?.[0] || 'Requires manual date or title verification.'
+        }`
+      );
+    }
+  }
+
+  return {
+    experiences: validated.map((rec, idx) => toExperienceItem(rec, idx)),
+    warnings,
+  };
 }

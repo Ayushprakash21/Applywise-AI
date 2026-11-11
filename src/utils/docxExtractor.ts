@@ -4,6 +4,7 @@
 
 import JSZip from 'jszip';
 import mammoth from 'mammoth';
+import type { StructuredDocumentBlock } from '../types';
 
 export const MAX_RESUME_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -181,6 +182,137 @@ function decodeXmlEntities(input: string): string {
     .replace(/&amp;/g, '&');
 }
 
+function parseWordParagraphXml(
+  pInner: string,
+  index: number,
+  sourcePart: string
+): StructuredDocumentBlock | null {
+  const pPrMatch = pInner.match(/<w:pPr\b[^>]*>([\s\S]*?)<\/w:pPr>/i);
+  const pPr = pPrMatch?.[1] || '';
+
+  const hasNumPr = /<w:numPr\b/i.test(pPr);
+  const styleMatch = pPr.match(/<w:pStyle\b[^>]*w:val=["']([^"']+)["']/i);
+  const styleName = styleMatch?.[1] || '';
+  const isHeading = /^(Heading|Title|Subtitle|Section)/i.test(styleName);
+
+  // Check if runs in the paragraph carry bold styling (excluding explicit bold=0/false)
+  const rMatches = Array.from(pInner.matchAll(/<w:r\b[^>]*>([\s\S]*?)<\/w:r>/gi));
+  let isBold = false;
+  if (rMatches.length > 0) {
+    const textRuns = rMatches.filter((m) => /<w:t\b/i.test(m[1]));
+    if (textRuns.length > 0) {
+      isBold = textRuns.every(
+        (m) => /<w:b(?:\s+w:val=["'](?:true|1)["'])?\s*\/?>/i.test(m[1]) &&
+          !/<w:b\s+w:val=["'](?:false|0)["']\s*\/?>/i.test(m[1])
+      );
+    }
+  } else if (/<w:b(?:\s+w:val=["'](?:true|1)["'])?\s*\/?>/i.test(pPr)) {
+    isBold = true;
+  }
+
+  // Preserve tabs, line breaks, and <w:t> runs in document order
+  const tokenized = pInner
+    .replace(/<w:tab\s*\/>/gi, '\t')
+    .replace(/<w:(?:br|cr)\b[^>]*\/>/gi, '\n')
+    .replace(/<w:t\b[^>]*>([\s\S]*?)<\/w:t>/gi, (_m, t) => decodeXmlEntities(t))
+    .replace(/<[^>]+>/g, '');
+
+  const rawText = tokenized.replace(/\r/g, '').trim();
+  if (!rawText) return null;
+
+  const startsWithBullet = /^[•●▪▸▹◦‣⁃\-–—*]\s+/.test(rawText) || /^\d+[.)]\s+/.test(rawText);
+  const isBullet = hasNumPr || startsWithBullet;
+  const text = hasNumPr && !startsWithBullet ? `• ${rawText}` : rawText;
+
+  return {
+    id: `${sourcePart}_blk_${index}`,
+    text,
+    index,
+    isBullet,
+    isHeading,
+    isBold,
+    isTableRow: false,
+    sourcePart,
+  };
+}
+
+/**
+ * Extracts structured WordprocessingML blocks (paragraphs, list numbering, headings,
+ * bold lines, and table cells) in document order without losing <w:numPr> bullets
+ * or <w:tr>/<w:tc> table structure.
+ */
+export function extractStructuredWordXmlBlocks(
+  xmlString: string,
+  sourcePart = 'document.xml'
+): StructuredDocumentBlock[] {
+  if (!xmlString) return [];
+
+  // Remove deleted track-changes & instruction text to avoid extracting field codes
+  const cleaned = xmlString
+    .replace(/<w:delText\b[^>]*>[\s\S]*?<\/w:delText>/gi, '')
+    .replace(/<w:instrText\b[^>]*>[\s\S]*?<\/w:instrText>/gi, '');
+
+  const blocks: StructuredDocumentBlock[] = [];
+  const tokenRegex = /(<w:tr\b[^>]*>[\s\S]*?<\/w:tr>)|(<w:p\b[^>]*>[\s\S]*?<\/w:p>)/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = tokenRegex.exec(cleaned)) !== null) {
+    if (match[1]) {
+      // Table row: inspect cells cleanly without duplicating inner <w:p>
+      const rowXml = match[1];
+      const cellParagraphs: StructuredDocumentBlock[][] = [];
+      const tcRegex = /<w:tc\b[^>]*>([\s\S]*?)<\/w:tc>/gi;
+      let tcMatch: RegExpExecArray | null;
+
+      while ((tcMatch = tcRegex.exec(rowXml)) !== null) {
+        const cellBlocks: StructuredDocumentBlock[] = [];
+        const pRegex = /<w:p\b[^>]*>([\s\S]*?)<\/w:p>/gi;
+        let pMatch: RegExpExecArray | null;
+        while ((pMatch = pRegex.exec(tcMatch[1])) !== null) {
+          const parsed = parseWordParagraphXml(pMatch[1], blocks.length, sourcePart);
+          if (parsed) cellBlocks.push(parsed);
+        }
+        cellParagraphs.push(cellBlocks);
+      }
+
+      const nonEmptyCells = cellParagraphs.filter((c) => c.length > 0);
+      if (nonEmptyCells.length === 0) continue;
+
+      const isSingleLinePerCell = nonEmptyCells.every((c) => c.length === 1);
+      if (isSingleLinePerCell && nonEmptyCells.length > 1) {
+        const tableCells = nonEmptyCells.map((c) => c[0].text);
+        const rowText = tableCells.join(' | ');
+        blocks.push({
+          id: `${sourcePart}_row_${blocks.length}`,
+          text: rowText,
+          index: blocks.length,
+          isBullet: false,
+          isHeading: nonEmptyCells.every((c) => c[0].isHeading),
+          isBold: nonEmptyCells.every((c) => c[0].isBold),
+          isTableRow: true,
+          tableCells,
+          sourcePart,
+        });
+      } else {
+        // Multi-paragraph table columns (e.g. 2-column resume sidebar layout)
+        for (const cell of nonEmptyCells) {
+          for (const b of cell) {
+            blocks.push({
+              ...b,
+              index: blocks.length,
+            });
+          }
+        }
+      }
+    } else if (match[2]) {
+      const parsed = parseWordParagraphXml(match[2], blocks.length, sourcePart);
+      if (parsed) blocks.push(parsed);
+    }
+  }
+
+  return blocks;
+}
+
 /**
  * Deterministic pure-JS OpenXML WordprocessingML extractor for headers, footers,
  * tables (<w:tr>/<w:tc>), textboxes, and paragraph fallback.
@@ -188,33 +320,14 @@ function decodeXmlEntities(input: string): string {
 export function extractWordXmlText(xmlString: string): string {
   if (!xmlString) return '';
 
-  // Remove deleted track-changes & instruction text to avoid extracting field codes
+  const blocks = extractStructuredWordXmlBlocks(xmlString);
+  if (blocks.length > 0) {
+    return blocks.map((b) => b.text).join('\n');
+  }
+
   const cleaned = xmlString
     .replace(/<w:delText\b[^>]*>[\s\S]*?<\/w:delText>/gi, '')
     .replace(/<w:instrText\b[^>]*>[\s\S]*?<\/w:instrText>/gi, '');
-
-  const paragraphs: string[] = [];
-  const pRegex = /<w:p\b[^>]*>([\s\S]*?)<\/w:p>/gi;
-  let pMatch: RegExpExecArray | null;
-
-  while ((pMatch = pRegex.exec(cleaned)) !== null) {
-    const pInner = pMatch[1];
-    // Preserve tabs, line breaks, and <w:t> runs in document order
-    const tokenized = pInner
-      .replace(/<w:tab\s*\/>/gi, '\t')
-      .replace(/<w:(?:br|cr)\b[^>]*\/>/gi, '\n')
-      .replace(/<w:t\b[^>]*>([\s\S]*?)<\/w:t>/gi, (_m, t) => decodeXmlEntities(t))
-      .replace(/<[^>]+>/g, '');
-
-    const trimmed = tokenized.replace(/\r/g, '').trim();
-    if (trimmed) {
-      paragraphs.push(trimmed);
-    }
-  }
-
-  if (paragraphs.length > 0) {
-    return paragraphs.join('\n');
-  }
 
   // Inline fallback if text is wrapped in non-standard runs outside <w:p>
   const runs: string[] = [];
@@ -256,6 +369,7 @@ function resolveMainDocumentPath(relsXml: string | null, zip: JSZip): string | n
 
 export interface DocxExtractionResult {
   text: string;
+  blocks?: StructuredDocumentBlock[];
   isScanned: boolean;
   format: 'docx';
   errorCode?: ResumeExtractionErrorCode;
@@ -352,11 +466,24 @@ export async function extractDocxResumeText(input: ArrayBuffer | Uint8Array | Bu
     mammothFailedMsg = err instanceof Error ? err.message : String(err);
   }
 
-  // Direct XML extraction for word/document.xml (fallback if Mammoth failed or missed textboxes) + headers/footers
+  // Direct XML extraction for word/document.xml (preserves <w:numPr> bullets, <w:tr>/<w:tc> tables, bold/heading hints & textboxes)
   const mainXml = await zip.file(mainDocPath)!.async('text').catch(() => '');
-  const xmlBodyText = extractWordXmlText(mainXml);
+  const mainBlocks = extractStructuredWordXmlBlocks(mainXml, mainDocPath);
+  const xmlBodyText = mainBlocks.length > 0 ? mainBlocks.map((b) => b.text).join('\n') : extractWordXmlText(mainXml);
 
-  if (!bodyText || (xmlBodyText.length > bodyText.length + 25 && !bodyText.includes(xmlBodyText.slice(0, 30)))) {
+  const xmlPreservesLostBullets =
+    mainBlocks.some((b) => b.isBullet && b.text.startsWith('• ')) &&
+    !bodyText.includes('• ');
+  const xmlPreservesLostTables =
+    mainBlocks.some((b) => b.isTableRow) &&
+    !bodyText.includes(' | ');
+
+  if (
+    !bodyText ||
+    xmlPreservesLostBullets ||
+    xmlPreservesLostTables ||
+    (xmlBodyText.length > bodyText.length + 25 && !bodyText.includes(xmlBodyText.slice(0, 30)))
+  ) {
     bodyText = xmlBodyText || bodyText;
   }
 
@@ -369,22 +496,33 @@ export async function extractDocxResumeText(input: ArrayBuffer | Uint8Array | Bu
     .sort();
 
   const headerLines: string[] = [];
+  const headerBlocks: StructuredDocumentBlock[] = [];
   for (const hk of headerKeys) {
     const hXml = await zip.file(hk)?.async('text').catch(() => '');
-    const hText = extractWordXmlText(hXml || '');
+    const hBlocks = extractStructuredWordXmlBlocks(hXml || '', hk);
+    const hText = hBlocks.length > 0 ? hBlocks.map((b) => b.text).join('\n') : extractWordXmlText(hXml || '');
     if (hText && !bodyText.includes(hText)) {
       headerLines.push(hText);
+      headerBlocks.push(...hBlocks);
     }
   }
 
   const footerLines: string[] = [];
+  const footerBlocks: StructuredDocumentBlock[] = [];
   for (const fk of footerKeys) {
     const fXml = await zip.file(fk)?.async('text').catch(() => '');
-    const fText = extractWordXmlText(fXml || '');
+    const fBlocks = extractStructuredWordXmlBlocks(fXml || '', fk);
+    const fText = fBlocks.length > 0 ? fBlocks.map((b) => b.text).join('\n') : extractWordXmlText(fXml || '');
     if (fText && !bodyText.includes(fText)) {
       footerLines.push(fText);
+      footerBlocks.push(...fBlocks);
     }
   }
+
+  const allBlocks = [...headerBlocks, ...mainBlocks, ...footerBlocks].map((b, idx) => ({
+    ...b,
+    index: idx,
+  }));
 
   const combined = normalizeExtractedText(
     [...headerLines, bodyText, ...footerLines].filter(Boolean).join('\n\n')
@@ -401,6 +539,7 @@ export async function extractDocxResumeText(input: ArrayBuffer | Uint8Array | Bu
   if (combined.length < 40) {
     return {
       text: '',
+      blocks: allBlocks,
       isScanned: true,
       format: 'docx',
       errorCode: 'DOCX_EMPTY_DOCUMENT',
@@ -410,6 +549,7 @@ export async function extractDocxResumeText(input: ArrayBuffer | Uint8Array | Bu
 
   return {
     text: combined,
+    blocks: allBlocks,
     isScanned: false,
     format: 'docx',
   };

@@ -1037,7 +1037,7 @@ app.post('/api/resumes/upload', requireAuth, async (c) => {
     }
 
     const existingProfile = await store.getProfile(user.id);
-    const parsedProfile = await workerResumeEngine.structureProfileWithAI(extraction.text, existingProfile, c.env.GEMINI_API_KEY);
+    const parsedProfile = await workerResumeEngine.structureProfileWithAI(extraction.text, existingProfile, c.env.GEMINI_API_KEY, extraction.blocks);
 
     await store.saveProfile(user.id, parsedProfile);
     await store.addAuditLog(user.id, 'User manual', 'RESUME_UPLOADED', file.name, `Extracted profile with ${parsedProfile.skills.length} skills and ${parsedProfile.experiences.length} experience entries`);
@@ -3848,7 +3848,7 @@ app.post('/api/admin/resumes/:resumeId/reprocess', requireAdmin, async (c) => {
 
     const currentProfile = await store.getProfile(resume.userId);
     const existingFacts = await store.getCandidateFacts(resume.userId);
-    const detailed = await workerResumeEngine.structureProfileDetailed(extraction.text, currentProfile, c.env.GEMINI_API_KEY);
+    const detailed = await workerResumeEngine.structureProfileDetailed(extraction.text, currentProfile, c.env.GEMINI_API_KEY, extraction.blocks);
 
     const diffSummary = calculateExtractionDiff(detailed.extractedFields, currentProfile, existingFacts);
 

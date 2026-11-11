@@ -99,9 +99,52 @@ export interface ExperienceItem {
   dateWarning?: string;
   originalDateText?: string;
   confidence?: number;
+  confidenceCategory?: 'High confidence' | 'Medium confidence' | 'Low confidence' | 'Needs review';
   needsVerification?: boolean;
   sourceText?: string;
+  sourceEvidence?: string[];
+  responsibilities?: string[];
+  technologies?: string[];
+  validationWarnings?: string[];
+  extractionVersion?: string;
   employmentType?: string | null;
+}
+
+export type ResumeSectionType =
+  | 'contact_info'
+  | 'summary'
+  | 'career_objective'
+  | 'experience'
+  | 'skills'
+  | 'education'
+  | 'certifications'
+  | 'projects'
+  | 'internships'
+  | 'achievements'
+  | 'awards'
+  | 'publications'
+  | 'languages'
+  | 'volunteer'
+  | 'leadership'
+  | 'interests'
+  | 'references'
+  | 'declaration'
+  | 'additional'
+  | 'unknown';
+
+export interface StructuredDocumentBlock {
+  id: string;
+  index: number;
+  text: string;
+  isBullet: boolean;
+  isHeading: boolean;
+  isBold?: boolean;
+  isTableRow?: boolean;
+  tableCells?: string[];
+  pageNumber?: number;
+  sourcePart?: string;
+  section?: ResumeSectionType;
+  sectionConfidence?: number;
 }
 
 export type EmploymentRecord = ExperienceItem;

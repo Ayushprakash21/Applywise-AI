@@ -20,11 +20,12 @@ import {
   toUint8Array,
   validateAndDetectResumeFormat,
 } from '../src/utils/docxExtractor.ts';
-import { UserProfile, TailoredResumeContent, VerifiedSkill, ExperienceItem, StructuredExtractionOutput } from '../src/types/index.ts';
+import { UserProfile, TailoredResumeContent, VerifiedSkill, ExperienceItem, StructuredExtractionOutput, StructuredDocumentBlock } from '../src/types/index.ts';
 import { detectJobFamily } from './matchingEngine.ts';
 
 export interface ExtractionResult {
   text: string;
+  blocks?: StructuredDocumentBlock[];
   isScanned: boolean;
   pageCount?: number;
   format: 'pdf' | 'docx';
@@ -43,6 +44,9 @@ import {
   parseEmploymentDates,
   parseStructuralEmploymentHistory,
   isInvalidToken,
+  buildStructuredResumePromptContext,
+  normalizeAndValidateAiExperiences,
+  toExperienceItem,
   type RawEmploymentRecord
 } from '../src/utils/structuralEmploymentParser.ts';
 
@@ -80,7 +84,6 @@ export const workerResumeEngine = {
 
         const normalizedText = rawText
           .replace(/\r\n/g, '\n')
-          .replace(/[ \t]+/g, ' ')
           .replace(/\n{3,}/g, '\n\n')
           .trim();
 
@@ -109,13 +112,18 @@ export const workerResumeEngine = {
   /**
    * Structure extracted resume text via Gemini API, or fallback to deterministic heuristic parser.
    */
-  async structureProfileDetailed(text: string, existingProfile?: UserProfile | null, apiKey?: string): Promise<StructuredExtractionOutput> {
+  async structureProfileDetailed(
+    text: string,
+    existingProfile?: UserProfile | null,
+    apiKey?: string,
+    blocks?: StructuredDocumentBlock[]
+  ): Promise<StructuredExtractionOutput> {
     const startTime = Date.now();
     const warnings: string[] = [];
     const validationErrors: string[] = [];
 
     if (!apiKey) {
-      const heuristicFields = workerResumeEngine.heuristicParse(text, existingProfile);
+      const heuristicFields = workerResumeEngine.heuristicParse(text, existingProfile, blocks);
       return {
         method: 'HEURISTIC',
         parserModel: 'Heuristic-CrossIndustry-v2.0',
@@ -136,12 +144,20 @@ export const workerResumeEngine = {
     }
 
     try {
+      const sectionAnnotatedText = buildStructuredResumePromptContext(text, blocks, 16000);
       const prompt = `You are a precise, truth-focused ATS resume parser.
-Extract information ONLY if directly supported by the resume text. Do NOT hallucinate credentials or employers.
+Extract information ONLY if directly supported by the resume text below.
+CRITICAL ANTI-HALLUCINATION RULES:
+1. NEVER fabricate employers, titles, degrees, or dates. NEVER guess default dates such as "2022" or "Present".
+2. Keep each distinct position as its own entry (including multiple roles/promotions at the same company).
+3. Copy exact verbatim lines from the resume into "sourceEvidence" for each job record.
+4. Put bullet responsibilities into "responsibilities" (array of strings); never treat a sentence fragment as a job record.
+5. Keep PROJECTS, EDUCATION, SKILLS, and VOLUNTEERING strictly separate from EMPLOYMENT experiences.
+6. Use null or empty string "" for unknown dates.
 
-Resume text:
+Section-Segmented Resume Text:
 """
-${text.slice(0, 10000)}
+${sectionAnnotatedText}
 """
 
 Return ONLY a valid JSON object matching this structure:
@@ -165,8 +181,10 @@ Return ONLY a valid JSON object matching this structure:
     "current": boolean,
     "location": string,
     "description": string,
+    "responsibilities": string[],
     "achievements": string[],
-    "verifiedSkillsUsed": string[]
+    "verifiedSkillsUsed": string[],
+    "sourceEvidence": string[]
   }],
   "languages": string[]
 }`;
@@ -194,7 +212,7 @@ Return ONLY a valid JSON object matching this structure:
         parsed = JSON.parse(jsonText);
       } catch {
         validationErrors.push('Gemini returned malformed or non-JSON output');
-        const fallbackFields = workerResumeEngine.heuristicParse(text, existingProfile);
+        const fallbackFields = workerResumeEngine.heuristicParse(text, existingProfile, blocks);
         return {
           method: 'HEURISTIC',
           parserModel: 'gemini-2.5-flash -> Heuristic-Fallback',
@@ -214,41 +232,20 @@ Return ONLY a valid JSON object matching this structure:
         };
       }
 
-      const parsedExperiences: ExperienceItem[] = Array.isArray(parsed.experiences)
-        ? parsed.experiences
-            .filter((exp: any) => exp && exp.company && !isInvalidToken(exp.company) && !isInvalidToken(exp.role))
-            .map((exp: any) => {
-              const dateRes = parseEmploymentDates(exp.startDate ? `${exp.startDate} - ${exp.endDate || (exp.current ? 'Present' : '')}` : exp.period);
-              if (dateRes.isDateUncertain) {
-                warnings.push(`Employment dates uncertain for ${exp.company}: please verify.`);
-              }
-              return {
-                id: crypto.randomUUID(),
-                company: String(exp.company).trim(),
-                role: String(exp.role || '').trim(),
-                startDate: dateRes.startDate,
-                endDate: dateRes.endDate,
-                current: Boolean(dateRes.current),
-                location: exp.location || '',
-                description: exp.description || '',
-                achievements: Array.isArray(exp.achievements) ? exp.achievements : [],
-                verifiedSkillsUsed: Array.isArray(exp.verifiedSkillsUsed) ? exp.verifiedSkillsUsed : [],
-                isDateUncertain: dateRes.isDateUncertain,
-                dateWarning: dateRes.dateWarning,
-                originalDateText: dateRes.originalDateText,
-                needsVerification: dateRes.isDateUncertain,
-              };
-            })
-        : [];
+      const aiValidated = normalizeAndValidateAiExperiences(
+        Array.isArray(parsed.experiences) ? parsed.experiences : [],
+        text,
+        blocks
+      );
+      const parsedExperiences: ExperienceItem[] = aiValidated.experiences;
+      warnings.push(...aiValidated.warnings);
 
       const totalMonths = parsedExperiences.reduce((sum: number, exp: ExperienceItem) => {
         const d = parseEmploymentDates(exp.startDate ? `${exp.startDate} - ${exp.endDate || (exp.current ? 'Present' : '')}` : '');
         return sum + d.durationMonths;
       }, 0);
       const calculatedExpYears = Math.round(totalMonths / 12);
-      const totalExperienceYears = typeof parsed.totalExperienceYears === 'number'
-        ? parsed.totalExperienceYears
-        : (calculatedExpYears || existingProfile?.totalExperienceYears || 0);
+      const totalExperienceYears = calculatedExpYears || (typeof parsed.totalExperienceYears === 'number' ? parsed.totalExperienceYears : 0);
 
       const extractedSkills: VerifiedSkill[] = Array.isArray(parsed.skills)
         ? parsed.skills.map((s: any): VerifiedSkill => ({
@@ -319,7 +316,7 @@ Return ONLY a valid JSON object matching this structure:
       const msg = err instanceof Error ? err.message : String(err);
       validationErrors.push(msg);
       const isTimeout = msg.toLowerCase().includes('timeout') || msg.toLowerCase().includes('abort');
-      const fallbackFields = workerResumeEngine.heuristicParse(text, existingProfile);
+      const fallbackFields = workerResumeEngine.heuristicParse(text, existingProfile, blocks);
 
       return {
         method: 'HEURISTIC',
@@ -344,15 +341,24 @@ Return ONLY a valid JSON object matching this structure:
   /**
    * Structure extracted resume text via Gemini API, or fallback to deterministic heuristic parser.
    */
-  async structureProfileWithAI(text: string, existingProfile?: UserProfile | null, apiKey?: string): Promise<UserProfile> {
-    const detailed = await this.structureProfileDetailed(text, existingProfile, apiKey);
+  async structureProfileWithAI(
+    text: string,
+    existingProfile?: UserProfile | null,
+    apiKey?: string,
+    blocks?: StructuredDocumentBlock[]
+  ): Promise<UserProfile> {
+    const detailed = await this.structureProfileDetailed(text, existingProfile, apiKey, blocks);
     return detailed.extractedFields;
   },
 
   /**
    * Fast, reliable heuristic parser across cross-industry domains.
    */
-  heuristicParse(text: string, existingProfile?: UserProfile | null): UserProfile {
+  heuristicParse(
+    text: string,
+    existingProfile?: UserProfile | null,
+    blocks?: StructuredDocumentBlock[]
+  ): UserProfile {
     const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
     const firstLine = lines[0] || 'Candidate Name';
 
@@ -374,38 +380,31 @@ Return ONLY a valid JSON object matching this structure:
       new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text)
     );
 
-    // Structural experience extraction
-    let parsedExperiences: ExperienceItem[] = existingProfile?.experiences ? [...existingProfile.experiences] : [];
-    if (parsedExperiences.length === 0) {
-      const structural = parseStructuralEmploymentHistory(text);
-      parsedExperiences = structural.map((rec: RawEmploymentRecord) => ({
-        id: crypto.randomUUID(),
-        company: rec.company,
-        role: rec.job_title,
-        startDate: rec.start_date || '',
-        endDate: rec.is_current ? 'Present' : (rec.end_date || ''),
-        current: rec.is_current,
-        location: rec.location || '',
-        description: rec.description.join(' '),
-        achievements: rec.description.filter((d: string) => /^[•\-*]/.test(d) || d.length > 30),
-        verifiedSkillsUsed: [],
-        isDateUncertain: rec.needs_verification,
-        dateWarning: rec.needs_verification ? 'Employment dates not detected — Please verify.' : undefined,
-        originalDateText: rec.original_date_text,
-        confidence: rec.confidence,
-        needsVerification: rec.needs_verification,
-        employmentType: rec.employment_type,
-        sourceText: rec.source_text
-      }));
-    }
+    // Always extract fresh employment records from uploaded document text first!
+    // Only fall back to existing verified records if document appears to be an unreadable/sparse scan.
+    const structural = parseStructuralEmploymentHistory(text, blocks);
+    const hasReliableStructural = structural.some(
+      (r) => r.company !== 'Employer not detected' && !r.needs_verification
+    );
+    const isSparseOrUnreadableScan =
+      /email\s*:\s*unreadable/i.test(text) ||
+      (structural.length === 0 && text.trim().length < 220) ||
+      (!hasReliableStructural && text.trim().length < 180);
 
-    // Dynamic experience duration calculation
+    const parsedExperiences: ExperienceItem[] =
+      structural.length > 0 && (!isSparseOrUnreadableScan || !existingProfile?.experiences?.length)
+        ? structural.map((rec: RawEmploymentRecord, idx: number) => toExperienceItem(rec, idx))
+        : (isSparseOrUnreadableScan && existingProfile?.experiences ? [...existingProfile.experiences] : []);
+
+    // Dynamic experience duration calculation from extracted records
     const totalMonths = parsedExperiences.reduce((sum: number, exp: ExperienceItem) => {
       const d = parseEmploymentDates(exp.startDate ? `${exp.startDate} - ${exp.endDate || (exp.current ? 'Present' : '')}` : '');
       return sum + d.durationMonths;
     }, 0);
     const calculatedExpYears = Math.round(totalMonths / 12);
-    const totalExperienceYears = existingProfile?.totalExperienceYears || calculatedExpYears || 0;
+    const totalExperienceYears = isSparseOrUnreadableScan && existingProfile?.totalExperienceYears
+      ? existingProfile.totalExperienceYears
+      : calculatedExpYears;
 
     return {
       id: existingProfile?.id || crypto.randomUUID(),
@@ -417,8 +416,12 @@ Return ONLY a valid JSON object matching this structure:
       workAuthorizationStatus: existingProfile?.workAuthorizationStatus || '',
       workAuthorization: existingProfile?.workAuthorization || [],
       requiresVisaSponsorship: existingProfile?.requiresVisaSponsorship || false,
-      currentTitle: existingProfile?.currentTitle || (parsedExperiences[0]?.role || ''),
-      currentEmployer: existingProfile?.currentEmployer || (parsedExperiences[0]?.company || ''),
+      currentTitle: structural.length > 0
+        ? (parsedExperiences[0]?.role || '')
+        : (isSparseOrUnreadableScan && existingProfile?.currentTitle ? existingProfile.currentTitle : (parsedExperiences[0]?.role || '')),
+      currentEmployer: structural.length > 0
+        ? (parsedExperiences[0]?.company || '')
+        : (isSparseOrUnreadableScan && existingProfile?.currentEmployer ? existingProfile.currentEmployer : (parsedExperiences[0]?.company || '')),
       totalExperienceYears,
       professionalSummary: existingProfile?.professionalSummary || lines.slice(1, 4).join(' ').slice(0, 350) || '',
       education: existingProfile?.education || [],

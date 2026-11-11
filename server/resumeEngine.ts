@@ -17,7 +17,7 @@ import {
   toUint8Array,
   validateAndDetectResumeFormat,
 } from '../src/utils/docxExtractor.ts';
-import { UserProfile, TailoredResumeContent, VerifiedSkill, ExperienceItem, StructuredExtractionOutput } from '../src/types/index.ts';
+import { UserProfile, TailoredResumeContent, VerifiedSkill, ExperienceItem, StructuredExtractionOutput, StructuredDocumentBlock } from '../src/types/index.ts';
 import { detectJobFamily } from './matchingEngine.ts';
 
 const ai = new GoogleGenAI({
@@ -26,6 +26,7 @@ const ai = new GoogleGenAI({
 
 export interface ExtractionResult {
   text: string;
+  blocks?: StructuredDocumentBlock[];
   isScanned: boolean;
   pageCount?: number;
   format: 'pdf' | 'docx';
@@ -44,6 +45,9 @@ import {
   parseEmploymentDates,
   parseStructuralEmploymentHistory,
   isInvalidToken,
+  buildStructuredResumePromptContext,
+  normalizeAndValidateAiExperiences,
+  toExperienceItem,
   type RawEmploymentRecord
 } from '../src/utils/structuralEmploymentParser.ts';
 
@@ -81,10 +85,9 @@ export const resumeEngine = {
           };
         }
 
-        // Clean up excessive whitespace while preserving line structure
+        // Clean up excessive vertical whitespace while preserving column tabs/wide spacing and line structure
         const normalizedText = rawText
           .replace(/\r\n/g, '\n')
-          .replace(/[ \t]+/g, ' ')
           .replace(/\n{3,}/g, '\n\n')
           .trim();
 
@@ -111,9 +114,13 @@ export const resumeEngine = {
   },
 
   /**
-   * Structure normalized text into UserProfile via Gemini with strict schema.
+   * Structure normalized text into UserProfile via Gemini with strict schema and source validation.
    */
-  async structureProfileDetailed(text: string, existingProfile?: UserProfile | null): Promise<StructuredExtractionOutput> {
+  async structureProfileDetailed(
+    text: string,
+    existingProfile?: UserProfile | null,
+    blocks?: StructuredDocumentBlock[]
+  ): Promise<StructuredExtractionOutput> {
     const startTime = Date.now();
     const warnings: string[] = [];
     const validationErrors: string[] = [];
@@ -123,7 +130,7 @@ export const resumeEngine = {
     }
 
     if (!process.env.GEMINI_API_KEY) {
-      const heuristicFields = this.heuristicParse(text, existingProfile);
+      const heuristicFields = this.heuristicParse(text, existingProfile, blocks);
       return {
         method: 'HEURISTIC',
         parserModel: 'Heuristic-CrossIndustry-v2.0',
@@ -179,25 +186,28 @@ Analyze the following resume text and extract candidate profile details into STR
       "current": boolean,
       "location": string,
       "description": string,
+      "responsibilities": string[],
       "achievements": string[],
-      "verifiedSkillsUsed": string[]
+      "verifiedSkillsUsed": string[],
+      "sourceEvidence": string[]
     }
   ],
   "languages": string[]
 }
 
 CRITICAL RULES:
-1. DO NOT fabricate, hallucinate, or extrapolate facts. Extract ONLY facts present in the text.
-2. Preserve all distinct employment records in chronological order. Do not collapse multiple jobs.
-3. If an item is unknown, use empty string, 0, or empty array.
-4. DO NOT default missing language to English.
-5. DO NOT mark extracted skills as verified.
+1. DO NOT fabricate, hallucinate, or extrapolate facts. NEVER guess default dates like "2022" or "Present".
+2. Preserve all distinct employment records in chronological order. Do not collapse multiple jobs or split bullet sentences into job headers.
+3. Copy exact verbatim lines from the resume into "sourceEvidence" for each experience item.
+4. Keep PROJECTS, EDUCATION, SKILLS, and VOLUNTEERING strictly separate from EMPLOYMENT experiences.
+5. If an item is unknown, use empty string "", 0, or empty array.
 6. Return ONLY valid JSON.`;
 
     try {
+      const sectionAnnotatedText = buildStructuredResumePromptContext(text, blocks, 16000);
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `${systemPrompt}\n\nRESUME TEXT:\n${text.slice(0, 15000)}`,
+        contents: `${systemPrompt}\n\nSECTION-SEGMENTED RESUME TEXT:\n${sectionAnnotatedText}`,
         config: {
           responseMimeType: 'application/json',
         },
@@ -208,7 +218,7 @@ CRITICAL RULES:
         parsed = JSON.parse(response.text || '{}');
       } catch (jsonErr) {
         validationErrors.push('Gemini returned malformed or non-JSON output');
-        const fallbackFields = this.heuristicParse(text, existingProfile);
+        const fallbackFields = this.heuristicParse(text, existingProfile, blocks);
         return {
           method: 'HEURISTIC',
           parserModel: 'gemini-2.5-flash -> Heuristic-Fallback',
@@ -232,43 +242,21 @@ CRITICAL RULES:
         throw new Error('AI parser returned invalid payload format.');
       }
 
-      // Parse experiences and calculate actual duration from timeline
-      const parsedExperiences: ExperienceItem[] = Array.isArray(parsed.experiences)
-        ? parsed.experiences
-            .filter((exp: any) => exp && exp.company && !isInvalidToken(exp.company) && !isInvalidToken(exp.role))
-            .map((exp: any) => {
-              const dateRes = parseEmploymentDates(exp.startDate ? `${exp.startDate} - ${exp.endDate || (exp.current ? 'Present' : '')}` : exp.period);
-              if (dateRes.isDateUncertain) {
-                warnings.push(`Employment dates uncertain for ${exp.company}: please verify.`);
-              }
-              return {
-                id: crypto.randomUUID(),
-                company: String(exp.company).trim(),
-                role: String(exp.role || '').trim(),
-                startDate: dateRes.startDate,
-                endDate: dateRes.endDate,
-                current: Boolean(dateRes.current),
-                location: exp.location || '',
-                description: exp.description || '',
-                achievements: Array.isArray(exp.achievements) ? exp.achievements : [],
-                verifiedSkillsUsed: Array.isArray(exp.verifiedSkillsUsed) ? exp.verifiedSkillsUsed : [],
-                isDateUncertain: dateRes.isDateUncertain,
-                dateWarning: dateRes.dateWarning,
-                originalDateText: dateRes.originalDateText,
-                needsVerification: dateRes.isDateUncertain,
-              };
-            })
-        : [];
+      const aiValidated = normalizeAndValidateAiExperiences(
+        Array.isArray(parsed.experiences) ? parsed.experiences : [],
+        text,
+        blocks
+      );
+      const parsedExperiences: ExperienceItem[] = aiValidated.experiences;
+      warnings.push(...aiValidated.warnings);
 
-      // Calculate total experience duration without arbitrary 2-year fallback
+      // Calculate total experience duration without arbitrary fallback
       const totalMonths = parsedExperiences.reduce((sum: number, exp: ExperienceItem) => {
         const d = parseEmploymentDates(exp.startDate ? `${exp.startDate} - ${exp.endDate || (exp.current ? 'Present' : '')}` : '');
         return sum + d.durationMonths;
       }, 0);
       const calculatedExpYears = Math.round(totalMonths / 12);
-      const totalExperienceYears = typeof parsed.totalExperienceYears === 'number'
-        ? parsed.totalExperienceYears
-        : (calculatedExpYears || existingProfile?.totalExperienceYears || 0);
+      const totalExperienceYears = calculatedExpYears || (typeof parsed.totalExperienceYears === 'number' ? parsed.totalExperienceYears : 0);
 
       // Extract skills without auto-verification or arbitrary 2-year duration
       const extractedSkills: VerifiedSkill[] = Array.isArray(parsed.skills)
@@ -341,7 +329,7 @@ CRITICAL RULES:
       const msg = err instanceof Error ? err.message : String(err);
       validationErrors.push(msg);
       const isTimeout = msg.toLowerCase().includes('timeout') || msg.toLowerCase().includes('abort');
-      const fallbackFields = this.heuristicParse(text, existingProfile);
+      const fallbackFields = this.heuristicParse(text, existingProfile, blocks);
 
       return {
         method: 'HEURISTIC',
@@ -366,15 +354,23 @@ CRITICAL RULES:
   /**
    * Structure normalized text into UserProfile via Gemini or fallback.
    */
-  async structureProfileWithAI(text: string, existingProfile?: UserProfile | null): Promise<UserProfile> {
-    const detailed = await this.structureProfileDetailed(text, existingProfile);
+  async structureProfileWithAI(
+    text: string,
+    existingProfile?: UserProfile | null,
+    blocks?: StructuredDocumentBlock[]
+  ): Promise<UserProfile> {
+    const detailed = await this.structureProfileDetailed(text, existingProfile, blocks);
     return detailed.extractedFields;
   },
 
   /**
    * Fast, reliable heuristic parser across business, operations, supply chain, management, finance, data, and technology.
    */
-  heuristicParse(text: string, existingProfile?: UserProfile | null): UserProfile {
+  heuristicParse(
+    text: string,
+    existingProfile?: UserProfile | null,
+    blocks?: StructuredDocumentBlock[]
+  ): UserProfile {
     const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
     const firstLine = lines[0] || 'Candidate Name';
 
@@ -402,30 +398,21 @@ CRITICAL RULES:
       new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text)
     );
 
-    // Structural experience extraction
-    let parsedExperiences: ExperienceItem[] = existingProfile?.experiences ? [...existingProfile.experiences] : [];
-    if (parsedExperiences.length === 0) {
-      const structural = parseStructuralEmploymentHistory(text);
-      parsedExperiences = structural.map((rec: RawEmploymentRecord) => ({
-        id: crypto.randomUUID(),
-        company: rec.company,
-        role: rec.job_title,
-        startDate: rec.start_date || '',
-        endDate: rec.is_current ? 'Present' : (rec.end_date || ''),
-        current: rec.is_current,
-        location: rec.location || '',
-        description: rec.description.join(' '),
-        achievements: rec.description.filter((d: string) => /^[•\-*]/.test(d) || d.length > 30),
-        verifiedSkillsUsed: [],
-        isDateUncertain: rec.needs_verification,
-        dateWarning: rec.needs_verification ? 'Employment dates not detected — Please verify.' : undefined,
-        originalDateText: rec.original_date_text,
-        confidence: rec.confidence,
-        needsVerification: rec.needs_verification,
-        employmentType: rec.employment_type,
-        sourceText: rec.source_text,
-      }));
-    }
+    // Always extract fresh employment records from uploaded document text first!
+    // Only preserve existing verified records when document appears to be an unreadable/sparse scan.
+    const structural = parseStructuralEmploymentHistory(text, blocks);
+    const hasReliableStructural = structural.some(
+      (r) => r.company !== 'Employer not detected' && !r.needs_verification
+    );
+    const isSparseOrUnreadableScan =
+      /email\s*:\s*unreadable/i.test(text) ||
+      (structural.length === 0 && text.trim().length < 220) ||
+      (!hasReliableStructural && text.trim().length < 180);
+
+    const parsedExperiences: ExperienceItem[] =
+      structural.length > 0 && (!isSparseOrUnreadableScan || !existingProfile?.experiences?.length)
+        ? structural.map((rec: RawEmploymentRecord, idx: number) => toExperienceItem(rec, idx))
+        : (isSparseOrUnreadableScan && existingProfile?.experiences ? [...existingProfile.experiences] : []);
 
     // Dynamic experience duration calculation
     const totalMonths = parsedExperiences.reduce((sum: number, exp: ExperienceItem) => {
@@ -433,7 +420,9 @@ CRITICAL RULES:
       return sum + d.durationMonths;
     }, 0);
     const calculatedExpYears = Math.round(totalMonths / 12);
-    const totalExperienceYears = existingProfile?.totalExperienceYears || calculatedExpYears || 0;
+    const totalExperienceYears = isSparseOrUnreadableScan && existingProfile?.totalExperienceYears
+      ? existingProfile.totalExperienceYears
+      : calculatedExpYears;
 
     return {
       id: existingProfile?.id || crypto.randomUUID(),
@@ -445,8 +434,12 @@ CRITICAL RULES:
       workAuthorizationStatus: existingProfile?.workAuthorizationStatus || '',
       workAuthorization: existingProfile?.workAuthorization || [],
       requiresVisaSponsorship: existingProfile?.requiresVisaSponsorship || false,
-      currentTitle: existingProfile?.currentTitle || (parsedExperiences[0]?.role || ''),
-      currentEmployer: existingProfile?.currentEmployer || (parsedExperiences[0]?.company || ''),
+      currentTitle: structural.length > 0
+        ? (parsedExperiences[0]?.role || '')
+        : (isSparseOrUnreadableScan && existingProfile?.currentTitle ? existingProfile.currentTitle : (parsedExperiences[0]?.role || '')),
+      currentEmployer: structural.length > 0
+        ? (parsedExperiences[0]?.company || '')
+        : (isSparseOrUnreadableScan && existingProfile?.currentEmployer ? existingProfile.currentEmployer : (parsedExperiences[0]?.company || '')),
       totalExperienceYears,
       professionalSummary: existingProfile?.professionalSummary || lines.slice(1, 4).join(' ').slice(0, 350) || '',
       education: existingProfile?.education || [],
