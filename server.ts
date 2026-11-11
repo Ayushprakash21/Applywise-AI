@@ -37,6 +37,8 @@ import {
 } from './server/jobImportEngine.ts';
 import { getEffectivePlan, checkAIUsageAllowance, isPermanentFreeAccessAccount } from './src/config/freeAccess.ts';
 import { SUBSCRIPTION_PLANS } from './src/config/plans.ts';
+import { hrOutreachStore } from './server/hrOutreachStore.ts';
+import { createHrOutreachRouter } from './server/hrOutreachRoutes.ts';
 
 dotenv.config();
 
@@ -403,6 +405,17 @@ app.post(
         warnings: detailed.warnings,
         processingDurationMs: detailed.processingDurationMs
       });
+
+      if (file.size <= 5 * 1024 * 1024) {
+        hrOutreachStore.saveResumeFileBlob({
+          resumeId: docId,
+          userId: req.user!.id,
+          fileName: file.originalname,
+          mimeType: file.mimetype || (extraction.format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+          fileSizeBytes: file.size,
+          dataBase64: file.buffer.toString('base64'),
+        });
+      }
 
       // Record run
       authAndStore.saveResumeExtractionRun({
@@ -2671,6 +2684,11 @@ app.get('/api/opportunity-radar/live-jobs', (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// ============================================================================
+// AI HR OUTREACH & DIRECT APPLICATION AUTOMATION ROUTES
+// ============================================================================
+app.use('/api/hr-outreach', createHrOutreachRouter(requireAuth));
 
 // ============================================================================
 // FOUNDER PROFILE PUBLIC & ADMIN API ROUTES

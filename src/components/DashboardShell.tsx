@@ -27,7 +27,8 @@ import {
   AlertTriangle,
   Map,
   ShieldCheck,
-  Radio
+  Radio,
+  Send
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
 import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
@@ -43,6 +44,7 @@ export type DashboardTab =
   | 'interview_studio'
   | 'recruiter_review'
   | 'atlas'
+  | 'hr_outreach'
   | 'overview'
   | 'profile'
   | 'resume_intelligence'
@@ -144,6 +146,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
         { id: 'interview_studio' as const, label: 'Interview Studio', icon: Calendar },
         { id: 'recruiter_review' as const, label: 'Recruiter Review', icon: ShieldCheck },
         { id: 'atlas' as const, label: 'Career Atlas', icon: Map },
+        { id: 'hr_outreach' as const, label: 'AI HR Outreach', icon: Send },
       ],
     },
     {

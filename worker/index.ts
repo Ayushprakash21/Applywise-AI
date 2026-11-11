@@ -39,12 +39,22 @@ import {
   inspectResumeIdentity,
   UsageLimitError,
 } from './usageEnforcement.ts';
+import { createWorkerHrOutreachApp } from './hrOutreachRoutes.ts';
+import { WorkerHrOutreachStore } from './hrOutreachStore.ts';
 
 type Bindings = {
   DB: D1Database;
   ASSETS: Fetcher;
   GEMINI_API_KEY?: string;
   GOOGLE_CLIENT_ID?: string;
+  GOOGLE_OAUTH_CLIENT_ID?: string;
+  GOOGLE_OAUTH_CLIENT_SECRET?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  MICROSOFT_CLIENT_ID?: string;
+  MICROSOFT_CLIENT_SECRET?: string;
+  MICROSOFT_TENANT_ID?: string;
+  EMAIL_ENCRYPTION_KEY?: string;
+  SESSION_SECRET?: string;
   APP_URL?: string;
   RESUME_BUCKET?: any;
 };
@@ -977,6 +987,31 @@ app.post('/api/resumes/upload', requireAuth, async (c) => {
       extractedText: extraction.text.slice(0, 50000),
       isScanned: false,
     }, replace);
+
+    // Best-effort persist uploaded resume binary (<= 5 MB) for HR outreach attachment & inline PDF preview
+    if (file.size <= 5 * 1024 * 1024) {
+      try {
+        const latestDoc = await c.env.DB.prepare('SELECT id FROM resume_documents WHERE user_id = ? ORDER BY created_at DESC LIMIT 1')
+          .bind(user.id)
+          .first<{ id: string }>();
+        if (latestDoc?.id) {
+          const u8 = new Uint8Array(buffer);
+          let bin = '';
+          for (let i = 0; i < u8.length; i++) bin += String.fromCharCode(u8[i]);
+          const hrStore = new WorkerHrOutreachStore(c.env.DB);
+          await hrStore.saveResumeFileBlob({
+            resumeId: latestDoc.id,
+            userId: user.id,
+            fileName: file.name,
+            mimeType: file.type || (extraction.format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+            fileSizeBytes: file.size,
+            dataBase64: btoa(bin),
+          });
+        }
+      } catch {
+        // Ignore if blob table not yet migrated
+      }
+    }
 
     const existingProfile = await store.getProfile(user.id);
     const parsedProfile = await workerResumeEngine.structureProfileWithAI(extraction.text, existingProfile, c.env.GEMINI_API_KEY);
@@ -4102,6 +4137,9 @@ app.get('/api/opportunity-radar/live-jobs', async (c) => {
     return c.json({ success: false, error: msg }, 500);
   }
 });
+
+// Mount AI HR Outreach & Direct Application Automation API Router
+app.route('/api/hr-outreach', createWorkerHrOutreachApp(requireAuth));
 
 // Cloudflare Worker Fetch & Scheduled Entrypoint
 export default {

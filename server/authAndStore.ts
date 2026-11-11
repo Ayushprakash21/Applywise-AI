@@ -53,7 +53,7 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 
 const DB_PATH = path.join(DATA_DIR, 'applywise.sqlite');
-const sqlite = new DatabaseSync(DB_PATH);
+export const sqlite = new DatabaseSync(DB_PATH);
 
 // Enable foreign keys, busy timeout, and WAL mode for high concurrency
 try {

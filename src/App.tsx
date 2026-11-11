@@ -48,6 +48,7 @@ const AdminLoginPage = React.lazy(() => import('./components/AdminLoginPage.tsx'
 const CareerTwinPage = React.lazy(() => import('./components/CareerTwinPage.tsx').then(m => ({ default: m.CareerTwinPage })));
 const PricingPage = React.lazy(() => import('./components/PricingPage.tsx').then(m => ({ default: m.PricingPage })));
 const AboutPage = React.lazy(() => import('./components/AboutPage.tsx').then(m => ({ default: m.AboutPage })));
+const HrOutreachPage = React.lazy(() => import('./components/HrOutreachPage.tsx').then(m => ({ default: m.HrOutreachPage })));
 
 const normalizePath = (rawPath: string): string => {
   const path = (rawPath || '/').split('?')[0].split('#')[0] || '/';
@@ -59,6 +60,7 @@ const normalizePath = (rawPath: string): string => {
 
 const PROTECTED_ROUTES = new Set([
   '/dashboard',
+  '/dashboard/hr-outreach',
   '/overview',
   '/jobs',
   '/matches',
@@ -86,6 +88,7 @@ const KNOWN_ROUTES = new Set([
   '/signup',
   '/register',
   '/dashboard',
+  '/dashboard/hr-outreach',
   '/overview',
   '/jobs',
   '/matches',
@@ -201,6 +204,8 @@ export default function App() {
   useEffect(() => {
     if (currentUser && currentRoute === '/notifications' && activeTab !== 'notifications') {
       setActiveTab('notifications');
+    } else if (currentUser && currentRoute === '/dashboard/hr-outreach' && activeTab !== 'hr_outreach') {
+      setActiveTab('hr_outreach');
     }
   }, [currentRoute, currentUser, activeTab]);
 
@@ -491,8 +496,19 @@ export default function App() {
       navigateTo('/pricing');
     } else if (tab === 'copilot') {
       setCopilotOpen(true);
+    } else if (tab === 'hr_outreach') {
+      setActiveTab('hr_outreach');
+      if (currentRoute !== '/dashboard/hr-outreach') {
+        window.history.pushState({}, '', '/dashboard/hr-outreach');
+        setCurrentRoute('/dashboard/hr-outreach');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setActiveTab(tab);
+      if (currentRoute === '/dashboard/hr-outreach') {
+        window.history.pushState({}, '', '/');
+        setCurrentRoute('/');
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -716,6 +732,18 @@ export default function App() {
                 setCopilotPrompt(prompt);
                 setCopilotOpen(true);
               }}
+            />
+          )}
+
+          {activeTab === 'hr_outreach' && (
+            <HrOutreachPage
+              user={currentUser}
+              profile={profile}
+              preferences={preferences}
+              vacancies={vacancies}
+              plan={isBlackSubscriber ? 'black' : ((subscription?.planId as 'free' | 'pro' | 'black') || subscription?.plan || 'free')}
+              onOpenPricing={() => navigateTo('/pricing')}
+              onShowToast={showToast}
             />
           )}
 

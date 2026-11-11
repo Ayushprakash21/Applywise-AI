@@ -53,7 +53,20 @@ import {
   CanonicalLiveJob,
   ExplainableMatchBreakdown,
   GeographicCoverageSummary,
-  GlobalSourceIntelligenceSummary
+  GlobalSourceIntelligenceSummary,
+  HrContactWithRelevance,
+  HrDiscoverySourceMeta,
+  EmailAccountSummary,
+  OutreachTemplateType,
+  OutreachEmailTone,
+  OutreachMessage,
+  OutreachEvent,
+  OutreachCampaign,
+  OutreachCampaignContact,
+  DoNotContactEntry,
+  ContactDiscoveryRun,
+  OutreachOverviewMetrics,
+  ResumeAttachmentOption
 } from '../types/index.ts';
 
 export interface DashboardSummary {
@@ -1175,6 +1188,224 @@ export const api = {
     fetchJson<{ success: boolean; trajectory: CareerTrajectory }>('/api/career-atlas/trajectories', {
       method: 'POST',
       body: JSON.stringify(trajectory),
+    }),
+
+  // --- AI HR OUTREACH & DIRECT APPLICATION AUTOMATION ---
+  getHrOutreachOverview: () =>
+    fetchJson<{
+      success: boolean;
+      overview: OutreachOverviewMetrics;
+      recentRuns: ContactDiscoveryRun[];
+      templates: OutreachTemplateType[];
+      tones: OutreachEmailTone[];
+    }>('/api/hr-outreach/overview'),
+
+  getHrDiscoverySources: () =>
+    fetchJson<{ success: boolean; sources: HrDiscoverySourceMeta[] }>('/api/hr-outreach/sources'),
+
+  getHrContacts: (params?: {
+    search?: string;
+    country?: string;
+    company?: string;
+    designation?: string;
+    verificationStatus?: string;
+    sourceType?: string;
+    jobId?: string;
+    includeArchived?: boolean;
+    sortBy?: 'relevance' | 'confidence';
+    limit?: number;
+    offset?: number;
+  }) => {
+    const sp = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') sp.set(k, String(v));
+      });
+    }
+    const qs = sp.toString() ? `?${sp.toString()}` : '';
+    return fetchJson<{ success: boolean; contacts: HrContactWithRelevance[]; total: number }>(`/api/hr-outreach/contacts${qs}`);
+  },
+
+  getHrContactDetail: (id: string, jobId?: string) =>
+    fetchJson<{ success: boolean; contact: HrContactWithRelevance }>(
+      jobId ? `/api/hr-outreach/contacts/${encodeURIComponent(id)}?jobId=${encodeURIComponent(jobId)}` : `/api/hr-outreach/contacts/${encodeURIComponent(id)}`
+    ),
+
+  discoverHrContacts: (payload: { companyName?: string; companyWebsite?: string; jobId?: string; forceRefresh?: boolean }) =>
+    fetchJson<{
+      success: boolean;
+      run: ContactDiscoveryRun;
+      discoveredContacts: HrContactWithRelevance[];
+      unavailableReason?: string;
+      sourcesChecked: Array<{ source: string; status: string; found: number; note?: string }>;
+    }>('/api/hr-outreach/contacts/discover', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  verifyHrContact: (id: string) =>
+    fetchJson<{ success: boolean; contact: HrContactWithRelevance; verification: any }>(`/api/hr-outreach/contacts/${encodeURIComponent(id)}/verify`, {
+      method: 'POST',
+    }),
+
+  updateHrContactStatus: (id: string, status: 'active' | 'archived' | 'suppressed', markContacted = false) =>
+    fetchJson<{ success: boolean; contact: HrContactWithRelevance }>(`/api/hr-outreach/contacts/${encodeURIComponent(id)}/status`, {
+      method: 'POST',
+      body: JSON.stringify({ status, markContacted }),
+    }),
+
+  generateHrEmail: (
+    contactId: string,
+    payload: {
+      jobId?: string;
+      templateType: OutreachTemplateType;
+      tone: OutreachEmailTone;
+      customNotes?: string;
+    }
+  ) =>
+    fetchJson<{
+      success: boolean;
+      generated: {
+        subject: string;
+        bodyText: string;
+        usedGemini: boolean;
+        groundedQualifications: string[];
+        missingDataNotices: string[];
+        integrityAudit: { passed: boolean; warnings: string[] };
+      };
+    }>(`/api/hr-outreach/contacts/${encodeURIComponent(contactId)}/generate-email`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  getHrOutreachResumes: () =>
+    fetchJson<{ success: boolean; resumes: ResumeAttachmentOption[] }>('/api/hr-outreach/resumes'),
+
+  fetchHrOutreachResumePreviewBlobUrl: async (resumeId: string): Promise<{ url: string; mimeType: string }> => {
+    const token = localStorage.getItem('applyvise_token') || localStorage.getItem('applywise_token');
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await fetch(`/api/hr-outreach/resumes/${encodeURIComponent(resumeId)}/preview`, {
+      headers,
+      credentials: 'include',
+    });
+    if (!res.ok) {
+      const err: any = await res.json().catch(() => ({}));
+      throw new Error(err?.error || `Preview failed (${res.status})`);
+    }
+    const blob = await res.blob();
+    return {
+      url: URL.createObjectURL(blob),
+      mimeType: res.headers.get('Content-Type') || blob.type,
+    };
+  },
+
+  getHrEmailAccounts: () =>
+    fetchJson<{
+      success: boolean;
+      accounts: EmailAccountSummary[];
+      oauthConfigured: { gmail: boolean; outlook: boolean };
+    }>('/api/hr-outreach/email-accounts'),
+
+  connectGoogleEmailAccount: () =>
+    fetchJson<{ success: boolean; authorizationUrl: string; state: string }>('/api/hr-outreach/email-accounts/google/connect', {
+      method: 'POST',
+    }),
+
+  connectMicrosoftEmailAccount: () =>
+    fetchJson<{ success: boolean; authorizationUrl: string; state: string }>('/api/hr-outreach/email-accounts/microsoft/connect', {
+      method: 'POST',
+    }),
+
+  disconnectEmailAccount: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/api/hr-outreach/email-accounts/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }),
+
+  previewOutreachMessage: (payload: {
+    contactId: string;
+    campaignId?: string;
+    emailAccountId?: string;
+    jobId?: string;
+    templateType: OutreachTemplateType;
+    tone: OutreachEmailTone;
+    subject: string;
+    bodyText: string;
+    resumeDocumentId?: string;
+    saveDraft?: boolean;
+    draftId?: string;
+  }) =>
+    fetchJson<{
+      success: boolean;
+      readyToSend: boolean;
+      warnings: string[];
+      attachment?: { fileName: string; mimeType: string; sizeBytes: number };
+      message: OutreachMessage | null;
+    }>('/api/hr-outreach/messages/preview', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  sendApprovedOutreachMessage: (payload: {
+    contactId: string;
+    campaignId?: string;
+    emailAccountId: string;
+    jobId?: string;
+    templateType: OutreachTemplateType;
+    tone: OutreachEmailTone;
+    subject: string;
+    bodyText: string;
+    resumeDocumentId?: string;
+    resumeConfirmed?: boolean;
+    explicitApproval: boolean;
+    idempotencyKey?: string;
+    draftId?: string;
+  }) =>
+    fetchJson<{ success: boolean; message: OutreachMessage; notice?: string }>('/api/hr-outreach/messages/send', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  getOutreachMessages: (status?: string) =>
+    fetchJson<{ success: boolean; messages: OutreachMessage[] }>(
+      status && status !== 'all' ? `/api/hr-outreach/messages?status=${encodeURIComponent(status)}` : '/api/hr-outreach/messages'
+    ),
+
+  getOutreachMessageDetail: (id: string) =>
+    fetchJson<{ success: boolean; message: OutreachMessage; events: OutreachEvent[] }>(`/api/hr-outreach/messages/${encodeURIComponent(id)}`),
+
+  getOutreachReplies: (sync = false) =>
+    fetchJson<{ success: boolean; items: OutreachMessage[] }>(sync ? '/api/hr-outreach/replies?sync=true' : '/api/hr-outreach/replies'),
+
+  getOutreachCampaigns: () =>
+    fetchJson<{ success: boolean; campaigns: OutreachCampaign[] }>('/api/hr-outreach/campaigns'),
+
+  createOutreachCampaign: (payload: { name: string; targetCountry?: string; targetRoles?: string[]; dailyLimit?: number; notes?: string }) =>
+    fetchJson<{ success: boolean; campaign: OutreachCampaign }>('/api/hr-outreach/campaigns', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  getOutreachCampaignDetail: (id: string) =>
+    fetchJson<{ success: boolean; campaign: OutreachCampaign; contacts: OutreachCampaignContact[] }>(`/api/hr-outreach/campaigns/${encodeURIComponent(id)}`),
+
+  addContactsToOutreachCampaign: (campaignId: string, contactIds: string[], jobId?: string) =>
+    fetchJson<{ success: boolean; added: number; campaign: OutreachCampaign }>(`/api/hr-outreach/campaigns/${encodeURIComponent(campaignId)}/contacts`, {
+      method: 'POST',
+      body: JSON.stringify({ contactIds, jobId }),
+    }),
+
+  getDoNotContactList: () =>
+    fetchJson<{ success: boolean; entries: DoNotContactEntry[] }>('/api/hr-outreach/do-not-contact'),
+
+  addDoNotContactEntry: (email: string, reason?: string) =>
+    fetchJson<{ success: boolean; entry: DoNotContactEntry }>('/api/hr-outreach/do-not-contact', {
+      method: 'POST',
+      body: JSON.stringify({ email, reason }),
+    }),
+
+  removeDoNotContactEntry: (id: string) =>
+    fetchJson<{ success: boolean }>(`/api/hr-outreach/do-not-contact/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
     }),
 
 };

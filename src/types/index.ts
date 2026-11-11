@@ -1519,4 +1519,293 @@ export interface GlobalSourceIntelligenceSummary {
   lastGlobalSyncAt?: string;
 }
 
+// ============================================================================
+// AI HR OUTREACH & DIRECT APPLICATION AUTOMATION TYPES
+// ============================================================================
+
+export type HrContactRoleCategory =
+  | 'Talent Acquisition Specialist'
+  | 'HR Recruiter'
+  | 'Technical Recruiter'
+  | 'Recruitment Manager'
+  | 'Senior HR Manager'
+  | 'Head of Talent Acquisition'
+  | 'Recruitment Coordinator'
+  | 'Hiring Manager'
+  | 'General Recruitment Contact'
+  | 'Careers Department';
+
+export type EmailVerificationStatus =
+  | 'Verified'
+  | 'Domain Valid'
+  | 'Unverified'
+  | 'Invalid'
+  | 'Role-Based'
+  | 'Discovered'
+  | 'Verification Failed'
+  | 'Stale';
+
+export interface HrContact {
+  id: string;
+  companyId?: string;
+  companyName: string;
+  companyWebsite?: string;
+  contactName?: string;
+  designation: string;
+  roleCategory: HrContactRoleCategory;
+  email: string;
+  country: string;
+  city?: string;
+  department?: string;
+  sourceType: string;
+  sourceUrl: string;
+  associatedJobIds: string[];
+  emailVerificationStatus: EmailVerificationStatus;
+  contactConfidence: number; // 0.0 - 1.0
+  evidence: string;
+  discoveredAt: string;
+  lastVerifiedAt?: string;
+  lastContactedAt?: string;
+  contactStatus: 'active' | 'archived' | 'suppressed';
+  isRoleBased: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HrContactSource {
+  id: string;
+  contactId: string;
+  sourceType: string;
+  sourceName: string;
+  sourceUrl: string;
+  extractedSnippet?: string;
+  confidenceScore: number;
+  discoveredAt: string;
+}
+
+export interface ContactRelevanceScore {
+  overallScore: number; // 0 - 100
+  tier: 'High Relevance' | 'Moderate Relevance' | 'General Contact';
+  breakdown: {
+    companyRelationship: number; // 0 - 35
+    jobRelevance: number; // 0 - 25
+    departmentRelevance: number; // 0 - 15
+    geographicRelevance: number; // 0 - 15
+    sourceAndVerification: number; // 0 - 10
+  };
+  explanation: string;
+  advisoryNote: string;
+}
+
+export interface HrContactWithRelevance extends HrContact {
+  relevance?: ContactRelevanceScore;
+  sources?: HrContactSource[];
+  relatedJobTitle?: string;
+  isDoNotContact?: boolean;
+}
+
+export interface HrDiscoverySourceMeta {
+  id: string;
+  name: string;
+  category: 'official_careers' | 'ats_public_board' | 'public_job_board' | 'licensed_api' | 'restricted_portal';
+  permissionMode: 'permitted_public' | 'authorized_api' | 'linking_only';
+  exposesPublicEmails: boolean | 'partial';
+  notes: string;
+  rateLimitSeconds: number;
+}
+
+export type EmailAccountProvider = 'gmail' | 'outlook';
+
+export interface EmailAccountSummary {
+  id: string;
+  userId: string;
+  provider: EmailAccountProvider;
+  email: string;
+  displayName?: string;
+  scopes: string[];
+  status: 'connected' | 'disconnected' | 'revoked' | 'error';
+  tokenExpiresAt?: string;
+  lastError?: string;
+  lastSyncedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type OutreachTemplateType =
+  | 'Direct Job Application'
+  | 'HR Introduction'
+  | 'Referral Request'
+  | 'Recruitment Enquiry'
+  | 'Follow-up After Application'
+  | 'Follow-up After Interview'
+  | 'International Job Application'
+  | 'Relocation and Visa Sponsorship Enquiry'
+  | 'Supply Chain Role Application'
+  | 'Project Management Role Application'
+  | 'General Talent Acquisition Enquiry';
+
+export type OutreachEmailTone =
+  | 'Professional'
+  | 'Executive'
+  | 'Concise'
+  | 'Confident'
+  | 'International';
+
+export type OutreachMessageStatus =
+  | 'draft'
+  | 'approved'
+  | 'sending'
+  | 'sent'
+  | 'provider_accepted'
+  | 'delivered'
+  | 'bounced'
+  | 'failed'
+  | 'replied'
+  | 'follow_up_due'
+  | 'closed';
+
+export interface OutreachMessage {
+  id: string;
+  userId: string;
+  contactId: string;
+  campaignId?: string;
+  emailAccountId?: string;
+  jobId?: string;
+  companyName: string;
+  jobTitle?: string;
+  recipientEmail: string;
+  recipientName?: string;
+  templateType: OutreachTemplateType;
+  tone: OutreachEmailTone;
+  subject: string;
+  bodyText: string;
+  bodyHtml?: string;
+  resumeDocumentId?: string;
+  resumeFileName?: string;
+  resumeFileSize?: number;
+  status: OutreachMessageStatus;
+  explicitUserApproval: boolean;
+  approvedAt?: string;
+  idempotencyKey?: string;
+  provider?: EmailAccountProvider | 'mock';
+  providerMessageId?: string;
+  providerThreadId?: string;
+  errorMessage?: string;
+  sentAt?: string;
+  repliedAt?: string;
+  followUpDueAt?: string;
+  replySummary?: string;
+  suggestedReply?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OutreachEvent {
+  id: string;
+  messageId: string;
+  userId: string;
+  eventType: string;
+  providerEventId?: string;
+  payload: Record<string, unknown>;
+  occurredAt: string;
+}
+
+export interface OutreachCampaign {
+  id: string;
+  userId: string;
+  name: string;
+  targetCountry?: string;
+  targetRoles: string[];
+  status: 'active' | 'paused' | 'completed' | 'archived';
+  dailyLimit: number;
+  notes?: string;
+  contactsCount?: number;
+  draftsCount?: number;
+  approvedCount?: number;
+  sentCount?: number;
+  repliesCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OutreachCampaignContact {
+  id: string;
+  campaignId: string;
+  userId: string;
+  contactId: string;
+  jobId?: string;
+  status: 'queued' | 'drafted' | 'approved' | 'sent' | 'replied' | 'skipped';
+  addedAt: string;
+  contact?: HrContact;
+}
+
+export interface DoNotContactEntry {
+  id: string;
+  userId: string;
+  email: string;
+  domain?: string;
+  reason: string;
+  source: string;
+  createdAt: string;
+}
+
+export interface ContactDiscoveryRun {
+  id: string;
+  triggeredBy: string;
+  companyId?: string;
+  companyName?: string;
+  jobId?: string;
+  status: 'queued' | 'running' | 'completed' | 'partial' | 'failed' | 'dead_letter';
+  sourcesScanned: number;
+  contactsDiscovered: number;
+  contactsVerified: number;
+  duplicatesSkipped: number;
+  retryCount: number;
+  checkpoint?: string;
+  errorMessage?: string;
+  startedAt: string;
+  completedAt?: string;
+}
+
+export interface OutreachOverviewMetrics {
+  contactsDiscovered: number;
+  verifiedContacts: number;
+  domainValidContacts: number;
+  roleBasedContacts: number;
+  jobsWithContacts: number;
+  emailsDrafted: number;
+  emailsSent: number;
+  providerAcceptedCount: number;
+  deliveredCount: number;
+  bouncedOrFailedCount: number;
+  repliesReceived: number;
+  positiveResponses: number;
+  followUpsDue: number;
+  connectedAccountsCount: number;
+  oauthConfigured: {
+    gmail: boolean;
+    outlook: boolean;
+  };
+  entitlement: {
+    planId: 'free' | 'pro' | 'black';
+    canSendOutreach: boolean;
+    canGenerateAiEmail: boolean;
+    monthlyEmailLimit: number;
+    emailsSentThisMonth: number;
+  };
+}
+
+export interface ResumeAttachmentOption {
+  id: string;
+  sourceType: 'uploaded_document' | 'tailored_application';
+  fileName: string;
+  mimeType: string;
+  fileSizeBytes: number;
+  createdAt: string;
+  company?: string;
+  role?: string;
+  hasBinaryPreview: boolean;
+  isDefault?: boolean;
+}
+
 
