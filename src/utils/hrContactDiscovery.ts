@@ -261,12 +261,43 @@ export function classifyHrDesignation(contextSnippet: string, email: string, con
     };
   }
 
-  if (localPart === 'hr' || localPart === 'humanresources' || localPart === 'people' || localPart === 'peopleops') {
+  if (
+    localPart === 'hr' ||
+    localPart === 'myhr' ||
+    localPart === 'hrgroup' ||
+    localPart === 'hrteam' ||
+    localPart === 'humanresources' ||
+    localPart === 'people' ||
+    localPart === 'peopleops'
+  ) {
     return {
       designation: 'HR Department',
       roleCategory: 'HR Recruiter',
       contactType: 'HR Department',
       department: 'Human Resources',
+    };
+  }
+
+  if (
+    localPart === 'jobposting' ||
+    localPart === 'jobpostings' ||
+    localPart === 'candidateprotection' ||
+    localPart === 'accommodations'
+  ) {
+    return {
+      designation: 'Recruitment Coordinator',
+      roleCategory: 'Recruitment Coordinator',
+      contactType: 'Recruitment Department',
+      department: 'Recruitment',
+    };
+  }
+
+  if (localPart === 'talent' || localPart === 'talentrequests' || localPart === 'talentacquisition') {
+    return {
+      designation: 'Talent Acquisition Specialist',
+      roleCategory: 'Talent Acquisition Specialist',
+      contactType: 'Talent Acquisition',
+      department: 'Talent Acquisition',
     };
   }
 
@@ -370,7 +401,18 @@ export function classifyHrDesignation(contextSnippet: string, email: string, con
   };
 }
 
-function tryExtractContactName(snippet: string): string | undefined {
+function tryExtractContactName(snippet: string, companyName?: string, emailLocalPart?: string): string | undefined {
+  // Never assign a personal contact name to role/departmental inboxes (e.g. myhr@, jobposting@, candidateprotection@)
+  if (
+    emailLocalPart &&
+    /^(?:myhr|hrgroup|hrteam|jobposting|jobpostings|talentrequests|candidateprotection|accommodations|opportunities|careers|recruitment|recruiting|talent|hiring|hr|jobs|apply|info|contact)/i.test(
+      emailLocalPart
+    )
+  ) {
+    return undefined;
+  }
+
+  const normalizedCo = (companyName || '').trim().toLowerCase();
   // Strict: only extract explicit person name appearing beside recruitment context — NEVER infer from email prefix!
   const patterns = [
     /(?:contact|reach\s+out\s+to|send\s+(?:your\s+)?(?:resume|cv|application)\s+to|recruiter|hiring\s+manager)[:\s]+([A-Z][a-z]{1,20}(?:\s+[A-Z][a-z]{1,20}){1,2})/,
@@ -379,11 +421,21 @@ function tryExtractContactName(snippet: string): string | undefined {
   for (const pat of patterns) {
     const match = snippet.match(pat);
     if (match && match[1]) {
-      const candidate = match[1].trim();
+      const candidate = match[1]
+        .trim()
+        .replace(
+          /^(?:(?:Contact|Email|Message|Ask|Reach|To|With|From|Senior|Lead|Technical|Engineering|Talent|Acquisition|Recruiter|Hiring|Manager|Coordinator|Specialist)\s+)+/i,
+          ''
+        )
+        .trim();
       const lower = candidate.toLowerCase();
       if (
         candidate.length >= 4 &&
         candidate.length <= 50 &&
+        (!normalizedCo || (!lower.includes(normalizedCo) && !normalizedCo.includes(lower))) &&
+        !/\b(group|corp|inc|ltd|gmbh|llc|department|team|desk|portal|opportunity|opportunities|protection|resources|acquisition|relations|global)\b/i.test(
+          lower
+        ) &&
         !lower.includes('human resources') &&
         !lower.includes('talent acquisition') &&
         !lower.includes('careers team') &&
@@ -522,7 +574,7 @@ export function extractPublicHrContactsWithDiagnostics(params: {
 
     const hadMailto = decoded.includes(`[mailto:${rawEmail}]`) || decoded.toLowerCase().includes(`[mailto:${email}]`);
     const isRoleBased = isRoleBasedEmailAddress(local);
-    const contactName = !isRoleBased ? tryExtractContactName(snippet) : undefined;
+    const contactName = !isRoleBased ? tryExtractContactName(snippet, params.companyName, local) : undefined;
     const classified = classifyHrDesignation(snippet, email, contactName);
 
     // Extraction signal check: recruitment OR application OR question/enquiry OR mailto OR company-domain correlation

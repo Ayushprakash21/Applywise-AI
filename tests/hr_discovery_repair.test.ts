@@ -1,13 +1,14 @@
 import { describe, it, after } from 'node:test';
 import assert from 'node:assert';
 import crypto from 'node:crypto';
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { authAndStore, sqlite } from '../server/authAndStore.ts';
 import { hrOutreachStore } from '../server/hrOutreachStore.ts';
 import { hrDiscoveryQueueStore } from '../server/hrDiscoveryQueueStore.ts';
 import { createHrOutreachRouter } from '../server/hrOutreachRoutes.ts';
 import { deriveSourceJobId } from '../server/hrDiscoveryEngine.ts';
-import { extractPlainTextForMatching } from '../worker/jobConnectors.ts';
+import { extractPlainTextForMatching, fetchAtsFullJobDetail } from '../worker/jobConnectors.ts';
 import {
   extractPublicHrContactsFromText,
   extractPublicHrContactsWithDiagnostics,
@@ -313,6 +314,255 @@ describe('ApplyVise AI — HR Discovery Repair, Extraction, Queue & Admin Diagno
       } finally {
         server.close();
       }
+    });
+  });
+
+  describe('4. ATS Provider Response Schemas & Real D1 Classification Safeguards', () => {
+    it('fetches and parses full Greenhouse, Lever, SmartRecruiters & Workable ATS schemas via fetchAtsFullJobDetail', async () => {
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = (async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.includes('boards-api.greenhouse.io/v1/boards/demo/jobs/101')) {
+          return new globalThis.Response(
+            JSON.stringify({
+              title: 'Staff Backend Engineer',
+              company_name: 'DemoCorp',
+              absolute_url: 'https://boards.greenhouse.io/demo/jobs/101',
+              content: '&lt;p&gt;Send inquiries to &lt;a href=&quot;mailto:talent@democorp.io&quot;&gt;Talent Team&lt;/a&gt;&lt;/p&gt;',
+            }),
+            { status: 200 }
+          );
+        }
+        if (url.includes('api.lever.co/v0/postings/demo/202')) {
+          return new globalThis.Response(
+            JSON.stringify({
+              text: 'Supply Chain Lead',
+              hostedUrl: 'https://jobs.lever.co/demo/202',
+              descriptionPlain: 'Questions? Contact Recruiter Anna Lindholm (anna.lindholm@democorp.io) in Berlin.',
+            }),
+            { status: 200 }
+          );
+        }
+        if (url.includes('api.smartrecruiters.com/v1/companies/demo/postings/303')) {
+          return new globalThis.Response(
+            JSON.stringify({
+              name: 'Project Manager',
+              postingUrl: 'https://jobs.smartrecruiters.com/demo/303',
+              company: { name: 'DemoCorp' },
+              jobAd: {
+                sections: {
+                  jobDescription: { text: '<p>Reach out to recruiting@democorp.io for sponsorship details.</p>' },
+                },
+              },
+            }),
+            { status: 200 }
+          );
+        }
+        if (url.includes('apply.workable.com/api/v1/widget/accounts/demo/jobs/404')) {
+          return new globalThis.Response(
+            JSON.stringify({
+              title: 'Product Ops',
+              url: 'https://apply.workable.com/demo/j/404',
+              description: 'Apply online',
+              requirements: '<p>Contact jobs@democorp.io for accommodations.</p>',
+            }),
+            { status: 200 }
+          );
+        }
+        return new globalThis.Response('Not Found', { status: 404 });
+      }) as typeof fetch;
+
+      try {
+        const gh = await fetchAtsFullJobDetail({ source: 'greenhouse_demo', sourceJobId: '101' });
+        assert.strictEqual(gh.ok, true);
+        const ghContacts = extractPublicHrContactsFromText({
+          text: extractPlainTextForMatching(gh.rawHtmlOrText),
+          companyName: 'DemoCorp',
+          companyDomain: 'democorp.io',
+          sourceType: 'gcde_greenhouse_demo',
+          sourceName: 'Greenhouse Demo',
+          sourceUrl: gh.sourceUrl,
+          jobId: 'gh_demo_101',
+        });
+        assert.strictEqual(ghContacts[0]?.email, 'talent@democorp.io');
+
+        const lv = await fetchAtsFullJobDetail({ source: 'lever_demo', sourceJobId: '202' });
+        assert.strictEqual(lv.ok, true);
+        const lvContacts = extractPublicHrContactsFromText({
+          text: extractPlainTextForMatching(lv.rawHtmlOrText),
+          companyName: 'DemoCorp',
+          companyDomain: 'democorp.io',
+          sourceType: 'gcde_lever_demo',
+          sourceName: 'Lever Demo',
+          sourceUrl: lv.sourceUrl,
+          jobId: 'lever_demo_202',
+        });
+        assert.strictEqual(lvContacts[0]?.email, 'anna.lindholm@democorp.io');
+        assert.strictEqual(lvContacts[0]?.contactName, 'Anna Lindholm');
+        assert.strictEqual(lvContacts[0]?.contactType, 'Named Recruiter');
+
+        const sr = await fetchAtsFullJobDetail({ source: 'smartrec_demo', sourceJobId: '303' });
+        assert.strictEqual(sr.ok, true);
+        const srContacts = extractPublicHrContactsFromText({
+          text: extractPlainTextForMatching(sr.rawHtmlOrText),
+          companyName: 'DemoCorp',
+          companyDomain: 'democorp.io',
+          sourceType: 'gcde_smartrec_demo',
+          sourceName: 'SmartRecruiters Demo',
+          sourceUrl: sr.sourceUrl,
+          jobId: 'smartrec_demo_303',
+        });
+        assert.strictEqual(srContacts[0]?.email, 'recruiting@democorp.io');
+
+        const wk = await fetchAtsFullJobDetail({ source: 'workable_demo', sourceJobId: '404' });
+        assert.strictEqual(wk.ok, true);
+        const wkContacts = extractPublicHrContactsFromText({
+          text: extractPlainTextForMatching(wk.rawHtmlOrText),
+          companyName: 'DemoCorp',
+          companyDomain: 'democorp.io',
+          sourceType: 'gcde_workable_demo',
+          sourceName: 'Workable Demo',
+          sourceUrl: wk.sourceUrl,
+          jobId: 'workable_demo_404',
+        });
+        assert.strictEqual(wkContacts[0]?.email, 'jobs@democorp.io');
+
+        // Also test upstream page failure gracefully returns ok=false
+        const failRes = await fetchAtsFullJobDetail({ source: 'greenhouse_demo', sourceJobId: '999' });
+        assert.strictEqual(failRes.ok, false);
+        assert.strictEqual(failRes.statusCode, 404);
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
+    it('never mistakes company names or role inboxes (myhr@, candidateprotection@) for Named Recruiters', () => {
+      const realSnippet = `
+        <p>Precision Medicine Group is an Equal Opportunity Employer. For assistance or questions during the application process, contact Precision Medicine Group at <a href="mailto:myhr@precisionmedicinegrp.com">MyHR Support</a>.</p>
+        <p>Welo Global inquiries: <a href="mailto:TalentRequests@welocalize.com">Talent Requests</a></p>
+        <p>Candidate safety notice: email candidateprotection@garnerhealth.com if you suspect fraudulent outreach.</p>
+      `;
+
+      const res = extractPublicHrContactsFromText({
+        text: realSnippet,
+        companyName: 'Precision Medicine Group',
+        companyDomain: 'precisionmedicinegrp.com',
+        sourceType: 'gcde_jobicy',
+        sourceName: 'Jobicy Feed',
+        sourceUrl: 'https://jobicy.com/jobs/1',
+        jobId: 'jobicy_1',
+      });
+
+      const myhr = res.find((c) => c.email === 'myhr@precisionmedicinegrp.com');
+      assert.ok(myhr);
+      assert.strictEqual(myhr.isRoleBased, true);
+      assert.strictEqual(myhr.contactName, undefined);
+      assert.strictEqual(myhr.contactType, 'HR Department');
+
+      const cp = res.find((c) => c.email === 'candidateprotection@garnerhealth.com');
+      assert.ok(cp);
+      assert.strictEqual(cp.isRoleBased, true);
+      assert.strictEqual(cp.contactName, undefined);
+      assert.strictEqual(cp.contactType, 'Recruitment Department');
+    });
+
+    it('passes the 7-case integration corpus (named, general, none, unrelated, obfuscated, malformed, mailto) + company vs job link separation', () => {
+      // Corpus A: zero emails
+      const noEmail = extractPublicHrContactsWithDiagnostics({
+        text: 'Apply via our Workday career portal. Equal opportunity employer.',
+        companyName: 'NoMail Corp',
+        sourceType: 'gcde_arbeitnow',
+        sourceName: 'Arbeitnow',
+        sourceUrl: 'https://arbeitnow.com/jobs/1',
+        jobId: 'job_none_1',
+      });
+      assert.strictEqual(noEmail.candidates.length, 0);
+      assert.strictEqual(noEmail.rawEmailMatches, 0);
+
+      // Corpus B: mixed named recruiter + general + misleading unrelated + obfuscated + malformed + mailto
+      const mixedCorpus = `
+        <div>
+          <p>Lead Technical Recruiter Marcus Weber (marcus.weber@nordictech-corpus.de) oversees hiring.</p>
+          <p>General applications: careers@nordictech-corpus.de</p>
+          <p>Obfuscated contact: hiring[at]nordictech-corpus[dot]de</p>
+          <p>Clickable mailto: <a href="mailto:talent.acquisition@nordictech-corpus.de">Email TA</a></p>
+          <p>Unrelated misleading vendor contact: billing@random-vendor-client.org</p>
+          <p>Malformed email: broken@@nordictech-corpus.de and example@test.localhost</p>
+        </div>
+      `;
+      const parsed = extractPublicHrContactsWithDiagnostics({
+        text: mixedCorpus,
+        companyName: 'NordicTech',
+        companyDomain: 'nordictech-corpus.de',
+        sourceType: 'gcde_remotive',
+        sourceName: 'Remotive',
+        sourceUrl: 'https://remotive.com/jobs/99',
+        jobId: 'job_mixed_99',
+      });
+
+      const foundEmails = parsed.candidates.map((c) => c.email);
+      assert.ok(foundEmails.includes('marcus.weber@nordictech-corpus.de'));
+      assert.ok(foundEmails.includes('careers@nordictech-corpus.de'));
+      assert.ok(foundEmails.includes('hiring@nordictech-corpus.de'));
+      assert.ok(foundEmails.includes('talent.acquisition@nordictech-corpus.de'));
+
+      assert.ok(!foundEmails.includes('billing@random-vendor-client.org'));
+      assert.ok(!foundEmails.includes('example@test.localhost'));
+
+      assert.strictEqual(parsed.candidates.find((c) => c.email === 'marcus.weber@nordictech-corpus.de')?.contactType, 'Named Recruiter');
+      assert.strictEqual(parsed.candidates.find((c) => c.email === 'careers@nordictech-corpus.de')?.contactType, 'Careers Contact');
+      assert.strictEqual(parsed.candidates.find((c) => c.email === 'talent.acquisition@nordictech-corpus.de')?.hadMailto, true);
+      assert.strictEqual(parsed.candidates.find((c) => c.email === 'hiring@nordictech-corpus.de')?.wasObfuscated, true);
+
+      // Verify company_only vs direct_posting link persistence in hr_contact_job_links
+      const linkJobIdA = `link_job_a_${suffix}`;
+      const linkJobIdB = `link_job_b_${suffix}`;
+      const coEmail = `hr.company.${suffix}@nordictech-corpus.de`;
+      testEmails.push(coEmail);
+
+      const savedDirect = hrOutreachStore.upsertHrContact({
+        companyName: `NordicTech-${suffix}`,
+        designation: 'Careers Department',
+        roleCategory: 'Careers Department',
+        contactType: 'Careers Contact',
+        email: coEmail,
+        country: 'Germany',
+        sourceType: 'gcde_remotive',
+        sourceName: 'Remotive',
+        sourceUrl: 'https://remotive.com/jobs/a',
+        associatedJobId: linkJobIdA,
+        associatedJobIds: [linkJobIdA],
+        linkType: 'direct_posting',
+        emailVerificationStatus: 'Source Confirmed',
+        contactConfidence: 0.9,
+        evidence: 'Appears in direct job A posting',
+        isRoleBased: true,
+      });
+
+      hrOutreachStore.upsertHrContact({
+        companyName: `NordicTech-${suffix}`,
+        designation: 'Careers Department',
+        roleCategory: 'Careers Department',
+        contactType: 'Careers Contact',
+        email: coEmail,
+        country: 'Germany',
+        sourceType: 'official_company_careers',
+        sourceName: 'Careers Page',
+        sourceUrl: 'https://nordictech-corpus.de/careers',
+        associatedJobId: linkJobIdB,
+        associatedJobIds: [linkJobIdB],
+        linkType: 'company_only',
+        emailVerificationStatus: 'Source Confirmed',
+        contactConfidence: 0.7,
+        evidence: 'Company careers page association for B',
+        isRoleBased: true,
+      });
+
+      const links = sqlite
+        .prepare('SELECT job_id, link_type FROM hr_contact_job_links WHERE contact_id = ?')
+        .all(savedDirect.contact.id) as Array<{ job_id: string; link_type: string }>;
+      assert.strictEqual(links.find((l) => l.job_id === linkJobIdA)?.link_type, 'direct_posting');
+      assert.strictEqual(links.find((l) => l.job_id === linkJobIdB)?.link_type, 'company_only');
     });
   });
 
