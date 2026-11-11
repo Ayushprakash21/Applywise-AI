@@ -39,7 +39,8 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [extractedProfile, setExtractedProfile] = useState<UserProfile | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [errorType, setErrorType] = useState<'scanned' | 'encrypted' | 'malformed' | 'size' | 'general' | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [errorType, setErrorType] = useState<'scanned' | 'encrypted' | 'malformed' | 'size' | 'unsupported' | 'general' | null>(null);
   const [warningMsg, setWarningMsg] = useState<string | null>(null);
   const [replaceExisting, setReplaceExisting] = useState(false);
   const [showReplaceOption, setShowReplaceOption] = useState(false);
@@ -123,24 +124,34 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
 
   const validateAndSetFile = (file: File) => {
     setErrorMsg(null);
+    setErrorCode(null);
     setErrorType(null);
     setWarningMsg(null);
 
     const lower = file.name.toLowerCase();
+    if (lower.endsWith('.doc') && !lower.endsWith('.docx')) {
+      setErrorMsg('Legacy Microsoft Word (.doc) format is not supported. Please save/export as .docx or PDF and try again.');
+      setErrorCode('DOCX_UNSUPPORTED_FEATURE');
+      setErrorType('unsupported');
+      return false;
+    }
     if (!lower.endsWith('.pdf') && !lower.endsWith('.docx')) {
-      setErrorMsg('Unsupported format. Please select a text-based PDF (.pdf) or Word document (.docx).');
-      setErrorType('general');
+      setErrorMsg('Unsupported format. Please select a text-based PDF (.pdf) or Microsoft Word (.docx) document.');
+      setErrorCode('DOCX_UNSUPPORTED_FEATURE');
+      setErrorType('unsupported');
       return false;
     }
 
     if (file.size > 10 * 1024 * 1024) {
       setErrorMsg('File size exceeds the 10MB limit. Please upload a smaller resume document.');
+      setErrorCode('UPLOAD_TOO_LARGE');
       setErrorType('size');
       return false;
     }
 
     if (file.size === 0) {
       setErrorMsg('The selected file is empty (0 bytes). Please upload a valid document.');
+      setErrorCode(lower.endsWith('.docx') ? 'DOCX_EMPTY_DOCUMENT' : 'PDF_PARSE_FAILURE');
       setErrorType('malformed');
       return false;
     }
@@ -181,25 +192,22 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
   const handleProcessFile = async () => {
     if (!selectedFile) return;
     setErrorMsg(null);
+    setErrorCode(null);
     setErrorType(null);
     setWarningMsg(null);
 
     try {
-      // 1. Uploading
+      // 1. Uploading document & validating
       setStep('uploading');
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 150));
 
-      // 2. Extracting text
+      // 2. Extracting text & 3. Analyzing profile on server
       setStep('extracting');
-      await new Promise(r => setTimeout(r, 300));
-
-      // 3. Analyzing with Server
-      setStep('analyzing');
       const res = await api.uploadResumeFile(selectedFile, replaceExisting);
 
-      // 4. Validating fields
+      // 4. Validating extracted fields
       setStep('validating');
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 150));
 
       if (!res.profile) {
         throw new Error('No profile data could be extracted from this document.');
@@ -212,15 +220,34 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
       setStep('review');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
+      const code = (err as { code?: string })?.code || null;
       setErrorMsg(msg);
+      setErrorCode(code);
 
       const lowerMsg = msg.toLowerCase();
-      if (lowerMsg.includes('scanned') || lowerMsg.includes('image') || lowerMsg.includes('no readable text')) {
-        setErrorType('scanned');
-      } else if (lowerMsg.includes('password') || lowerMsg.includes('encrypted')) {
+      if (code === 'UPLOAD_TOO_LARGE' || lowerMsg.includes('10mb limit')) {
+        setErrorType('size');
+      } else if (code === 'DOCX_ENCRYPTED' || lowerMsg.includes('password') || lowerMsg.includes('encrypted')) {
         setErrorType('encrypted');
-      } else if (lowerMsg.includes('malformed') || lowerMsg.includes('header')) {
+      } else if (
+        code === 'DOCX_EMPTY_DOCUMENT' ||
+        lowerMsg.includes('scanned') ||
+        lowerMsg.includes('image') ||
+        lowerMsg.includes('no readable text') ||
+        lowerMsg.includes('minimal or no extractable text')
+      ) {
+        setErrorType('scanned');
+      } else if (
+        code === 'DOCX_INVALID_ARCHIVE' ||
+        code === 'DOCX_MISSING_DOCUMENT_XML' ||
+        code === 'DOCX_UPLOAD_CORRUPTED' ||
+        lowerMsg.includes('malformed') ||
+        lowerMsg.includes('header') ||
+        lowerMsg.includes('corrupted')
+      ) {
         setErrorType('malformed');
+      } else if (code === 'DOCX_UNSUPPORTED_FEATURE' || lowerMsg.includes('legacy word')) {
+        setErrorType('unsupported');
       } else if (lowerMsg.includes('limit reached') || lowerMsg.includes('replace')) {
         setShowReplaceOption(true);
       } else {
@@ -435,16 +462,47 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
               <div className="flex-1">
                 <p className="font-bold">
                   {errorType === 'scanned'
-                    ? 'Image-Only / Scanned PDF Detected'
+                    ? 'Empty / Scanned Document Detected'
                     : errorType === 'encrypted'
-                    ? 'Encrypted / Password-Protected PDF'
+                    ? 'Encrypted / Password-Protected Document'
                     : errorType === 'malformed'
-                    ? 'Invalid Document Format'
+                    ? 'Invalid or Corrupted Document'
+                    : errorType === 'unsupported'
+                    ? 'Unsupported Document Format'
                     : errorType === 'size'
                     ? 'File Size Limit Exceeded'
                     : 'Resume Extraction Failed'}
+                  {errorCode && (
+                    <span className="ml-2 px-1.5 py-0.5 rounded bg-rose-100/80 text-rose-700 font-mono text-[10px]">
+                      {errorCode}
+                    </span>
+                  )}
                 </p>
                 <p className="mt-1 leading-relaxed">{errorMsg}</p>
+                {selectedFile && (
+                  <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleProcessFile}
+                      className="px-3 py-1 rounded-lg bg-rose-600 text-white font-semibold hover:bg-rose-700 transition cursor-pointer inline-flex items-center space-x-1"
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                      <span>Retry Extraction</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setErrorMsg(null);
+                        setErrorCode(null);
+                        setSelectedFile(null);
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}
+                      className="px-2.5 py-1 rounded-lg border border-rose-300 text-rose-700 hover:bg-rose-100/60 transition cursor-pointer"
+                    >
+                      Choose Different File
+                    </button>
+                  </div>
+                )}
                 {errorType === 'scanned' && (
                   <p className="mt-2 text-rose-700 font-medium">
                     ApplyVise AI requires a standard text-based PDF or Microsoft Word (.docx) file to verify your actual employment history without hallucination. Please re-export your resume from Word/Google Docs or upload a DOCX file.
@@ -499,7 +557,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                   <div className="flex items-center space-x-2">
                     <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-blue-100/80 text-blue-800 rounded-lg text-xs font-semibold">
                       <FileText className="h-3.5 w-3.5" />
-                      <span>{formatFileSize(selectedFile.size)} · Ready to parse</span>
+                      <span>{formatFileSize(selectedFile.size)} · File selected</span>
                     </div>
                     <button
                       type="button"

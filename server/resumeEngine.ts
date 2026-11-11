@@ -7,10 +7,16 @@ if (typeof (globalThis as any).pdfjsWorker === 'undefined') {
 }
 
 import { PDFParse } from 'pdf-parse';
-import mammoth from 'mammoth';
 import crypto from 'crypto';
 import { GoogleGenAI } from '@google/genai';
 import { Document, Paragraph, TextRun, HeadingLevel, Packer, AlignmentType } from 'docx';
+import {
+  extractDocxResumeText,
+  ResumeExtractionError,
+  ResumeExtractionErrorCode,
+  toUint8Array,
+  validateAndDetectResumeFormat,
+} from '../src/utils/docxExtractor.ts';
 import { UserProfile, TailoredResumeContent, VerifiedSkill, ExperienceItem, StructuredExtractionOutput } from '../src/types/index.ts';
 import { detectJobFamily } from './matchingEngine.ts';
 
@@ -24,6 +30,7 @@ export interface ExtractionResult {
   pageCount?: number;
   format: 'pdf' | 'docx';
   warning?: string;
+  errorCode?: ResumeExtractionErrorCode;
 }
 
 export interface TruthfulnessValidationResult {
@@ -52,32 +59,14 @@ export const resumeEngine = {
    * Validate and extract text safely from raw file buffer.
    * Never passes binary stream or raw buffer as text.
    */
-  async extractText(buffer: Buffer, originalName: string, mimeType: string): Promise<ExtractionResult> {
-    if (!buffer || buffer.length === 0) {
-      throw new Error('Uploaded document is empty (0 bytes).');
-    }
+  async extractText(buffer: Buffer | ArrayBuffer | Uint8Array, originalName: string, mimeType: string): Promise<ExtractionResult> {
+    const bytes = toUint8Array(buffer);
+    const format = validateAndDetectResumeFormat(bytes, originalName, mimeType);
 
-    if (buffer.length > 10 * 1024 * 1024) {
-      throw new Error('File size exceeds the 10MB limit.');
-    }
-
-    const lowerName = originalName.toLowerCase();
-    const isPdf = lowerName.endsWith('.pdf') || mimeType === 'application/pdf';
-    const isDocx = lowerName.endsWith('.docx') || mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-
-    if (!isPdf && !isDocx) {
-      throw new Error('Unsupported file format. Please upload a PDF (.pdf) or Microsoft Word (.docx) document.');
-    }
-
-    if (isPdf) {
-      // Validate PDF signature (%PDF-)
-      const header = buffer.subarray(0, 5).toString('ascii');
-      if (!header.startsWith('%PDF-')) {
-        throw new Error('Malformed PDF file: Invalid PDF header signature.');
-      }
-
+    if (format === 'pdf') {
+      const nodeBuf = Buffer.isBuffer(buffer) ? buffer : Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
       try {
-        const parser = new PDFParse({ data: buffer });
+        const parser = new PDFParse({ data: nodeBuf });
         const parseResult = await parser.getText();
         const rawText = parseResult.text ? parseResult.text.trim() : '';
 
@@ -108,45 +97,16 @@ export const resumeEngine = {
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         if (msg.includes('password') || msg.includes('encrypted')) {
-          throw new Error('The PDF document is password-protected or encrypted. Please provide an unencrypted document.');
+          throw new ResumeExtractionError(
+            'PDF_PARSE_FAILURE',
+            'The PDF document is password-protected or encrypted. Please provide an unencrypted document.',
+            422
+          );
         }
-        throw new Error(`Failed to extract text from PDF: ${msg}`);
+        throw new ResumeExtractionError('PDF_PARSE_FAILURE', `Failed to extract text from PDF: ${msg}`, 422);
       }
     } else {
-      // Validate DOCX OpenXML ZIP header signature (PK\x03\x04)
-      if (buffer.length < 4 || buffer[0] !== 0x50 || buffer[1] !== 0x4B || buffer[2] !== 0x03 || buffer[3] !== 0x04) {
-        throw new Error('Failed to extract text from Word document: Malformed DOCX file (invalid ZIP archive header).');
-      }
-
-      // DOCX via Mammoth
-      try {
-        const result = await mammoth.extractRawText({ buffer });
-        const rawText = result.value ? result.value.trim() : '';
-
-        if (rawText.length < 40) {
-          return {
-            text: '',
-            isScanned: true,
-            format: 'docx',
-            warning: 'This Word document contains minimal or no extractable text.',
-          };
-        }
-
-        const normalizedText = rawText
-          .replace(/\r\n/g, '\n')
-          .replace(/[ \t]+/g, ' ')
-          .replace(/\n{3,}/g, '\n\n')
-          .trim();
-
-        return {
-          text: normalizedText,
-          isScanned: false,
-          format: 'docx',
-        };
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        throw new Error(`Failed to extract text from Word document: ${msg}`);
-      }
+      return extractDocxResumeText(bytes);
     }
   },
 

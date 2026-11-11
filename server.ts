@@ -8,6 +8,7 @@ import multer from 'multer';
 import cookieParser from 'cookie-parser';
 import { authAndStore, AuthUser } from './server/authAndStore.ts';
 import { resumeEngine } from './server/resumeEngine.ts';
+import { ResumeExtractionError } from './src/utils/docxExtractor.ts';
 import { GoogleGenAI } from '@google/genai';
 import { buildInterviewEvaluationPrompt, validateInterviewEvaluationOutput } from './src/utils/interviewEvaluator.ts';
 import { calculateExtractionDiff, mergeProfileSafely } from './src/utils/resumeReprocessing.ts';
@@ -343,7 +344,21 @@ app.post('/api/auth/google', async (req: Request, res: Response) => {
 app.post(
   '/api/resumes/upload',
   requireAuth,
-  upload.single('file'),
+  (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    upload.single('file')(req, res, (err: any) => {
+      if (err) {
+        if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(413).json({
+            success: false,
+            code: 'UPLOAD_TOO_LARGE',
+            error: 'File size exceeds the 10MB limit.',
+          });
+        }
+        return res.status(400).json({ success: false, error: err?.message || 'Upload failed.' });
+      }
+      next();
+    });
+  },
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const file = req.file;
@@ -382,6 +397,7 @@ app.post(
         return res.status(422).json({
           success: false,
           isScanned: true,
+          code: extraction.errorCode || (extraction.format === 'docx' ? 'DOCX_EMPTY_DOCUMENT' : 'PDF_PARSE_FAILURE'),
           error: extraction.warning || 'Text could not be extracted because this document appears to contain scanned images. OCR processing is unavailable.',
         });
       }
@@ -458,8 +474,12 @@ app.post(
         diagnostics: detailed.diagnostics
       });
     } catch (err: unknown) {
-      console.error('Resume upload error:', err);
+      if (err instanceof ResumeExtractionError) {
+        console.error(`Resume extraction failure [${err.code}]: ${err.message}`);
+        return res.status(err.httpStatus).json({ success: false, error: err.message, code: err.code });
+      }
       const msg = err instanceof Error ? err.message : String(err);
+      console.error('Resume upload error:', msg);
       res.status(400).json({ success: false, error: msg });
     }
   }

@@ -8,6 +8,7 @@ import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { D1Store, AuthUser } from './d1Store.ts';
 import { hashPassword, verifyPassword, generateSessionToken, validateEmail, validatePassword } from './auth.ts';
 import { workerResumeEngine } from './resumeEngine.ts';
+import { MAX_RESUME_UPLOAD_BYTES, ResumeExtractionError } from '../src/utils/docxExtractor.ts';
 import { calculateExtractionDiff, mergeProfileSafely } from '../src/utils/resumeReprocessing.ts';
 import { buildFactsFromProfile, auditTailoredResume } from '../src/utils/candidateFactRegistry.ts';
 import { buildInterviewEvaluationPrompt, validateInterviewEvaluationOutput } from '../src/utils/interviewEvaluator.ts';
@@ -952,6 +953,22 @@ app.post('/api/resumes/upload', requireAuth, async (c) => {
       return c.json({ success: false, error: 'Please attach a PDF or DOCX resume document.' }, 400);
     }
 
+    if (file.size === 0) {
+      return c.json({
+        success: false,
+        code: file.name.toLowerCase().endsWith('.docx') ? 'DOCX_EMPTY_DOCUMENT' : 'PDF_PARSE_FAILURE',
+        error: 'Uploaded document is empty (0 bytes).',
+      }, 400);
+    }
+
+    if (file.size > MAX_RESUME_UPLOAD_BYTES) {
+      return c.json({
+        success: false,
+        code: 'UPLOAD_TOO_LARGE',
+        error: 'File size exceeds the 10MB limit.',
+      }, 413);
+    }
+
     const replace = formData.get('replace') === 'true' || formData.get('replace') === '1';
 
     // Authoritative quota enforcement
@@ -972,6 +989,7 @@ app.post('/api/resumes/upload', requireAuth, async (c) => {
       return c.json({
         success: false,
         isScanned: true,
+        code: extraction.errorCode || (extraction.format === 'docx' ? 'DOCX_EMPTY_DOCUMENT' : 'PDF_PARSE_FAILURE'),
         error: extraction.warning || 'Scanned or image document detected. No readable text could be extracted. Please upload a standard text PDF or DOCX file.',
       }, 422);
     }
@@ -998,8 +1016,11 @@ app.post('/api/resumes/upload', requireAuth, async (c) => {
           .first<{ id: string }>();
         if (latestDoc?.id) {
           const u8 = new Uint8Array(buffer);
-          let bin = '';
-          for (let i = 0; i < u8.length; i++) bin += String.fromCharCode(u8[i]);
+          const chunks: string[] = [];
+          const chunkSize = 0x8000;
+          for (let i = 0; i < u8.length; i += chunkSize) {
+            chunks.push(String.fromCharCode(...u8.subarray(i, i + chunkSize)));
+          }
           const hrStore = new WorkerHrOutreachStore(c.env.DB);
           await hrStore.saveResumeFileBlob({
             resumeId: latestDoc.id,
@@ -1007,7 +1028,7 @@ app.post('/api/resumes/upload', requireAuth, async (c) => {
             fileName: file.name,
             mimeType: file.type || (extraction.format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
             fileSizeBytes: file.size,
-            dataBase64: btoa(bin),
+            dataBase64: btoa(chunks.join('')),
           });
         }
       } catch {
@@ -1030,8 +1051,13 @@ app.post('/api/resumes/upload', requireAuth, async (c) => {
       identityMismatch: identityCheck.isMismatch,
     });
   } catch (err: unknown) {
+    if (err instanceof ResumeExtractionError) {
+      console.error(`Worker resume extraction failure [${err.code}]: ${err.message}`);
+      return c.json({ success: false, error: err.message, code: err.code }, err.httpStatus as any);
+    }
     const msg = err instanceof Error ? err.message : String(err);
-    return c.json({ success: false, error: msg }, 400);
+    console.error('Worker resume upload error:', msg);
+    return c.json({ success: false, error: msg, code: 'DOCX_PARSE_FAILURE' }, 400);
   }
 });
 

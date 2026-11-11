@@ -850,17 +850,22 @@ export const api = {
       method: 'POST',
       headers,
       body: formData,
+      signal: AbortSignal.timeout(45_000),
     });
 
     if (!res.ok) {
       let errMsg = `Upload failed: ${res.status}`;
+      let errCode: string | undefined;
       try {
         const data = await res.json() as any;
         if (data?.error) errMsg = data.error;
+        if (data?.code) errCode = data.code;
       } catch {
         // ignore
       }
-      throw new Error(errMsg);
+      const err = new Error(errMsg) as Error & { code?: string };
+      if (errCode) err.code = errCode;
+      throw err;
     }
 
     return res.json() as Promise<{
