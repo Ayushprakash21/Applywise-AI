@@ -7,8 +7,10 @@ import {
   DoNotContactEntry,
   EmailAccountProvider,
   EmailAccountSummary,
+  EmailVerificationLevels,
   EmailVerificationStatus,
   HrContact,
+  HrContactClassificationType,
   HrContactRoleCategory,
   HrContactSource,
   OutreachCampaign,
@@ -35,7 +37,18 @@ function safeJsonArray(val: unknown): string[] {
   return [];
 }
 
-function mapHrContactRow(row: any): HrContact {
+export function mapHrContactRow(row: any): HrContact {
+  const levels: EmailVerificationLevels | undefined =
+    row.level_syntax !== undefined
+      ? {
+          level1SyntaxValid: Boolean(row.level_syntax),
+          level2DomainExists: Boolean(row.level_domain),
+          level3MxAvailable: row.level_mx === null || row.level_mx === undefined ? null : Boolean(row.level_mx),
+          level4SourceEvidenceConfirmed: Boolean(row.level_source_confirmed),
+          level5MailboxVerified: Boolean(row.level_mailbox),
+        }
+      : undefined;
+
   return {
     id: row.id,
     companyId: row.company_id || undefined,
@@ -44,21 +57,29 @@ function mapHrContactRow(row: any): HrContact {
     contactName: row.contact_name || undefined,
     designation: row.designation,
     roleCategory: row.role_category as HrContactRoleCategory,
+    contactType: (row.contact_type || 'Unknown') as HrContactClassificationType,
     email: row.email,
+    normalizedEmail: row.normalized_email || row.email,
     country: row.country || 'Global',
     city: row.city || undefined,
     department: row.department || undefined,
     sourceType: row.source_type,
     sourceUrl: row.source_url,
+    associatedJobId: row.associated_job_id || undefined,
     associatedJobIds: safeJsonArray(row.associated_job_ids),
     emailVerificationStatus: row.email_verification_status as EmailVerificationStatus,
+    verificationLevels: levels,
     contactConfidence: Number(row.contact_confidence ?? 0.5),
-    evidence: row.evidence || '',
+    evidence: row.evidence || row.source_evidence || '',
+    sourceEvidence: row.source_evidence || row.evidence || '',
     discoveredAt: row.discovered_at,
     lastVerifiedAt: row.last_verified_at || undefined,
+    lastSeenAt: row.last_seen_at || row.discovered_at,
     lastContactedAt: row.last_contacted_at || undefined,
     contactStatus: (row.contact_status || 'active') as HrContact['contactStatus'],
     isRoleBased: Boolean(row.is_role_based),
+    isUserSubmitted: Boolean(row.is_user_submitted),
+    submittedByUserId: row.submitted_by_user_id || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -224,6 +245,7 @@ export class WorkerHrOutreachStore {
     contactName?: string;
     designation: string;
     roleCategory: HrContactRoleCategory;
+    contactType?: HrContactClassificationType;
     email: string;
     country: string;
     city?: string;
@@ -231,57 +253,191 @@ export class WorkerHrOutreachStore {
     sourceType: string;
     sourceName: string;
     sourceUrl: string;
+    associatedJobId?: string;
     associatedJobIds?: string[];
+    linkType?: 'direct_posting' | 'recruitment_page' | 'department_relationship' | 'company_only' | 'user_submitted';
     emailVerificationStatus: EmailVerificationStatus;
+    verificationLevels?: EmailVerificationLevels;
+    mxHosts?: string[];
     contactConfidence: number;
     evidence: string;
+    sourceEvidence?: string;
     isRoleBased: boolean;
     lastVerifiedAt?: string;
+    lastSeenAt?: string;
+    isUserSubmitted?: boolean;
+    submittedByUserId?: string;
   }): Promise<{ contact: HrContact; created: boolean }> {
     const normalizedEmail = params.email.trim().toLowerCase();
-    const dedupeKey = normalizedEmail;
+    const isUserSub = Boolean(params.isUserSubmitted && params.submittedByUserId);
+    const dedupeKey = isUserSub ? `${normalizedEmail}::user::${params.submittedByUserId}` : normalizedEmail;
     const now = new Date().toISOString();
+    const incomingJobs = Array.from(
+      new Set([...(params.associatedJobId ? [params.associatedJobId] : []), ...(params.associatedJobIds || [])].filter(Boolean))
+    );
+    const linkType = params.linkType || (isUserSub ? 'user_submitted' : incomingJobs.length > 0 ? 'direct_posting' : 'company_only');
+    const statusPriority: Record<string, number> = {
+      'Mailbox Verified': 7,
+      Verified: 7,
+      'Source Confirmed': 6,
+      'MX Valid': 5,
+      'Domain Valid': 4,
+      'Role-Based': 3,
+      Unverified: 2,
+      Stale: 1,
+      'Verification Failed': 1,
+      Invalid: 0,
+    };
 
     const existing = await this.db
       .prepare('SELECT * FROM hr_contacts WHERE dedupe_key = ?')
       .bind(dedupeKey)
       .first<any>();
 
+    const upsertJobLinks = async (contactId: string, jobIds: string[]) => {
+      for (const jid of jobIds) {
+        try {
+          await this.db
+            .prepare(
+              `INSERT INTO hr_contact_job_links (id, contact_id, job_id, company_id, link_type, relevance_score, evidence, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+               ON CONFLICT(contact_id, job_id) DO UPDATE SET
+                 link_type = CASE WHEN excluded.link_type = 'direct_posting' THEN 'direct_posting' ELSE hr_contact_job_links.link_type END,
+                 relevance_score = MAX(hr_contact_job_links.relevance_score, excluded.relevance_score),
+                 evidence = COALESCE(excluded.evidence, hr_contact_job_links.evidence)`
+            )
+            .bind(
+              `hcjl_${crypto.randomUUID()}`,
+              contactId,
+              jid,
+              params.companyId || null,
+              linkType,
+              Math.round(params.contactConfidence * 100),
+              (params.sourceEvidence || params.evidence).slice(0, 500),
+              now
+            )
+            .run();
+        } catch {
+          // Ignore if migration 0016 hasn't been applied on target D1 yet
+        }
+      }
+    };
+
+    const recordVerificationEvent = async (contactId: string, status: EmailVerificationStatus) => {
+      if (!params.verificationLevels) return;
+      try {
+        await this.db
+          .prepare(
+            `INSERT INTO hr_contact_verification_events (
+               id, contact_id, syntax_valid, domain_valid, mx_valid, mx_hosts_json,
+               source_confirmed, mailbox_verified, resulting_status, evidence, checked_at
+             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .bind(
+            `hcve_${crypto.randomUUID()}`,
+            contactId,
+            params.verificationLevels.level1SyntaxValid ? 1 : 0,
+            params.verificationLevels.level2DomainExists ? 1 : 0,
+            params.verificationLevels.level3MxAvailable ? 1 : 0,
+            JSON.stringify(params.mxHosts || []),
+            params.verificationLevels.level4SourceEvidenceConfirmed ? 1 : 0,
+            params.verificationLevels.level5MailboxVerified ? 1 : 0,
+            status,
+            (params.sourceEvidence || params.evidence).slice(0, 500),
+            params.lastVerifiedAt || now
+          )
+          .run();
+      } catch {
+        // Ignore if migration 0016 hasn't been applied yet
+      }
+    };
+
+    const levels = params.verificationLevels;
+
     if (existing) {
       const mergedJobs = Array.from(
-        new Set([...safeJsonArray(existing.associated_job_ids), ...(params.associatedJobIds || [])])
+        new Set([...safeJsonArray(existing.associated_job_ids), ...incomingJobs])
       );
       const nextConfidence = Math.max(Number(existing.contact_confidence || 0), params.contactConfidence);
+      const existingPri = statusPriority[String(existing.email_verification_status)] ?? 0;
+      const incomingPri = statusPriority[String(params.emailVerificationStatus)] ?? 0;
       const nextVerification =
-        existing.email_verification_status === 'Verified'
-          ? 'Verified'
-          : params.emailVerificationStatus || existing.email_verification_status;
+        incomingPri >= existingPri ? params.emailVerificationStatus : existing.email_verification_status;
 
-      await this.db
-        .prepare(
-          `UPDATE hr_contacts
-           SET company_id = COALESCE(company_id, ?),
-               company_website = COALESCE(company_website, ?),
-               contact_name = COALESCE(contact_name, ?),
-               associated_job_ids = ?,
-               contact_confidence = ?,
-               email_verification_status = ?,
-               last_verified_at = COALESCE(?, last_verified_at),
-               updated_at = ?
-           WHERE id = ?`
-        )
-        .bind(
-          params.companyId || null,
-          params.companyWebsite || null,
-          params.contactName || null,
-          JSON.stringify(mergedJobs),
-          nextConfidence,
-          nextVerification,
-          params.lastVerifiedAt || null,
-          now,
-          existing.id
-        )
-        .run();
+      try {
+        await this.db
+          .prepare(
+            `UPDATE hr_contacts
+             SET company_id = COALESCE(company_id, ?),
+                 company_website = COALESCE(company_website, ?),
+                 contact_name = COALESCE(contact_name, ?),
+                 contact_type = CASE WHEN COALESCE(contact_type, 'Unknown') = 'Unknown' THEN COALESCE(?, 'Unknown') ELSE contact_type END,
+                 normalized_email = COALESCE(normalized_email, ?),
+                 source_evidence = COALESCE(?, source_evidence),
+                 associated_job_id = COALESCE(associated_job_id, ?),
+                 associated_job_ids = ?,
+                 contact_confidence = ?,
+                 email_verification_status = ?,
+                 level_syntax = CASE WHEN ? IS NOT NULL THEN ? ELSE level_syntax END,
+                 level_domain = CASE WHEN ? IS NOT NULL THEN ? ELSE level_domain END,
+                 level_mx = CASE WHEN ? IS NOT NULL THEN ? ELSE level_mx END,
+                 level_source_confirmed = CASE WHEN ? IS NOT NULL THEN MAX(COALESCE(level_source_confirmed, 0), ?) ELSE level_source_confirmed END,
+                 level_mailbox = CASE WHEN ? IS NOT NULL THEN MAX(COALESCE(level_mailbox, 0), ?) ELSE level_mailbox END,
+                 last_verified_at = COALESCE(?, last_verified_at),
+                 last_seen_at = ?,
+                 updated_at = ?
+             WHERE id = ?`
+          )
+          .bind(
+            params.companyId || null,
+            params.companyWebsite || null,
+            params.contactName || null,
+            params.contactType || 'Unknown',
+            normalizedEmail,
+            params.sourceEvidence || params.evidence,
+            params.associatedJobId || incomingJobs[0] || null,
+            JSON.stringify(mergedJobs),
+            nextConfidence,
+            nextVerification,
+            levels ? 1 : null,
+            levels?.level1SyntaxValid ? 1 : 0,
+            levels ? 1 : null,
+            levels?.level2DomainExists ? 1 : 0,
+            levels ? 1 : null,
+            levels?.level3MxAvailable ? 1 : 0,
+            levels ? 1 : null,
+            levels?.level4SourceEvidenceConfirmed ? 1 : 0,
+            levels ? 1 : null,
+            levels?.level5MailboxVerified ? 1 : 0,
+            params.lastVerifiedAt || null,
+            params.lastSeenAt || now,
+            now,
+            existing.id
+          )
+          .run();
+      } catch {
+        // Fallback for D1 schemas before migration 0016
+        await this.db
+          .prepare(
+            `UPDATE hr_contacts
+             SET company_id = COALESCE(company_id, ?), company_website = COALESCE(company_website, ?),
+                 contact_name = COALESCE(contact_name, ?), associated_job_ids = ?, contact_confidence = ?,
+                 email_verification_status = ?, last_verified_at = COALESCE(?, last_verified_at), updated_at = ?
+             WHERE id = ?`
+          )
+          .bind(
+            params.companyId || null,
+            params.companyWebsite || null,
+            params.contactName || null,
+            JSON.stringify(mergedJobs),
+            nextConfidence,
+            nextVerification,
+            params.lastVerifiedAt || null,
+            now,
+            existing.id
+          )
+          .run();
+      }
 
       const srcExists = await this.db
         .prepare('SELECT id FROM hr_contact_sources WHERE contact_id = ? AND source_url = ?')
@@ -300,53 +456,108 @@ export class WorkerHrOutreachStore {
             params.sourceType,
             params.sourceName,
             params.sourceUrl,
-            params.evidence.slice(0, 500),
+            (params.sourceEvidence || params.evidence).slice(0, 500),
             params.contactConfidence,
             now
           )
           .run();
       }
 
+      await upsertJobLinks(existing.id, incomingJobs);
+      await recordVerificationEvent(existing.id, nextVerification as EmailVerificationStatus);
+
       const updated = await this.db.prepare('SELECT * FROM hr_contacts WHERE id = ?').bind(existing.id).first<any>();
       return { contact: mapHrContactRow(updated), created: false };
     }
 
     const id = `hrc_${crypto.randomUUID()}`;
-    await this.db
-      .prepare(
-        `INSERT INTO hr_contacts (
-           id, company_id, company_name, company_website, contact_name, designation, role_category,
-           email, country, city, department, source_type, source_url, associated_job_ids,
-           email_verification_status, contact_confidence, evidence, discovered_at, last_verified_at,
-           contact_status, is_role_based, dedupe_key, created_at, updated_at
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?)`
-      )
-      .bind(
-        id,
-        params.companyId || null,
-        params.companyName,
-        params.companyWebsite || null,
-        params.contactName || null,
-        params.designation,
-        params.roleCategory,
-        normalizedEmail,
-        params.country || 'Global',
-        params.city || null,
-        params.department || null,
-        params.sourceType,
-        params.sourceUrl,
-        JSON.stringify(params.associatedJobIds || []),
-        params.emailVerificationStatus,
-        params.contactConfidence,
-        params.evidence,
-        now,
-        params.lastVerifiedAt || null,
-        params.isRoleBased ? 1 : 0,
-        dedupeKey,
-        now,
-        now
-      )
-      .run();
+    try {
+      await this.db
+        .prepare(
+          `INSERT INTO hr_contacts (
+             id, company_id, company_name, company_website, contact_name, designation, role_category, contact_type,
+             email, normalized_email, country, city, department, source_type, source_url,
+             associated_job_id, associated_job_ids, email_verification_status, contact_confidence, evidence, source_evidence,
+             discovered_at, last_verified_at, last_seen_at, contact_status, is_role_based,
+             level_syntax, level_domain, level_mx, level_source_confirmed, level_mailbox,
+             is_user_submitted, submitted_by_user_id, dedupe_key, created_at, updated_at
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .bind(
+          id,
+          params.companyId || null,
+          params.companyName,
+          params.companyWebsite || null,
+          params.contactName || null,
+          params.designation,
+          params.roleCategory,
+          params.contactType || 'Unknown',
+          normalizedEmail,
+          normalizedEmail,
+          params.country || 'Global',
+          params.city || null,
+          params.department || null,
+          params.sourceType,
+          params.sourceUrl,
+          params.associatedJobId || incomingJobs[0] || null,
+          JSON.stringify(incomingJobs),
+          params.emailVerificationStatus,
+          params.contactConfidence,
+          params.evidence,
+          params.sourceEvidence || params.evidence,
+          now,
+          params.lastVerifiedAt || null,
+          params.lastSeenAt || now,
+          params.isRoleBased ? 1 : 0,
+          levels?.level1SyntaxValid ? 1 : 0,
+          levels?.level2DomainExists ? 1 : 0,
+          levels?.level3MxAvailable ? 1 : 0,
+          levels?.level4SourceEvidenceConfirmed ? 1 : 0,
+          levels?.level5MailboxVerified ? 1 : 0,
+          isUserSub ? 1 : 0,
+          isUserSub ? params.submittedByUserId : null,
+          dedupeKey,
+          now,
+          now
+        )
+        .run();
+    } catch {
+      await this.db
+        .prepare(
+          `INSERT INTO hr_contacts (
+             id, company_id, company_name, company_website, contact_name, designation, role_category,
+             email, country, city, department, source_type, source_url, associated_job_ids,
+             email_verification_status, contact_confidence, evidence, discovered_at, last_verified_at,
+             contact_status, is_role_based, dedupe_key, created_at, updated_at
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?)`
+        )
+        .bind(
+          id,
+          params.companyId || null,
+          params.companyName,
+          params.companyWebsite || null,
+          params.contactName || null,
+          params.designation,
+          params.roleCategory,
+          normalizedEmail,
+          params.country || 'Global',
+          params.city || null,
+          params.department || null,
+          params.sourceType,
+          params.sourceUrl,
+          JSON.stringify(incomingJobs),
+          params.emailVerificationStatus,
+          params.contactConfidence,
+          params.evidence,
+          now,
+          params.lastVerifiedAt || null,
+          params.isRoleBased ? 1 : 0,
+          dedupeKey,
+          now,
+          now
+        )
+        .run();
+    }
 
     await this.db
       .prepare(
@@ -359,21 +570,26 @@ export class WorkerHrOutreachStore {
         params.sourceType,
         params.sourceName,
         params.sourceUrl,
-        params.evidence.slice(0, 500),
+        (params.sourceEvidence || params.evidence).slice(0, 500),
         params.contactConfidence,
         now
       )
       .run();
+
+    await upsertJobLinks(id, incomingJobs);
+    await recordVerificationEvent(id, params.emailVerificationStatus);
 
     const row = await this.db.prepare('SELECT * FROM hr_contacts WHERE id = ?').bind(id).first<any>();
     return { contact: mapHrContactRow(row), created: true };
   }
 
   async listHrContacts(filters?: {
+    userId?: string;
     search?: string;
     country?: string;
     company?: string;
     designation?: string;
+    contactType?: string;
     verificationStatus?: string;
     sourceType?: string;
     jobId?: string;
@@ -383,6 +599,13 @@ export class WorkerHrOutreachStore {
   }): Promise<{ contacts: HrContact[]; total: number }> {
     const clauses: string[] = [];
     const args: any[] = [];
+
+    if (filters?.userId) {
+      clauses.push('(COALESCE(is_user_submitted, 0) = 0 OR submitted_by_user_id = ?)');
+      args.push(filters.userId);
+    } else {
+      clauses.push('COALESCE(is_user_submitted, 0) = 0');
+    }
 
     if (!filters?.includeArchived) clauses.push("contact_status != 'archived'");
     if (filters?.search) {
@@ -402,6 +625,10 @@ export class WorkerHrOutreachStore {
       clauses.push('role_category = ?');
       args.push(filters.designation);
     }
+    if (filters?.contactType && filters.contactType !== 'all') {
+      clauses.push('contact_type = ?');
+      args.push(filters.contactType);
+    }
     if (filters?.verificationStatus && filters.verificationStatus !== 'all') {
       clauses.push('email_verification_status = ?');
       args.push(filters.verificationStatus);
@@ -416,19 +643,28 @@ export class WorkerHrOutreachStore {
     }
 
     const whereSql = clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : '';
-    const totalRow = await this.db.prepare(`SELECT COUNT(*) as total FROM hr_contacts ${whereSql}`).bind(...args).first<any>();
     const limit = Math.min(200, Math.max(1, Number(filters?.limit || 50)));
     const offset = Math.max(0, Number(filters?.offset || 0));
 
-    const res = await this.db
-      .prepare(`SELECT * FROM hr_contacts ${whereSql} ORDER BY contact_confidence DESC, updated_at DESC LIMIT ? OFFSET ?`)
-      .bind(...args, limit, offset)
-      .all<any>();
-
-    return {
-      contacts: (res.results || []).map(mapHrContactRow),
-      total: Number(totalRow?.total || 0),
-    };
+    try {
+      const totalRow = await this.db.prepare(`SELECT COUNT(*) as total FROM hr_contacts ${whereSql}`).bind(...args).first<any>();
+      const res = await this.db
+        .prepare(`SELECT * FROM hr_contacts ${whereSql} ORDER BY contact_confidence DESC, updated_at DESC LIMIT ? OFFSET ?`)
+        .bind(...args, limit, offset)
+        .all<any>();
+      return {
+        contacts: (res.results || []).map(mapHrContactRow),
+        total: Number(totalRow?.total || 0),
+      };
+    } catch {
+      // Safe fallback for D1 before migration 0016
+      const res = await this.db
+        .prepare(`SELECT * FROM hr_contacts WHERE contact_status != 'archived' ORDER BY contact_confidence DESC, updated_at DESC LIMIT ? OFFSET ?`)
+        .bind(limit, offset)
+        .all<any>();
+      const list = (res.results || []).map(mapHrContactRow);
+      return { contacts: list, total: list.length };
+    }
   }
 
   async getHrContactById(id: string): Promise<{ contact: HrContact; sources: HrContactSource[] } | null> {
@@ -453,11 +689,76 @@ export class WorkerHrOutreachStore {
     };
   }
 
-  async updateHrContactVerification(id: string, status: EmailVerificationStatus, isRoleBased: boolean, checkedAt: string): Promise<HrContact | null> {
-    await this.db
-      .prepare('UPDATE hr_contacts SET email_verification_status = ?, is_role_based = ?, last_verified_at = ?, updated_at = ? WHERE id = ?')
-      .bind(status, isRoleBased ? 1 : 0, checkedAt, checkedAt, id)
-      .run();
+  async updateHrContactVerification(
+    id: string,
+    status: EmailVerificationStatus,
+    isRoleBased: boolean,
+    checkedAt: string,
+    details?: {
+      verificationLevels?: EmailVerificationLevels;
+      mxHosts?: string[];
+      evidence?: string;
+    }
+  ): Promise<HrContact | null> {
+    const levels = details?.verificationLevels;
+    if (levels) {
+      try {
+        await this.db
+          .prepare(
+            `UPDATE hr_contacts
+             SET email_verification_status = ?, is_role_based = ?, last_verified_at = ?, updated_at = ?,
+                 level_syntax = ?, level_domain = ?, level_mx = ?,
+                 level_source_confirmed = MAX(COALESCE(level_source_confirmed, 0), ?),
+                 level_mailbox = MAX(COALESCE(level_mailbox, 0), ?)
+             WHERE id = ?`
+          )
+          .bind(
+            status,
+            isRoleBased ? 1 : 0,
+            checkedAt,
+            checkedAt,
+            levels.level1SyntaxValid ? 1 : 0,
+            levels.level2DomainExists ? 1 : 0,
+            levels.level3MxAvailable ? 1 : 0,
+            levels.level4SourceEvidenceConfirmed ? 1 : 0,
+            levels.level5MailboxVerified ? 1 : 0,
+            id
+          )
+          .run();
+
+        await this.db
+          .prepare(
+            `INSERT INTO hr_contact_verification_events (
+               id, contact_id, syntax_valid, domain_valid, mx_valid, mx_hosts_json,
+               source_confirmed, mailbox_verified, resulting_status, evidence, checked_at
+             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .bind(
+            `hcve_${crypto.randomUUID()}`,
+            id,
+            levels.level1SyntaxValid ? 1 : 0,
+            levels.level2DomainExists ? 1 : 0,
+            levels.level3MxAvailable ? 1 : 0,
+            JSON.stringify(details?.mxHosts || []),
+            levels.level4SourceEvidenceConfirmed ? 1 : 0,
+            levels.level5MailboxVerified ? 1 : 0,
+            status,
+            (details?.evidence || '').slice(0, 500) || null,
+            checkedAt
+          )
+          .run();
+      } catch {
+        await this.db
+          .prepare('UPDATE hr_contacts SET email_verification_status = ?, is_role_based = ?, last_verified_at = ?, updated_at = ? WHERE id = ?')
+          .bind(status, isRoleBased ? 1 : 0, checkedAt, checkedAt, id)
+          .run();
+      }
+    } else {
+      await this.db
+        .prepare('UPDATE hr_contacts SET email_verification_status = ?, is_role_based = ?, last_verified_at = ?, updated_at = ? WHERE id = ?')
+        .bind(status, isRoleBased ? 1 : 0, checkedAt, checkedAt, id)
+        .run();
+    }
     const row = await this.db.prepare('SELECT * FROM hr_contacts WHERE id = ?').bind(id).first<any>();
     return row ? mapHrContactRow(row) : null;
   }
@@ -727,6 +1028,24 @@ export class WorkerHrOutreachStore {
       )
       .bind(id, userId, cleanEmail, domain, reason, source, now)
       .run();
+
+    try {
+      const matched = await this.db
+        .prepare('SELECT id FROM hr_contacts WHERE LOWER(email) = ? LIMIT 1')
+        .bind(cleanEmail)
+        .first<{ id?: string }>();
+      await this.db
+        .prepare(
+          `INSERT INTO hr_contact_suppression (id, user_id, contact_id, email, normalized_email, reason, source, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(user_id, normalized_email) DO UPDATE SET reason = excluded.reason`
+        )
+        .bind(`hcsup_${crypto.randomUUID()}`, userId, matched?.id || null, cleanEmail, cleanEmail, reason, source, now)
+        .run();
+    } catch {
+      // Ignore if migration 0016 not yet applied
+    }
+
     const row = await this.db
       .prepare('SELECT * FROM do_not_contact WHERE user_id = ? AND email = ?')
       .bind(userId, cleanEmail)
@@ -748,7 +1067,16 @@ export class WorkerHrOutreachStore {
       .prepare('SELECT id FROM do_not_contact WHERE user_id = ? AND LOWER(email) = ?')
       .bind(userId, cleanEmail)
       .first<any>();
-    return Boolean(row);
+    if (row) return true;
+    try {
+      const sup = await this.db
+        .prepare('SELECT id FROM hr_contact_suppression WHERE user_id = ? AND normalized_email = ?')
+        .bind(userId, cleanEmail)
+        .first<any>();
+      return Boolean(sup);
+    } catch {
+      return false;
+    }
   }
 
   async listDoNotContact(userId: string): Promise<DoNotContactEntry[]> {
@@ -768,7 +1096,18 @@ export class WorkerHrOutreachStore {
   }
 
   async removeDoNotContact(userId: string, id: string): Promise<boolean> {
+    const existing = await this.db.prepare('SELECT email FROM do_not_contact WHERE id = ? AND user_id = ?').bind(id, userId).first<any>();
     const res = await this.db.prepare('DELETE FROM do_not_contact WHERE id = ? AND user_id = ?').bind(id, userId).run();
+    if (existing?.email) {
+      try {
+        await this.db
+          .prepare('DELETE FROM hr_contact_suppression WHERE user_id = ? AND normalized_email = ?')
+          .bind(userId, String(existing.email).trim().toLowerCase())
+          .run();
+      } catch {
+        // Ignore if migration 0016 not yet applied
+      }
+    }
     return Boolean(res.meta?.changes && res.meta.changes > 0);
   }
 
@@ -1130,22 +1469,44 @@ export class WorkerHrOutreachStore {
       }
     };
 
-    const [contactsDiscovered, verifiedContacts, domainValidContacts, roleBasedContacts, jobsWithContacts, connectedAccountsCount] =
-      await Promise.all([
-        safeCount("SELECT COUNT(*) as c FROM hr_contacts WHERE contact_status != 'archived'"),
-        safeCount("SELECT COUNT(*) as c FROM hr_contacts WHERE email_verification_status = 'Verified' AND contact_status != 'archived'"),
-        safeCount("SELECT COUNT(*) as c FROM hr_contacts WHERE email_verification_status = 'Domain Valid' AND contact_status != 'archived'"),
-        safeCount("SELECT COUNT(*) as c FROM hr_contacts WHERE email_verification_status = 'Role-Based' AND contact_status != 'archived'"),
-        safeCount(
-          `SELECT COUNT(DISTINCT j.id) as c FROM live_jobs_cache j
-           WHERE EXISTS (
-             SELECT 1 FROM hr_contacts h
-             WHERE h.contact_status != 'archived'
-               AND (h.associated_job_ids LIKE '%' || j.id || '%' OR LOWER(h.company_name) = LOWER(j.company))
-           )`
-        ),
-        safeCount("SELECT COUNT(*) as c FROM email_accounts WHERE user_id = ? AND status = 'connected'", userId),
-      ]);
+    const visClause = "(contact_status != 'archived' AND (COALESCE(is_user_submitted, 0) = 0 OR submitted_by_user_id = ?))";
+
+    const [
+      contactsDiscovered,
+      verifiedContacts,
+      sourceConfirmedContacts,
+      mxValidatedContacts,
+      domainValidContacts,
+      roleBasedContacts,
+      totalActiveJobs,
+      jobsWithContacts,
+      connectedAccountsCount,
+    ] = await Promise.all([
+      safeCount(`SELECT COUNT(*) as c FROM hr_contacts WHERE ${visClause}`, userId),
+      safeCount(`SELECT COUNT(*) as c FROM hr_contacts WHERE email_verification_status IN ('Verified', 'Mailbox Verified') AND ${visClause}`, userId),
+      safeCount(`SELECT COUNT(*) as c FROM hr_contacts WHERE (email_verification_status = 'Source Confirmed' OR COALESCE(level_source_confirmed, 0) = 1) AND ${visClause}`, userId),
+      safeCount(`SELECT COUNT(*) as c FROM hr_contacts WHERE (email_verification_status = 'MX Valid' OR COALESCE(level_mx, 0) = 1) AND ${visClause}`, userId),
+      safeCount(`SELECT COUNT(*) as c FROM hr_contacts WHERE (email_verification_status = 'Domain Valid' OR COALESCE(level_domain, 0) = 1) AND ${visClause}`, userId),
+      safeCount(`SELECT COUNT(*) as c FROM hr_contacts WHERE (email_verification_status = 'Role-Based' OR is_role_based = 1) AND ${visClause}`, userId),
+      safeCount('SELECT COUNT(*) as c FROM live_jobs_cache'),
+      safeCount(
+        `SELECT COUNT(DISTINCT j.id) as c FROM live_jobs_cache j
+         WHERE EXISTS (
+           SELECT 1 FROM hr_contacts h
+           WHERE ${visClause}
+             AND (
+               h.associated_job_ids LIKE '%' || j.id || '%'
+               OR LOWER(h.company_name) = LOWER(j.company)
+               OR EXISTS (SELECT 1 FROM hr_contact_job_links l WHERE l.contact_id = h.id AND l.job_id = j.id)
+             )
+         )`,
+        userId
+      ),
+      safeCount("SELECT COUNT(*) as c FROM email_accounts WHERE user_id = ? AND status = 'connected'", userId),
+    ]);
+
+    const jobCoveragePercent =
+      totalActiveJobs > 0 ? Math.round((jobsWithContacts / totalActiveJobs) * 1000) / 10 : 0;
 
     const msgStats = await this.db
       .prepare(
@@ -1165,9 +1526,13 @@ export class WorkerHrOutreachStore {
     return {
       contactsDiscovered,
       verifiedContacts,
+      sourceConfirmedContacts,
+      mxValidatedContacts,
       domainValidContacts,
       roleBasedContacts,
       jobsWithContacts,
+      totalActiveJobs,
+      jobCoveragePercent,
       emailsDrafted: Number(msgStats?.drafted || 0),
       emailsSent: Number(msgStats?.sent || 0),
       providerAcceptedCount: Number(msgStats?.accepted || 0),

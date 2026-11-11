@@ -7,6 +7,7 @@ import {
   Mail,
   Users,
   Briefcase,
+  Building2,
   Sparkles,
   FolderKanban,
   Send,
@@ -46,6 +47,7 @@ import { HrOutreachStudio } from './hr-outreach/HrOutreachStudio.tsx';
 import {
   ContactDetailDrawer,
   CreateCampaignModal,
+  ManualContactModal,
   MessageAuditModal,
   VerificationBadge,
 } from './hr-outreach/HrOutreachModals.tsx';
@@ -53,6 +55,7 @@ import {
 export type HrOutreachSubTab =
   | 'overview'
   | 'contacts'
+  | 'companies'
   | 'opportunities'
   | 'studio'
   | 'campaigns'
@@ -74,7 +77,8 @@ export interface HrOutreachPageProps {
 const SUB_TABS: Array<{ id: HrOutreachSubTab; label: string; icon: React.ComponentType<{ className?: string }> }> = [
   { id: 'overview', label: 'Overview', icon: Mail },
   { id: 'contacts', label: 'HR Contacts', icon: Users },
-  { id: 'opportunities', label: 'Job Opportunities', icon: Briefcase },
+  { id: 'companies', label: 'Companies', icon: Building2 },
+  { id: 'opportunities', label: 'Jobs with Contacts', icon: Briefcase },
   { id: 'studio', label: 'AI Email Studio', icon: Sparkles },
   { id: 'campaigns', label: 'Outreach Campaigns', icon: FolderKanban },
   { id: 'sent', label: 'Sent Emails', icon: Send },
@@ -118,12 +122,25 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [countryFilter, setCountryFilter] = useState('all');
   const [designationFilter, setDesignationFilter] = useState('all');
+  const [contactTypeFilter, setContactTypeFilter] = useState('all');
   const [verificationFilter, setVerificationFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'confidence' | 'relevance'>('relevance');
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
   const [page, setPage] = useState(0);
   const pageSize = 20;
+
+  // Companies & Job Coverage Views
+  const [companiesList, setCompaniesList] = useState<any[]>([]);
+  const [companiesSearch, setCompaniesSearch] = useState('');
+  const [onlyCompaniesWithContacts, setOnlyCompaniesWithContacts] = useState(false);
+  const [jobsCoverageList, setJobsCoverageList] = useState<any[]>([]);
+  const [jobsCoverageSummary, setJobsCoverageSummary] = useState<{
+    totalActiveJobs: number;
+    jobsWithContacts: number;
+    jobCoveragePercent: number;
+  } | null>(null);
+  const [jobsOnlyWithContacts, setJobsOnlyWithContacts] = useState(false);
 
   // Studio Selection State
   const [studioContactId, setStudioContactId] = useState('');
@@ -133,6 +150,8 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
 
   // Modals & Drawers
   const [detailContact, setDetailContact] = useState<HrContactWithRelevance | null>(null);
+  const [manualModalOpen, setManualModalOpen] = useState(false);
+  const [manualModalSeed, setManualModalSeed] = useState<{ companyName?: string; jobId?: string }>({});
   const [auditModalMessage, setAuditModalMessage] = useState<OutreachMessage | null>(null);
   const [auditModalEvents, setAuditModalEvents] = useState<OutreachEvent[]>([]);
   const [createCampaignOpen, setCreateCampaignOpen] = useState(false);
@@ -152,6 +171,7 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
       search: searchQuery || undefined,
       country: countryFilter !== 'all' ? countryFilter : undefined,
       designation: designationFilter !== 'all' ? designationFilter : undefined,
+      contactType: contactTypeFilter !== 'all' ? contactTypeFilter : undefined,
       verificationStatus: verificationFilter !== 'all' ? verificationFilter : undefined,
       sourceType: sourceFilter !== 'all' ? sourceFilter : undefined,
       jobId: studioJobId || undefined,
@@ -161,7 +181,28 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
     });
     setContacts(res.contacts);
     setContactsTotal(res.total);
-  }, [searchQuery, countryFilter, designationFilter, verificationFilter, sourceFilter, studioJobId, sortBy, page]);
+  }, [searchQuery, countryFilter, designationFilter, contactTypeFilter, verificationFilter, sourceFilter, studioJobId, sortBy, page]);
+
+  const loadCompaniesAndJobs = useCallback(async () => {
+    try {
+      const [compRes, jobsRes] = await Promise.all([
+        api.getHrCompanies({
+          search: companiesSearch || undefined,
+          onlyWithContacts: onlyCompaniesWithContacts,
+          limit: 40,
+        }),
+        api.getHrJobsWithContacts({
+          onlyWithContacts: jobsOnlyWithContacts,
+          limit: 40,
+        }),
+      ]);
+      setCompaniesList(compRes.companies);
+      setJobsCoverageList(jobsRes.jobs);
+      setJobsCoverageSummary(jobsRes.summary);
+    } catch {
+      // Non-fatal fallback
+    }
+  }, [companiesSearch, onlyCompaniesWithContacts, jobsOnlyWithContacts]);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -188,13 +229,13 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
       setReplies(repRes.items);
       setCampaigns(campRes.campaigns);
       setDoNotContactList(dncRes.entries);
-      await loadContacts();
+      await Promise.all([loadContacts(), loadCompaniesAndJobs()]);
     } catch (err: any) {
       setLoadError(err.message || 'Failed to load AI HR Outreach module.');
     } finally {
       setLoading(false);
     }
-  }, [loadContacts, sentStatusFilter]);
+  }, [loadContacts, loadCompaniesAndJobs, sentStatusFilter]);
 
   useEffect(() => {
     loadAll();
@@ -414,19 +455,28 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {[
               { label: 'HR Contacts Discovered', value: overview?.contactsDiscovered ?? 0 },
-              { label: 'Verified / Domain Valid', value: (overview?.verifiedContacts ?? 0) + (overview?.domainValidContacts ?? 0) },
-              { label: 'Jobs with HR Contacts', value: overview?.jobsWithContacts ?? 0 },
+              {
+                label: 'Source Confirmed / MX Valid',
+                value: `${overview?.sourceConfirmedContacts ?? 0} / ${overview?.mxValidatedContacts ?? overview?.domainValidContacts ?? 0}`,
+              },
+              {
+                label: 'Jobs with HR Contacts',
+                value:
+                  overview?.totalActiveJobs
+                    ? `${overview?.jobsWithContacts ?? 0} / ${overview.totalActiveJobs} (${overview.jobCoveragePercent ?? 0}%)`
+                    : overview?.jobsWithContacts ?? 0,
+              },
+              { label: 'Mailbox Verified', value: overview?.verifiedContacts ?? 0 },
               { label: 'Emails Drafted', value: overview?.emailsDrafted ?? 0 },
               { label: 'Emails Sent', value: overview?.emailsSent ?? 0 },
               { label: 'Provider Accepted', value: overview?.providerAcceptedCount ?? 0 },
               { label: 'Delivered Confirmed', value: overview?.deliveredCount ?? 0 },
               { label: 'Replies Received', value: overview?.repliesReceived ?? 0 },
-              { label: 'Follow-ups Due', value: overview?.followUpsDue ?? 0 },
               { label: 'Connected Mailboxes', value: overview?.connectedAccountsCount ?? 0 },
             ].map((kpi) => (
               <div key={kpi.label} className={`p-4 rounded-2xl border ${cardSurface}`}>
                 <span className={`text-[11px] font-medium block ${mutedText}`}>{kpi.label}</span>
-                <span className="text-2xl font-extrabold mt-1 block">{kpi.value}</span>
+                <span className="text-xl font-extrabold mt-1 block">{kpi.value}</span>
               </div>
             ))}
           </div>
@@ -518,8 +568,27 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
       {/* 2. HR CONTACTS TAB */}
       {activeSubTab === 'contacts' && (
         <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className={`text-xs ${mutedText}`}>
+              Showing {contactsTotal} real public or candidate-submitted HR contacts (never fabricated).
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setManualModalSeed({});
+                setManualModalOpen(true);
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer ${
+                isBlack ? 'bg-[#191D23] border border-[#C6A66A]/40 text-[#C6A66A]' : 'bg-white border border-slate-300 text-slate-800'
+              }`}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add / Correct HR Contact</span>
+            </button>
+          </div>
+
           {/* Filters */}
-          <div className={`p-4 rounded-2xl border grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5 text-xs ${cardSurface}`}>
+          <div className={`p-4 rounded-2xl border grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2.5 text-xs ${cardSurface}`}>
             <div className="relative lg:col-span-2">
               <Search className="w-3.5 h-3.5 absolute left-3 top-3 opacity-50" />
               <input
@@ -564,8 +633,45 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
               }`}
             >
               <option value="all">All Verification</option>
-              {['Verified', 'Domain Valid', 'Role-Based', 'Discovered', 'Unverified', 'Stale', 'Verification Failed', 'Invalid'].map((s) => (
+              {[
+                'Source Confirmed',
+                'MX Valid',
+                'Domain Valid',
+                'Mailbox Verified',
+                'Verified',
+                'Role-Based',
+                'Unverified',
+                'Stale',
+                'Verification Failed',
+                'Invalid',
+              ].map((s) => (
                 <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+
+            <select
+              aria-label="Filter by Contact Type"
+              value={contactTypeFilter}
+              onChange={(e) => {
+                setContactTypeFilter(e.target.value);
+                setPage(0);
+              }}
+              className={`px-3 py-2 rounded-xl border ${
+                isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300'
+              }`}
+            >
+              <option value="all">All Contact Types</option>
+              {[
+                'Named Recruiter',
+                'Talent Acquisition',
+                'Recruitment Department',
+                'HR Department',
+                'Hiring Manager',
+                'Careers Contact',
+                'General Company Contact',
+                'Unknown',
+              ].map((t) => (
+                <option key={t} value={t}>{t}</option>
               ))}
             </select>
 
@@ -710,7 +816,7 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
                           {c.email}
                           {c.isDoNotContact && <span className="ml-1.5 text-[10px] text-rose-500 font-sans font-bold">[OPT-OUT]</span>}
                         </td>
-                        <td className="p-3"><VerificationBadge status={c.emailVerificationStatus} /></td>
+                        <td className="p-3"><VerificationBadge status={c.emailVerificationStatus} isUserSubmitted={c.isUserSubmitted} /></td>
                         <td className="p-3 max-w-[160px] truncate">{c.relatedJobTitle || 'General'}</td>
                         <td className="p-3 font-bold text-[#C6A66A]">{c.relevance?.overallScore ?? '—'}/100</td>
                         <td className={`p-3 ${mutedText}`}>{c.lastContactedAt ? new Date(c.lastContactedAt).toLocaleDateString() : 'Never'}</td>
@@ -806,27 +912,159 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
         </div>
       )}
 
-      {/* 3. JOB OPPORTUNITIES TAB */}
+      {/* 2b. COMPANIES TAB */}
+      {activeSubTab === 'companies' && (
+        <div className="space-y-4">
+          <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${cardSurface}`}>
+            <div className="flex items-center gap-2 flex-1">
+              <Search className="w-4 h-4 opacity-50 shrink-0" />
+              <input
+                value={companiesSearch}
+                onChange={(e) => setCompaniesSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && void loadCompaniesAndJobs()}
+                placeholder="Search GCDE companies by name or country..."
+                className={`w-full px-3 py-2 rounded-xl border ${
+                  isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300'
+                }`}
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={onlyCompaniesWithContacts}
+                  onChange={(e) => setOnlyCompaniesWithContacts(e.target.checked)}
+                />
+                <span>Only with HR contacts</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => void loadCompaniesAndJobs()}
+                className="px-3 py-2 rounded-xl border border-current/15 font-semibold cursor-pointer"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+
+          <div className={`rounded-2xl border divide-y divide-current/10 ${cardSurface}`}>
+            {companiesList.length === 0 ? (
+              <div className="p-8 text-center text-xs opacity-75">
+                No matching companies found in active GCDE directory. Try syncing GCDE sources or clearing filters.
+              </div>
+            ) : (
+              companiesList.map((co) => (
+                <div key={co.companyName} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-bold text-sm">{co.companyName}</span>
+                      <span className={`text-[11px] px-2 py-0.5 rounded-full border border-current/15 ${mutedText}`}>
+                        {co.country} · {co.activeJobsCount} open role(s)
+                      </span>
+                      {co.atsType && (
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-500/10">{co.atsType}</span>
+                      )}
+                    </div>
+                    <p className={`text-xs ${mutedText}`}>
+                      {co.contactsCount > 0
+                        ? `${co.contactsCount} public HR contact(s) discovered (${co.sourceConfirmedCount} source-confirmed).`
+                        : 'No public HR email found on official pages or postings yet.'}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRunDiscovery({
+                          companyName: co.companyName,
+                          companyWebsite: co.careersUrl || co.companyWebsite,
+                        })
+                      }
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-current/15 cursor-pointer"
+                    >
+                      Scan Employer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setManualModalSeed({ companyName: co.companyName });
+                        setManualModalOpen(true);
+                      }}
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-current/15 cursor-pointer"
+                    >
+                      + Add Contact
+                    </button>
+                    {co.contacts && co.contacts[0] && (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenStudioWithContact(co.contacts[0])}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
+                          isBlack ? 'bg-[#C6A66A] text-[#08090B]' : 'bg-blue-600 text-white'
+                        }`}
+                      >
+                        Draft Email
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 3. JOBS WITH CONTACTS & COVERAGE TAB */}
       {activeSubTab === 'opportunities' && (
         <div className={`rounded-2xl border overflow-hidden ${cardSurface}`}>
-          <div className="p-5 border-b border-current/10">
-            <h3 className="text-sm font-bold">GCDE Job Opportunities Linked to HR Contacts</h3>
-            <p className={`text-xs mt-0.5 ${mutedText}`}>
-              Job match scores remain strictly independent from HR contact relevance scores.
-            </p>
+          <div className="p-5 border-b border-current/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold">
+                GCDE Jobs with HR Contacts{' '}
+                {jobsCoverageSummary && (
+                  <span className="ml-2 text-xs font-mono text-[#C6A66A]">
+                    {jobsCoverageSummary.jobsWithContacts} / {jobsCoverageSummary.totalActiveJobs} ({jobsCoverageSummary.jobCoveragePercent}%)
+                  </span>
+                )}
+              </h3>
+              <p className={`text-xs mt-0.5 ${mutedText}`}>
+                True contact coverage across active GCDE jobs with link provenance (Direct Posting vs Company Careers vs Personal Submission) and exact extraction diagnostics.
+              </p>
+            </div>
+            <label className="inline-flex items-center gap-1.5 text-xs cursor-pointer">
+              <input
+                type="checkbox"
+                checked={jobsOnlyWithContacts}
+                onChange={(e) => {
+                  setJobsOnlyWithContacts(e.target.checked);
+                  void loadCompaniesAndJobs();
+                }}
+              />
+              <span>Show only jobs with contacts</span>
+            </label>
           </div>
-          {vacancies.length === 0 ? (
+          {jobsCoverageList.length === 0 && vacancies.length === 0 ? (
             <div className="p-8 text-center text-xs opacity-70">
               No GCDE jobs loaded yet. Visit Opportunity Radar to sync active employers.
             </div>
           ) : (
             <div className="divide-y divide-current/10">
-              {vacancies.slice(0, 30).map((job) => {
-                const matchingContacts = contacts.filter(
-                  (c) =>
-                    c.associatedJobIds.includes(job.id) ||
-                    c.companyName.toLowerCase() === job.company.toLowerCase()
-                );
+              {(jobsCoverageList.length > 0 ? jobsCoverageList : vacancies.slice(0, 30)).map((job: any) => {
+                const jobContacts =
+                  job.contacts ||
+                  contacts.filter(
+                    (c) =>
+                      c.associatedJobIds.includes(job.id) ||
+                      c.companyName.toLowerCase() === job.company.toLowerCase()
+                  );
+                const emptyDiagLabel =
+                  job.diagnosticCategory === 'description_unavailable'
+                    ? 'Full job description unavailable from upstream source.'
+                    : job.diagnosticCategory === 'company_page_unavailable'
+                    ? 'Official careers/contact page blocked or unavailable.'
+                    : job.diagnosticCategory === 'source_not_supported'
+                    ? 'Restricted portal — direct apply link only.'
+                    : job.diagnosticReason || 'Employer published posting without a public recruitment email address.';
+
                 return (
                   <div key={job.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="space-y-1 min-w-0">
@@ -841,13 +1079,24 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
                           </span>
                         )}
                       </div>
-                      <p className={`text-xs ${mutedText}`}>
-                        {matchingContacts.length > 0
-                          ? `${matchingContacts.length} public HR contact(s) matched for ${job.company}`
-                          : 'No direct HR contact cached for this role yet.'}
-                      </p>
+                      {jobContacts.length > 0 ? (
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          <span className="text-emerald-500 font-semibold">
+                            {jobContacts.length} HR contact(s): {jobContacts[0].email}
+                          </span>
+                          <VerificationBadge
+                            status={jobContacts[0].emailVerificationStatus}
+                            isUserSubmitted={jobContacts[0].isUserSubmitted}
+                          />
+                          {jobContacts[0].linkType && (
+                            <span className="text-[10px] font-mono opacity-70">[{jobContacts[0].linkType}]</span>
+                          )}
+                        </div>
+                      ) : (
+                        <p className={`text-xs ${mutedText}`}>{emptyDiagLabel}</p>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
                       <button
                         onClick={() => handleRunDiscovery({ companyName: job.company, jobId: job.id })}
                         className={`px-3 py-1.5 rounded-xl text-xs font-semibold border cursor-pointer ${
@@ -856,9 +1105,19 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
                       >
                         Find HR Contact
                       </button>
-                      {matchingContacts.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setManualModalSeed({ companyName: job.company, jobId: job.id });
+                          setManualModalOpen(true);
+                        }}
+                        className="px-2.5 py-1.5 rounded-xl text-xs font-semibold border border-current/15 cursor-pointer"
+                      >
+                        + Add Contact
+                      </button>
+                      {jobContacts.length > 0 && (
                         <button
-                          onClick={() => handleOpenStudioWithContact(matchingContacts[0], job.id)}
+                          onClick={() => handleOpenStudioWithContact(jobContacts[0], job.id)}
                           className={`px-3.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
                             isBlack ? 'bg-[#C6A66A] text-[#08090B]' : 'bg-blue-600 text-white'
                           }`}
@@ -1382,6 +1641,19 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
           await api.createOutreachCampaign(payload);
           await loadAll();
           onShowToast(`Campaign "${payload.name}" created.`);
+        }}
+      />
+
+      <ManualContactModal
+        open={manualModalOpen}
+        isBlack={isBlack}
+        initialCompany={manualModalSeed.companyName}
+        initialJobId={manualModalSeed.jobId}
+        onClose={() => setManualModalOpen(false)}
+        onSubmit={async (payload) => {
+          await api.submitManualHrContact(payload);
+          await loadAll();
+          onShowToast(`Saved personal HR contact ${payload.email} (MX & syntax validated).`);
         }}
       />
     </div>

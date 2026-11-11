@@ -151,6 +151,10 @@ export function sanitizeIngestedDescription(rawHtml: string): string {
 export function extractPlainTextForMatching(htmlOrText: string): string {
   if (!htmlOrText || typeof htmlOrText !== 'string') return '';
   return htmlOrText
+    .replace(/<a\b[^>]*href\s*=\s*["']mailto:([^"'?]+)[^"']*["'][^>]*>([\s\S]*?)<\/a>/gi, (_m, email, label) => {
+      const cleanLabel = String(label || '').replace(/<[^>]+>/g, '').trim();
+      return cleanLabel && !cleanLabel.includes(email) ? `${cleanLabel} (${email})` : email;
+    })
     .replace(/<\/(?:p|h[1-6]|div|tr)>/gi, '\n')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<li[^>]*>/gi, ' • ')
@@ -160,7 +164,9 @@ export function extractPlainTextForMatching(htmlOrText: string): string {
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
     .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&#64;|&commat;|&#x40;/gi, '@')
+    .replace(/&#46;|&period;|&#x2e;/gi, '.')
     .replace(/[ \t]+/g, ' ')
     .replace(/\n\s*\n\s*\n+/g, '\n\n')
     .trim();
@@ -887,7 +893,7 @@ export class RemotiveAdapter implements JobProviderAdapter {
         }
 
         const loc = j.candidate_required_location?.trim() || 'Worldwide Remote';
-        const cleanDesc = stripHtml(j.description || '').slice(0, 2500);
+        const cleanDesc = stripHtml(j.description || '').slice(0, 12000);
 
         results.push({
           id: `remotive_${j.id}`,
@@ -981,7 +987,7 @@ export class ArbeitnowAdapter implements JobProviderAdapter {
           continue;
         }
 
-        const cleanDesc = stripHtml(j.description || '').slice(0, 2500);
+        const cleanDesc = stripHtml(j.description || '').slice(0, 12000);
         const loc = j.location?.trim() || 'Remote, Global';
 
         results.push({
@@ -1077,7 +1083,7 @@ export class JobicyAdapter implements JobProviderAdapter {
           continue;
         }
 
-        const cleanDesc = stripHtml(j.jobDescription || '').slice(0, 2500);
+        const cleanDesc = stripHtml(j.jobDescription || '').slice(0, 12000);
         const salaryRaw = j.annualSalaryMin && j.annualSalaryMax
           ? `${j.salaryCurrency || '$'}${j.annualSalaryMin} - ${j.annualSalaryMax}`
           : undefined;
@@ -1329,5 +1335,157 @@ export async function detectCompanyATSAndFeed(careersUrl: string): Promise<{
     return { detectedAts: 'json_ld' };
   } catch {
     return { detectedAts: 'json_ld' };
+  }
+}
+
+export interface AtsFullJobDetail {
+  ok: boolean;
+  provider: string;
+  title?: string;
+  companyName?: string;
+  companyWebsite?: string;
+  rawHtmlOrText: string;
+  sourceUrl: string;
+  statusCode?: number;
+  error?: string;
+}
+
+/**
+ * Fetches complete, un-truncated public job details for ATS jobs whose list API omits descriptions (Greenhouse, SmartRecruiters)
+ * or enriches Lever / Workable / Ashby / Recruitee postings. Strictly validates HTTPS public URLs.
+ */
+export async function fetchAtsFullJobDetail(params: {
+  source: string;
+  sourceJobId: string;
+  jobUrl?: string;
+}): Promise<AtsFullJobDetail> {
+  const { source, sourceJobId, jobUrl } = params;
+  const s = (source || '').toLowerCase();
+
+  let detailUrl = '';
+  let provider = 'generic_html';
+
+  if (s.startsWith('greenhouse_')) {
+    const token = s.replace(/^greenhouse_/, '');
+    detailUrl = `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(token)}/jobs/${encodeURIComponent(sourceJobId)}`;
+    provider = 'ats_greenhouse';
+  } else if (s.startsWith('smartrec_')) {
+    const comp = s.replace(/^smartrec_/, '');
+    detailUrl = `https://api.smartrecruiters.com/v1/companies/${encodeURIComponent(comp)}/postings/${encodeURIComponent(sourceJobId)}`;
+    provider = 'ats_smartrecruiters';
+  } else if (s.startsWith('lever_')) {
+    const handle = s.replace(/^lever_/, '');
+    detailUrl = `https://api.lever.co/v0/postings/${encodeURIComponent(handle)}/${encodeURIComponent(sourceJobId)}`;
+    provider = 'ats_lever';
+  } else if (s.startsWith('workable_')) {
+    const acc = s.replace(/^workable_/, '');
+    detailUrl = `https://apply.workable.com/api/v1/widget/accounts/${encodeURIComponent(acc)}/jobs/${encodeURIComponent(sourceJobId)}`;
+    provider = 'ats_workable';
+  } else if (jobUrl && isSafePublicUrl(jobUrl)) {
+    detailUrl = jobUrl;
+  }
+
+  if (!detailUrl || !isSafePublicUrl(detailUrl)) {
+    return {
+      ok: false,
+      provider,
+      rawHtmlOrText: '',
+      sourceUrl: jobUrl || '',
+      error: 'No safe public job detail URL available.',
+    };
+  }
+
+  try {
+    const resp = await fetch(detailUrl, {
+      headers: { 'User-Agent': 'ApplyViseAI-HRDiscovery/2.0' },
+      signal: AbortSignal.timeout(7500),
+    });
+
+    if (!resp.ok) {
+      return {
+        ok: false,
+        provider,
+        rawHtmlOrText: '',
+        sourceUrl: detailUrl,
+        statusCode: resp.status,
+        error: `HTTP ${resp.status} from ${provider}`,
+      };
+    }
+
+    if (provider === 'ats_greenhouse') {
+      const json = (await resp.json()) as any;
+      return {
+        ok: true,
+        provider,
+        title: json.title,
+        companyName: json.company_name,
+        rawHtmlOrText: `${json.content || ''}`,
+        sourceUrl: json.absolute_url || detailUrl,
+        statusCode: 200,
+      };
+    }
+
+    if (provider === 'ats_lever') {
+      const json = (await resp.json()) as any;
+      const parts = [json.description, json.descriptionPlain, json.additional, json.additionalPlain].filter(Boolean);
+      return {
+        ok: true,
+        provider,
+        title: json.text,
+        rawHtmlOrText: parts.join('\n'),
+        sourceUrl: json.hostedUrl || detailUrl,
+        statusCode: 200,
+      };
+    }
+
+    if (provider === 'ats_smartrecruiters') {
+      const json = (await resp.json()) as any;
+      const sections = json.jobAd?.sections || {};
+      const parts = [
+        sections.companyDescription?.text,
+        sections.jobDescription?.text,
+        sections.qualifications?.text,
+        sections.additionalInformation?.text,
+      ].filter(Boolean);
+      return {
+        ok: true,
+        provider,
+        title: json.name,
+        companyName: json.company?.name,
+        rawHtmlOrText: parts.join('\n'),
+        sourceUrl: json.postingUrl || detailUrl,
+        statusCode: 200,
+      };
+    }
+
+    if (provider === 'ats_workable') {
+      const json = (await resp.json()) as any;
+      const parts = [json.description, json.requirements, json.benefits].filter(Boolean);
+      return {
+        ok: true,
+        provider,
+        title: json.title,
+        rawHtmlOrText: parts.join('\n'),
+        sourceUrl: json.url || detailUrl,
+        statusCode: 200,
+      };
+    }
+
+    const text = (await resp.text()).slice(0, 1_500_000);
+    return {
+      ok: true,
+      provider,
+      rawHtmlOrText: text,
+      sourceUrl: detailUrl,
+      statusCode: 200,
+    };
+  } catch (err: unknown) {
+    return {
+      ok: false,
+      provider,
+      rawHtmlOrText: '',
+      sourceUrl: detailUrl,
+      error: err instanceof Error ? err.message : String(err),
+    };
   }
 }

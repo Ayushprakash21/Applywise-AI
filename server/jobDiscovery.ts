@@ -1,4 +1,5 @@
 import { JobVacancy } from '../src/types/index.ts';
+import { extractPlainTextForMatching } from '../worker/jobConnectors.ts';
 
 export interface DiscoveryQuery {
   query?: string;
@@ -46,7 +47,7 @@ export const jobDiscovery = {
 
         if (data.jobs && Array.isArray(data.jobs)) {
           for (const item of data.jobs) {
-            const cleanDesc = (item.description || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+            const cleanDesc = extractPlainTextForMatching(item.description || '');
             const location = item.candidate_required_location || 'Worldwide Remote';
             vacancies.push({
               id: `remotive_${item.id}`,
@@ -59,7 +60,7 @@ export const jobDiscovery = {
               remote: true,
               arrangement: 'remote',
               url: item.url,
-              description: cleanDesc.slice(0, 4000),
+              description: cleanDesc.slice(0, 12000),
               requirements: item.tags && item.tags.length > 0 ? item.tags : [item.category || 'General'],
               tags: item.tags || [],
               publishedAt: item.publication_date || new Date().toISOString(),
@@ -110,7 +111,7 @@ export const jobDiscovery = {
               if (!matchTitle && !matchCompany && !matchTags) continue;
             }
 
-            const cleanDesc = (item.description || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+            const cleanDesc = extractPlainTextForMatching(item.description || '');
             const loc = item.location || 'Remote';
             vacancies.push({
               id: `arbeitnow_${item.slug}`,
@@ -122,7 +123,7 @@ export const jobDiscovery = {
               remote: !!item.remote,
               arrangement: item.remote ? 'remote' : 'hybrid',
               url: item.url,
-              description: cleanDesc.slice(0, 4000),
+              description: cleanDesc.slice(0, 12000),
               requirements: item.tags || ['General'],
               tags: item.tags || [],
               publishedAt: new Date(item.created_at * 1000).toISOString(),
@@ -167,7 +168,7 @@ export const jobDiscovery = {
 
         if (data.jobs && Array.isArray(data.jobs)) {
           for (const item of data.jobs) {
-            const cleanDesc = (item.jobDescription || '').replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+            const cleanDesc = extractPlainTextForMatching(item.jobDescription || '');
             const salary = item.annualSalaryMin && item.annualSalaryMax
               ? {
                   min: parseInt(item.annualSalaryMin, 10),
@@ -188,7 +189,7 @@ export const jobDiscovery = {
               remote: true,
               arrangement: 'remote',
               url: item.url,
-              description: cleanDesc.slice(0, 4000),
+              description: cleanDesc.slice(0, 12000),
               requirements: item.jobType || ['Full-Time'],
               tags: item.jobType || [],
               publishedAt: item.pubDate || new Date().toISOString(),

@@ -38,6 +38,8 @@ import {
 import { getEffectivePlan, checkAIUsageAllowance, isPermanentFreeAccessAccount } from './src/config/freeAccess.ts';
 import { SUBSCRIPTION_PLANS } from './src/config/plans.ts';
 import { hrOutreachStore } from './server/hrOutreachStore.ts';
+import { hrDiscoveryQueueStore } from './server/hrDiscoveryQueueStore.ts';
+import { processHrDiscoveryQueueBatch, revalidateStaleContacts } from './server/hrDiscoveryEngine.ts';
 import { createHrOutreachRouter } from './server/hrOutreachRoutes.ts';
 
 dotenv.config();
@@ -2631,6 +2633,16 @@ app.post('/api/admin/sources/sync', requireAdmin, async (req: AuthenticatedReque
       const result = await adapter.fetchJobs();
       if (result.jobs.length > 0) {
         authAndStore.saveLiveJobs(result.jobs);
+        try {
+          await processHrDiscoveryQueueBatch({
+            triggeredBy: req.user!.id,
+            triggerType: 'post_sync',
+            batchLimit: 30,
+            fetchBudget: 4,
+          });
+        } catch (hrErr) {
+          console.warn('Post-sync HR discovery batch warning:', hrErr);
+        }
       }
       authAndStore.updateJobSourceStatus(adapter.id, {
         healthStatus: result.status,
@@ -2689,6 +2701,83 @@ app.get('/api/opportunity-radar/live-jobs', (req: Request, res: Response) => {
 // AI HR OUTREACH & DIRECT APPLICATION AUTOMATION ROUTES
 // ============================================================================
 app.use('/api/hr-outreach', createHrOutreachRouter(requireAuth));
+
+// Admin HR Contact Discovery & Pipeline Diagnostics Routes
+app.get('/api/admin/hr-discovery/diagnostics', requireAdmin, (_req: AuthenticatedRequest, res: Response) => {
+  try {
+    const diagnostics = hrDiscoveryQueueStore.getAdminDiagnostics();
+    res.json({ success: true, diagnostics });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Failed to load HR discovery diagnostics.' });
+  }
+});
+
+app.post('/api/admin/hr-discovery/run', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const batchLimit = Math.min(200, Math.max(10, Number(req.body?.batchLimit || 60)));
+    const fetchBudget = Math.min(20, Math.max(0, Number(req.body?.fetchBudget ?? 10)));
+    const result = await processHrDiscoveryQueueBatch({
+      triggeredBy: req.user!.id,
+      triggerType: 'manual',
+      batchLimit,
+      fetchBudget,
+      forceRefresh: Boolean(req.body?.forceRefresh),
+    });
+    const diagnostics = hrDiscoveryQueueStore.getAdminDiagnostics();
+    res.json({ success: true, ...result, diagnostics });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'HR discovery batch failed.' });
+  }
+});
+
+app.post('/api/admin/hr-discovery/retry-failed', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const requeuedCount = hrDiscoveryQueueStore.retryFailedQueueItems();
+    const result = await processHrDiscoveryQueueBatch({
+      triggeredBy: req.user!.id,
+      triggerType: 'admin_retry',
+      batchLimit: 50,
+      fetchBudget: 10,
+      forceRefresh: true,
+    });
+    const diagnostics = hrDiscoveryQueueStore.getAdminDiagnostics();
+    res.json({ success: true, requeuedCount, ...result, diagnostics });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Retry failed items error.' });
+  }
+});
+
+app.post('/api/admin/hr-discovery/reprocess-job/:jobId', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const item = hrDiscoveryQueueStore.reprocessQueueJob(req.params.jobId);
+    if (!item) {
+      return res.status(404).json({ success: false, error: 'Job not found in GCDE cache.' });
+    }
+    const result = await processHrDiscoveryQueueBatch({
+      triggeredBy: req.user!.id,
+      triggerType: 'admin_retry',
+      jobId: req.params.jobId,
+      batchLimit: 1,
+      fetchBudget: 3,
+      forceRefresh: true,
+    });
+    const diagnostics = hrDiscoveryQueueStore.getAdminDiagnostics();
+    res.json({ success: true, item, ...result, diagnostics });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Failed to reprocess job.' });
+  }
+});
+
+app.post('/api/admin/hr-discovery/revalidate-stale', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const limit = Math.min(100, Math.max(1, Number(req.body?.limit || 30)));
+    const result = await revalidateStaleContacts(limit);
+    const diagnostics = hrDiscoveryQueueStore.getAdminDiagnostics();
+    res.json({ success: true, result, diagnostics });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Failed to revalidate stale contacts.' });
+  }
+});
 
 // ============================================================================
 // FOUNDER PROFILE PUBLIC & ADMIN API ROUTES

@@ -3,6 +3,7 @@
 
 import { D1Store } from './d1Store.ts';
 import { SOURCE_ADAPTERS, deduplicateJobs, LiveJobItem } from './jobConnectors.ts';
+import { processWorkerHrDiscoveryQueueBatch } from './hrDiscoveryEngine.ts';
 
 export interface SyncResult {
   runId: string;
@@ -153,6 +154,18 @@ export async function runIncrementalJobSync(
     totalDuplicated += duplicatedCount;
     try {
       await store.saveLiveJobs(unique);
+      // Automatically extract HR contacts from freshly synced job descriptions within bounded subrequest budget
+      try {
+        await processWorkerHrDiscoveryQueueBatch(store.getDatabase(), {
+          triggeredBy: 'gcde_sync_hook',
+          triggerType: 'post_sync',
+          batchLimit: 60,
+          fetchBudget: 4,
+          jobIds: unique.slice(0, 60).map((j) => j.id),
+        });
+      } catch (hrErr) {
+        console.warn('Post-sync HR contact discovery batch non-fatal warning:', hrErr);
+      }
     } catch (dbErr: unknown) {
       const msg = dbErr instanceof Error ? dbErr.message : String(dbErr);
       errors.push({ sourceId: 'database_persistence', error: `D1 write failed: ${msg}` });

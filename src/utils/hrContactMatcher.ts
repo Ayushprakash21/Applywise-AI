@@ -123,10 +123,12 @@ export function evaluateContactRelevance(params: {
 
   // 5. Source Reliability & Email Verification Status (0 - 10)
   let sourceAndVerification = 2;
-  if (contact.emailVerificationStatus === 'Verified') {
+  if (contact.emailVerificationStatus === 'Mailbox Verified' || contact.emailVerificationStatus === 'Verified') {
     sourceAndVerification = 10;
-  } else if (contact.emailVerificationStatus === 'Domain Valid') {
-    sourceAndVerification = 8;
+  } else if (contact.emailVerificationStatus === 'Source Confirmed') {
+    sourceAndVerification = contact.isRoleBased ? 8 : 9;
+  } else if (contact.emailVerificationStatus === 'MX Valid' || contact.emailVerificationStatus === 'Domain Valid') {
+    sourceAndVerification = 7;
   } else if (contact.emailVerificationStatus === 'Role-Based') {
     sourceAndVerification = 6;
   } else if (contact.emailVerificationStatus === 'Discovered' || contact.emailVerificationStatus === 'Unverified') {

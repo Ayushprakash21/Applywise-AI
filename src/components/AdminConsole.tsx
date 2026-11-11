@@ -34,6 +34,7 @@ import { AdminFounderProfile } from './AdminFounderProfile.tsx';
 import { AdminResumeManagement } from './AdminResumeManagement.tsx';
 import { AdminUserProvisioning } from './AdminUserProvisioning.tsx';
 import { GlobalSourceIntelligence } from './GlobalSourceIntelligence.tsx';
+import { AdminHrDiscoveryDiagnostics } from './AdminHrDiscoveryDiagnostics.tsx';
 import { getEffectivePlan } from '../config/freeAccess.ts';
 
 interface AdminConsoleProps {
@@ -46,7 +47,7 @@ interface AdminConsoleProps {
 }
 
 type AdminTab = 'overview' | 'users' | 'resumes' | 'sources' | 'audit' | 'system' | 'founder';
-type ExtendedAdminTab = AdminTab | 'provisioning';
+type ExtendedAdminTab = AdminTab | 'provisioning' | 'hr_discovery';
 
 export const AdminConsole: React.FC<AdminConsoleProps> = ({
   currentUser,
@@ -381,6 +382,25 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                 }`}>
                   GCDE
                 </span>
+              </button>
+
+              {/* 2b. HR Discovery Diagnostics */}
+              <button
+                id="admin-tab-hr-discovery"
+                role="tab"
+                type="button"
+                tabIndex={0}
+                aria-selected={activeTab === 'hr_discovery'}
+                aria-controls="admin-panel-hr-discovery"
+                onClick={() => setActiveTab('hr_discovery')}
+                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                  activeTab === 'hr_discovery'
+                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                    : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                }`}
+              >
+                <Sparkles className={`h-3.5 w-3.5 ${activeTab === 'hr_discovery' ? 'text-[#C6A66A]' : 'text-[#35B887]'}`} />
+                <span>HR Discovery Diagnostics</span>
               </button>
 
               {/* 3. Users & Roles */}
@@ -863,6 +883,13 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             </div>
 
             <GlobalSourceIntelligence />
+          </div>
+        )}
+
+        {/* TAB: HR DISCOVERY DIAGNOSTICS */}
+        {activeTab === 'hr_discovery' && (
+          <div id="admin-panel-hr-discovery" role="tabpanel" aria-labelledby="admin-tab-hr-discovery">
+            <AdminHrDiscoveryDiagnostics />
           </div>
         )}
 

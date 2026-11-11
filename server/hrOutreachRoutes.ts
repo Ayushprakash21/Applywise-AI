@@ -7,6 +7,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import { GoogleGenAI } from '@google/genai';
 import { authAndStore, AuthUser, sqlite } from './authAndStore.ts';
 import { hrOutreachStore } from './hrOutreachStore.ts';
+import { hrDiscoveryQueueStore } from './hrDiscoveryQueueStore.ts';
 import {
   discoverAndPersistHrContacts,
   getHrDiscoverySourceRegistry,
@@ -14,6 +15,7 @@ import {
 } from './hrDiscoveryEngine.ts';
 import { resumeEngine } from './resumeEngine.ts';
 import { getEffectivePlan, checkFeatureEntitlement } from '../src/config/freeAccess.ts';
+import { classifyHrDesignation } from '../src/utils/hrContactDiscovery.ts';
 import { evaluateContactRelevance } from '../src/utils/hrContactMatcher.ts';
 import { runEmailVerificationPipeline } from '../src/utils/hrEmailVerification.ts';
 import {
@@ -290,6 +292,7 @@ export function createHrOutreachRouter(
       country,
       company,
       designation,
+      contactType,
       verificationStatus,
       sourceType,
       jobId,
@@ -300,10 +303,12 @@ export function createHrOutreachRouter(
     } = req.query as Record<string, string | undefined>;
 
     const result = hrOutreachStore.listHrContacts({
+      userId: req.user!.id,
       search,
       country,
       company,
       designation,
+      contactType,
       verificationStatus,
       sourceType,
       jobId,
@@ -350,9 +355,104 @@ export function createHrOutreachRouter(
     });
   });
 
+  // 3b. COMPANIES & JOBS COVERAGE ENDPOINTS
+  router.get('/companies', (req: HrOutreachRequest, res: Response) => {
+    const { search, onlyWithContacts, limit, offset } = req.query as Record<string, string | undefined>;
+    const result = hrDiscoveryQueueStore.listCompaniesWithContactSummary({
+      userId: req.user!.id,
+      search,
+      onlyWithContacts: onlyWithContacts === 'true',
+      limit: limit ? Number(limit) : 40,
+      offset: offset ? Number(offset) : 0,
+    });
+    res.json({ success: true, ...result });
+  });
+
+  router.get('/jobs-with-contacts', (req: HrOutreachRequest, res: Response) => {
+    const { search, onlyWithContacts, limit, offset } = req.query as Record<string, string | undefined>;
+    const result = hrDiscoveryQueueStore.getJobsWithContactsCoverage({
+      userId: req.user!.id,
+      search,
+      onlyWithContacts: onlyWithContacts === 'true',
+      limit: limit ? Number(limit) : 40,
+      offset: offset ? Number(offset) : 0,
+    });
+    res.json({ success: true, ...result });
+  });
+
+  // 3c. MANUAL CONTACT SUBMISSION / CORRECTION (TENANT-ISOLATED)
+  router.post('/contacts/manual', async (req: HrOutreachRequest, res: Response) => {
+    try {
+      const { companyName, companyWebsite, contactName, designation, email, country, jobId, sourceUrl, evidence } =
+        req.body || {};
+
+      if (!companyName || !String(companyName).trim() || !email || !String(email).trim()) {
+        return res.status(400).json({ success: false, error: 'Company name and email are required.' });
+      }
+
+      const cleanEmail = String(email).trim().toLowerCase();
+      const verification = await runEmailVerificationPipeline(
+        {
+          email: cleanEmail,
+          sourceUrl: typeof sourceUrl === 'string' && sourceUrl.trim() ? sourceUrl.trim() : undefined,
+          evidence: typeof evidence === 'string' && evidence.trim() ? evidence.trim() : undefined,
+        },
+        nodeMxResolver
+      );
+
+      if (!verification.syntaxValid) {
+        return res.status(400).json({
+          success: false,
+          error: verification.reasons[0] || 'Invalid email syntax or disposable domain.',
+        });
+      }
+
+      const cleanName = typeof contactName === 'string' && contactName.trim() ? contactName.trim() : undefined;
+      const classified = classifyHrDesignation(
+        `${designation || ''} ${evidence || ''}`,
+        cleanEmail,
+        cleanName
+      );
+
+      const { contact, created } = hrDiscoveryQueueStore.submitOrCorrectUserContact({
+        userId: req.user!.id,
+        companyName: String(companyName).trim(),
+        companyWebsite: typeof companyWebsite === 'string' ? companyWebsite.trim() : undefined,
+        contactName: cleanName,
+        designation: typeof designation === 'string' && designation.trim() ? designation.trim() : classified.designation,
+        roleCategory: classified.roleCategory,
+        contactType: classified.contactType,
+        email: cleanEmail,
+        country: typeof country === 'string' && country.trim() ? country.trim() : 'Global',
+        jobId: typeof jobId === 'string' && jobId.trim() ? jobId.trim() : undefined,
+        sourceUrl: typeof sourceUrl === 'string' ? sourceUrl.trim() : undefined,
+        evidence: typeof evidence === 'string' ? evidence.trim() : undefined,
+        emailVerificationStatus: verification.status === 'Invalid' ? 'Verification Failed' : verification.status,
+        verificationLevels: verification.levels,
+        mxHosts: verification.mxHosts,
+        isRoleBased: verification.isRoleBased,
+      });
+
+      authAndStore.addAuditLog(
+        req.user!.id,
+        'User manual',
+        'HR_CONTACT_MANUAL_SUBMIT',
+        cleanEmail,
+        `Submitted personal HR contact for ${companyName} (status: ${contact.emailVerificationStatus}).`
+      );
+
+      res.json({ success: true, contact, created, verification });
+    } catch (err: unknown) {
+      res.status(400).json({ success: false, error: err instanceof Error ? err.message : String(err) });
+    }
+  });
+
   router.get('/contacts/:id', (req: HrOutreachRequest, res: Response) => {
     const data = hrOutreachStore.getHrContactById(req.params.id);
     if (!data) {
+      return res.status(404).json({ success: false, error: 'HR Contact not found.' });
+    }
+    if (data.contact.isUserSubmitted && data.contact.submittedByUserId !== req.user!.id) {
       return res.status(404).json({ success: false, error: 'HR Contact not found.' });
     }
     const profile = authAndStore.getProfile(req.user!.id);
@@ -420,7 +520,12 @@ export function createHrOutreachRouter(
       data.contact.id,
       verification.status,
       verification.isRoleBased,
-      verification.checkedAt
+      verification.checkedAt,
+      {
+        verificationLevels: verification.levels,
+        mxHosts: verification.mxHosts,
+        evidence: data.contact.sourceEvidence || data.contact.evidence,
+      }
     );
 
     res.json({

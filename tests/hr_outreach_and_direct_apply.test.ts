@@ -117,8 +117,8 @@ describe('ApplyVise AI — AI HR Outreach & Direct Application Automation Suite'
       assert.strictEqual(nxdomain.status, 'Invalid');
     });
 
-    it('strictly distinguishes MX Domain Valid from confirmed Verified mailboxes', async () => {
-      const mxOnly = await runEmailVerificationPipeline(
+    it('strictly distinguishes Source Confirmed / MX Valid from Mailbox Verified mailboxes', async () => {
+      const sourceConfirmed = await runEmailVerificationPipeline(
         {
           email: 'talent.partner@siemens-example-corp.de',
           sourceUrl: 'https://siemens-example-corp.de/careers',
@@ -126,19 +126,23 @@ describe('ApplyVise AI — AI HR Outreach & Direct Application Automation Suite'
         },
         async () => ({ ok: true, hosts: ['mx1.siemens-example-corp.de'] })
       );
-      assert.strictEqual(mxOnly.mxValid, true);
-      assert.strictEqual(mxOnly.status, 'Domain Valid');
-      assert.notStrictEqual(mxOnly.status, 'Verified');
+      assert.strictEqual(sourceConfirmed.mxValid, true);
+      assert.strictEqual(sourceConfirmed.status, 'Source Confirmed');
+      assert.strictEqual(sourceConfirmed.levels.level4SourceEvidenceConfirmed, true);
+      assert.strictEqual(sourceConfirmed.levels.level5MailboxVerified, false);
+      assert.notStrictEqual(sourceConfirmed.status, 'Verified');
+      assert.notStrictEqual(sourceConfirmed.status, 'Mailbox Verified');
 
-      const roleMx = await runEmailVerificationPipeline(
+      const mxOnly = await runEmailVerificationPipeline(
         {
           email: 'careers@siemens-example-corp.de',
-          sourceUrl: 'https://siemens-example-corp.de/careers',
-          evidence: 'Listed on official career page',
         },
         async () => ({ ok: true, hosts: ['mx1.siemens-example-corp.de'] })
       );
-      assert.strictEqual(roleMx.status, 'Role-Based');
+      assert.strictEqual(mxOnly.isRoleBased, true);
+      assert.strictEqual(mxOnly.status, 'MX Valid');
+      assert.strictEqual(mxOnly.levels.level4SourceEvidenceConfirmed, false);
+      assert.strictEqual(mxOnly.levels.level5MailboxVerified, false);
     });
 
     it('flags stale verifications older than 30 days and tracks unsupported scraping sources honestly', () => {
@@ -845,7 +849,8 @@ describe('ApplyVise AI — AI HR Outreach & Direct Application Automation Suite'
       for (const tabLabel of [
         'Overview',
         'HR Contacts',
-        'Job Opportunities',
+        'Companies',
+        'Jobs with Contacts',
         'AI Email Studio',
         'Outreach Campaigns',
         'Sent Emails',

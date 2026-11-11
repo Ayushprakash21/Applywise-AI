@@ -1523,6 +1523,16 @@ export interface GlobalSourceIntelligenceSummary {
 // AI HR OUTREACH & DIRECT APPLICATION AUTOMATION TYPES
 // ============================================================================
 
+export type HrContactClassificationType =
+  | 'Named Recruiter'
+  | 'Talent Acquisition'
+  | 'Recruitment Department'
+  | 'HR Department'
+  | 'Hiring Manager'
+  | 'Careers Contact'
+  | 'General Company Contact'
+  | 'Unknown';
+
 export type HrContactRoleCategory =
   | 'Talent Acquisition Specialist'
   | 'HR Recruiter'
@@ -1536,14 +1546,25 @@ export type HrContactRoleCategory =
   | 'Careers Department';
 
 export type EmailVerificationStatus =
-  | 'Verified'
+  | 'Source Confirmed'
   | 'Domain Valid'
+  | 'MX Valid'
+  | 'Mailbox Verified'
+  | 'Verified'
   | 'Unverified'
   | 'Invalid'
   | 'Role-Based'
   | 'Discovered'
   | 'Verification Failed'
   | 'Stale';
+
+export interface EmailVerificationLevels {
+  level1SyntaxValid: boolean;
+  level2DomainExists: boolean;
+  level3MxAvailable: boolean | null;
+  level4SourceEvidenceConfirmed: boolean;
+  level5MailboxVerified: boolean;
+}
 
 export interface HrContact {
   id: string;
@@ -1553,23 +1574,127 @@ export interface HrContact {
   contactName?: string;
   designation: string;
   roleCategory: HrContactRoleCategory;
+  contactType?: HrContactClassificationType;
   email: string;
+  normalizedEmail?: string;
   country: string;
   city?: string;
   department?: string;
   sourceType: string;
   sourceUrl: string;
+  associatedJobId?: string;
   associatedJobIds: string[];
   emailVerificationStatus: EmailVerificationStatus;
+  verificationLevels?: EmailVerificationLevels;
   contactConfidence: number; // 0.0 - 1.0
   evidence: string;
+  sourceEvidence?: string;
   discoveredAt: string;
   lastVerifiedAt?: string;
+  lastSeenAt?: string;
   lastContactedAt?: string;
   contactStatus: 'active' | 'archived' | 'suppressed';
   isRoleBased: boolean;
+  isUserSubmitted?: boolean;
+  submittedByUserId?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface HrContactJobLink {
+  id: string;
+  contactId: string;
+  jobId: string;
+  companyId?: string;
+  linkType: 'direct_posting' | 'recruitment_page' | 'department_relationship' | 'company_only' | 'user_submitted';
+  relevanceScore: number;
+  evidence?: string;
+  createdAt: string;
+}
+
+export type DiscoveryDiagnosticCategory =
+  | 'contacts_extracted'
+  | 'no_contacts_published'
+  | 'description_unavailable'
+  | 'company_page_unavailable'
+  | 'extraction_failed'
+  | 'source_not_supported'
+  | 'no_public_recruitment_contact';
+
+export interface HrDiscoveryQueueItem {
+  id: string;
+  jobId: string;
+  companyId?: string;
+  companyName: string;
+  source: string;
+  jobUrl?: string;
+  status: 'pending' | 'processing' | 'completed' | 'no_contact_found' | 'failed' | 'dead_letter' | 'unsupported_source';
+  diagnosticCategory?: DiscoveryDiagnosticCategory;
+  failureReason?: string;
+  attemptCount: number;
+  nextRetryAt?: string;
+  emailsExtracted: number;
+  emailsAccepted: number;
+  lastProcessedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HrContactDiscoveryRunRecord {
+  id: string;
+  triggeredBy: string;
+  triggerType: 'manual' | 'cron' | 'post_sync' | 'admin_retry';
+  status: 'running' | 'completed' | 'partial' | 'failed';
+  jobsScanned: number;
+  descriptionsInspected: number;
+  companyPagesInspected: number;
+  emailsExtracted: number;
+  validSyntaxCount: number;
+  domainsValidatedCount: number;
+  mxValidatedCount: number;
+  sourceConfirmedCount: number;
+  duplicatesSkipped: number;
+  invalidRejected: number;
+  sourcesFailing: number;
+  sourceBreakdown: Record<string, { scanned: number; extracted: number; accepted: number; failed: number }>;
+  errorSummary?: string;
+  startedAt: string;
+  completedAt?: string;
+}
+
+export interface HrAdminDiagnosticsSummary {
+  totals: {
+    totalContacts: number;
+    sourceConfirmedContacts: number;
+    mxValidatedContacts: number;
+    domainValidContacts: number;
+    mailboxVerifiedContacts: number;
+    staleContacts: number;
+    invalidOrFailedContacts: number;
+    totalJobLinks: number;
+    jobsCoveredCount: number;
+    totalActiveJobs: number;
+    jobCoveragePercent: number;
+  };
+  queueStats: {
+    pending: number;
+    processing: number;
+    completed: number;
+    noContactFound: number;
+    failed: number;
+    deadLetter: number;
+    unsupportedSource: number;
+  };
+  sourceBreakdown: Array<{
+    source: string;
+    totalQueued: number;
+    contactsFound: number;
+    failed: number;
+    noContactFound: number;
+  }>;
+  recentRuns: HrContactDiscoveryRunRecord[];
+  failingRecords: HrDiscoveryQueueItem[];
+  lastSuccessfulRun?: HrContactDiscoveryRunRecord;
 }
 
 export interface HrContactSource {
@@ -1770,9 +1895,13 @@ export interface ContactDiscoveryRun {
 export interface OutreachOverviewMetrics {
   contactsDiscovered: number;
   verifiedContacts: number;
+  sourceConfirmedContacts?: number;
+  mxValidatedContacts?: number;
   domainValidContacts: number;
   roleBasedContacts: number;
   jobsWithContacts: number;
+  totalActiveJobs?: number;
+  jobCoveragePercent?: number;
   emailsDrafted: number;
   emailsSent: number;
   providerAcceptedCount: number;

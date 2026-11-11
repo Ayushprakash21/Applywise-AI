@@ -6,11 +6,12 @@ import { Hono } from 'hono';
 import { GoogleGenAI } from '@google/genai';
 import { D1Store, AuthUser } from './d1Store.ts';
 import { WorkerHrOutreachStore } from './hrOutreachStore.ts';
+import { WorkerHrDiscoveryQueueStore } from './hrDiscoveryQueueStore.ts';
+import { discoverWorkerHrContacts } from './hrDiscoveryEngine.ts';
 import { isSafePublicUrl } from './jobConnectors.ts';
 import { checkFeatureEntitlement, getEffectivePlan } from '../src/config/freeAccess.ts';
 import {
-  extractPublicHrContactsFromText,
-  ExtractedHrContactCandidate,
+  classifyHrDesignation,
   HR_DISCOVERY_SOURCES,
 } from '../src/utils/hrContactDiscovery.ts';
 import { evaluateContactRelevance } from '../src/utils/hrContactMatcher.ts';
@@ -196,10 +197,12 @@ export function createWorkerHrOutreachApp(requireAuth: (c: any, next: any) => Pr
 
     const [res, profile, preferences, dncList] = await Promise.all([
       outStore.listHrContacts({
+        userId: user.id,
         search: q.search,
         country: q.country,
         company: q.company,
         designation: q.designation,
+        contactType: q.contactType,
         verificationStatus: q.verificationStatus,
         sourceType: q.sourceType,
         jobId: q.jobId,
@@ -235,12 +238,94 @@ export function createWorkerHrOutreachApp(requireAuth: (c: any, next: any) => Pr
     return c.json({ success: true, contacts: enriched, total: res.total });
   });
 
+  hr.get('/companies', async (c) => {
+    const user = c.get('user')!;
+    const qStore = new WorkerHrDiscoveryQueueStore(c.env.DB);
+    const q = c.req.query();
+    const result = await qStore.listCompaniesWithContactSummary({
+      userId: user.id,
+      search: q.search,
+      onlyWithContacts: q.onlyWithContacts === 'true',
+      limit: q.limit ? Number(q.limit) : 40,
+      offset: q.offset ? Number(q.offset) : 0,
+    });
+    return c.json({ success: true, ...result });
+  });
+
+  hr.get('/jobs-with-contacts', async (c) => {
+    const user = c.get('user')!;
+    const qStore = new WorkerHrDiscoveryQueueStore(c.env.DB);
+    const q = c.req.query();
+    const result = await qStore.getJobsWithContactsCoverage({
+      userId: user.id,
+      search: q.search,
+      onlyWithContacts: q.onlyWithContacts === 'true',
+      limit: q.limit ? Number(q.limit) : 40,
+      offset: q.offset ? Number(q.offset) : 0,
+    });
+    return c.json({ success: true, ...result });
+  });
+
+  hr.post('/contacts/manual', async (c) => {
+    const user = c.get('user')!;
+    const store = c.get('store');
+    const qStore = new WorkerHrDiscoveryQueueStore(c.env.DB);
+    const body = await c.req.json().catch(() => ({}));
+    const { companyName, companyWebsite, contactName, designation, email, country, jobId, sourceUrl, evidence } = body;
+
+    if (!companyName || !String(companyName).trim() || !email || !String(email).trim()) {
+      return c.json({ success: false, error: 'Company name and email are required.' }, 400);
+    }
+
+    const cleanEmail = String(email).trim().toLowerCase();
+    const verification = await runEmailVerificationPipeline(
+      {
+        email: cleanEmail,
+        sourceUrl: typeof sourceUrl === 'string' && sourceUrl.trim() ? sourceUrl.trim() : undefined,
+        evidence: typeof evidence === 'string' && evidence.trim() ? evidence.trim() : undefined,
+      },
+      dohMxResolver
+    );
+
+    if (!verification.syntaxValid) {
+      return c.json({ success: false, error: verification.reasons[0] || 'Invalid email syntax.' }, 400);
+    }
+
+    const cleanName = typeof contactName === 'string' && contactName.trim() ? contactName.trim() : undefined;
+    const classified = classifyHrDesignation(`${designation || ''} ${evidence || ''}`, cleanEmail, cleanName);
+
+    const { contact, created } = await qStore.submitOrCorrectUserContact({
+      userId: user.id,
+      companyName: String(companyName).trim(),
+      companyWebsite: typeof companyWebsite === 'string' ? companyWebsite.trim() : undefined,
+      contactName: cleanName,
+      designation: typeof designation === 'string' && designation.trim() ? designation.trim() : classified.designation,
+      roleCategory: classified.roleCategory,
+      contactType: classified.contactType,
+      email: cleanEmail,
+      country: typeof country === 'string' && country.trim() ? country.trim() : 'Global',
+      jobId: typeof jobId === 'string' && jobId.trim() ? jobId.trim() : undefined,
+      sourceUrl: typeof sourceUrl === 'string' ? sourceUrl.trim() : undefined,
+      evidence: typeof evidence === 'string' ? evidence.trim() : undefined,
+      emailVerificationStatus: verification.status === 'Invalid' ? 'Verification Failed' : verification.status,
+      verificationLevels: verification.levels,
+      mxHosts: verification.mxHosts,
+      isRoleBased: verification.isRoleBased,
+    });
+
+    await store.addAuditLog(user.id, 'User manual', 'HR_CONTACT_MANUAL_SUBMIT', cleanEmail, `Submitted personal HR contact for ${companyName}.`);
+    return c.json({ success: true, contact, created, verification });
+  });
+
   hr.get('/contacts/:id', async (c) => {
     const user = c.get('user')!;
     const store = c.get('store');
     const outStore = new WorkerHrOutreachStore(c.env.DB);
     const data = await outStore.getHrContactById(c.req.param('id'));
     if (!data) return c.json({ success: false, error: 'HR Contact not found.' }, 404);
+    if (data.contact.isUserSubmitted && data.contact.submittedByUserId !== user.id) {
+      return c.json({ success: false, error: 'HR Contact not found.' }, 404);
+    }
 
     const [profile, preferences, isDnc] = await Promise.all([
       store.getProfile(user.id),
@@ -266,180 +351,30 @@ export function createWorkerHrOutreachApp(requireAuth: (c: any, next: any) => Pr
   hr.post('/contacts/discover', async (c) => {
     const user = c.get('user')!;
     const store = c.get('store');
-    const outStore = new WorkerHrOutreachStore(c.env.DB);
     const body = await c.req.json().catch(() => ({}));
     const companyName = typeof body.companyName === 'string' ? body.companyName.trim() : undefined;
     const companyWebsite = typeof body.companyWebsite === 'string' ? body.companyWebsite.trim() : undefined;
     const jobId = typeof body.jobId === 'string' ? body.jobId.trim() : undefined;
 
-    const run = await outStore.createDiscoveryRun({
+    const result = await discoverWorkerHrContacts(c.env.DB, {
       triggeredBy: user.id,
       companyName,
+      companyWebsite,
       jobId,
-      status: 'running',
     });
 
-    const sourcesChecked: Array<{ source: string; status: string; found: number; note?: string }> = [];
-    const candidates: ExtractedHrContactCandidate[] = [];
-    const savedContacts: any[] = [];
-    let sourcesScanned = 0;
-    let duplicatesSkipped = 0;
-    let verifiedCount = 0;
+    await store.addAuditLog(
+      user.id,
+      'User manual',
+      'HR_CONTACT_DISCOVERY_RUN',
+      companyName || jobId || 'GCDE',
+      `Scanned ${result.run.sourcesScanned} sources, found ${result.discoveredContacts.length} contacts.`
+    );
 
-    try {
-      let targetJobs: any[] = [];
-      if (jobId) {
-        const res = await c.env.DB.prepare('SELECT * FROM live_jobs_cache WHERE id = ?').bind(jobId).all();
-        targetJobs = res.results || [];
-      } else if (companyName) {
-        const res = await c.env.DB.prepare('SELECT * FROM live_jobs_cache WHERE LOWER(company) LIKE ? LIMIT 15')
-          .bind(`%${companyName.toLowerCase()}%`)
-          .all();
-        targetJobs = res.results || [];
-      } else {
-        const res = await c.env.DB.prepare('SELECT * FROM live_jobs_cache WHERE is_active = 1 ORDER BY retrieved_at DESC LIMIT 15').all();
-        targetJobs = res.results || [];
-      }
-
-      if (targetJobs.length > 0) {
-        sourcesScanned++;
-        let foundInJobs = 0;
-        for (const job of targetJobs) {
-          let domain = '';
-          try {
-            domain = new URL(job.url).hostname.replace(/^www\./, '');
-          } catch {
-            domain = '';
-          }
-          const extracted = extractPublicHrContactsFromText({
-            text: `${job.title}\n${job.description}`,
-            companyName: job.company,
-            country: job.country || 'Global',
-            city: job.location,
-            companyWebsite: job.url,
-            companyDomain: domain,
-            sourceType: `gcde_${job.source || 'job_board'}`,
-            sourceName: `GCDE Job Posting (${job.source || 'verified_feed'})`,
-            sourceUrl: job.url,
-            jobId: job.id,
-          });
-          foundInJobs += extracted.length;
-          candidates.push(...extracted);
-        }
-        sourcesChecked.push({
-          source: 'GCDE Active Job Descriptions',
-          status: 'scanned',
-          found: foundInJobs,
-        });
-      }
-
-      if (companyWebsite) {
-        if (!isSafePublicUrl(companyWebsite)) {
-          sourcesChecked.push({
-            source: companyWebsite,
-            status: 'blocked_ssrf',
-            found: 0,
-            note: 'Blocked by SSRF safety validation (HTTPS public domains only).',
-          });
-        } else {
-          sourcesScanned++;
-          try {
-            const resp = await fetch(companyWebsite, {
-              headers: { 'User-Agent': 'ApplyVise-HR-Discovery-Bot/1.0' },
-            });
-            if (resp.ok) {
-              const html = (await resp.text()).slice(0, 1_500_000);
-              const domain = new URL(companyWebsite).hostname.replace(/^www\./, '');
-              const extracted = extractPublicHrContactsFromText({
-                text: html,
-                companyName: companyName || domain,
-                companyWebsite,
-                companyDomain: domain,
-                sourceType: 'official_company_careers',
-                sourceName: `${companyName || domain} Official Careers Page`,
-                sourceUrl: companyWebsite,
-                jobId,
-              });
-              candidates.push(...extracted);
-              sourcesChecked.push({ source: companyWebsite, status: 'scanned', found: extracted.length });
-            } else {
-              sourcesChecked.push({ source: companyWebsite, status: 'unavailable', found: 0, note: `HTTP ${resp.status}` });
-            }
-          } catch (fetchErr: any) {
-            sourcesChecked.push({ source: companyWebsite, status: 'unavailable', found: 0, note: fetchErr?.message });
-          }
-        }
-      }
-
-      const seen = new Set<string>();
-      for (const cand of candidates) {
-        if (seen.has(cand.email)) {
-          duplicatesSkipped++;
-          continue;
-        }
-        seen.add(cand.email);
-        const verification = await runEmailVerificationPipeline(
-          { email: cand.email, sourceUrl: cand.sourceUrl, evidence: cand.evidence },
-          dohMxResolver
-        );
-        if (verification.status === 'Invalid') continue;
-        if (verification.mxValid) verifiedCount++;
-
-        const { contact, created } = await outStore.upsertHrContact({
-          companyId: cand.companyId,
-          companyName: cand.companyName,
-          companyWebsite: cand.companyWebsite,
-          contactName: cand.contactName,
-          designation: cand.designation,
-          roleCategory: cand.roleCategory,
-          email: cand.email,
-          country: cand.country,
-          city: cand.city,
-          department: cand.department,
-          sourceType: cand.sourceType,
-          sourceName: cand.sourceName,
-          sourceUrl: cand.sourceUrl,
-          associatedJobIds: cand.associatedJobIds,
-          emailVerificationStatus: verification.status,
-          contactConfidence: cand.confidence,
-          evidence: cand.evidence,
-          isRoleBased: verification.isRoleBased,
-          lastVerifiedAt: verification.checkedAt,
-        });
-        if (!created) duplicatesSkipped++;
-        savedContacts.push(contact);
-      }
-
-      await outStore.updateDiscoveryRun(run.id, {
-        status: 'completed',
-        sourcesScanned,
-        contactsDiscovered: savedContacts.length,
-        contactsVerified: verifiedCount,
-        duplicatesSkipped,
-        completedAt: new Date().toISOString(),
-      });
-
-      await store.addAuditLog(user.id, 'User manual', 'HR_CONTACT_DISCOVERY_RUN', companyName || jobId || 'GCDE', `Scanned ${sourcesScanned} sources, found ${savedContacts.length} contacts.`);
-
-      return c.json({
-        success: true,
-        run: await outStore.getDiscoveryRunById(run.id),
-        discoveredContacts: savedContacts,
-        unavailableReason:
-          savedContacts.length === 0
-            ? 'No public HR email address was exposed by the checked official sources or ATS postings.'
-            : undefined,
-        sourcesChecked,
-      });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      await outStore.updateDiscoveryRun(run.id, {
-        status: 'failed',
-        errorMessage: msg,
-        completedAt: new Date().toISOString(),
-      });
-      return c.json({ success: false, error: msg }, 500);
-    }
+    return c.json({
+      success: true,
+      ...result,
+    });
   });
 
   hr.post('/contacts/:id/verify', async (c) => {
@@ -460,7 +395,12 @@ export function createWorkerHrOutreachApp(requireAuth: (c: any, next: any) => Pr
       data.contact.id,
       verification.status,
       verification.isRoleBased,
-      verification.checkedAt
+      verification.checkedAt,
+      {
+        verificationLevels: verification.levels,
+        mxHosts: verification.mxHosts,
+        evidence: data.contact.sourceEvidence || data.contact.evidence,
+      }
     );
     return c.json({ success: true, contact: updated, verification });
   });

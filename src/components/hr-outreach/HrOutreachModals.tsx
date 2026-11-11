@@ -20,10 +20,13 @@ import {
   OutreachMessage,
 } from '../../types/index.ts';
 
-export function VerificationBadge({ status }: { status: string }) {
+export function VerificationBadge({ status, isUserSubmitted }: { status: string; isUserSubmitted?: boolean }) {
   const styles: Record<string, string> = {
+    'Mailbox Verified': 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
     Verified: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
-    'Domain Valid': 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30',
+    'Source Confirmed': 'bg-teal-500/15 text-teal-600 dark:text-teal-300 border-teal-500/30',
+    'MX Valid': 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30',
+    'Domain Valid': 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30',
     'Role-Based': 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
     Discovered: 'bg-slate-500/15 text-slate-600 dark:text-slate-300 border-slate-400/30',
     Unverified: 'bg-slate-500/15 text-slate-600 dark:text-slate-300 border-slate-400/30',
@@ -32,21 +35,30 @@ export function VerificationBadge({ status }: { status: string }) {
     Invalid: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30',
   };
   return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
-        styles[status] || styles.Discovered
-      }`}
-      title={
-        status === 'Domain Valid'
-          ? 'MX records confirmed domain accepts mail; individual mailbox is not probed via SMTP.'
-          : status === 'Role-Based'
-          ? 'Departmental recruitment inbox (e.g. careers@ or talent@).'
-          : status === 'Verified'
-          ? 'Deliverability or direct reply confirmed.'
-          : undefined
-      }
-    >
-      {status}
+    <span className="inline-flex flex-wrap items-center gap-1">
+      <span
+        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+          styles[status] || styles.Discovered
+        }`}
+        title={
+          status === 'Source Confirmed'
+            ? 'Email confirmed in official public job posting or employer careers page + MX/domain checked.'
+            : status === 'MX Valid' || status === 'Domain Valid'
+            ? 'MX records confirmed domain accepts mail; individual mailbox is not probed via SMTP.'
+            : status === 'Role-Based'
+            ? 'Departmental recruitment inbox (e.g. careers@ or talent@).'
+            : status === 'Mailbox Verified' || status === 'Verified'
+            ? 'Deliverability or direct reply confirmed.'
+            : undefined
+        }
+      >
+        {status}
+      </span>
+      {isUserSubmitted && (
+        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+          Candidate Submitted
+        </span>
+      )}
     </span>
   );
 }
@@ -96,8 +108,27 @@ export const ContactDetailDrawer: React.FC<{
                 <Mail className="w-4 h-4 shrink-0 text-[#C6A66A]" />
                 <span>{contact.email}</span>
               </div>
-              <VerificationBadge status={contact.emailVerificationStatus} />
+              <VerificationBadge status={contact.emailVerificationStatus} isUserSubmitted={contact.isUserSubmitted} />
             </div>
+            {contact.verificationLevels && (
+              <div className="flex flex-wrap gap-1.5 pt-1 text-[10px]">
+                <span className={`px-1.5 py-0.5 rounded border ${contact.verificationLevels.level1SyntaxValid ? 'border-emerald-500/30 text-emerald-400' : 'border-rose-500/30 text-rose-400'}`}>
+                  L1 Syntax: {contact.verificationLevels.level1SyntaxValid ? 'Valid' : 'Fail'}
+                </span>
+                <span className={`px-1.5 py-0.5 rounded border ${contact.verificationLevels.level2DomainExists ? 'border-emerald-500/30 text-emerald-400' : 'border-rose-500/30 text-rose-400'}`}>
+                  L2 Domain: {contact.verificationLevels.level2DomainExists ? 'Valid' : 'Fail'}
+                </span>
+                <span className={`px-1.5 py-0.5 rounded border ${contact.verificationLevels.level3MxAvailable ? 'border-emerald-500/30 text-emerald-400' : 'border-white/15 opacity-70'}`}>
+                  L3 MX: {contact.verificationLevels.level3MxAvailable ? 'Available' : 'Unchecked/None'}
+                </span>
+                <span className={`px-1.5 py-0.5 rounded border ${contact.verificationLevels.level4SourceEvidenceConfirmed ? 'border-emerald-500/30 text-emerald-400' : 'border-white/15 opacity-70'}`}>
+                  L4 Public Source: {contact.verificationLevels.level4SourceEvidenceConfirmed ? 'Confirmed' : 'Unconfirmed'}
+                </span>
+                <span className={`px-1.5 py-0.5 rounded border ${contact.verificationLevels.level5MailboxVerified ? 'border-emerald-500/30 text-emerald-400' : 'border-white/15 opacity-70'}`}>
+                  L5 Mailbox: {contact.verificationLevels.level5MailboxVerified ? 'Verified' : 'Not Probed'}
+                </span>
+              </div>
+            )}
             <div className="flex flex-wrap gap-3 text-xs opacity-80 pt-1">
               <span className="inline-flex items-center gap-1">
                 <Building2 className="w-3.5 h-3.5" /> {contact.companyName}
@@ -458,6 +489,143 @@ export const CreateCampaignModal: React.FC<{
             }`}
           >
             {submitting ? 'Creating...' : 'Create Campaign'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export const ManualContactModal: React.FC<{
+  open: boolean;
+  isBlack: boolean;
+  initialCompany?: string;
+  initialJobId?: string;
+  onClose: () => void;
+  onSubmit: (payload: {
+    companyName: string;
+    companyWebsite?: string;
+    contactName?: string;
+    designation?: string;
+    email: string;
+    country?: string;
+    jobId?: string;
+    sourceUrl?: string;
+    evidence?: string;
+  }) => Promise<void>;
+}> = ({ open, isBlack, initialCompany = '', initialJobId = '', onClose, onSubmit }) => {
+  const [companyName, setCompanyName] = useState(initialCompany);
+  const [contactName, setContactName] = useState('');
+  const [designation, setDesignation] = useState('Talent Acquisition');
+  const [email, setEmail] = useState('');
+  const [companyWebsite, setCompanyWebsite] = useState('');
+  const [sourceUrl, setSourceUrl] = useState('');
+  const [evidence, setEvidence] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [errMsg, setErrMsg] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (open) {
+      setCompanyName(initialCompany);
+      setErrMsg(null);
+    }
+  }, [open, initialCompany]);
+
+  if (!open) return null;
+
+  const inputCls = `w-full px-3 py-2 rounded-xl border text-xs ${
+    isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300 text-slate-900'
+  }`;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <form
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (!companyName.trim() || !email.trim()) return;
+          setSubmitting(true);
+          setErrMsg(null);
+          try {
+            await onSubmit({
+              companyName: companyName.trim(),
+              companyWebsite: companyWebsite.trim() || undefined,
+              contactName: contactName.trim() || undefined,
+              designation: designation.trim() || undefined,
+              email: email.trim(),
+              jobId: initialJobId || undefined,
+              sourceUrl: sourceUrl.trim() || undefined,
+              evidence: evidence.trim() || undefined,
+            });
+            onClose();
+          } catch (err: any) {
+            setErrMsg(err?.message || 'Could not save manual contact.');
+          } finally {
+            setSubmitting(false);
+          }
+        }}
+        className={`w-full max-w-md rounded-2xl border p-6 space-y-4 shadow-2xl ${
+          isBlack ? 'bg-[#12151B] border-white/10 text-[#F2F0EA]' : 'bg-white border-slate-200 text-slate-900'
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-bold">Add or Correct Personal HR Contact</h3>
+          <button type="button" onClick={onClose} className="p-1 rounded-lg hover:bg-slate-500/10 cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <p className="text-[11px] opacity-75">
+          Candidate-submitted contacts remain private to your account, run syntax &amp; MX checks, and are clearly marked as Candidate Submitted (never falsely labeled Mailbox Verified).
+        </p>
+
+        {errMsg && (
+          <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
+            {errMsg}
+          </div>
+        )}
+
+        <div className="space-y-2.5 text-xs">
+          <div>
+            <label className="font-semibold block mb-1">Company Name *</label>
+            <input required value={companyName} onChange={(e) => setCompanyName(e.target.value)} className={inputCls} placeholder="e.g. Stripe" />
+          </div>
+          <div>
+            <label className="font-semibold block mb-1">HR / Recruiter Email *</label>
+            <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} placeholder="e.g. talent@company.com" />
+          </div>
+          <div className="grid grid-cols-2 gap-2.5">
+            <div>
+              <label className="font-semibold block mb-1">Contact Name (optional)</label>
+              <input value={contactName} onChange={(e) => setContactName(e.target.value)} className={inputCls} placeholder="e.g. Priya Sharma" />
+            </div>
+            <div>
+              <label className="font-semibold block mb-1">Designation</label>
+              <input value={designation} onChange={(e) => setDesignation(e.target.value)} className={inputCls} placeholder="Talent Acquisition" />
+            </div>
+          </div>
+          <div>
+            <label className="font-semibold block mb-1">Source URL / Notes (optional)</label>
+            <input value={sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} className={inputCls} placeholder="https://company.com/careers" />
+          </div>
+          <div>
+            <label className="font-semibold block mb-1">Reference Note (optional)</label>
+            <input value={evidence} onChange={(e) => setEvidence(e.target.value)} className={inputCls} placeholder="Found on official engineering careers FAQ" />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-2">
+          <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl text-xs font-semibold border border-current/15 cursor-pointer">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={submitting || !companyName.trim() || !email.trim()}
+            className={`px-4 py-2 rounded-xl text-xs font-bold cursor-pointer disabled:opacity-50 ${
+              isBlack ? 'bg-[#C6A66A] text-[#08090B]' : 'bg-blue-600 text-white'
+            }`}
+          >
+            {submitting ? 'Validating MX...' : 'Save Contact'}
           </button>
         </div>
       </form>

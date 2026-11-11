@@ -61,6 +61,10 @@ export interface AuthUser {
 export class D1Store {
   constructor(private db: D1Database) {}
 
+  getDatabase(): D1Database {
+    return this.db;
+  }
+
   // --- AUTHENTICATION ---
   async getUserByEmail(email: string): Promise<{ id: string; email: string; password_hash: string; full_name: string; role: string; is_verified: number; created_at: string } | null> {
     const cleanEmail = email.toLowerCase().trim();

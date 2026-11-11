@@ -41,6 +41,8 @@ import {
 } from './usageEnforcement.ts';
 import { createWorkerHrOutreachApp } from './hrOutreachRoutes.ts';
 import { WorkerHrOutreachStore } from './hrOutreachStore.ts';
+import { WorkerHrDiscoveryQueueStore } from './hrDiscoveryQueueStore.ts';
+import { processWorkerHrDiscoveryQueueBatch, revalidateWorkerStaleContacts } from './hrDiscoveryEngine.ts';
 
 type Bindings = {
   DB: D1Database;
@@ -4136,6 +4138,68 @@ app.get('/api/opportunity-radar/live-jobs', async (c) => {
     const msg = err instanceof Error ? err.message : String(err);
     return c.json({ success: false, error: msg }, 500);
   }
+});
+
+// Admin HR Contact Discovery & Pipeline Diagnostics Routes
+app.get('/api/admin/hr-discovery/diagnostics', requireAdmin, async (c) => {
+  const qStore = new WorkerHrDiscoveryQueueStore(c.env.DB);
+  const diagnostics = await qStore.getAdminDiagnostics();
+  return c.json({ success: true, diagnostics });
+});
+
+app.post('/api/admin/hr-discovery/run', requireAdmin, async (c) => {
+  const user = c.get('user')!;
+  const body = await c.req.json().catch(() => ({}));
+  const batchLimit = Math.min(120, Math.max(10, Number(body?.batchLimit || 60)));
+  const fetchBudget = Math.min(10, Math.max(0, Number(body?.fetchBudget ?? 6)));
+  const result = await processWorkerHrDiscoveryQueueBatch(c.env.DB, {
+    triggeredBy: user.id,
+    triggerType: 'manual',
+    batchLimit,
+    fetchBudget,
+  });
+  const qStore = new WorkerHrDiscoveryQueueStore(c.env.DB);
+  const diagnostics = await qStore.getAdminDiagnostics();
+  return c.json({ success: true, ...result, diagnostics });
+});
+
+app.post('/api/admin/hr-discovery/retry-failed', requireAdmin, async (c) => {
+  const user = c.get('user')!;
+  const qStore = new WorkerHrDiscoveryQueueStore(c.env.DB);
+  const requeuedCount = await qStore.retryFailedQueueItems();
+  const result = await processWorkerHrDiscoveryQueueBatch(c.env.DB, {
+    triggeredBy: user.id,
+    triggerType: 'admin_retry',
+    batchLimit: 50,
+    fetchBudget: 6,
+  });
+  const diagnostics = await qStore.getAdminDiagnostics();
+  return c.json({ success: true, requeuedCount, ...result, diagnostics });
+});
+
+app.post('/api/admin/hr-discovery/reprocess-job/:jobId', requireAdmin, async (c) => {
+  const user = c.get('user')!;
+  const jobId = c.req.param('jobId');
+  const qStore = new WorkerHrDiscoveryQueueStore(c.env.DB);
+  const item = await qStore.reprocessQueueJob(jobId);
+  if (!item) return c.json({ success: false, error: 'Job not found in GCDE cache.' }, 404);
+  const result = await processWorkerHrDiscoveryQueueBatch(c.env.DB, {
+    triggeredBy: user.id,
+    triggerType: 'admin_retry',
+    jobId,
+    batchLimit: 1,
+    fetchBudget: 3,
+  });
+  const diagnostics = await qStore.getAdminDiagnostics();
+  return c.json({ success: true, item, ...result, diagnostics });
+});
+
+app.post('/api/admin/hr-discovery/revalidate-stale', requireAdmin, async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const result = await revalidateWorkerStaleContacts(c.env.DB, Number(body?.limit || 25));
+  const qStore = new WorkerHrDiscoveryQueueStore(c.env.DB);
+  const diagnostics = await qStore.getAdminDiagnostics();
+  return c.json({ success: true, result, diagnostics });
 });
 
 // Mount AI HR Outreach & Direct Application Automation API Router

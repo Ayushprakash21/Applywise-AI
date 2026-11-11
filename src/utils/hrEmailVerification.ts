@@ -2,7 +2,7 @@
 // 8-Step HR Email Verification Pipeline
 // Strictly distinguishes Domain MX validation from Mailbox Confirmation.
 
-import { EmailVerificationStatus } from '../types/index.ts';
+import { EmailVerificationLevels, EmailVerificationStatus } from '../types/index.ts';
 
 export const DISPOSABLE_EMAIL_DOMAINS = new Set([
   'mailinator.com',
@@ -83,6 +83,7 @@ export interface EmailVerificationResult {
   isRoleBased: boolean;
   hasPublicEvidence: boolean;
   isStale: boolean;
+  levels: EmailVerificationLevels;
   status: EmailVerificationStatus;
   reasons: string[];
   checkedAt: string;
@@ -183,7 +184,7 @@ export async function runEmailVerificationPipeline(
   const checkedAt = new Date().toISOString();
   const reasons: string[] = [];
 
-  // Step 1: Syntax validation
+  // Step 1: Syntax validation (LEVEL 1)
   const syntax = validateEmailSyntax(input.email);
   if (!syntax.valid) {
     return {
@@ -196,13 +197,20 @@ export async function runEmailVerificationPipeline(
       isRoleBased: false,
       hasPublicEvidence: false,
       isStale: false,
+      levels: {
+        level1SyntaxValid: false,
+        level2DomainExists: false,
+        level3MxAvailable: null,
+        level4SourceEvidenceConfirmed: false,
+        level5MailboxVerified: false,
+      },
       status: 'Invalid',
       reasons: [syntax.reason || 'Failed syntax validation.'],
       checkedAt,
     };
   }
 
-  // Step 2: Domain validation
+  // Step 2: Domain validation (LEVEL 2)
   const isReservedDomain =
     syntax.domain === 'localhost' || RESERVED_INVALID_TLDS.some((tld) => syntax.domain.endsWith(tld));
   if (isReservedDomain) {
@@ -217,6 +225,13 @@ export async function runEmailVerificationPipeline(
       isRoleBased: isRoleBasedEmailAddress(syntax.local),
       hasPublicEvidence: Boolean(input.sourceUrl && input.evidence),
       isStale: false,
+      levels: {
+        level1SyntaxValid: true,
+        level2DomainExists: false,
+        level3MxAvailable: false,
+        level4SourceEvidenceConfirmed: false,
+        level5MailboxVerified: false,
+      },
       status: 'Invalid',
       reasons,
       checkedAt,
@@ -237,6 +252,13 @@ export async function runEmailVerificationPipeline(
       isRoleBased: isRoleBasedEmailAddress(syntax.local),
       hasPublicEvidence: Boolean(input.sourceUrl && input.evidence),
       isStale: false,
+      levels: {
+        level1SyntaxValid: true,
+        level2DomainExists: false,
+        level3MxAvailable: null,
+        level4SourceEvidenceConfirmed: false,
+        level5MailboxVerified: false,
+      },
       status: 'Invalid',
       reasons,
       checkedAt,
@@ -256,6 +278,13 @@ export async function runEmailVerificationPipeline(
       isRoleBased: true,
       hasPublicEvidence: Boolean(input.sourceUrl && input.evidence),
       isStale: false,
+      levels: {
+        level1SyntaxValid: true,
+        level2DomainExists: true,
+        level3MxAvailable: null,
+        level4SourceEvidenceConfirmed: false,
+        level5MailboxVerified: false,
+      },
       status: 'Invalid',
       reasons,
       checkedAt,
@@ -268,7 +297,7 @@ export async function runEmailVerificationPipeline(
     reasons.push(`Role-based recruitment inbox detected ("${syntax.local}@").`);
   }
 
-  // Step 6: Public-source evidence validation
+  // Step 6: Public-source evidence validation (LEVEL 4)
   const hasPublicEvidence = Boolean(
     input.sourceUrl &&
       input.sourceUrl.startsWith('http') &&
@@ -285,7 +314,7 @@ export async function runEmailVerificationPipeline(
     reasons.push('Verification timestamp exceeds 30-day freshness window.');
   }
 
-  // Step 3: MX record validation
+  // Step 3: MX record validation (LEVEL 3)
   const mxRes = await mxResolver(syntax.domain);
   if (!mxRes.ok) {
     if (mxRes.error?.includes('NXDOMAIN')) {
@@ -300,6 +329,13 @@ export async function runEmailVerificationPipeline(
         isRoleBased,
         hasPublicEvidence,
         isStale: stale,
+        levels: {
+          level1SyntaxValid: true,
+          level2DomainExists: false,
+          level3MxAvailable: false,
+          level4SourceEvidenceConfirmed: hasPublicEvidence,
+          level5MailboxVerified: false,
+        },
         status: 'Invalid',
         reasons,
         checkedAt,
@@ -317,7 +353,14 @@ export async function runEmailVerificationPipeline(
       isRoleBased,
       hasPublicEvidence,
       isStale: stale,
-      status: mxRes.error ? 'Verification Failed' : 'Invalid',
+      levels: {
+        level1SyntaxValid: true,
+        level2DomainExists: true,
+        level3MxAvailable: false,
+        level4SourceEvidenceConfirmed: hasPublicEvidence,
+        level5MailboxVerified: false,
+      },
+      status: hasPublicEvidence ? 'Source Confirmed' : mxRes.error ? 'Verification Failed' : 'Domain Valid',
       reasons,
       checkedAt,
     };
@@ -325,16 +368,17 @@ export async function runEmailVerificationPipeline(
 
   reasons.push(`MX records confirmed (${mxRes.hosts.slice(0, 2).join(', ')}). Note: MX confirms domain mail acceptance, not individual mailbox existence.`);
 
+  const mailboxVerified = Boolean(input.externalDeliverabilityConfirmed);
   let finalStatus: EmailVerificationStatus;
-  if (input.externalDeliverabilityConfirmed) {
-    finalStatus = 'Verified';
-    reasons.push('Deliverability or direct reply confirmed.');
-  } else if (isRoleBased) {
-    finalStatus = 'Role-Based';
+  if (mailboxVerified) {
+    finalStatus = 'Mailbox Verified';
+    reasons.push('Mailbox deliverability confirmed via authorized provider/reply evidence.');
+  } else if (stale && hasPublicEvidence) {
+    finalStatus = 'Stale';
   } else if (hasPublicEvidence) {
-    finalStatus = 'Domain Valid';
+    finalStatus = 'Source Confirmed';
   } else {
-    finalStatus = 'Unverified';
+    finalStatus = 'MX Valid';
   }
 
   return {
@@ -347,6 +391,13 @@ export async function runEmailVerificationPipeline(
     isRoleBased,
     hasPublicEvidence,
     isStale: stale,
+    levels: {
+      level1SyntaxValid: true,
+      level2DomainExists: true,
+      level3MxAvailable: true,
+      level4SourceEvidenceConfirmed: hasPublicEvidence,
+      level5MailboxVerified: mailboxVerified,
+    },
     status: finalStatus,
     reasons,
     checkedAt,

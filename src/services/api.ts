@@ -65,6 +65,8 @@ import {
   OutreachCampaignContact,
   DoNotContactEntry,
   ContactDiscoveryRun,
+  HrAdminDiagnosticsSummary,
+  HrContactDiscoveryRunRecord,
   OutreachOverviewMetrics,
   ResumeAttachmentOption
 } from '../types/index.ts';
@@ -1208,6 +1210,7 @@ export const api = {
     country?: string;
     company?: string;
     designation?: string;
+    contactType?: string;
     verificationStatus?: string;
     sourceType?: string;
     jobId?: string;
@@ -1225,6 +1228,82 @@ export const api = {
     const qs = sp.toString() ? `?${sp.toString()}` : '';
     return fetchJson<{ success: boolean; contacts: HrContactWithRelevance[]; total: number }>(`/api/hr-outreach/contacts${qs}`);
   },
+
+  getHrCompanies: (params?: { search?: string; onlyWithContacts?: boolean; limit?: number; offset?: number }) => {
+    const sp = new URLSearchParams();
+    if (params?.search) sp.set('search', params.search);
+    if (params?.onlyWithContacts) sp.set('onlyWithContacts', 'true');
+    if (params?.limit) sp.set('limit', String(params.limit));
+    if (params?.offset) sp.set('offset', String(params.offset));
+    const qs = sp.toString() ? `?${sp.toString()}` : '';
+    return fetchJson<{
+      success: boolean;
+      companies: Array<{
+        companyId?: string;
+        companyName: string;
+        companyWebsite?: string;
+        careersUrl?: string;
+        atsType?: string;
+        country: string;
+        activeJobsCount: number;
+        contactsCount: number;
+        sourceConfirmedCount: number;
+        verifiedCount: number;
+        contacts: HrContactWithRelevance[];
+      }>;
+      total: number;
+    }>(`/api/hr-outreach/companies${qs}`);
+  },
+
+  getHrJobsWithContacts: (params?: { search?: string; onlyWithContacts?: boolean; limit?: number; offset?: number }) => {
+    const sp = new URLSearchParams();
+    if (params?.search) sp.set('search', params.search);
+    if (params?.onlyWithContacts) sp.set('onlyWithContacts', 'true');
+    if (params?.limit) sp.set('limit', String(params.limit));
+    if (params?.offset) sp.set('offset', String(params.offset));
+    const qs = sp.toString() ? `?${sp.toString()}` : '';
+    return fetchJson<{
+      success: boolean;
+      jobs: Array<{
+        id: string;
+        title: string;
+        company: string;
+        country: string;
+        location: string;
+        url: string;
+        source: string;
+        retrievedAt: string;
+        discoveryStatus: string;
+        diagnosticCategory?: string;
+        diagnosticReason?: string;
+        contacts: Array<HrContactWithRelevance & { linkType?: string }>;
+      }>;
+      summary: {
+        totalActiveJobs: number;
+        jobsWithContacts: number;
+        jobCoveragePercent: number;
+      };
+    }>(`/api/hr-outreach/jobs-with-contacts${qs}`);
+  },
+
+  submitManualHrContact: (payload: {
+    companyName: string;
+    companyWebsite?: string;
+    contactName?: string;
+    designation?: string;
+    email: string;
+    country?: string;
+    jobId?: string;
+    sourceUrl?: string;
+    evidence?: string;
+  }) =>
+    fetchJson<{ success: boolean; contact: HrContactWithRelevance; created: boolean; verification: any }>(
+      '/api/hr-outreach/contacts/manual',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }
+    ),
 
   getHrContactDetail: (id: string, jobId?: string) =>
     fetchJson<{ success: boolean; contact: HrContactWithRelevance }>(
@@ -1406,6 +1485,51 @@ export const api = {
   removeDoNotContactEntry: (id: string) =>
     fetchJson<{ success: boolean }>(`/api/hr-outreach/do-not-contact/${encodeURIComponent(id)}`, {
       method: 'DELETE',
+    }),
+
+  // --- ADMIN HR DISCOVERY DIAGNOSTICS ---
+  getAdminHrDiscoveryDiagnostics: () =>
+    fetchJson<{ success: boolean; diagnostics: HrAdminDiagnosticsSummary }>('/api/admin/hr-discovery/diagnostics'),
+
+  runAdminHrDiscoveryBatch: (payload?: { batchLimit?: number; fetchBudget?: number; forceRefresh?: boolean }) =>
+    fetchJson<{
+      success: boolean;
+      run: HrContactDiscoveryRunRecord;
+      discoveredContacts: HrContactWithRelevance[];
+      diagnostics: HrAdminDiagnosticsSummary;
+    }>('/api/admin/hr-discovery/run', {
+      method: 'POST',
+      body: JSON.stringify(payload || {}),
+    }),
+
+  retryFailedHrDiscovery: () =>
+    fetchJson<{
+      success: boolean;
+      requeuedCount: number;
+      run: HrContactDiscoveryRunRecord;
+      diagnostics: HrAdminDiagnosticsSummary;
+    }>('/api/admin/hr-discovery/retry-failed', {
+      method: 'POST',
+    }),
+
+  reprocessHrDiscoveryJob: (jobId: string) =>
+    fetchJson<{
+      success: boolean;
+      run: HrContactDiscoveryRunRecord;
+      discoveredContacts: HrContactWithRelevance[];
+      diagnostics: HrAdminDiagnosticsSummary;
+    }>(`/api/admin/hr-discovery/reprocess-job/${encodeURIComponent(jobId)}`, {
+      method: 'POST',
+    }),
+
+  revalidateStaleHrContacts: (limit = 30) =>
+    fetchJson<{
+      success: boolean;
+      result: { checked: number; stillValid: number; markedStaleOrFailed: number };
+      diagnostics: HrAdminDiagnosticsSummary;
+    }>('/api/admin/hr-discovery/revalidate-stale', {
+      method: 'POST',
+      body: JSON.stringify({ limit }),
     }),
 
 };

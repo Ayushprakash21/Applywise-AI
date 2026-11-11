@@ -11,8 +11,10 @@ import {
   DoNotContactEntry,
   EmailAccountProvider,
   EmailAccountSummary,
+  EmailVerificationLevels,
   EmailVerificationStatus,
   HrContact,
+  HrContactClassificationType,
   HrContactRoleCategory,
   HrContactSource,
   OutreachCampaign,
@@ -211,7 +213,110 @@ sqlite.exec(`
     started_at TEXT NOT NULL,
     completed_at TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS hr_contact_job_links (
+    id TEXT PRIMARY KEY,
+    contact_id TEXT NOT NULL REFERENCES hr_contacts(id) ON DELETE CASCADE,
+    job_id TEXT NOT NULL,
+    company_id TEXT,
+    link_type TEXT NOT NULL DEFAULT 'company_only',
+    relevance_score INTEGER NOT NULL DEFAULT 0,
+    evidence TEXT,
+    created_at TEXT NOT NULL,
+    UNIQUE(contact_id, job_id)
+  );
+  CREATE INDEX IF NOT EXISTS idx_hcjl_contact ON hr_contact_job_links(contact_id);
+  CREATE INDEX IF NOT EXISTS idx_hcjl_job ON hr_contact_job_links(job_id);
+
+  CREATE TABLE IF NOT EXISTS hr_contact_discovery_queue (
+    id TEXT PRIMARY KEY,
+    job_id TEXT NOT NULL UNIQUE,
+    company_id TEXT,
+    company_name TEXT NOT NULL,
+    source TEXT NOT NULL,
+    job_url TEXT,
+    description_hash TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',
+    diagnostic_category TEXT,
+    failure_reason TEXT,
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+    next_retry_at TEXT,
+    emails_extracted INTEGER NOT NULL DEFAULT 0,
+    emails_accepted INTEGER NOT NULL DEFAULT 0,
+    last_processed_at TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_hcdq_status ON hr_contact_discovery_queue(status, next_retry_at);
+  CREATE INDEX IF NOT EXISTS idx_hcdq_source ON hr_contact_discovery_queue(source);
+
+  CREATE TABLE IF NOT EXISTS hr_contact_discovery_runs (
+    id TEXT PRIMARY KEY,
+    triggered_by TEXT NOT NULL,
+    trigger_type TEXT NOT NULL DEFAULT 'manual',
+    status TEXT NOT NULL DEFAULT 'running',
+    jobs_scanned INTEGER NOT NULL DEFAULT 0,
+    descriptions_inspected INTEGER NOT NULL DEFAULT 0,
+    company_pages_inspected INTEGER NOT NULL DEFAULT 0,
+    emails_extracted INTEGER NOT NULL DEFAULT 0,
+    valid_syntax_count INTEGER NOT NULL DEFAULT 0,
+    domains_validated_count INTEGER NOT NULL DEFAULT 0,
+    mx_validated_count INTEGER NOT NULL DEFAULT 0,
+    source_confirmed_count INTEGER NOT NULL DEFAULT 0,
+    duplicates_skipped INTEGER NOT NULL DEFAULT 0,
+    invalid_rejected INTEGER NOT NULL DEFAULT 0,
+    sources_failing INTEGER NOT NULL DEFAULT 0,
+    source_breakdown_json TEXT NOT NULL DEFAULT '{}',
+    error_summary TEXT,
+    started_at TEXT NOT NULL,
+    completed_at TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS hr_contact_verification_events (
+    id TEXT PRIMARY KEY,
+    contact_id TEXT NOT NULL REFERENCES hr_contacts(id) ON DELETE CASCADE,
+    syntax_valid INTEGER NOT NULL DEFAULT 0,
+    domain_valid INTEGER NOT NULL DEFAULT 0,
+    mx_valid INTEGER NOT NULL DEFAULT 0,
+    mx_hosts_json TEXT NOT NULL DEFAULT '[]',
+    source_confirmed INTEGER NOT NULL DEFAULT 0,
+    mailbox_verified INTEGER NOT NULL DEFAULT 0,
+    resulting_status TEXT NOT NULL,
+    evidence TEXT,
+    checked_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS hr_contact_suppression (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    contact_id TEXT REFERENCES hr_contacts(id) ON DELETE SET NULL,
+    email TEXT NOT NULL,
+    normalized_email TEXT NOT NULL,
+    reason TEXT NOT NULL DEFAULT 'Candidate opt-out / suppression',
+    source TEXT NOT NULL DEFAULT 'user_action',
+    created_at TEXT NOT NULL,
+    UNIQUE(user_id, normalized_email)
+  );
 `);
+
+// Additive column migration guards for existing SQLite databases
+try {
+  const cols = new Set((sqlite.prepare('PRAGMA table_info(hr_contacts)').all() as Array<{ name: string }>).map((c) => c.name));
+  if (!cols.has('normalized_email')) sqlite.exec('ALTER TABLE hr_contacts ADD COLUMN normalized_email TEXT;');
+  if (!cols.has('contact_type')) sqlite.exec("ALTER TABLE hr_contacts ADD COLUMN contact_type TEXT NOT NULL DEFAULT 'Unknown';");
+  if (!cols.has('source_evidence')) sqlite.exec('ALTER TABLE hr_contacts ADD COLUMN source_evidence TEXT;');
+  if (!cols.has('associated_job_id')) sqlite.exec('ALTER TABLE hr_contacts ADD COLUMN associated_job_id TEXT;');
+  if (!cols.has('last_seen_at')) sqlite.exec('ALTER TABLE hr_contacts ADD COLUMN last_seen_at TEXT;');
+  if (!cols.has('level_syntax')) sqlite.exec('ALTER TABLE hr_contacts ADD COLUMN level_syntax INTEGER NOT NULL DEFAULT 0;');
+  if (!cols.has('level_domain')) sqlite.exec('ALTER TABLE hr_contacts ADD COLUMN level_domain INTEGER NOT NULL DEFAULT 0;');
+  if (!cols.has('level_mx')) sqlite.exec('ALTER TABLE hr_contacts ADD COLUMN level_mx INTEGER NOT NULL DEFAULT 0;');
+  if (!cols.has('level_source_confirmed')) sqlite.exec('ALTER TABLE hr_contacts ADD COLUMN level_source_confirmed INTEGER NOT NULL DEFAULT 0;');
+  if (!cols.has('level_mailbox')) sqlite.exec('ALTER TABLE hr_contacts ADD COLUMN level_mailbox INTEGER NOT NULL DEFAULT 0;');
+  if (!cols.has('is_user_submitted')) sqlite.exec('ALTER TABLE hr_contacts ADD COLUMN is_user_submitted INTEGER NOT NULL DEFAULT 0;');
+  if (!cols.has('submitted_by_user_id')) sqlite.exec('ALTER TABLE hr_contacts ADD COLUMN submitted_by_user_id TEXT;');
+} catch {
+  // Ignore if already applied
+}
 
 function safeJsonArray(val: unknown): string[] {
   if (Array.isArray(val)) return val.map(String);
@@ -226,7 +331,18 @@ function safeJsonArray(val: unknown): string[] {
   return [];
 }
 
-function mapHrContactRow(row: any): HrContact {
+export function mapHrContactRow(row: any): HrContact {
+  const levels: EmailVerificationLevels | undefined =
+    row.level_syntax !== undefined
+      ? {
+          level1SyntaxValid: Boolean(row.level_syntax),
+          level2DomainExists: Boolean(row.level_domain),
+          level3MxAvailable: row.level_mx === null || row.level_mx === undefined ? null : Boolean(row.level_mx),
+          level4SourceEvidenceConfirmed: Boolean(row.level_source_confirmed),
+          level5MailboxVerified: Boolean(row.level_mailbox),
+        }
+      : undefined;
+
   return {
     id: row.id,
     companyId: row.company_id || undefined,
@@ -235,21 +351,29 @@ function mapHrContactRow(row: any): HrContact {
     contactName: row.contact_name || undefined,
     designation: row.designation,
     roleCategory: row.role_category as HrContactRoleCategory,
+    contactType: (row.contact_type || 'Unknown') as HrContactClassificationType,
     email: row.email,
+    normalizedEmail: row.normalized_email || row.email,
     country: row.country || 'Global',
     city: row.city || undefined,
     department: row.department || undefined,
     sourceType: row.source_type,
     sourceUrl: row.source_url,
+    associatedJobId: row.associated_job_id || undefined,
     associatedJobIds: safeJsonArray(row.associated_job_ids),
     emailVerificationStatus: row.email_verification_status as EmailVerificationStatus,
+    verificationLevels: levels,
     contactConfidence: Number(row.contact_confidence ?? 0.5),
-    evidence: row.evidence || '',
+    evidence: row.evidence || row.source_evidence || '',
+    sourceEvidence: row.source_evidence || row.evidence || '',
     discoveredAt: row.discovered_at,
     lastVerifiedAt: row.last_verified_at || undefined,
+    lastSeenAt: row.last_seen_at || row.discovered_at,
     lastContactedAt: row.last_contacted_at || undefined,
     contactStatus: (row.contact_status || 'active') as HrContact['contactStatus'],
     isRoleBased: Boolean(row.is_role_based),
+    isUserSubmitted: Boolean(row.is_user_submitted),
+    submittedByUserId: row.submitted_by_user_id || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -440,6 +564,7 @@ export const hrOutreachStore = {
     contactName?: string;
     designation: string;
     roleCategory: HrContactRoleCategory;
+    contactType?: HrContactClassificationType;
     email: string;
     country: string;
     city?: string;
@@ -447,29 +572,106 @@ export const hrOutreachStore = {
     sourceType: string;
     sourceName: string;
     sourceUrl: string;
+    associatedJobId?: string;
     associatedJobIds?: string[];
+    linkType?: 'direct_posting' | 'recruitment_page' | 'department_relationship' | 'company_only' | 'user_submitted';
     emailVerificationStatus: EmailVerificationStatus;
+    verificationLevels?: EmailVerificationLevels;
+    mxHosts?: string[];
     contactConfidence: number;
     evidence: string;
+    sourceEvidence?: string;
     isRoleBased: boolean;
     lastVerifiedAt?: string;
+    lastSeenAt?: string;
+    isUserSubmitted?: boolean;
+    submittedByUserId?: string;
   }): { contact: HrContact; created: boolean } {
     const normalizedEmail = params.email.trim().toLowerCase();
-    const dedupeKey = normalizedEmail;
+    const isUserSub = Boolean(params.isUserSubmitted && params.submittedByUserId);
+    const dedupeKey = isUserSub ? `${normalizedEmail}::user::${params.submittedByUserId}` : normalizedEmail;
     const now = new Date().toISOString();
+    const incomingJobs = Array.from(
+      new Set([
+        ...(params.associatedJobId ? [params.associatedJobId] : []),
+        ...(params.associatedJobIds || []),
+      ].filter(Boolean))
+    );
+    const linkType = params.linkType || (isUserSub ? 'user_submitted' : incomingJobs.length > 0 ? 'direct_posting' : 'company_only');
+    const statusPriority: Record<string, number> = {
+      'Mailbox Verified': 7,
+      Verified: 7,
+      'Source Confirmed': 6,
+      'MX Valid': 5,
+      'Domain Valid': 4,
+      'Role-Based': 3,
+      Unverified: 2,
+      Stale: 1,
+      'Verification Failed': 1,
+      Invalid: 0,
+    };
 
     const existing = sqlite.prepare('SELECT * FROM hr_contacts WHERE dedupe_key = ?').get(dedupeKey) as any;
 
+    const upsertJobLinks = (contactId: string, jobIds: string[]) => {
+      if (jobIds.length === 0) return;
+      const linkStmt = sqlite.prepare(
+        `INSERT INTO hr_contact_job_links (id, contact_id, job_id, company_id, link_type, relevance_score, evidence, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(contact_id, job_id) DO UPDATE SET
+           link_type = CASE WHEN excluded.link_type = 'direct_posting' THEN 'direct_posting' ELSE hr_contact_job_links.link_type END,
+           relevance_score = MAX(hr_contact_job_links.relevance_score, excluded.relevance_score),
+           evidence = COALESCE(excluded.evidence, hr_contact_job_links.evidence)`
+      );
+      for (const jid of jobIds) {
+        linkStmt.run(
+          `hcjl_${crypto.randomUUID()}`,
+          contactId,
+          jid,
+          params.companyId || null,
+          linkType,
+          Math.round(params.contactConfidence * 100),
+          (params.sourceEvidence || params.evidence).slice(0, 500),
+          now
+        );
+      }
+    };
+
+    const recordVerificationEvent = (contactId: string, status: EmailVerificationStatus) => {
+      if (!params.verificationLevels) return;
+      sqlite
+        .prepare(
+          `INSERT INTO hr_contact_verification_events (
+             id, contact_id, syntax_valid, domain_valid, mx_valid, mx_hosts_json,
+             source_confirmed, mailbox_verified, resulting_status, evidence, checked_at
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .run(
+          `hcve_${crypto.randomUUID()}`,
+          contactId,
+          params.verificationLevels.level1SyntaxValid ? 1 : 0,
+          params.verificationLevels.level2DomainExists ? 1 : 0,
+          params.verificationLevels.level3MxAvailable ? 1 : 0,
+          JSON.stringify(params.mxHosts || []),
+          params.verificationLevels.level4SourceEvidenceConfirmed ? 1 : 0,
+          params.verificationLevels.level5MailboxVerified ? 1 : 0,
+          status,
+          (params.sourceEvidence || params.evidence).slice(0, 500),
+          params.lastVerifiedAt || now
+        );
+    };
+
     if (existing) {
       const mergedJobs = Array.from(
-        new Set([...safeJsonArray(existing.associated_job_ids), ...(params.associatedJobIds || [])])
+        new Set([...safeJsonArray(existing.associated_job_ids), ...incomingJobs])
       );
       const nextConfidence = Math.max(Number(existing.contact_confidence || 0), params.contactConfidence);
       const nextName = existing.contact_name || params.contactName || null;
+      const existingPri = statusPriority[String(existing.email_verification_status)] ?? 0;
+      const incomingPri = statusPriority[String(params.emailVerificationStatus)] ?? 0;
       const nextVerification =
-        existing.email_verification_status === 'Verified'
-          ? 'Verified'
-          : params.emailVerificationStatus || existing.email_verification_status;
+        incomingPri >= existingPri ? params.emailVerificationStatus : existing.email_verification_status;
+      const levels = params.verificationLevels;
 
       sqlite
         .prepare(
@@ -477,10 +679,20 @@ export const hrOutreachStore = {
            SET company_id = COALESCE(company_id, ?),
                company_website = COALESCE(company_website, ?),
                contact_name = COALESCE(contact_name, ?),
+               contact_type = CASE WHEN COALESCE(contact_type, 'Unknown') = 'Unknown' THEN COALESCE(?, 'Unknown') ELSE contact_type END,
+               normalized_email = COALESCE(normalized_email, ?),
+               source_evidence = COALESCE(?, source_evidence),
+               associated_job_id = COALESCE(associated_job_id, ?),
                associated_job_ids = ?,
                contact_confidence = ?,
                email_verification_status = ?,
+               level_syntax = CASE WHEN ? IS NOT NULL THEN ? ELSE level_syntax END,
+               level_domain = CASE WHEN ? IS NOT NULL THEN ? ELSE level_domain END,
+               level_mx = CASE WHEN ? IS NOT NULL THEN ? ELSE level_mx END,
+               level_source_confirmed = CASE WHEN ? IS NOT NULL THEN MAX(COALESCE(level_source_confirmed, 0), ?) ELSE level_source_confirmed END,
+               level_mailbox = CASE WHEN ? IS NOT NULL THEN MAX(COALESCE(level_mailbox, 0), ?) ELSE level_mailbox END,
                last_verified_at = COALESCE(?, last_verified_at),
+               last_seen_at = ?,
                updated_at = ?
            WHERE id = ?`
         )
@@ -488,10 +700,25 @@ export const hrOutreachStore = {
           params.companyId || null,
           params.companyWebsite || null,
           nextName,
+          params.contactType || 'Unknown',
+          normalizedEmail,
+          params.sourceEvidence || params.evidence,
+          params.associatedJobId || incomingJobs[0] || null,
           JSON.stringify(mergedJobs),
           nextConfidence,
           nextVerification,
+          levels ? 1 : null,
+          levels?.level1SyntaxValid ? 1 : 0,
+          levels ? 1 : null,
+          levels?.level2DomainExists ? 1 : 0,
+          levels ? 1 : null,
+          levels?.level3MxAvailable ? 1 : 0,
+          levels ? 1 : null,
+          levels?.level4SourceEvidenceConfirmed ? 1 : 0,
+          levels ? 1 : null,
+          levels?.level5MailboxVerified ? 1 : 0,
           params.lastVerifiedAt || null,
+          params.lastSeenAt || now,
           now,
           existing.id
         );
@@ -511,25 +738,31 @@ export const hrOutreachStore = {
             params.sourceType,
             params.sourceName,
             params.sourceUrl,
-            params.evidence.slice(0, 500),
+            (params.sourceEvidence || params.evidence).slice(0, 500),
             params.contactConfidence,
             now
           );
       }
+
+      upsertJobLinks(existing.id, incomingJobs);
+      recordVerificationEvent(existing.id, nextVerification as EmailVerificationStatus);
 
       const updated = sqlite.prepare('SELECT * FROM hr_contacts WHERE id = ?').get(existing.id) as any;
       return { contact: mapHrContactRow(updated), created: false };
     }
 
     const id = `hrc_${crypto.randomUUID()}`;
+    const levels = params.verificationLevels;
     sqlite
       .prepare(
         `INSERT INTO hr_contacts (
-           id, company_id, company_name, company_website, contact_name, designation, role_category,
-           email, country, city, department, source_type, source_url, associated_job_ids,
-           email_verification_status, contact_confidence, evidence, discovered_at, last_verified_at,
-           contact_status, is_role_based, dedupe_key, created_at, updated_at
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?)`
+           id, company_id, company_name, company_website, contact_name, designation, role_category, contact_type,
+           email, normalized_email, country, city, department, source_type, source_url,
+           associated_job_id, associated_job_ids, email_verification_status, contact_confidence, evidence, source_evidence,
+           discovered_at, last_verified_at, last_seen_at, contact_status, is_role_based,
+           level_syntax, level_domain, level_mx, level_source_confirmed, level_mailbox,
+           is_user_submitted, submitted_by_user_id, dedupe_key, created_at, updated_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         id,
@@ -539,19 +772,31 @@ export const hrOutreachStore = {
         params.contactName || null,
         params.designation,
         params.roleCategory,
+        params.contactType || 'Unknown',
+        normalizedEmail,
         normalizedEmail,
         params.country || 'Global',
         params.city || null,
         params.department || null,
         params.sourceType,
         params.sourceUrl,
-        JSON.stringify(params.associatedJobIds || []),
+        params.associatedJobId || incomingJobs[0] || null,
+        JSON.stringify(incomingJobs),
         params.emailVerificationStatus,
         params.contactConfidence,
         params.evidence,
+        params.sourceEvidence || params.evidence,
         now,
         params.lastVerifiedAt || null,
+        params.lastSeenAt || now,
         params.isRoleBased ? 1 : 0,
+        levels?.level1SyntaxValid ? 1 : 0,
+        levels?.level2DomainExists ? 1 : 0,
+        levels?.level3MxAvailable ? 1 : 0,
+        levels?.level4SourceEvidenceConfirmed ? 1 : 0,
+        levels?.level5MailboxVerified ? 1 : 0,
+        isUserSub ? 1 : 0,
+        isUserSub ? (params.submittedByUserId || null) : null,
         dedupeKey,
         now,
         now
@@ -568,20 +813,25 @@ export const hrOutreachStore = {
         params.sourceType,
         params.sourceName,
         params.sourceUrl,
-        params.evidence.slice(0, 500),
+        (params.sourceEvidence || params.evidence).slice(0, 500),
         params.contactConfidence,
         now
       );
+
+    upsertJobLinks(id, incomingJobs);
+    recordVerificationEvent(id, params.emailVerificationStatus);
 
     const row = sqlite.prepare('SELECT * FROM hr_contacts WHERE id = ?').get(id) as any;
     return { contact: mapHrContactRow(row), created: true };
   },
 
   listHrContacts(filters?: {
+    userId?: string;
     search?: string;
     country?: string;
     company?: string;
     designation?: string;
+    contactType?: string;
     verificationStatus?: string;
     sourceType?: string;
     jobId?: string;
@@ -591,6 +841,13 @@ export const hrOutreachStore = {
   }): { contacts: HrContact[]; total: number } {
     const clauses: string[] = [];
     const args: any[] = [];
+
+    if (filters?.userId) {
+      clauses.push('(COALESCE(is_user_submitted, 0) = 0 OR submitted_by_user_id = ?)');
+      args.push(filters.userId);
+    } else {
+      clauses.push('COALESCE(is_user_submitted, 0) = 0');
+    }
 
     if (!filters?.includeArchived) {
       clauses.push("contact_status != 'archived'");
@@ -612,6 +869,10 @@ export const hrOutreachStore = {
       clauses.push('role_category = ?');
       args.push(filters.designation);
     }
+    if (filters?.contactType && filters.contactType !== 'all') {
+      clauses.push('contact_type = ?');
+      args.push(filters.contactType);
+    }
     if (filters?.verificationStatus && filters.verificationStatus !== 'all') {
       clauses.push('email_verification_status = ?');
       args.push(filters.verificationStatus);
@@ -621,8 +882,8 @@ export const hrOutreachStore = {
       args.push(filters.sourceType);
     }
     if (filters?.jobId) {
-      clauses.push('associated_job_ids LIKE ?');
-      args.push(`%${filters.jobId}%`);
+      clauses.push('(associated_job_ids LIKE ? OR EXISTS (SELECT 1 FROM hr_contact_job_links l WHERE l.contact_id = hr_contacts.id AND l.job_id = ?))');
+      args.push(`%${filters.jobId}%`, filters.jobId);
     }
 
     const whereSql = clauses.length > 0 ? `WHERE ${clauses.join(' AND ')}` : '';
@@ -663,14 +924,70 @@ export const hrOutreachStore = {
     };
   },
 
-  updateHrContactVerification(id: string, status: EmailVerificationStatus, isRoleBased: boolean, checkedAt: string): HrContact | null {
-    sqlite
-      .prepare(
-        `UPDATE hr_contacts
-         SET email_verification_status = ?, is_role_based = ?, last_verified_at = ?, updated_at = ?
-         WHERE id = ?`
-      )
-      .run(status, isRoleBased ? 1 : 0, checkedAt, checkedAt, id);
+  updateHrContactVerification(
+    id: string,
+    status: EmailVerificationStatus,
+    isRoleBased: boolean,
+    checkedAt: string,
+    details?: {
+      verificationLevels?: EmailVerificationLevels;
+      mxHosts?: string[];
+      evidence?: string;
+    }
+  ): HrContact | null {
+    const levels = details?.verificationLevels;
+    if (levels) {
+      sqlite
+        .prepare(
+          `UPDATE hr_contacts
+           SET email_verification_status = ?, is_role_based = ?, last_verified_at = ?, updated_at = ?,
+               level_syntax = ?, level_domain = ?, level_mx = ?,
+               level_source_confirmed = MAX(COALESCE(level_source_confirmed, 0), ?),
+               level_mailbox = MAX(COALESCE(level_mailbox, 0), ?)
+           WHERE id = ?`
+        )
+        .run(
+          status,
+          isRoleBased ? 1 : 0,
+          checkedAt,
+          checkedAt,
+          levels.level1SyntaxValid ? 1 : 0,
+          levels.level2DomainExists ? 1 : 0,
+          levels.level3MxAvailable ? 1 : 0,
+          levels.level4SourceEvidenceConfirmed ? 1 : 0,
+          levels.level5MailboxVerified ? 1 : 0,
+          id
+        );
+
+      sqlite
+        .prepare(
+          `INSERT INTO hr_contact_verification_events (
+             id, contact_id, syntax_valid, domain_valid, mx_valid, mx_hosts_json,
+             source_confirmed, mailbox_verified, resulting_status, evidence, checked_at
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        )
+        .run(
+          `hcve_${crypto.randomUUID()}`,
+          id,
+          levels.level1SyntaxValid ? 1 : 0,
+          levels.level2DomainExists ? 1 : 0,
+          levels.level3MxAvailable ? 1 : 0,
+          JSON.stringify(details?.mxHosts || []),
+          levels.level4SourceEvidenceConfirmed ? 1 : 0,
+          levels.level5MailboxVerified ? 1 : 0,
+          status,
+          (details?.evidence || '').slice(0, 500) || null,
+          checkedAt
+        );
+    } else {
+      sqlite
+        .prepare(
+          `UPDATE hr_contacts
+           SET email_verification_status = ?, is_role_based = ?, last_verified_at = ?, updated_at = ?
+           WHERE id = ?`
+        )
+        .run(status, isRoleBased ? 1 : 0, checkedAt, checkedAt, id);
+    }
     const row = sqlite.prepare('SELECT * FROM hr_contacts WHERE id = ?').get(id) as any;
     return row ? mapHrContactRow(row) : null;
   },
@@ -949,7 +1266,18 @@ export const hrOutreachStore = {
       )
       .run(id, userId, cleanEmail, domain, reason, source, now);
 
-    // Mark matching contacts as suppressed status view metadata
+    const matchedContact = sqlite
+      .prepare('SELECT id FROM hr_contacts WHERE LOWER(email) = ? LIMIT 1')
+      .get(cleanEmail) as { id?: string } | undefined;
+
+    sqlite
+      .prepare(
+        `INSERT INTO hr_contact_suppression (id, user_id, contact_id, email, normalized_email, reason, source, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(user_id, normalized_email) DO UPDATE SET reason = excluded.reason`
+      )
+      .run(`hcsup_${crypto.randomUUID()}`, userId, matchedContact?.id || null, cleanEmail, cleanEmail, reason, source, now);
+
     const row = sqlite
       .prepare('SELECT * FROM do_not_contact WHERE user_id = ? AND email = ?')
       .get(userId, cleanEmail) as any;
@@ -969,7 +1297,11 @@ export const hrOutreachStore = {
     const row = sqlite
       .prepare('SELECT id FROM do_not_contact WHERE user_id = ? AND LOWER(email) = ?')
       .get(userId, cleanEmail);
-    return Boolean(row);
+    if (row) return true;
+    const supRow = sqlite
+      .prepare('SELECT id FROM hr_contact_suppression WHERE user_id = ? AND normalized_email = ?')
+      .get(userId, cleanEmail);
+    return Boolean(supRow);
   },
 
   listDoNotContact(userId: string): DoNotContactEntry[] {
@@ -988,7 +1320,13 @@ export const hrOutreachStore = {
   },
 
   removeDoNotContact(userId: string, id: string): boolean {
+    const existing = sqlite.prepare('SELECT email FROM do_not_contact WHERE id = ? AND user_id = ?').get(id, userId) as any;
     const res = sqlite.prepare('DELETE FROM do_not_contact WHERE id = ? AND user_id = ?').run(id, userId);
+    if (existing?.email) {
+      sqlite
+        .prepare('DELETE FROM hr_contact_suppression WHERE user_id = ? AND normalized_email = ?')
+        .run(userId, String(existing.email).trim().toLowerCase());
+    }
     return Number(res.changes || 0) > 0;
   },
 
@@ -1320,20 +1658,52 @@ export const hrOutreachStore = {
 
   // --- REAL DATABASE-BACKED OVERVIEW METRICS ---
   getOverviewCounts(userId: string) {
-    const contactsTotal = (sqlite.prepare("SELECT COUNT(*) as c FROM hr_contacts WHERE contact_status != 'archived'").get() as any)?.c || 0;
-    const verifiedCount = (sqlite.prepare("SELECT COUNT(*) as c FROM hr_contacts WHERE email_verification_status = 'Verified' AND contact_status != 'archived'").get() as any)?.c || 0;
-    const domainValidCount = (sqlite.prepare("SELECT COUNT(*) as c FROM hr_contacts WHERE email_verification_status = 'Domain Valid' AND contact_status != 'archived'").get() as any)?.c || 0;
-    const roleBasedCount = (sqlite.prepare("SELECT COUNT(*) as c FROM hr_contacts WHERE email_verification_status = 'Role-Based' AND contact_status != 'archived'").get() as any)?.c || 0;
+    const visibilityClause = "(contact_status != 'archived' AND (COALESCE(is_user_submitted, 0) = 0 OR submitted_by_user_id = ?))";
+    const contactsTotal = (sqlite.prepare(`SELECT COUNT(*) as c FROM hr_contacts WHERE ${visibilityClause}`).get(userId) as any)?.c || 0;
+    const verifiedCount = (
+      sqlite
+        .prepare(`SELECT COUNT(*) as c FROM hr_contacts WHERE email_verification_status IN ('Verified', 'Mailbox Verified') AND ${visibilityClause}`)
+        .get(userId) as any
+    )?.c || 0;
+    const sourceConfirmedContacts = (
+      sqlite
+        .prepare(`SELECT COUNT(*) as c FROM hr_contacts WHERE (email_verification_status = 'Source Confirmed' OR COALESCE(level_source_confirmed, 0) = 1) AND ${visibilityClause}`)
+        .get(userId) as any
+    )?.c || 0;
+    const mxValidatedContacts = (
+      sqlite
+        .prepare(`SELECT COUNT(*) as c FROM hr_contacts WHERE (email_verification_status = 'MX Valid' OR COALESCE(level_mx, 0) = 1) AND ${visibilityClause}`)
+        .get(userId) as any
+    )?.c || 0;
+    const domainValidCount = (
+      sqlite
+        .prepare(`SELECT COUNT(*) as c FROM hr_contacts WHERE (email_verification_status = 'Domain Valid' OR COALESCE(level_domain, 0) = 1) AND ${visibilityClause}`)
+        .get(userId) as any
+    )?.c || 0;
+    const roleBasedCount = (
+      sqlite
+        .prepare(`SELECT COUNT(*) as c FROM hr_contacts WHERE (email_verification_status = 'Role-Based' OR is_role_based = 1) AND ${visibilityClause}`)
+        .get(userId) as any
+    )?.c || 0;
 
-    // Jobs that have at least one matching HR contact by associatedJobIds or company name
+    const totalActiveJobs = (sqlite.prepare('SELECT COUNT(*) as c FROM live_jobs_cache').get() as any)?.c || 0;
+
+    // Jobs that have at least one matching HR contact by link table, associatedJobIds, or company name
     const jobsWithContacts = (sqlite.prepare(
       `SELECT COUNT(DISTINCT j.id) as c FROM live_jobs_cache j
        WHERE EXISTS (
          SELECT 1 FROM hr_contacts h
-         WHERE h.contact_status != 'archived'
-           AND (h.associated_job_ids LIKE '%' || j.id || '%' OR LOWER(h.company_name) = LOWER(j.company))
+         WHERE ${visibilityClause}
+           AND (
+             h.associated_job_ids LIKE '%' || j.id || '%'
+             OR LOWER(h.company_name) = LOWER(j.company)
+             OR EXISTS (SELECT 1 FROM hr_contact_job_links l WHERE l.contact_id = h.id AND l.job_id = j.id)
+           )
        )`
-    ).get() as any)?.c || 0;
+    ).get(userId) as any)?.c || 0;
+
+    const jobCoveragePercent =
+      Number(totalActiveJobs) > 0 ? Math.round((Number(jobsWithContacts) / Number(totalActiveJobs)) * 1000) / 10 : 0;
 
     const msgStats = sqlite
       .prepare(
@@ -1354,9 +1724,13 @@ export const hrOutreachStore = {
     return {
       contactsDiscovered: Number(contactsTotal),
       verifiedContacts: Number(verifiedCount),
+      sourceConfirmedContacts: Number(sourceConfirmedContacts),
+      mxValidatedContacts: Number(mxValidatedContacts),
       domainValidContacts: Number(domainValidCount),
       roleBasedContacts: Number(roleBasedCount),
       jobsWithContacts: Number(jobsWithContacts),
+      totalActiveJobs: Number(totalActiveJobs),
+      jobCoveragePercent,
       emailsDrafted: Number(msgStats?.drafted || 0),
       emailsSent: Number(msgStats?.sent || 0),
       providerAcceptedCount: Number(msgStats?.accepted || 0),
