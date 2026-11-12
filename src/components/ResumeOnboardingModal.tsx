@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api.ts';
 import { UserProfile, ExperienceItem } from '../types/index.ts';
+import { LocationAutocomplete } from './ui/SelectSystem.tsx';
 import { BrandLogo } from './BrandLogo.tsx';
 
 interface ResumeOnboardingModalProps {
@@ -806,6 +807,23 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                     className="w-full px-3 py-2 rounded-xl border border-slate-300 text-slate-900 focus:border-blue-500 outline-none"
                   />
                 </div>
+
+                <div className="md:col-span-2">
+                  <label className="font-semibold text-slate-700 mb-1 block">Location</label>
+                  <LocationAutocomplete
+                    value={extractedProfile.location || ''}
+                    onChange={(nextVal, structured) =>
+                      setExtractedProfile({
+                        ...extractedProfile,
+                        location: nextVal,
+                        structuredLocation: structured || undefined,
+                      })
+                    }
+                    placeholder="Search city, state, or country..."
+                    theme="light"
+                    ariaLabel="Extracted Resume Location"
+                  />
+                </div>
               </div>
 
               <div>
@@ -894,12 +912,12 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
 
                             <div>
                               <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">Location</label>
-                              <input
-                                type="text"
-                                value={editExpForm.location}
-                                onChange={e => setEditExpForm({ ...editExpForm, location: e.target.value })}
-                                placeholder="e.g. Indore"
-                                className="w-full px-2.5 py-1.5 text-xs bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              <LocationAutocomplete
+                                value={editExpForm.location || ''}
+                                onChange={(val) => setEditExpForm({ ...editExpForm, location: val })}
+                                placeholder="e.g. Indore, India"
+                                theme="light"
+                                ariaLabel="Experience Role Location"
                               />
                             </div>
 

@@ -15,6 +15,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { ApplicationRecord, ApplicationStatus } from '../types/index.ts';
+import { FilterSelect } from './ui/SelectSystem.tsx';
 
 interface TrackerTabProps {
   applications: ApplicationRecord[];
@@ -135,18 +136,22 @@ export const TrackerTab: React.FC<TrackerTabProps> = ({
           />
         </div>
 
-        <select
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-white py-2 px-3 text-xs text-slate-700 focus:border-blue-500 focus:outline-none w-full sm:w-auto shadow-xs"
-        >
-          <option value="all">All Stages</option>
-          <option value="AWAITING_APPROVAL">Awaiting Review</option>
-          <option value="APPLICATION_PREPARED">Application Ready</option>
-          <option value="SUBMITTED">Applied</option>
-          <option value="INTERVIEWING">Interviewing</option>
-          <option value="OFFER_RECEIVED">Offer Received</option>
-        </select>
+        <div className="w-full sm:w-48 shrink-0">
+          <FilterSelect
+            value={statusFilter}
+            onChange={val => setStatusFilter(val || 'all')}
+            searchable={false}
+            options={[
+              { value: 'all', label: 'All Stages' },
+              { value: 'AWAITING_APPROVAL', label: 'Awaiting Review' },
+              { value: 'APPLICATION_PREPARED', label: 'Application Ready' },
+              { value: 'SUBMITTED', label: 'Applied' },
+              { value: 'INTERVIEWING', label: 'Interviewing' },
+              { value: 'OFFER_RECEIVED', label: 'Offer Received' },
+            ]}
+            ariaLabel="Filter applications by stage"
+          />
+        </div>
       </div>
 
       {/* Main View: Board vs List */}

@@ -26,6 +26,7 @@ import {
 } from '../../types/index.ts';
 import { OUTREACH_TEMPLATES, OUTREACH_TONES } from '../../utils/hrEmailGenerator.ts';
 import { VerificationBadge } from './HrOutreachModals.tsx';
+import { SearchableSelect } from '../ui/SelectSystem.tsx';
 
 export interface HrOutreachStudioProps {
   isBlack: boolean;
@@ -278,24 +279,26 @@ export const HrOutreachStudio: React.FC<HrOutreachStudioProps> = ({
           <div className="space-y-2.5 text-xs">
             <div>
               <label className="font-semibold block mb-1">Target HR Contact *</label>
-              <select
-                aria-label="Target HR Contact"
+              <SearchableSelect
+                ariaLabel="Target HR Contact"
                 value={selectedContactId}
-                onChange={(e) => {
-                  onSelectContactId(e.target.value);
+                placeholder="-- Choose an HR Contact --"
+                onChange={(val) => {
+                  onSelectContactId(val);
                   setDraftId(undefined);
                 }}
-                className={`w-full px-3 py-2 rounded-xl border ${
-                  isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300 text-slate-900'
-                }`}
-              >
-                <option value="">-- Choose an HR Contact --</option>
-                {contacts.map((c) => (
-                  <option key={c.id} value={c.id} disabled={c.isDoNotContact || c.emailVerificationStatus === 'Invalid'}>
-                    {c.companyName} — {c.contactName || c.designation} ({c.email}) [{c.emailVerificationStatus}]
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: '-- Choose an HR Contact --' },
+                  ...contacts.map((c) => ({
+                    value: c.id,
+                    label: `${c.companyName} — ${c.contactName || c.designation} (${c.email})`,
+                    badge: c.emailVerificationStatus,
+                    disabled: Boolean(c.isDoNotContact || c.emailVerificationStatus === 'Invalid'),
+                  })),
+                ]}
+                theme={isBlack ? 'black-elite' : 'light'}
+                size="sm"
+              />
             </div>
 
             {selectedContact && (
@@ -311,53 +314,47 @@ export const HrOutreachStudio: React.FC<HrOutreachStudioProps> = ({
 
             <div>
               <label className="font-semibold block mb-1">Associated Job Opportunity (Optional)</label>
-              <select
-                aria-label="Associated Job Opportunity"
+              <SearchableSelect
+                ariaLabel="Associated Job Opportunity"
                 value={selectedJobId}
-                onChange={(e) => onSelectJobId(e.target.value)}
-                className={`w-full px-3 py-2 rounded-xl border ${
-                  isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300 text-slate-900'
-                }`}
-              >
-                <option value="">-- General / Company Talent Outreach --</option>
-                {jobs.slice(0, 60).map((j) => (
-                  <option key={j.id} value={j.id}>
-                    {j.company} — {j.title} ({j.country || j.location})
-                  </option>
-                ))}
-              </select>
+                placeholder="-- General / Company Talent Outreach --"
+                onChange={(val) => onSelectJobId(val)}
+                options={[
+                  { value: '', label: '-- General / Company Talent Outreach --' },
+                  ...jobs.slice(0, 60).map((j) => ({
+                    value: j.id,
+                    label: `${j.company} — ${j.title} (${j.country || j.location})`,
+                  })),
+                ]}
+                theme={isBlack ? 'black-elite' : 'light'}
+                size="sm"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-2.5">
               <div>
                 <label className="font-semibold block mb-1">Template</label>
-                <select
-                  aria-label="Email Template"
+                <SearchableSelect
+                  ariaLabel="Email Template"
                   value={templateType}
-                  onChange={(e) => setTemplateType(e.target.value as OutreachTemplateType)}
-                  className={`w-full px-2.5 py-2 rounded-xl border text-xs ${
-                    isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300 text-slate-900'
-                  }`}
-                >
-                  {OUTREACH_TEMPLATES.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setTemplateType(val as OutreachTemplateType)}
+                  searchable={false}
+                  options={OUTREACH_TEMPLATES.map((t) => ({ value: t, label: t }))}
+                  theme={isBlack ? 'black-elite' : 'light'}
+                  size="sm"
+                />
               </div>
               <div>
                 <label className="font-semibold block mb-1">Tone</label>
-                <select
-                  aria-label="Email Tone"
+                <SearchableSelect
+                  ariaLabel="Email Tone"
                   value={tone}
-                  onChange={(e) => setTone(e.target.value as OutreachEmailTone)}
-                  className={`w-full px-2.5 py-2 rounded-xl border text-xs ${
-                    isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300 text-slate-900'
-                  }`}
-                >
-                  {OUTREACH_TONES.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setTone(val as OutreachEmailTone)}
+                  searchable={false}
+                  options={OUTREACH_TONES.map((t) => ({ value: t, label: t }))}
+                  theme={isBlack ? 'black-elite' : 'light'}
+                  size="sm"
+                />
               </div>
             </div>
 
@@ -412,25 +409,26 @@ export const HrOutreachStudio: React.FC<HrOutreachStudioProps> = ({
             <p className="opacity-70">No uploaded or tailored resumes found. Upload a resume in Career Profile / Onboarding first.</p>
           ) : (
             <>
-              <select
-                aria-label="Resume Attachment"
+              <SearchableSelect
+                ariaLabel="Resume Attachment"
                 value={selectedResumeId}
-                onChange={(e) => {
-                  setSelectedResumeId(e.target.value);
+                placeholder="-- No Attachment --"
+                onChange={(val) => {
+                  setSelectedResumeId(val);
                   setResumeConfirmed(false);
                 }}
-                className={`w-full px-3 py-2 rounded-xl border ${
-                  isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300 text-slate-900'
-                }`}
-              >
-                <option value="">-- No Attachment --</option>
-                {resumes.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.fileName} ({Math.max(1, Math.round(r.fileSizeBytes / 1024))} KB)
-                    {r.sourceType === 'tailored_application' ? ` — Tailored (${r.company})` : ' — Master Resume'}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: '-- No Attachment --' },
+                  ...resumes.map((r) => ({
+                    value: r.id,
+                    label: `${r.fileName} (${Math.max(1, Math.round(r.fileSizeBytes / 1024))} KB)${
+                      r.sourceType === 'tailored_application' ? ` — Tailored (${r.company})` : ' — Master Resume'
+                    }`,
+                  })),
+                ]}
+                theme={isBlack ? 'black-elite' : 'light'}
+                size="sm"
+              />
 
               {selectedResume && (
                 <div className={`p-3 rounded-xl border space-y-2 ${isBlack ? 'bg-[#0C0E12] border-white/10' : 'bg-slate-50 border-slate-200'}`}>
@@ -496,38 +494,35 @@ export const HrOutreachStudio: React.FC<HrOutreachStudioProps> = ({
               </button>
             </div>
           ) : (
-            <select
-              aria-label="Sending Email Account"
+            <SearchableSelect
+              ariaLabel="Sending Email Account"
               value={selectedAccountId}
-              onChange={(e) => setSelectedAccountId(e.target.value)}
-              className={`w-full px-3 py-2 rounded-xl border ${
-                isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300 text-slate-900'
-              }`}
-            >
-              {connectedAccounts.map((acc) => (
-                <option key={acc.id} value={acc.id}>
-                  {acc.provider.toUpperCase()} — {acc.email}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setSelectedAccountId(val)}
+              searchable={false}
+              options={connectedAccounts.map((acc) => ({
+                value: acc.id,
+                label: `${acc.provider.toUpperCase()} — ${acc.email}`,
+              }))}
+              theme={isBlack ? 'black-elite' : 'light'}
+              size="sm"
+            />
           )}
 
           {campaigns.length > 0 && (
             <div>
               <label className="font-semibold block mb-1">Link to Campaign (Optional)</label>
-              <select
-                aria-label="Campaign"
+              <SearchableSelect
+                ariaLabel="Campaign"
                 value={selectedCampaignId}
-                onChange={(e) => setSelectedCampaignId(e.target.value)}
-                className={`w-full px-3 py-2 rounded-xl border ${
-                  isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300 text-slate-900'
-                }`}
-              >
-                <option value="">-- Individual Outreach --</option>
-                {campaigns.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+                placeholder="-- Individual Outreach --"
+                onChange={(val) => setSelectedCampaignId(val)}
+                options={[
+                  { value: '', label: '-- Individual Outreach --' },
+                  ...campaigns.map((c) => ({ value: c.id, label: c.name })),
+                ]}
+                theme={isBlack ? 'black-elite' : 'light'}
+                size="sm"
+              />
             </div>
           )}
         </div>

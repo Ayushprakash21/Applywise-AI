@@ -12,6 +12,8 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 import { CareerPreferences, WorkArrangement, EmploymentType } from '../types/index.ts';
+import { CountrySelect, SearchableSelect } from './ui/SelectSystem.tsx';
+import { RELOCATION_OPTIONS } from '../data/platformOptions.ts';
 
 interface PreferencesTabProps {
   preferences: CareerPreferences | null;
@@ -116,43 +118,44 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
               {formData.targetCountries.map((country, idx) => (
                 <span
                   key={idx}
-                  className="px-2.5 py-1 rounded-lg text-xs bg-indigo-950/40 text-indigo-300 border border-indigo-800/40 font-medium"
+                  className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-xs bg-indigo-950/40 text-indigo-300 border border-indigo-800/40 font-medium"
                 >
-                  {country}
+                  <span>{country}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        targetCountries: formData.targetCountries.filter((c) => c !== country),
+                      })
+                    }
+                    className="text-indigo-400 hover:text-rose-400 transition"
+                    aria-label={`Remove ${country}`}
+                  >
+                    ✕
+                  </button>
                 </span>
               ))}
             </div>
             <div className="flex items-center space-x-2 pt-2">
-              <input
-                type="text"
-                placeholder="Add target country (e.g. Germany)..."
-                value={newCountry}
-                onChange={e => setNewCountry(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && newCountry.trim()) {
-                    setFormData({
-                      ...formData,
-                      targetCountries: [...formData.targetCountries, newCountry.trim()],
-                    });
+              <div className="flex-1">
+                <CountrySelect
+                  value={newCountry}
+                  includeRemote={true}
+                  theme="dark"
+                  size="sm"
+                  placeholder="Select target country (e.g. India, Germany, Remote Worldwide)..."
+                  onChange={(countryName) => {
+                    if (countryName && !formData.targetCountries.includes(countryName)) {
+                      setFormData({
+                        ...formData,
+                        targetCountries: [...formData.targetCountries, countryName],
+                      });
+                    }
                     setNewCountry('');
-                  }
-                }}
-                className="flex-1 rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
-              />
-              <button
-                onClick={() => {
-                  if (newCountry.trim()) {
-                    setFormData({
-                      ...formData,
-                      targetCountries: [...formData.targetCountries, newCountry.trim()],
-                    });
-                    setNewCountry('');
-                  }
-                }}
-                className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-white hover:bg-slate-700"
-              >
-                Add
-              </button>
+                  }}
+                />
+              </div>
             </div>
           </div>
 
@@ -199,20 +202,22 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
               />
             </div>
 
-            <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-300">
+            <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-3 text-xs text-slate-300">
               <div>
                 <div className="font-semibold text-white">Willingness to Relocate</div>
                 <div className="text-[11px] text-slate-400">Open to moving for right opportunity</div>
               </div>
-              <select
-                value={formData.willingnessToRelocate}
-                onChange={e => setFormData({ ...formData, willingnessToRelocate: e.target.value as any })}
-                className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1 text-xs text-white focus:outline-none"
-              >
-                <option value="yes">Yes</option>
-                <option value="negotiable">Negotiable</option>
-                <option value="no">No</option>
-              </select>
+              <div className="w-56 shrink-0">
+                <SearchableSelect
+                  value={formData.willingnessToRelocate}
+                  onChange={val => setFormData({ ...formData, willingnessToRelocate: val as any })}
+                  options={RELOCATION_OPTIONS}
+                  theme="dark"
+                  size="xs"
+                  searchable={false}
+                  ariaLabel="Willingness to Relocate"
+                />
+              </div>
             </div>
           </div>
 

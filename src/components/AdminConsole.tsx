@@ -36,6 +36,7 @@ import { AdminUserProvisioning } from './AdminUserProvisioning.tsx';
 import { GlobalSourceIntelligence } from './GlobalSourceIntelligence.tsx';
 import { AdminHrDiscoveryDiagnostics } from './AdminHrDiscoveryDiagnostics.tsx';
 import { getEffectivePlan } from '../config/freeAccess.ts';
+import { FilterSelect, SearchableSelect } from './ui/SelectSystem.tsx';
 
 interface AdminConsoleProps {
   currentUser: AuthUser;
@@ -311,21 +312,25 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             {/* Mobile Dropdown Selector (Active for narrow screens <= 640px) */}
             <div className="block sm:hidden mb-2">
               <label htmlFor="admin-mobile-nav-select" className="sr-only">Select Admin Console Module</label>
-              <select
+              <SearchableSelect
                 id="admin-mobile-nav-select"
                 value={activeTab}
-                onChange={e => handleSelectTab(e.target.value as ExtendedAdminTab)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#14171C] border border-[rgba(198,166,106,0.40)] text-[#F2F0EA] text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#C6A66A]"
-              >
-                <option value="overview">Overview & KPIs</option>
-                <option value="sources">Global Career Discovery Engine (GCDE)</option>
-                <option value="users">Users & Roles ({totalUsers})</option>
-                <option value="provisioning">User Provisioning</option>
-                <option value="resumes">Resume Operations ({stats?.totalResumes ?? '...'})</option>
-                <option value="audit">Security & Audit Trail</option>
-                <option value="system">System Health & Edge</option>
-                <option value="founder">Founder Profile</option>
-              </select>
+                onChange={val => handleSelectTab(val as ExtendedAdminTab)}
+                searchable={false}
+                options={[
+                  { value: 'overview', label: 'Overview & KPIs' },
+                  { value: 'sources', label: 'Global Career Discovery Engine (GCDE)' },
+                  { value: 'users', label: `Users & Roles (${totalUsers})` },
+                  { value: 'provisioning', label: 'User Provisioning' },
+                  { value: 'resumes', label: `Resume Operations (${stats?.totalResumes ?? '...'})` },
+                  { value: 'audit', label: 'Security & Audit Trail' },
+                  { value: 'system', label: 'System Health & Edge' },
+                  { value: 'founder', label: 'Founder Profile' },
+                ]}
+                theme="black-elite"
+                size="sm"
+                ariaLabel="Select Admin Console Module"
+              />
             </div>
 
             {/* Desktop & Tablet Wrapping Tab Navigation (Zero Clipping Across All Viewports) */}
@@ -907,16 +912,21 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               {/* Severity Filter */}
               <div className="flex items-center space-x-2">
                 <Filter className="h-3.5 w-3.5 text-[#92949A]" />
-                <select
-                  value={logSeverity}
-                  onChange={e => setLogSeverity(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl border border-[rgba(255,255,255,0.12)] bg-[#0D1014] text-xs font-medium text-[#F2F0EA] shadow-xs focus:outline-none focus:border-[rgba(198,166,106,0.50)]"
-                >
-                  <option value="all">All Severities</option>
-                  <option value="info">Info Only</option>
-                  <option value="warning">Warnings</option>
-                  <option value="security">Security Events</option>
-                </select>
+                <div className="w-44">
+                  <FilterSelect
+                    value={logSeverity}
+                    onChange={val => setLogSeverity(val || 'all')}
+                    searchable={false}
+                    options={[
+                      { value: 'all', label: 'All Severities' },
+                      { value: 'info', label: 'Info Only' },
+                      { value: 'warning', label: 'Warnings' },
+                      { value: 'security', label: 'Security Events' },
+                    ]}
+                    theme="black-elite"
+                    ariaLabel="Filter Audit Logs by Severity"
+                  />
+                </div>
               </div>
             </div>
 

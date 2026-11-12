@@ -22,6 +22,7 @@ import {
   AtsProviderType
 } from '../types/index.ts';
 import { api } from '../services/api.ts';
+import { FilterSelect, SearchableSelect, CountrySelect } from './ui/SelectSystem.tsx';
 
 export interface ServiceState<T> {
   status: 'idle' | 'loading' | 'success' | 'error';
@@ -599,17 +600,22 @@ export const GlobalSourceIntelligence: React.FC = () => {
                     className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#0D1014] border border-[rgba(255,255,255,0.09)] text-xs text-[#F2F0EA] placeholder-[#737780] focus:outline-none focus:border-[#C6A66A]"
                   />
                 </div>
-                <select
-                  value={healthFilter}
-                  onChange={e => setHealthFilter(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-[#0D1014] border border-[rgba(255,255,255,0.09)] text-xs text-[#F2F0EA] focus:outline-none focus:border-[#C6A66A]"
-                >
-                  <option value="all">All Health Statuses</option>
-                  <option value="healthy">Healthy</option>
-                  <option value="degraded">Degraded</option>
-                  <option value="rate_limited">Rate Limited</option>
-                  <option value="offline">Offline</option>
-                </select>
+                <div className="w-48 shrink-0">
+                  <FilterSelect
+                    value={healthFilter}
+                    onChange={val => setHealthFilter(val || 'all')}
+                    searchable={false}
+                    options={[
+                      { value: 'all', label: 'All Health Statuses' },
+                      { value: 'healthy', label: 'Healthy' },
+                      { value: 'degraded', label: 'Degraded' },
+                      { value: 'rate_limited', label: 'Rate Limited' },
+                      { value: 'offline', label: 'Offline' },
+                    ]}
+                    theme="black-elite"
+                    ariaLabel="Filter sources by health"
+                  />
+                </div>
               </div>
 
               {/* Sources Table */}
@@ -998,31 +1004,37 @@ export const GlobalSourceIntelligence: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-[#C0BDB5] mb-1">Detected ATS</label>
-                  <select
+                  <SearchableSelect
                     value={newCompany.detectedAts}
-                    onChange={e => setNewCompany({ ...newCompany, detectedAts: e.target.value as any })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#0D1014] border border-[rgba(255,255,255,0.09)] text-xs text-[#F2F0EA] focus:outline-none focus:border-[#C6A66A]"
-                  >
-                    <option value="custom_web">Custom Web / JSON-LD</option>
-                    <option value="greenhouse">Greenhouse ATS</option>
-                    <option value="lever">Lever ATS</option>
-                    <option value="ashby">Ashby ATS</option>
-                    <option value="workable">Workable ATS</option>
-                    <option value="smartrecruiters">SmartRecruiters ATS</option>
-                    <option value="recruitee">Recruitee ATS</option>
-                  </select>
+                    onChange={val => setNewCompany({ ...newCompany, detectedAts: val as any })}
+                    options={[
+                      { value: 'custom_web', label: 'Custom Web / JSON-LD' },
+                      { value: 'greenhouse', label: 'Greenhouse ATS' },
+                      { value: 'lever', label: 'Lever ATS' },
+                      { value: 'ashby', label: 'Ashby ATS' },
+                      { value: 'workable', label: 'Workable ATS' },
+                      { value: 'smartrecruiters', label: 'SmartRecruiters ATS' },
+                      { value: 'recruitee', label: 'Recruitee ATS' },
+                    ]}
+                    searchable={false}
+                    theme="black-elite"
+                    size="sm"
+                    ariaLabel="Detected ATS"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-[#C0BDB5] mb-1">Country</label>
-                  <input
-                    type="text"
+                  <CountrySelect
                     value={newCompany.country}
-                    onChange={e => setNewCompany({ ...newCompany, country: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#0D1014] border border-[rgba(255,255,255,0.09)] text-xs text-[#F2F0EA] focus:outline-none focus:border-[#C6A66A]"
+                    onChange={val => setNewCompany({ ...newCompany, country: val })}
+                    includeRemote={true}
+                    theme="black-elite"
+                    size="sm"
+                    ariaLabel="Company Country"
                   />
                 </div>
               </div>

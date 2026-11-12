@@ -30,6 +30,8 @@ import {
   JobVacancy,
   JobImportSaveRequest
 } from '../types/index.ts';
+import { LocationAutocomplete, SearchableSelect } from './ui/SelectSystem.tsx';
+import { CURRENCY_OPTIONS } from '../data/platformOptions.ts';
 import { api } from '../services/api.ts';
 
 export interface JobImportModalProps {
@@ -767,12 +769,13 @@ export const JobImportModal: React.FC<JobImportModalProps> = ({
                     <label className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider font-mono">
                       Location
                     </label>
-                    <input
-                      type="text"
+                    <LocationAutocomplete
                       value={editLocation}
-                      onChange={e => setEditLocation(e.target.value)}
+                      onChange={(val) => setEditLocation(val)}
+                      includeRemote={true}
                       placeholder="e.g. San Francisco, CA / Remote"
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#14171C] border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#C6A66A]"
+                      theme="dark"
+                      ariaLabel="Imported Job Location"
                     />
                   </div>
 
@@ -781,16 +784,20 @@ export const JobImportModal: React.FC<JobImportModalProps> = ({
                     <label className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider font-mono">
                       Workplace Type
                     </label>
-                    <select
+                    <SearchableSelect
                       value={editWorkplaceType}
-                      onChange={e => setEditWorkplaceType(e.target.value as any)}
-                      className="w-full px-3 py-2 rounded-xl bg-[#14171C] border border-white/10 text-xs text-white focus:outline-none focus:border-[#C6A66A]"
-                    >
-                      <option value="Remote">Remote</option>
-                      <option value="Hybrid">Hybrid</option>
-                      <option value="On-site">On-site</option>
-                      <option value="Unspecified">Unspecified</option>
-                    </select>
+                      onChange={val => setEditWorkplaceType(val as any)}
+                      options={[
+                        { value: 'Remote', label: 'Remote' },
+                        { value: 'Hybrid', label: 'Hybrid' },
+                        { value: 'On-site', label: 'On-site' },
+                        { value: 'Unspecified', label: 'Unspecified' },
+                      ]}
+                      searchable={false}
+                      theme="dark"
+                      size="sm"
+                      ariaLabel="Workplace Type"
+                    />
                   </div>
 
                   {/* Employment Type */}
@@ -798,16 +805,20 @@ export const JobImportModal: React.FC<JobImportModalProps> = ({
                     <label className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider font-mono">
                       Employment Type
                     </label>
-                    <select
+                    <SearchableSelect
                       value={editEmploymentType}
-                      onChange={e => setEditEmploymentType(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-[#14171C] border border-white/10 text-xs text-white focus:outline-none focus:border-[#C6A66A]"
-                    >
-                      <option value="Full-time">Full-time</option>
-                      <option value="Part-time">Part-time</option>
-                      <option value="Contract">Contract</option>
-                      <option value="Internship">Internship</option>
-                    </select>
+                      onChange={val => setEditEmploymentType(val)}
+                      options={[
+                        { value: 'Full-time', label: 'Full-time' },
+                        { value: 'Part-time', label: 'Part-time' },
+                        { value: 'Contract', label: 'Contract' },
+                        { value: 'Internship', label: 'Internship' },
+                      ]}
+                      searchable={false}
+                      theme="dark"
+                      size="sm"
+                      ariaLabel="Employment Type"
+                    />
                   </div>
                 </div>
 
@@ -821,12 +832,13 @@ export const JobImportModal: React.FC<JobImportModalProps> = ({
                     <span className="text-[10px] text-slate-500">Never fabricated</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <input
-                      type="text"
-                      value={editSalaryCurrency}
-                      onChange={e => setEditSalaryCurrency(e.target.value)}
-                      placeholder="Currency (USD)"
-                      className="px-3 py-1.5 rounded-xl bg-[#14171C] border border-white/10 text-xs text-white uppercase focus:outline-none focus:border-[#C6A66A]"
+                    <SearchableSelect
+                      value={editSalaryCurrency || 'USD'}
+                      onChange={val => setEditSalaryCurrency(val)}
+                      options={CURRENCY_OPTIONS}
+                      theme="dark"
+                      size="sm"
+                      ariaLabel="Salary Currency"
                     />
                     <input
                       type="number"

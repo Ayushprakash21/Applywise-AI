@@ -13,6 +13,7 @@ import {
   Award
 } from 'lucide-react';
 import { ApplicationRecord, ApplicationStatus } from '../types/index.ts';
+import { SearchableSelect } from './ui/SelectSystem.tsx';
 
 interface ApplicationDetailModalProps {
   application: ApplicationRecord | null;
@@ -173,21 +174,27 @@ export const ApplicationDetailModal: React.FC<ApplicationDetailModalProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
             <span className="font-semibold text-slate-200">Manual State Transition:</span>
             <div className="flex items-center space-x-2">
-              <select
-                value={selectedStatus}
-                onChange={e => setSelectedStatus(e.target.value as ApplicationStatus)}
-                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white focus:outline-none"
-              >
-                <option value="APPLICATION_PREPARED">APPLICATION_PREPARED</option>
-                <option value="AWAITING_APPROVAL">AWAITING_APPROVAL</option>
-                <option value="AUTHORIZED_TO_SUBMIT">AUTHORIZED_TO_SUBMIT</option>
-                <option value="SUBMITTED">SUBMITTED</option>
-                <option value="CONFIRMATION_VERIFIED">CONFIRMATION_VERIFIED</option>
-                <option value="INTERVIEWING">INTERVIEWING</option>
-                <option value="OFFER_RECEIVED">OFFER_RECEIVED</option>
-                <option value="REJECTED">REJECTED</option>
-                <option value="WITHDRAWN">WITHDRAWN</option>
-              </select>
+              <div className="w-56">
+                <SearchableSelect
+                  value={selectedStatus}
+                  onChange={val => setSelectedStatus(val as ApplicationStatus)}
+                  searchable={false}
+                  theme="dark"
+                  size="xs"
+                  options={[
+                    { value: 'APPLICATION_PREPARED', label: 'APPLICATION_PREPARED' },
+                    { value: 'AWAITING_APPROVAL', label: 'AWAITING_APPROVAL' },
+                    { value: 'AUTHORIZED_TO_SUBMIT', label: 'AUTHORIZED_TO_SUBMIT' },
+                    { value: 'SUBMITTED', label: 'SUBMITTED' },
+                    { value: 'CONFIRMATION_VERIFIED', label: 'CONFIRMATION_VERIFIED' },
+                    { value: 'INTERVIEWING', label: 'INTERVIEWING' },
+                    { value: 'OFFER_RECEIVED', label: 'OFFER_RECEIVED' },
+                    { value: 'REJECTED', label: 'REJECTED' },
+                    { value: 'WITHDRAWN', label: 'WITHDRAWN' },
+                  ]}
+                  ariaLabel="Application Status"
+                />
+              </div>
 
               <button
                 onClick={handleStatusUpdate}

@@ -1,4 +1,14 @@
 import {
+  searchLocations as searchLocalLocations,
+  getCountries as getLocalCountries,
+  getStatesByCountry as getLocalStates,
+  getCitiesByState as getLocalCities,
+  LocationSuggestion,
+  StateRecord,
+  CityRecord,
+} from '../data/globalLocations.ts';
+import { getPlatformOptionsCatalog } from '../data/platformOptions.ts';
+import {
   UserProfile,
   CareerPreferences,
   AutomationSettings,
@@ -556,6 +566,90 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(preferences),
     }),
+
+  // --- LOCATIONS & PLATFORM OPTIONS ---
+  searchLocations: async (
+    query: string,
+    options?: { types?: string[]; countryCode?: string; includeRemote?: boolean; limit?: number; signal?: AbortSignal }
+  ): Promise<{ success: boolean; results: LocationSuggestion[]; source: 'api' | 'local' }> => {
+    const sp = new URLSearchParams();
+    sp.set('q', query || '');
+    if (options?.types?.length) sp.set('type', options.types.join(','));
+    if (options?.countryCode) sp.set('countryCode', options.countryCode);
+    if (options?.includeRemote) sp.set('includeRemote', 'true');
+    if (options?.limit) sp.set('limit', String(options.limit));
+    try {
+      const res = await fetchJson<{ success: boolean; results: LocationSuggestion[] }>(
+        `/api/locations/search?${sp.toString()}`,
+        options?.signal ? { signal: options.signal } : {}
+      );
+      if (res && res.success && Array.isArray(res.results)) {
+        return { success: true, results: res.results, source: 'api' };
+      }
+    } catch (err: any) {
+      if (err?.name === 'AbortError') throw err;
+    }
+    return {
+      success: true,
+      results: searchLocalLocations(query, {
+        types: options?.types as any,
+        countryCode: options?.countryCode,
+        includeRemote: options?.includeRemote,
+        limit: options?.limit,
+      }),
+      source: 'local',
+    };
+  },
+  getCountries: async (includeRemote = false): Promise<Array<{ code: string; name: string; currency: string }>> => {
+    try {
+      const res = await fetchJson<{ success: boolean; countries: Array<{ code: string; name: string; currency: string }> }>(
+        `/api/locations/countries${includeRemote ? '?includeRemote=true' : ''}`
+      );
+      if (res?.success && Array.isArray(res.countries)) return res.countries;
+    } catch {
+      // local authoritative fallback
+    }
+    return getLocalCountries({ includeRemote });
+  },
+  getStates: async (countryCodeOrName: string): Promise<StateRecord[]> => {
+    if (!countryCodeOrName) return [];
+    try {
+      const res = await fetchJson<{ success: boolean; states: StateRecord[] }>(
+        `/api/locations/states?country=${encodeURIComponent(countryCodeOrName)}`
+      );
+      if (res?.success && Array.isArray(res.states)) return res.states;
+    } catch {
+      // local authoritative fallback
+    }
+    return getLocalStates(countryCodeOrName);
+  },
+  getCities: async (countryCodeOrName: string, stateCodeOrName?: string, q?: string): Promise<CityRecord[]> => {
+    if (!countryCodeOrName) return [];
+    const sp = new URLSearchParams();
+    sp.set('country', countryCodeOrName);
+    if (stateCodeOrName) sp.set('state', stateCodeOrName);
+    if (q) sp.set('q', q);
+    try {
+      const res = await fetchJson<{ success: boolean; cities: CityRecord[] }>(
+        `/api/locations/cities?${sp.toString()}`
+      );
+      if (res?.success && Array.isArray(res.cities)) return res.cities;
+    } catch {
+      // local authoritative fallback
+    }
+    return getLocalCities(countryCodeOrName, stateCodeOrName, q);
+  },
+  getOptionsCatalog: async () => {
+    try {
+      const res = await fetchJson<{ success: boolean; catalog: ReturnType<typeof getPlatformOptionsCatalog> }>(
+        '/api/options/catalog'
+      );
+      if (res?.success && res.catalog) return res.catalog;
+    } catch {
+      // local authoritative fallback
+    }
+    return getPlatformOptionsCatalog();
+  },
 
   // --- SETTINGS & SAFETY ---
   getSettings: () => fetchJson<{ success: boolean; settings: AutomationSettings }>('/api/settings'),

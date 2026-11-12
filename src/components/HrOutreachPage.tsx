@@ -27,6 +27,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { api, AuthUser } from '../services/api.ts';
+import { CountrySelect, FilterSelect, SearchableSelect } from './ui/SelectSystem.tsx';
 import {
   CareerPreferences,
   ContactDiscoveryRun,
@@ -604,116 +605,104 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
               />
             </div>
 
-            <select
-              aria-label="Filter by Country"
+            <CountrySelect
+              ariaLabel="Filter by Country"
               value={countryFilter}
-              onChange={(e) => {
-                setCountryFilter(e.target.value);
+              onChange={(val) => {
+                setCountryFilter(val || 'all');
                 setPage(0);
               }}
-              className={`px-3 py-2 rounded-xl border ${
-                isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300'
-              }`}
-            >
-              <option value="all">All Countries</option>
-              {countries.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+              includeAllOption={true}
+              allLabel="All Countries"
+              extraCountries={countries}
+              theme={isBlack ? 'black-elite' : 'light'}
+              size="sm"
+            />
 
-            <select
-              aria-label="Filter by Verification"
+            <FilterSelect
+              ariaLabel="Filter by Verification"
               value={verificationFilter}
-              onChange={(e) => {
-                setVerificationFilter(e.target.value);
+              onChange={(val) => {
+                setVerificationFilter(val || 'all');
                 setPage(0);
               }}
-              className={`px-3 py-2 rounded-xl border ${
-                isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300'
-              }`}
-            >
-              <option value="all">All Verification</option>
-              {[
-                'Source Confirmed',
-                'MX Valid',
-                'Domain Valid',
-                'Mailbox Verified',
-                'Verified',
-                'Role-Based',
-                'Unverified',
-                'Stale',
-                'Verification Failed',
-                'Invalid',
-              ].map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
+              options={[
+                { value: 'all', label: 'All Verification' },
+                ...[
+                  'Source Confirmed',
+                  'MX Valid',
+                  'Domain Valid',
+                  'Mailbox Verified',
+                  'Verified',
+                  'Role-Based',
+                  'Unverified',
+                  'Stale',
+                  'Verification Failed',
+                  'Invalid',
+                ].map((s) => ({ value: s, label: s })),
+              ]}
+              theme={isBlack ? 'black-elite' : 'light'}
+            />
 
-            <select
-              aria-label="Filter by Contact Type"
+            <FilterSelect
+              ariaLabel="Filter by Contact Type"
               value={contactTypeFilter}
-              onChange={(e) => {
-                setContactTypeFilter(e.target.value);
+              onChange={(val) => {
+                setContactTypeFilter(val || 'all');
                 setPage(0);
               }}
-              className={`px-3 py-2 rounded-xl border ${
-                isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300'
-              }`}
-            >
-              <option value="all">All Contact Types</option>
-              {[
-                'Named Recruiter',
-                'Talent Acquisition',
-                'Recruitment Department',
-                'HR Department',
-                'Hiring Manager',
-                'Careers Contact',
-                'General Company Contact',
-                'Unknown',
-              ].map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
+              options={[
+                { value: 'all', label: 'All Contact Types' },
+                ...[
+                  'Named Recruiter',
+                  'Talent Acquisition',
+                  'Recruitment Department',
+                  'HR Department',
+                  'Hiring Manager',
+                  'Careers Contact',
+                  'General Company Contact',
+                  'Unknown',
+                ].map((t) => ({ value: t, label: t })),
+              ]}
+              theme={isBlack ? 'black-elite' : 'light'}
+            />
 
-            <select
-              aria-label="Filter by Designation"
+            <FilterSelect
+              ariaLabel="Filter by Designation"
               value={designationFilter}
-              onChange={(e) => {
-                setDesignationFilter(e.target.value);
+              onChange={(val) => {
+                setDesignationFilter(val || 'all');
                 setPage(0);
               }}
-              className={`px-3 py-2 rounded-xl border ${
-                isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300'
-              }`}
-            >
-              <option value="all">All Designations</option>
-              {[
-                'Talent Acquisition Specialist',
-                'HR Recruiter',
-                'Technical Recruiter',
-                'Recruitment Manager',
-                'Senior HR Manager',
-                'Head of Talent Acquisition',
-                'Recruitment Coordinator',
-                'Hiring Manager',
-                'General Recruitment Contact',
-                'Careers Department',
-              ].map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
+              options={[
+                { value: 'all', label: 'All Designations' },
+                ...[
+                  'Talent Acquisition Specialist',
+                  'HR Recruiter',
+                  'Technical Recruiter',
+                  'Recruitment Manager',
+                  'Senior HR Manager',
+                  'Head of Talent Acquisition',
+                  'Recruitment Coordinator',
+                  'Hiring Manager',
+                  'General Recruitment Contact',
+                  'Careers Department',
+                ].map((d) => ({ value: d, label: d })),
+              ]}
+              theme={isBlack ? 'black-elite' : 'light'}
+            />
 
-            <select
-              aria-label="Sort Contacts"
+            <FilterSelect
+              ariaLabel="Sort Contacts"
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'relevance' | 'confidence')}
-              className={`px-3 py-2 rounded-xl border ${
-                isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300'
-              }`}
-            >
-              <option value="relevance">Sort: Relevance</option>
-              <option value="confidence">Sort: Confidence</option>
-            </select>
+              onChange={(val) => setSortBy((val || 'relevance') as 'relevance' | 'confidence')}
+              searchable={false}
+              options={[
+                { value: 'relevance', label: 'Sort: Relevance' },
+                { value: 'confidence', label: 'Sort: Confidence' },
+              ]}
+              theme={isBlack ? 'black-elite' : 'light'}
+            />
           </div>
 
           {/* Bulk Campaign Selection Bar */}
@@ -722,22 +711,19 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
               <span className="font-semibold">{selectedContactIds.length} contact(s) selected</span>
               <div className="flex items-center gap-2">
                 {campaigns.length > 0 && (
-                  <select
-                    aria-label="Add to Campaign"
-                    defaultValue=""
-                    onChange={(e) => {
-                      if (e.target.value) handleAddSelectedToCampaign(e.target.value);
-                      e.target.value = '';
-                    }}
-                    className={`px-3 py-1.5 rounded-lg border ${
-                      isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300'
-                    }`}
-                  >
-                    <option value="">+ Add Selected to Campaign...</option>
-                    {campaigns.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
+                  <div className="w-60">
+                    <SearchableSelect
+                      ariaLabel="Add to Campaign"
+                      value=""
+                      placeholder="+ Add Selected to Campaign..."
+                      onChange={(campaignId) => {
+                        if (campaignId) handleAddSelectedToCampaign(campaignId);
+                      }}
+                      options={campaigns.map((c) => ({ value: c.id, label: c.name }))}
+                      theme={isBlack ? 'black-elite' : 'light'}
+                      size="xs"
+                    />
+                  </div>
                 )}
                 <button
                   onClick={() => setSelectedContactIds([])}
@@ -1275,19 +1261,22 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
         <div className={`rounded-2xl border overflow-hidden ${cardSurface}`}>
           <div className="p-4 border-b border-current/10 flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-bold">Outreach Messages & Provider Delivery Audit</h3>
-            <select
-              aria-label="Filter Sent Status"
-              value={sentStatusFilter}
-              onChange={(e) => setSentStatusFilter(e.target.value)}
-              className={`px-3 py-1.5 rounded-xl border text-xs ${
-                isBlack ? 'bg-[#0C0E12] border-white/15 text-[#F2F0EA]' : 'bg-white border-slate-300'
-              }`}
-            >
-              <option value="all">All Statuses</option>
-              {['draft', 'approved', 'provider_accepted', 'delivered', 'bounced', 'failed', 'replied', 'follow_up_due'].map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
+            <div className="w-48">
+              <FilterSelect
+                ariaLabel="Filter Sent Status"
+                value={sentStatusFilter}
+                onChange={(val) => setSentStatusFilter(val || 'all')}
+                searchable={false}
+                options={[
+                  { value: 'all', label: 'All Statuses' },
+                  ...['draft', 'approved', 'provider_accepted', 'delivered', 'bounced', 'failed', 'replied', 'follow_up_due'].map((s) => ({
+                    value: s,
+                    label: s,
+                  })),
+                ]}
+                theme={isBlack ? 'black-elite' : 'light'}
+              />
+            </div>
           </div>
           {messages.length === 0 ? (
             <div className="p-8 text-center text-xs opacity-70">No outreach drafts or sent emails recorded yet.</div>

@@ -15,6 +15,7 @@ import {
   Target
 } from 'lucide-react';
 import { UserProfile, CareerPreferences, JobVacancy } from '../types/index.ts';
+import { SearchableSelect } from './ui/SelectSystem.tsx';
 
 interface CareerIntelligenceReportProps {
   profile: UserProfile | null;
@@ -106,17 +107,18 @@ export const CareerIntelligenceReport: React.FC<CareerIntelligenceReportProps> =
             <Target className="h-4 w-4 text-cyan-500" />
             <span>Evaluate Against Target Role:</span>
           </div>
-          <select
-            value={selectedJobId}
-            onChange={e => setSelectedJobId(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white font-medium focus:outline-none cursor-pointer max-w-md truncate"
-          >
-            {vacancies.slice(0, 15).map(v => (
-              <option key={v.id} value={v.id}>
-                {v.title} — {v.company} ({v.location})
-              </option>
-            ))}
-          </select>
+          <div className="w-full sm:w-96">
+            <SearchableSelect
+              value={selectedJobId}
+              onChange={val => setSelectedJobId(val)}
+              options={vacancies.slice(0, 25).map(v => ({
+                value: v.id,
+                label: `${v.title} — ${v.company} (${v.location})`,
+              }))}
+              size="sm"
+              ariaLabel="Evaluate Against Target Role"
+            />
+          </div>
         </div>
       )}
 

@@ -25,6 +25,13 @@ import {
 import { JobVacancy } from '../types/index.ts';
 import { api } from '../services/api.ts';
 import { JobComparisonDrawer } from './JobComparisonDrawer.tsx';
+import { LocationAutocomplete, FilterSelect, SearchableSelect } from './ui/SelectSystem.tsx';
+import { locationMatchesFilter } from '../data/globalLocations.ts';
+import {
+  EMPLOYMENT_TYPE_OPTIONS,
+  EXPERIENCE_LEVEL_OPTIONS,
+  NOTIFICATION_FREQUENCY_OPTIONS,
+} from '../data/platformOptions.ts';
 
 interface JobSearchPageProps {
   vacancies: JobVacancy[];
@@ -145,10 +152,8 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
       if (!v.company.toLowerCase().includes(companyFilter.toLowerCase().trim())) return false;
     }
 
-    if (locationFilter !== 'All Locations') {
-      const matchLoc = v.location.toLowerCase().includes(locationFilter.toLowerCase()) ||
-        v.country.toLowerCase().includes(locationFilter.toLowerCase());
-      if (!matchLoc) return false;
+    if (locationFilter !== 'All Locations' && locationFilter.trim()) {
+      if (!locationMatchesFilter(v.location, v.country, locationFilter)) return false;
     }
 
     if (workArrangement !== 'all') {
@@ -375,17 +380,23 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
 
             {/* Location Selector */}
             <div className="relative md:col-span-2 min-w-0">
-              <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <select
-                value={locationFilter}
-                onChange={e => setLocationFilter(e.target.value)}
-                className="w-full pl-10 pr-8 py-2.5 min-h-[44px] rounded-xl neu-input text-xs text-slate-900 appearance-none cursor-pointer"
-              >
-                {locations.map(loc => (
-                  <option key={loc} value={loc}>{loc}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+              <LocationAutocomplete
+                value={locationFilter === 'All Locations' ? '' : locationFilter}
+                includeRemote={true}
+                onChange={(val, structured) => {
+                  setLocationFilter(val || 'All Locations');
+                  setCurrentPage(1);
+                  if (structured) {
+                    const searchCountry =
+                      structured.locationType === 'remote'
+                        ? 'Remote Worldwide'
+                        : structured.country;
+                    onSearch(query, searchCountry, workArrangement === 'remote');
+                  }
+                }}
+                placeholder="Any city or country..."
+                ariaLabel="Filter jobs by location"
+              />
             </div>
 
             {/* Search Button */}
@@ -449,30 +460,31 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
 
             {/* Employment Type & Experience Selectors */}
             <div className="flex flex-wrap items-center gap-2">
-              <select
-                value={employmentType}
-                onChange={e => setEmploymentType(e.target.value)}
-                className="px-2.5 py-1.5 min-h-[34px] rounded-lg neu-input text-xs text-slate-700 font-medium"
-              >
-                <option value="all">All Employment Types</option>
-                <option value="full-time">Full-Time</option>
-                <option value="part-time">Part-Time</option>
-                <option value="contract">Contract</option>
-                <option value="internship">Internship</option>
-              </select>
+              <div className="w-40">
+                <FilterSelect
+                  value={employmentType}
+                  onChange={(val) => {
+                    setEmploymentType(val);
+                    setCurrentPage(1);
+                  }}
+                  options={EMPLOYMENT_TYPE_OPTIONS}
+                  searchable={false}
+                  ariaLabel="Employment Type"
+                />
+              </div>
 
-              <select
-                value={experienceLevel}
-                onChange={e => setExperienceLevel(e.target.value)}
-                className="px-2.5 py-1.5 min-h-[34px] rounded-lg neu-input text-xs text-slate-700 font-medium"
-              >
-                <option value="all">All Experience Levels</option>
-                <option value="entry">Entry-Level</option>
-                <option value="mid">Mid-Level</option>
-                <option value="senior">Senior</option>
-                <option value="lead">Lead / Staff</option>
-                <option value="executive">Executive</option>
-              </select>
+              <div className="w-44">
+                <FilterSelect
+                  value={experienceLevel}
+                  onChange={(val) => {
+                    setExperienceLevel(val);
+                    setCurrentPage(1);
+                  }}
+                  options={EXPERIENCE_LEVEL_OPTIONS}
+                  searchable={false}
+                  ariaLabel="Experience Level"
+                />
+              </div>
 
               {/* Published Salary Toggle */}
               <label className="inline-flex items-center space-x-1.5 cursor-pointer px-3 py-1.5 min-h-[34px] rounded-lg neu-chip text-slate-700">
@@ -506,16 +518,20 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
           {/* Sorting Dropdown */}
           <div className="flex items-center space-x-1.5 text-slate-500">
             <span className="text-[11px] font-medium">Sort by:</span>
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value as any)}
-              className="px-2.5 py-1.5 rounded-xl neu-input text-xs font-semibold text-slate-700 cursor-pointer"
-            >
-              <option value="recent">Most Recent</option>
-              <option value="match">Highest Match</option>
-              <option value="salary">Highest Salary</option>
-              <option value="title">Job Title</option>
-            </select>
+            <div className="w-36">
+              <FilterSelect
+                value={sortBy}
+                onChange={(val) => setSortBy(val as any)}
+                searchable={false}
+                options={[
+                  { value: 'recent', label: 'Most Recent' },
+                  { value: 'match', label: 'Highest Match' },
+                  { value: 'salary', label: 'Highest Salary' },
+                  { value: 'title', label: 'Job Title' },
+                ]}
+                ariaLabel="Sort jobs"
+              />
+            </div>
           </div>
 
           {/* List / Cards View Toggle */}
@@ -883,15 +899,14 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
 
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1">Notification Frequency</label>
-                <select
+                <SearchableSelect
                   value={alertFrequency}
-                  onChange={e => setAlertFrequency(e.target.value as any)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"
-                >
-                  <option value="daily">Daily Digest (Recommended)</option>
-                  <option value="weekly">Weekly Summary</option>
-                  <option value="instant">Instant Real-Time Alert</option>
-                </select>
+                  onChange={val => setAlertFrequency(val as any)}
+                  options={NOTIFICATION_FREQUENCY_OPTIONS}
+                  searchable={false}
+                  size="sm"
+                  ariaLabel="Notification Frequency"
+                />
               </div>
             </div>
 

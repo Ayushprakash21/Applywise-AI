@@ -43,6 +43,15 @@ import {
 import { createWorkerHrOutreachApp } from './hrOutreachRoutes.ts';
 import { WorkerHrOutreachStore } from './hrOutreachStore.ts';
 import { WorkerHrDiscoveryQueueStore } from './hrDiscoveryQueueStore.ts';
+import {
+  handleLocationSearchRequest,
+  handleCountriesRequest,
+  handleStatesRequest,
+  handleCitiesRequest,
+  handleOptionsCatalogRequest,
+  normalizeProfileLocationUpdates,
+  normalizePreferencesLocationUpdates,
+} from '../src/utils/locationService.ts';
 import { processWorkerHrDiscoveryQueueBatch, revalidateWorkerStaleContacts } from './hrDiscoveryEngine.ts';
 
 type Bindings = {
@@ -1161,6 +1170,44 @@ app.get('/api/resumes/:appId/export/docx', requireAuth, async (c) => {
 // 3. PROFILE & PREFERENCES
 // ============================================================================
 
+app.get('/api/locations/search', (c) => {
+  const payload = handleLocationSearchRequest({
+    q: c.req.query('q'),
+    type: c.req.query('type'),
+    countryCode: c.req.query('countryCode'),
+    includeRemote: c.req.query('includeRemote'),
+    limit: c.req.query('limit'),
+  });
+  c.header('Cache-Control', 'public, max-age=3600');
+  return c.json(payload);
+});
+
+app.get('/api/locations/countries', (c) => {
+  c.header('Cache-Control', 'public, max-age=86400');
+  return c.json(handleCountriesRequest(c.req.query('includeRemote')));
+});
+
+app.get('/api/locations/states', (c) => {
+  c.header('Cache-Control', 'public, max-age=86400');
+  return c.json(handleStatesRequest(c.req.query('country') || c.req.query('countryCode')));
+});
+
+app.get('/api/locations/cities', (c) => {
+  c.header('Cache-Control', 'public, max-age=3600');
+  return c.json(
+    handleCitiesRequest({
+      country: c.req.query('country') || c.req.query('countryCode'),
+      state: c.req.query('state') || c.req.query('region'),
+      q: c.req.query('q'),
+    })
+  );
+});
+
+app.get('/api/options/catalog', (c) => {
+  c.header('Cache-Control', 'public, max-age=86400');
+  return c.json(handleOptionsCatalogRequest());
+});
+
 app.get('/api/profile', requireAuth, async (c) => {
   const user: AuthUser = c.get('user')!;
   const store: D1Store = c.get('store');
@@ -1178,11 +1225,7 @@ app.put('/api/profile', requireAuth, async (c) => {
     return c.json({ success: false, error: 'Profile not found.' }, 404);
   }
 
-  const updated = {
-    ...current,
-    ...updates,
-    masterResumeLastUpdated: new Date().toISOString(),
-  };
+  const updated = normalizeProfileLocationUpdates(current, updates);
 
   await store.saveProfile(user.id, updated);
   await store.addAuditLog(user.id, 'User manual', 'PROFILE_UPDATED', 'Master Profile', 'Updated profile information');
@@ -1201,7 +1244,7 @@ app.put('/api/preferences', requireAuth, async (c) => {
   const store: D1Store = c.get('store');
   const updates = await c.req.json();
   const current = await store.getPreferences(user.id);
-  const updated = { ...current, ...updates };
+  const updated = normalizePreferencesLocationUpdates(current, updates);
 
   await store.savePreferences(user.id, updated);
   await store.addAuditLog(user.id, 'User manual', 'PREFERENCES_UPDATED', 'Preferences', 'Updated career targets and filters');

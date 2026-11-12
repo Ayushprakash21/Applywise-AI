@@ -17,6 +17,23 @@ import {
 } from 'lucide-react';
 import { UserProfile, CareerPreferences } from '../types/index.ts';
 import { api } from '../services/api.ts';
+import {
+  LocationAutocomplete,
+  Autocomplete,
+  SearchableSelect,
+  MultiSelect,
+  CountrySelect,
+  StateSelect,
+  CitySelect,
+  resolveNextCascadingState,
+} from './ui/SelectSystem.tsx';
+import {
+  SKILLS_CATALOG,
+  ROLE_TITLES_CATALOG,
+  RELOCATION_OPTIONS,
+  INDUSTRY_OPTIONS,
+  LANGUAGE_OPTIONS,
+} from '../data/platformOptions.ts';
 
 interface ProfileAndPreferencesPageProps {
   profile: UserProfile | null;
@@ -85,13 +102,18 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
     }
   };
 
-  const addSkill = () => {
-    if (!newSkill.trim()) return;
+  const addSkill = (overrideSkill?: string) => {
+    const val = (overrideSkill ?? newSkill).trim();
+    if (!val) return;
+    if (profileData.skills.some(s => s.name.toLowerCase() === val.toLowerCase())) {
+      setNewSkill('');
+      return;
+    }
     setProfileData({
       ...profileData,
       skills: [
         ...profileData.skills,
-        { name: newSkill.trim(), category: 'general', proficiency: 'proficient', yearsExperience: 2, verified: true },
+        { name: val, category: 'general', proficiency: 'proficient', yearsExperience: 2, verified: true },
       ],
     });
     setNewSkill('');
@@ -104,13 +126,18 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
     });
   };
 
-  const addTargetRole = () => {
-    if (!newRole.trim()) return;
+  const addTargetRole = (overrideRole?: string) => {
+    const val = (overrideRole ?? newRole).trim();
+    if (!val) return;
     const current = prefData.targetRoles || prefData.preferredTitles || [];
+    if (current.some(r => r.toLowerCase() === val.toLowerCase())) {
+      setNewRole('');
+      return;
+    }
     setPrefData({
       ...prefData,
-      targetRoles: [...current, newRole.trim()],
-      preferredTitles: [...current, newRole.trim()],
+      targetRoles: [...current, val],
+      preferredTitles: [...current, val],
     });
     setNewRole('');
   };
@@ -256,12 +283,27 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
 
               <div>
                 <label className="font-semibold text-slate-700 mb-1 block">Location</label>
-                <input
-                  type="text"
+                <LocationAutocomplete
+                  id="profile-location-autocomplete"
                   value={profileData.location}
-                  onChange={e => setProfileData({ ...profileData, location: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl neu-input text-slate-900"
+                  onChange={(nextValue, structured) => {
+                    setProfileData({
+                      ...profileData,
+                      location: nextValue,
+                      structuredLocation: structured || undefined,
+                      preferredCountry: structured?.country || profileData.preferredCountry,
+                      preferredState: structured?.region || profileData.preferredState,
+                      preferredCity: structured?.city || profileData.preferredCity,
+                    });
+                  }}
+                  placeholder="Search city, state, or country (e.g. Indore, Mumbai, London)..."
+                  ariaLabel="Candidate Location"
                 />
+                {profileData.structuredLocation && (
+                  <p className="text-[11px] text-emerald-700 font-medium mt-1">
+                    Verified location: {profileData.structuredLocation.formattedAddress} ({profileData.structuredLocation.countryCode})
+                  </p>
+                )}
               </div>
 
               <div>
@@ -273,6 +315,93 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   className="w-full px-3.5 py-2.5 rounded-xl neu-input text-slate-900"
                 />
               </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-200/60 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="font-semibold text-slate-700 block">Country, State & City Breakdown (Optional)</label>
+                <span className="text-[11px] text-slate-500">Cascading Country → State → City sync</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <CountrySelect
+                  value={profileData.preferredCountry || profileData.structuredLocation?.country || ''}
+                  onChange={(countryName, meta) => {
+                    const reset = resolveNextCascadingState(
+                      countryName,
+                      profileData.preferredState || '',
+                      profileData.preferredCity || ''
+                    );
+                    const nextFormatted = countryName
+                      ? [reset.city, reset.state, countryName].filter(Boolean).join(', ')
+                      : profileData.location;
+                    setProfileData({
+                      ...profileData,
+                      preferredCountry: countryName,
+                      preferredState: reset.state,
+                      preferredCity: reset.city,
+                      location: countryName ? nextFormatted : profileData.location,
+                      structuredLocation: countryName && meta
+                        ? {
+                            city: reset.city || undefined,
+                            region: reset.state || undefined,
+                            country: meta.name,
+                            countryCode: meta.code,
+                            formattedAddress: nextFormatted,
+                            locationType: reset.city ? 'city' : reset.state ? 'region' : 'country',
+                          }
+                        : profileData.structuredLocation,
+                    });
+                  }}
+                  placeholder="Select country..."
+                  ariaLabel="Profile Country"
+                />
+                <StateSelect
+                  country={profileData.preferredCountry || profileData.structuredLocation?.country || ''}
+                  value={profileData.preferredState || profileData.structuredLocation?.region || ''}
+                  onChange={(stateName) => {
+                    const country = profileData.preferredCountry || profileData.structuredLocation?.country || '';
+                    const reset = resolveNextCascadingState(country, stateName, '');
+                    const nextFormatted = [reset.state, country].filter(Boolean).join(', ');
+                    setProfileData({
+                      ...profileData,
+                      preferredState: stateName,
+                      preferredCity: '',
+                      location: nextFormatted || profileData.location,
+                    });
+                  }}
+                  ariaLabel="Profile State or Region"
+                />
+                <CitySelect
+                  country={profileData.preferredCountry || profileData.structuredLocation?.country || ''}
+                  state={profileData.preferredState || profileData.structuredLocation?.region || ''}
+                  value={profileData.preferredCity || profileData.structuredLocation?.city || ''}
+                  onChange={(cityName, structured) => {
+                    const country = profileData.preferredCountry || profileData.structuredLocation?.country || '';
+                    const state = profileData.preferredState || profileData.structuredLocation?.region || structured?.region || '';
+                    const formatted = [cityName, state, country].filter(Boolean).join(', ');
+                    setProfileData({
+                      ...profileData,
+                      preferredCity: cityName,
+                      preferredState: state,
+                      location: formatted || profileData.location,
+                      structuredLocation: structured || profileData.structuredLocation,
+                    });
+                  }}
+                  ariaLabel="Profile City"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-200/60">
+              <label className="font-semibold text-slate-700 mb-1.5 block text-xs">Spoken / Working Languages</label>
+              <MultiSelect
+                values={profileData.languages || []}
+                onChange={(langs) => setProfileData({ ...profileData, languages: langs })}
+                options={LANGUAGE_OPTIONS}
+                placeholder="Select languages (e.g. English, Hindi, German)..."
+                allowCustom={true}
+                ariaLabel="Languages"
+              />
             </div>
 
             <div>
@@ -293,17 +422,24 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
             </h2>
 
             <div className="flex gap-2 text-xs">
-              <input
-                type="text"
-                value={newSkill}
-                onChange={e => setNewSkill(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                placeholder="Add verified skill (e.g. TypeScript, Docker, SQL)..."
-                className="min-w-0 flex-1 px-3.5 py-2 min-h-[44px] rounded-xl neu-input text-slate-900"
-              />
+              <div className="min-w-0 flex-1">
+                <Autocomplete
+                  value={newSkill}
+                  onChange={setNewSkill}
+                  options={SKILLS_CATALOG.filter(
+                    (opt) =>
+                      !newSkill.trim() ||
+                      opt.label.toLowerCase().includes(newSkill.trim().toLowerCase())
+                  )}
+                  onSelectOption={(opt) => addSkill(opt.value)}
+                  onSubmitValue={(val) => addSkill(val)}
+                  placeholder="Add verified skill (e.g. TypeScript, SAP, Power BI, SQL)..."
+                  ariaLabel="Add verified skill"
+                />
+              </div>
               <button
                 type="button"
-                onClick={addSkill}
+                onClick={() => addSkill()}
                 className="shrink-0 px-4 py-2 min-h-[44px] be-btn-primary neu-button rounded-xl font-bold transition touch-target flex items-center space-x-1 cursor-pointer"
               >
                 <span>Add Skill</span>
@@ -361,17 +497,24 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
             <div className="space-y-2 text-xs">
               <label className="font-semibold text-slate-700 block">Target Job Titles</label>
               <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newRole}
-                  onChange={e => setNewRole(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTargetRole())}
-                  placeholder="e.g. Senior Software Engineer, Technical Lead..."
-                  className="min-w-0 flex-1 px-3.5 py-2 min-h-[44px] rounded-xl neu-input text-slate-900"
-                />
+                <div className="min-w-0 flex-1">
+                  <Autocomplete
+                    value={newRole}
+                    onChange={setNewRole}
+                    options={ROLE_TITLES_CATALOG.filter(
+                      (opt) =>
+                        !newRole.trim() ||
+                        opt.label.toLowerCase().includes(newRole.trim().toLowerCase())
+                    )}
+                    onSelectOption={(opt) => addTargetRole(opt.value)}
+                    onSubmitValue={(val) => addTargetRole(val)}
+                    placeholder="e.g. Senior Software Engineer, Supply Chain Analyst..."
+                    ariaLabel="Target Job Title"
+                  />
+                </div>
                 <button
                   type="button"
-                  onClick={addTargetRole}
+                  onClick={() => addTargetRole()}
                   className="shrink-0 px-4 py-2 min-h-[44px] neu-button rounded-xl font-semibold transition touch-target"
                 >
                   Add Role
@@ -389,6 +532,74 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                       type="button"
                       onClick={() => removeTargetRole(r)}
                       className="text-blue-400 hover:text-red-500 transition ml-1"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Target Industries, Relocation & Target Countries */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-3 border-t border-slate-200/60">
+              <div>
+                <label className="font-semibold text-slate-700 mb-1.5 block">Preferred Industries</label>
+                <MultiSelect
+                  values={prefData.preferredIndustries || []}
+                  onChange={(industries) => setPrefData({ ...prefData, preferredIndustries: industries })}
+                  options={INDUSTRY_OPTIONS}
+                  placeholder="Select target industries..."
+                  allowCustom={true}
+                  ariaLabel="Preferred Industries"
+                />
+              </div>
+
+              <div>
+                <label className="font-semibold text-slate-700 mb-1.5 block">Willingness to Relocate</label>
+                <SearchableSelect
+                  value={prefData.willingnessToRelocate || 'negotiable'}
+                  onChange={(val) => setPrefData({ ...prefData, willingnessToRelocate: val as any })}
+                  options={RELOCATION_OPTIONS}
+                  placeholder="Select relocation preference..."
+                  ariaLabel="Willingness to Relocate"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2 text-xs pt-3 border-t border-slate-200/60">
+              <label className="font-semibold text-slate-700 block">Target Countries & Regions</label>
+              <CountrySelect
+                value=""
+                includeRemote={true}
+                clearable={false}
+                placeholder="Add target country or Remote Worldwide..."
+                onChange={(countryName) => {
+                  if (!countryName) return;
+                  if (!prefData.targetCountries.includes(countryName)) {
+                    setPrefData({
+                      ...prefData,
+                      targetCountries: [...prefData.targetCountries, countryName],
+                    });
+                  }
+                }}
+                ariaLabel="Add Target Country"
+              />
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {prefData.targetCountries.map((country) => (
+                  <span
+                    key={country}
+                    className="inline-flex items-center space-x-1.5 px-2.5 py-1 neu-chip text-slate-800 rounded-lg text-[11px] font-medium"
+                  >
+                    <span>{country}</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPrefData({
+                          ...prefData,
+                          targetCountries: prefData.targetCountries.filter((c) => c !== country),
+                        })
+                      }
+                      className="text-slate-400 hover:text-red-500 transition"
                     >
                       ✕
                     </button>

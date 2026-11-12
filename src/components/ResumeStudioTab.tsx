@@ -16,6 +16,7 @@ import {
   Eye
 } from 'lucide-react';
 import { ApplicationRecord, UserProfile } from '../types/index.ts';
+import { SearchableSelect } from './ui/SelectSystem.tsx';
 
 interface ResumeStudioTabProps {
   applications: ApplicationRecord[];
@@ -90,19 +91,20 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
 
         {/* Target Vacancy Selector */}
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700">
-            <span className="text-slate-500">Target Role:</span>
-            <select
-              value={selectedAppId}
-              onChange={e => setSelectedAppId(e.target.value)}
-              className="bg-transparent text-slate-900 font-semibold focus:outline-none cursor-pointer"
-            >
-              {applications.map(app => (
-                <option key={app.id} value={app.id}>
-                  {app.company} – {app.role} ({app.matchScore}% match)
-                </option>
-              ))}
-            </select>
+          <div className="flex items-center space-x-2 text-xs text-slate-700">
+            <span className="text-slate-500 font-medium">Target Role:</span>
+            <div className="w-64 sm:w-80">
+              <SearchableSelect
+                value={selectedAppId}
+                onChange={val => setSelectedAppId(val)}
+                options={applications.map(app => ({
+                  value: app.id,
+                  label: `${app.company} – ${app.role} (${app.matchScore}% match)`,
+                }))}
+                size="sm"
+                ariaLabel="Select Target Role for Resume Studio"
+              />
+            </div>
           </div>
 
           <button

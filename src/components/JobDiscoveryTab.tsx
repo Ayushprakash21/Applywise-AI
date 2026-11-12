@@ -18,6 +18,7 @@ import {
   Info
 } from 'lucide-react';
 import { JobVacancy, CareerPreferences } from '../types/index.ts';
+import { FilterSelect } from './ui/SelectSystem.tsx';
 
 interface JobDiscoveryTabProps {
   vacancies: JobVacancy[];
@@ -128,44 +129,53 @@ export const JobDiscoveryTab: React.FC<JobDiscoveryTabProps> = ({
           </div>
 
           <div>
-            <select
+            <FilterSelect
               value={selectedSource}
-              onChange={e => setSelectedSource(e.target.value)}
-              className="w-full rounded-lg border border-slate-700/80 bg-slate-950/70 py-2 px-3 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
-            >
-              <option value="all">All Sources (Remotive, Jobicy, Arbeitnow, Direct)</option>
-              <option value="remotive">Remotive API</option>
-              <option value="jobicy">Jobicy Feed</option>
-              <option value="arbeitnow">Arbeitnow EU/Global</option>
-              <option value="direct_feed">Direct Career Pages</option>
-              <option value="manual">Manual Imports</option>
-            </select>
+              onChange={val => setSelectedSource(val || 'all')}
+              searchable={false}
+              options={[
+                { value: 'all', label: 'All Sources (Remotive, Jobicy, Arbeitnow, Direct)' },
+                { value: 'remotive', label: 'Remotive API' },
+                { value: 'jobicy', label: 'Jobicy Feed' },
+                { value: 'arbeitnow', label: 'Arbeitnow EU/Global' },
+                { value: 'direct_feed', label: 'Direct Career Pages' },
+                { value: 'manual', label: 'Manual Imports' },
+              ]}
+              theme="dark"
+              ariaLabel="Filter jobs by source"
+            />
           </div>
 
           <div>
-            <select
+            <FilterSelect
               value={arrangementFilter}
-              onChange={e => setArrangementFilter(e.target.value)}
-              className="w-full rounded-lg border border-slate-700/80 bg-slate-950/70 py-2 px-3 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
-            >
-              <option value="all">Any Work Arrangement</option>
-              <option value="remote">Remote Only</option>
-              <option value="hybrid">Hybrid</option>
-              <option value="onsite">On-site</option>
-            </select>
+              onChange={val => setArrangementFilter(val || 'all')}
+              searchable={false}
+              options={[
+                { value: 'all', label: 'Any Work Arrangement' },
+                { value: 'remote', label: 'Remote Only' },
+                { value: 'hybrid', label: 'Hybrid' },
+                { value: 'onsite', label: 'On-site' },
+              ]}
+              theme="dark"
+              ariaLabel="Filter jobs by arrangement"
+            />
           </div>
 
           <div>
-            <select
-              value={minMatchFilter}
-              onChange={e => setMinMatchFilter(Number(e.target.value))}
-              className="w-full rounded-lg border border-slate-700/80 bg-slate-950/70 py-2 px-3 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none"
-            >
-              <option value="0">All Match Scores (0%+)</option>
-              <option value="70">Moderate & High (&ge; 70%)</option>
-              <option value="80">High Match (&ge; 80%)</option>
-              <option value="90">Top Match (&ge; 90%)</option>
-            </select>
+            <FilterSelect
+              value={String(minMatchFilter)}
+              onChange={val => setMinMatchFilter(Number(val || 0))}
+              searchable={false}
+              options={[
+                { value: '0', label: 'All Match Scores (0%+)' },
+                { value: '70', label: 'Moderate & High (>= 70%)' },
+                { value: '80', label: 'High Match (>= 80%)' },
+                { value: '90', label: 'Top Match (>= 90%)' },
+              ]}
+              theme="dark"
+              ariaLabel="Filter jobs by minimum match score"
+            />
           </div>
         </div>
       </div>

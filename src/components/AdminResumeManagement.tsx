@@ -33,6 +33,7 @@ import {
   CandidateFact
 } from '../types/index.ts';
 import { api } from '../services/api.ts';
+import { FilterSelect } from './ui/SelectSystem.tsx';
 
 export interface AdminResumeManagementProps {
   onRefreshOverview?: () => void;
@@ -259,29 +260,39 @@ export const AdminResumeManagement: React.FC<AdminResumeManagementProps> = ({ on
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            className="px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
-          >
-            <option value="all">All Statuses</option>
-            <option value="SUCCESS">SUCCESS</option>
-            <option value="PARTIAL">PARTIAL</option>
-            <option value="FAILED">FAILED</option>
-            <option value="PENDING">PENDING</option>
-            <option value="SCANNED">SCANNED</option>
-          </select>
+          <div className="w-36">
+            <FilterSelect
+              value={statusFilter}
+              onChange={(val) => { setStatusFilter(val || 'all'); setPage(1); }}
+              searchable={false}
+              options={[
+                { value: 'all', label: 'All Statuses' },
+                { value: 'SUCCESS', label: 'SUCCESS' },
+                { value: 'PARTIAL', label: 'PARTIAL' },
+                { value: 'FAILED', label: 'FAILED' },
+                { value: 'PENDING', label: 'PENDING' },
+                { value: 'SCANNED', label: 'SCANNED' },
+              ]}
+              theme="dark"
+              ariaLabel="Filter resumes by status"
+            />
+          </div>
 
           {/* Format Filter */}
-          <select
-            value={formatFilter}
-            onChange={(e) => { setFormatFilter(e.target.value); setPage(1); }}
-            className="px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
-          >
-            <option value="all">All Formats</option>
-            <option value="pdf">PDF (.pdf)</option>
-            <option value="docx">Word (.docx)</option>
-          </select>
+          <div className="w-36">
+            <FilterSelect
+              value={formatFilter}
+              onChange={(val) => { setFormatFilter(val || 'all'); setPage(1); }}
+              searchable={false}
+              options={[
+                { value: 'all', label: 'All Formats' },
+                { value: 'pdf', label: 'PDF (.pdf)' },
+                { value: 'docx', label: 'Word (.docx)' },
+              ]}
+              theme="dark"
+              ariaLabel="Filter resumes by format"
+            />
+          </div>
 
           {/* Refresh Button */}
           <button

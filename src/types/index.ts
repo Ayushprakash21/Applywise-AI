@@ -83,6 +83,15 @@ export interface VerifiedSkill {
   verified?: boolean;
 }
 
+export interface StructuredLocation {
+  city?: string;
+  region?: string;
+  country: string;
+  countryCode: string;
+  formattedAddress: string;
+  locationType: 'city' | 'region' | 'country' | 'remote';
+}
+
 export interface ExperienceItem {
   id?: string;
   company: string;
@@ -91,6 +100,7 @@ export interface ExperienceItem {
   endDate?: string;
   current?: boolean;
   location?: string;
+  structuredLocation?: StructuredLocation;
   description?: string;
   achievements?: string[];
   verifiedSkillsUsed?: string[];
@@ -306,6 +316,10 @@ export interface UserProfile {
   email: string;
   phone: string;
   location: string;
+  structuredLocation?: StructuredLocation;
+  preferredCountry?: string;
+  preferredState?: string;
+  preferredCity?: string;
   photoUrl?: string | null;
   avatarUrl?: string | null;
   workAuthorizationCountry?: string;
@@ -336,6 +350,10 @@ export interface UserProfile {
 export interface CareerPreferences {
   targetRoles?: string[];
   targetLocations?: string[];
+  targetStructuredLocations?: StructuredLocation[];
+  preferredCountry?: string;
+  preferredState?: string;
+  preferredCity?: string;
   targetCountries: string[];
   targetCities: string[];
   preferredTitles: string[];

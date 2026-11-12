@@ -42,6 +42,15 @@ import { hrOutreachStore } from './server/hrOutreachStore.ts';
 import { hrDiscoveryQueueStore } from './server/hrDiscoveryQueueStore.ts';
 import { processHrDiscoveryQueueBatch, revalidateStaleContacts } from './server/hrDiscoveryEngine.ts';
 import { createHrOutreachRouter } from './server/hrOutreachRoutes.ts';
+import {
+  handleLocationSearchRequest,
+  handleCountriesRequest,
+  handleStatesRequest,
+  handleCitiesRequest,
+  handleOptionsCatalogRequest,
+  normalizeProfileLocationUpdates,
+  normalizePreferencesLocationUpdates,
+} from './src/utils/locationService.ts';
 
 dotenv.config();
 
@@ -610,6 +619,45 @@ app.get('/api/resumes/:appId/export/docx', requireAuth, async (req: Authenticate
 // 3. USER PROFILE & PREFERENCES APIS
 // ============================================================================
 
+app.get('/api/locations/search', (req: Request, res: Response) => {
+  const payload = handleLocationSearchRequest({
+    q: typeof req.query.q === 'string' ? req.query.q : undefined,
+    type: typeof req.query.type === 'string' ? req.query.type : undefined,
+    countryCode: typeof req.query.countryCode === 'string' ? req.query.countryCode : undefined,
+    includeRemote: typeof req.query.includeRemote === 'string' ? req.query.includeRemote : undefined,
+    limit: typeof req.query.limit === 'string' ? req.query.limit : undefined,
+  });
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.json(payload);
+});
+
+app.get('/api/locations/countries', (req: Request, res: Response) => {
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.json(handleCountriesRequest(typeof req.query.includeRemote === 'string' ? req.query.includeRemote : undefined));
+});
+
+app.get('/api/locations/states', (req: Request, res: Response) => {
+  const country = typeof req.query.country === 'string' ? req.query.country : (typeof req.query.countryCode === 'string' ? req.query.countryCode : undefined);
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.json(handleStatesRequest(country));
+});
+
+app.get('/api/locations/cities', (req: Request, res: Response) => {
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.json(
+    handleCitiesRequest({
+      country: typeof req.query.country === 'string' ? req.query.country : (typeof req.query.countryCode === 'string' ? req.query.countryCode : undefined),
+      state: typeof req.query.state === 'string' ? req.query.state : (typeof req.query.region === 'string' ? req.query.region : undefined),
+      q: typeof req.query.q === 'string' ? req.query.q : undefined,
+    })
+  );
+});
+
+app.get('/api/options/catalog', (_req: Request, res: Response) => {
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.json(handleOptionsCatalogRequest());
+});
+
 app.get('/api/profile', requireAuth, (req: AuthenticatedRequest, res: Response) => {
   const profile = authAndStore.getProfile(req.user!.id);
   res.json({ success: true, profile });
@@ -622,11 +670,7 @@ app.put('/api/profile', requireAuth, (req: AuthenticatedRequest, res: Response) 
     return res.status(404).json({ success: false, error: 'Profile not found.' });
   }
 
-  const updated = {
-    ...current,
-    ...updates,
-    masterResumeLastUpdated: new Date().toISOString(),
-  };
+  const updated = normalizeProfileLocationUpdates(current, updates);
 
   authAndStore.saveProfile(req.user!.id, updated);
   authAndStore.addAuditLog(req.user!.id, 'User manual', 'PROFILE_UPDATED', 'Master Profile', 'Updated profile information');
@@ -640,7 +684,7 @@ app.get('/api/preferences', requireAuth, (req: AuthenticatedRequest, res: Respon
 
 app.put('/api/preferences', requireAuth, (req: AuthenticatedRequest, res: Response) => {
   const current = authAndStore.getPreferences(req.user!.id);
-  const updated = { ...current, ...req.body };
+  const updated = normalizePreferencesLocationUpdates(current, req.body);
   authAndStore.savePreferences(req.user!.id, updated);
   authAndStore.addAuditLog(req.user!.id, 'User manual', 'PREFERENCES_UPDATED', 'Preferences', 'Updated career targets and filters');
   res.json({ success: true, preferences: updated });

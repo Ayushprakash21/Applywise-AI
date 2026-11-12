@@ -42,6 +42,12 @@ import {
   MembershipHistoryItem
 } from '../types/index.ts';
 import { addCalendarMonthsUTC, calculateMembershipExpiry } from '../utils/membershipDates.ts';
+import { FilterSelect } from './ui/SelectSystem.tsx';
+import {
+  MEMBERSHIP_PLAN_FILTER_OPTIONS,
+  MEMBERSHIP_STATUS_FILTER_OPTIONS,
+  MEMBERSHIP_VALIDITY_FILTER_OPTIONS,
+} from '../data/platformOptions.ts';
 
 interface AdminUserProvisioningProps {
   currentUser: AuthUser;
@@ -504,50 +510,43 @@ export const AdminUserProvisioning: React.FC<AdminUserProvisioningProps> = ({ cu
             </div>
 
             {/* Plan Filter */}
-            <select
-              id={planFilterId}
-              aria-label="Filter candidates by plan"
-              value={selectedPlan}
-              onChange={e => setSelectedPlan(e.target.value)}
-              className="px-3 py-1.5 rounded-lg bg-[#0D1014] border border-white/[0.09] text-xs text-[#F2F0EA] focus:outline-none focus:border-[#C6A66A]/60"
-            >
-              <option value="all">All Plans</option>
-              <option value="black">BLACK ELITE</option>
-              <option value="pro">Pro</option>
-              <option value="free">Free</option>
-            </select>
+            <div className="w-36">
+              <FilterSelect
+                id={planFilterId}
+                ariaLabel="Filter candidates by plan"
+                value={selectedPlan}
+                onChange={val => setSelectedPlan(val || 'all')}
+                searchable={false}
+                options={MEMBERSHIP_PLAN_FILTER_OPTIONS}
+                theme="black-elite"
+              />
+            </div>
 
             {/* Status Filter */}
-            <select
-              id={statusFilterId}
-              aria-label="Filter candidates by membership status"
-              value={selectedStatus}
-              onChange={e => setSelectedStatus(e.target.value)}
-              className="px-3 py-1.5 rounded-lg bg-[#0D1014] border border-white/[0.09] text-xs text-[#F2F0EA] focus:outline-none focus:border-[#C6A66A]/60"
-            >
-              <option value="all">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="expiring_soon">Expiring Soon</option>
-              <option value="lifetime">Lifetime</option>
-              <option value="expired">Expired</option>
-              <option value="suspended">Suspended</option>
-              <option value="revoked">Revoked</option>
-            </select>
+            <div className="w-40">
+              <FilterSelect
+                id={statusFilterId}
+                ariaLabel="Filter candidates by membership status"
+                value={selectedStatus}
+                onChange={val => setSelectedStatus(val || 'all')}
+                searchable={false}
+                options={MEMBERSHIP_STATUS_FILTER_OPTIONS}
+                theme="black-elite"
+              />
+            </div>
 
             {/* Validity Filter */}
-            <select
-              id={validityFilterId}
-              aria-label="Filter candidates by membership validity period"
-              value={selectedValidity}
-              onChange={e => setSelectedValidity(e.target.value)}
-              className="px-3 py-1.5 rounded-lg bg-[#0D1014] border border-white/[0.09] text-xs text-[#F2F0EA] focus:outline-none focus:border-[#C6A66A]/60"
-            >
-              <option value="all">All Validities</option>
-              <option value="6_months">6 Months</option>
-              <option value="12_months">12 Months</option>
-              <option value="24_months">24 Months</option>
-              <option value="lifetime">Lifetime</option>
-            </select>
+            <div className="w-40">
+              <FilterSelect
+                id={validityFilterId}
+                ariaLabel="Filter candidates by membership validity period"
+                value={selectedValidity}
+                onChange={val => setSelectedValidity(val || 'all')}
+                searchable={false}
+                options={MEMBERSHIP_VALIDITY_FILTER_OPTIONS}
+                theme="black-elite"
+              />
+            </div>
 
             {/* Quick Toggle: Expiring in 30 Days */}
             <button

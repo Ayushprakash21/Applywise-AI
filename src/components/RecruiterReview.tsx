@@ -26,6 +26,7 @@ import {
   CandidateFact,
   UserProfile
 } from '../types/index.ts';
+import { SearchableSelect } from './ui/SelectSystem.tsx';
 import { api } from '../services/api.ts';
 
 export interface RecruiterReviewProps {
@@ -151,17 +152,18 @@ export const RecruiterReview: React.FC<RecruiterReviewProps> = ({
           {/* Application Dropdown */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <span className="text-xs text-slate-400 font-medium">Application:</span>
-            <select
-              value={selectedAppId}
-              onChange={e => setSelectedAppId(e.target.value)}
-              className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-semibold text-xs focus:outline-none"
-            >
-              {applications.map(app => (
-                <option key={app.id} value={app.id}>
-                  {app.role} — {app.company}
-                </option>
-              ))}
-            </select>
+            <div className="w-64 sm:w-80">
+              <SearchableSelect
+                value={selectedAppId}
+                onChange={val => setSelectedAppId(val)}
+                options={applications.map(app => ({
+                  value: app.id,
+                  label: `${app.role} — ${app.company}`,
+                }))}
+                size="sm"
+                ariaLabel="Select Application for Recruiter Review"
+              />
+            </div>
           </div>
         </div>
 

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { PlusCircle, Building2, MapPin, DollarSign, Globe, FileText } from 'lucide-react';
 import { WorkArrangement } from '../types/index.ts';
+import { LocationAutocomplete, SearchableSelect } from './ui/SelectSystem.tsx';
+import { FORM_WORK_ARRANGEMENT_OPTIONS } from '../data/platformOptions.ts';
 
 interface ManualJobModalProps {
   isOpen: boolean;
@@ -106,29 +108,30 @@ export const ManualJobModal: React.FC<ManualJobModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-slate-300 font-medium">Location</label>
-              <input
-                type="text"
-                placeholder="San Francisco / Remote"
+              <label className="text-slate-300 font-medium block mb-1">Location</label>
+              <LocationAutocomplete
                 value={location}
-                onChange={e => setLocation(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
+                onChange={(val) => setLocation(val)}
+                includeRemote={true}
+                placeholder="San Francisco / Remote"
+                theme="dark"
+                ariaLabel="Manual Job Location"
               />
             </div>
 
             <div>
-              <label className="text-slate-300 font-medium">Arrangement</label>
-              <select
+              <label className="text-slate-300 font-medium block mb-1">Arrangement</label>
+              <SearchableSelect
                 value={arrangement}
-                onChange={e => setArrangement(e.target.value as WorkArrangement)}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
-              >
-                <option value="remote">Remote</option>
-                <option value="hybrid">Hybrid</option>
-                <option value="onsite">Onsite</option>
-              </select>
+                onChange={val => setArrangement(val as WorkArrangement)}
+                options={FORM_WORK_ARRANGEMENT_OPTIONS}
+                searchable={false}
+                theme="dark"
+                size="sm"
+                ariaLabel="Work Arrangement"
+              />
             </div>
 
             <div>

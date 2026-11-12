@@ -10,6 +10,8 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { AuditLogEntry } from '../types/index.ts';
+import { FilterSelect } from './ui/SelectSystem.tsx';
+import { AUDIT_SEVERITY_OPTIONS } from '../data/platformOptions.ts';
 
 interface AuditLogsTabProps {
   auditLogs: AuditLogEntry[];
@@ -79,17 +81,16 @@ export const AuditLogsTab: React.FC<AuditLogsTabProps> = ({ auditLogs, onResetDe
           />
         </div>
 
-        <select
-          value={severityFilter}
-          onChange={e => setSeverityFilter(e.target.value)}
-          className="rounded-xl border border-slate-800 bg-slate-900/60 py-2 px-3 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none w-full sm:w-auto"
-        >
-          <option value="all">All Severities</option>
-          <option value="info">Info</option>
-          <option value="warning">Warning</option>
-          <option value="security">Security</option>
-          <option value="critical">Critical</option>
-        </select>
+        <div className="w-full sm:w-44">
+          <FilterSelect
+            value={severityFilter}
+            onChange={val => setSeverityFilter(val || 'all')}
+            searchable={false}
+            options={AUDIT_SEVERITY_OPTIONS}
+            theme="dark"
+            ariaLabel="Filter audit logs by severity"
+          />
+        </div>
       </div>
 
       {/* Audit Stream Table */}

@@ -27,6 +27,7 @@ import {
   CareerOutcomeItem
 } from '../types/index.ts';
 import { api } from '../services/api.ts';
+import { SearchableSelect } from './ui/SelectSystem.tsx';
 
 interface CareerTwinPageProps {
   onShowToast: (msg: string) => void;
@@ -1004,37 +1005,44 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Category</label>
-                  <select
+                  <SearchableSelect
                     value={newSkillCategory}
-                    onChange={e => setNewSkillCategory(e.target.value as any)}
-                    className="w-full px-3 py-2 min-h-[40px] border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  >
-                    <option value="frontend">Frontend</option>
-                    <option value="backend">Backend</option>
-                    <option value="cloud">Cloud / Infra</option>
-                    <option value="ai">AI / ML</option>
-                    <option value="database">Database</option>
-                    <option value="architecture">Architecture</option>
-                    <option value="devops">DevOps</option>
-                    <option value="leadership">Leadership</option>
-                    <option value="business_ops">Business Ops</option>
-                    <option value="supply_chain">Supply Chain</option>
-                    <option value="project_management">Project Management</option>
-                    <option value="general">General</option>
-                  </select>
+                    onChange={val => setNewSkillCategory(val as any)}
+                    theme="light"
+                    size="sm"
+                    options={[
+                      { value: 'frontend', label: 'Frontend' },
+                      { value: 'backend', label: 'Backend' },
+                      { value: 'cloud', label: 'Cloud / Infra' },
+                      { value: 'ai', label: 'AI / ML' },
+                      { value: 'database', label: 'Database' },
+                      { value: 'architecture', label: 'Architecture' },
+                      { value: 'devops', label: 'DevOps' },
+                      { value: 'leadership', label: 'Leadership' },
+                      { value: 'business_ops', label: 'Business Ops' },
+                      { value: 'supply_chain', label: 'Supply Chain' },
+                      { value: 'project_management', label: 'Project Management' },
+                      { value: 'general', label: 'General' },
+                    ]}
+                    ariaLabel="Skill Category"
+                  />
                 </div>
 
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Proficiency</label>
-                  <select
+                  <SearchableSelect
                     value={newSkillProficiency}
-                    onChange={e => setNewSkillProficiency(e.target.value as any)}
-                    className="w-full px-3 py-2 min-h-[40px] border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  >
-                    <option value="expert">Expert</option>
-                    <option value="proficient">Proficient</option>
-                    <option value="familiar">Familiar</option>
-                  </select>
+                    onChange={val => setNewSkillProficiency(val as any)}
+                    searchable={false}
+                    theme="light"
+                    size="sm"
+                    options={[
+                      { value: 'expert', label: 'Expert' },
+                      { value: 'proficient', label: 'Proficient' },
+                      { value: 'familiar', label: 'Familiar' },
+                    ]}
+                    ariaLabel="Skill Proficiency"
+                  />
                 </div>
               </div>
 
@@ -1120,19 +1128,23 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
 
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Outcome Stage</label>
-                <select
+                <SearchableSelect
                   value={newOutcomeType}
-                  onChange={e => setNewOutcomeType(e.target.value as any)}
-                  className="w-full px-3 py-2 min-h-[40px] border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                >
-                  <option value="APPLICATION_SUBMITTED">Application Submitted</option>
-                  <option value="RECRUITER_CONTACTED">Recruiter Contacted</option>
-                  <option value="INTERVIEW_INVITATION">Interview Invitation</option>
-                  <option value="INTERVIEW_COMPLETED">Interview Completed</option>
-                  <option value="OFFER_RECEIVED">Offer Received</option>
-                  <option value="REJECTION_RECEIVED">Rejection Received</option>
-                  <option value="WITHDRAWN">Withdrawn</option>
-                </select>
+                  onChange={val => setNewOutcomeType(val as any)}
+                  searchable={false}
+                  theme="light"
+                  size="sm"
+                  options={[
+                    { value: 'APPLICATION_SUBMITTED', label: 'Application Submitted' },
+                    { value: 'RECRUITER_CONTACTED', label: 'Recruiter Contacted' },
+                    { value: 'INTERVIEW_INVITATION', label: 'Interview Invitation' },
+                    { value: 'INTERVIEW_COMPLETED', label: 'Interview Completed' },
+                    { value: 'OFFER_RECEIVED', label: 'Offer Received' },
+                    { value: 'REJECTION_RECEIVED', label: 'Rejection Received' },
+                    { value: 'WITHDRAWN', label: 'Withdrawn' },
+                  ]}
+                  ariaLabel="Outcome Stage"
+                />
               </div>
 
               <div>

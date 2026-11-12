@@ -33,6 +33,8 @@ import {
 import { JobVacancy, OpportunitySignal, UserProfile } from '../types/index.ts';
 import { api } from '../services/api.ts';
 import { JobComparisonDrawer } from './JobComparisonDrawer.tsx';
+import { CountrySelect } from './ui/SelectSystem.tsx';
+import { locationMatchesFilter } from '../data/globalLocations.ts';
 import { evaluateCandidateJobMatch } from '../utils/explainableMatcher.ts';
 
 export interface OpportunityRadarProps {
@@ -188,8 +190,8 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
 
   const filteredVacancies = uniqueVacancies.filter(v => {
     // Country filter
-    if (countryFilter !== 'All' && v.country && v.country.toLowerCase() !== countryFilter.toLowerCase()) {
-      return false;
+    if (countryFilter && countryFilter !== 'All' && countryFilter !== 'all') {
+      if (!locationMatchesFilter(v.location, v.country, countryFilter)) return false;
     }
 
     // Source type filter
@@ -382,22 +384,19 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
               />
             </div>
 
-            {availableCountries.length > 0 && (
-              <select
-                value={countryFilter}
-                onChange={e => setCountryFilter(e.target.value)}
-                className={`px-3.5 py-2.5 rounded-2xl text-xs font-semibold focus:outline-none transition ${
-                  isBlack
-                    ? 'bg-[#0D1014] border border-[rgba(255,255,255,0.10)] text-[#F2F0EA] focus:border-[#C6A66A]'
-                    : 'bg-slate-50 border border-slate-200 text-slate-900'
-                }`}
-              >
-                <option value="All">All Countries ({availableCountries.length})</option>
-                {availableCountries.map(c => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            )}
+            <div className="w-full sm:w-52 shrink-0">
+              <CountrySelect
+                value={countryFilter === 'All' ? 'all' : countryFilter}
+                onChange={(val) => setCountryFilter(!val || val === 'all' ? 'All' : val)}
+                includeAllOption={true}
+                allLabel={`All Countries (${availableCountries.length})`}
+                includeRemote={true}
+                extraCountries={availableCountries}
+                theme={isBlack ? 'black-elite' : 'light'}
+                size="sm"
+                ariaLabel="Filter opportunities by country"
+              />
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1">

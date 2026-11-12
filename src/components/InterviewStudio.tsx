@@ -30,6 +30,7 @@ import {
   RefreshCw,
   AlertTriangle
 } from 'lucide-react';
+import { SearchableSelect } from './ui/SelectSystem.tsx';
 import {
   ApplicationRecord,
   UserProfile,
@@ -384,17 +385,18 @@ export const InterviewStudio: React.FC<InterviewStudioProps> = ({
           <div className="flex items-center space-x-3 text-xs">
             <span className="text-slate-400 font-medium">Rehearsal Context:</span>
             {applications.length > 0 ? (
-              <select
-                value={selectedAppId}
-                onChange={e => setSelectedAppId(e.target.value)}
-                className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-semibold text-xs focus:outline-none"
-              >
-                {applications.map(app => (
-                  <option key={app.id} value={app.id}>
-                    {app.role} — {app.company}
-                  </option>
-                ))}
-              </select>
+              <div className="w-64 sm:w-80">
+                <SearchableSelect
+                  value={selectedAppId}
+                  onChange={val => setSelectedAppId(val)}
+                  options={applications.map(app => ({
+                    value: app.id,
+                    label: `${app.role} — ${app.company}`,
+                  }))}
+                  size="sm"
+                  ariaLabel="Select Rehearsal Application"
+                />
+              </div>
             ) : (
               <span className="font-semibold text-slate-900 dark:text-white">
                 General Professional Role ({profile?.currentTitle || 'Enterprise Technology'})
