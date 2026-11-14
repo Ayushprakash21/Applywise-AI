@@ -63,7 +63,7 @@ test('Premium Auth Redesign: 4. FlowLogin satisfies glassmorphism and functional
   assert.ok(src.includes('AuthFeatureCards'), 'FlowLogin must embed AuthFeatureCards');
   assert.ok(src.includes('#E9EEF6'), 'FlowLogin must use pearl-white brand background');
   assert.ok(src.includes('bg-slate-900') || src.includes('from-blue-600'), 'CTA must use executive button styling');
-  assert.ok(src.includes('Candidate Account Sign In') || src.includes('Welcome Back'), 'Must display header label');
+  assert.ok(src.includes('Sign In') || src.includes('Welcome Back'), 'Must display header label');
   assert.ok(src.includes('Sign In to ApplyVise AI'), 'Must display official page heading');
 });
 
@@ -75,7 +75,7 @@ test('Premium Auth Redesign: 5. FlowSignup satisfies glassmorphism and functiona
   assert.ok(src.includes('AuthFeatureCards'), 'FlowSignup must embed AuthFeatureCards');
   assert.ok(src.includes('#E9EEF6'), 'FlowSignup must use pearl-white brand background');
   assert.ok(src.includes('bg-slate-900') || src.includes('from-blue-600'), 'CTA must use executive button styling');
-  assert.ok(src.includes('Candidate Registration') || src.includes('Get Started'), 'Must display registration label');
+  assert.ok(src.includes('Create Account') || src.includes('Get Started'), 'Must display registration label');
   assert.ok(src.includes('Create Your Account'), 'Must display official page heading');
   assert.ok(src.includes('getPasswordStrength'), 'Must feature dynamic password strength indicator');
 });

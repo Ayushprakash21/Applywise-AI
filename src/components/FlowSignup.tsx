@@ -248,7 +248,7 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
       <div className="space-y-5">
         <div>
           <span className="text-xs font-semibold text-[var(--be-accent,#A78343)] block mb-1">
-            Candidate Registration
+            Create Account
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#F2F0EA] tracking-tight whitespace-normal sm:whitespace-nowrap">
             {title}

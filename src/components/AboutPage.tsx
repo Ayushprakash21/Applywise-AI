@@ -83,7 +83,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
                 onClick={onGetStarted}
                 className="px-6 py-3 bg-[var(--be-accent,#A78343)] hover:bg-[var(--be-gold-hover,#8E6F37)] text-white rounded-md text-xs sm:text-sm font-semibold shadow-xs transition cursor-pointer"
               >
-                Create Candidate Account
+                Create Account
               </button>
               <button
                 onClick={onExplorePro}
