@@ -79,8 +79,8 @@ export const AiAutopilotStudio: React.FC<AiAutopilotStudioProps> = ({
         setFeedback({
           type: 'success',
           message: nextActive
-            ? '🚀 Autopilot Agent active! Eligible applications will be automatically prepared.'
-            : '⏸️ Autopilot Agent paused safely.',
+            ? 'Autopilot Agent active. Eligible applications will be automatically prepared.'
+            : 'Autopilot Agent paused safely.',
         });
       }
     } catch (err: any) {
@@ -111,11 +111,11 @@ export const AiAutopilotStudio: React.FC<AiAutopilotStudioProps> = ({
       setActionLoading(`submit_${jobId}`);
       const res = await api.submitAutopilotJob(jobId);
       if (res.success) {
-        setFeedback({ type: 'success', message: `✅ ${res.message} (Ref: ${res.submissionReference})` });
+        setFeedback({ type: 'success', message: `${res.message} (Ref: ${res.submissionReference})` });
       } else {
         setFeedback({
           type: res.requiresAttention ? 'error' : 'error',
-          message: res.requiresAttention ? `⚠️ Action needed: ${res.message}` : `❌ Submission stopped: ${res.message}`,
+          message: res.requiresAttention ? `Action needed: ${res.message}` : `Submission stopped: ${res.message}`,
         });
       }
       await loadData();

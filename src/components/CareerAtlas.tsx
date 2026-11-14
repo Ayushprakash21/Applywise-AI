@@ -691,7 +691,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                   }`}>
                     <div className="space-y-1 text-xs">
                       <div className="flex items-center space-x-2">
-                        <span className="w-5 h-5 rounded-full bg-indigo-600 text-white font-mono text-[10px] flex items-center justify-center font-bold">
+                        <span className="w-5 h-5 rounded-full bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white font-mono text-[10px] flex items-center justify-center font-bold">
                           {idx + 1}
                         </span>
                         <span className="font-bold">{ms.title}</span>
@@ -713,7 +713,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                       className={`text-[10px] px-2 py-1 rounded-lg shrink-0 font-semibold cursor-pointer ${
                         ms.status === 'completed'
                           ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                          : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                          : 'bg-slate-800/20 text-indigo-400 border border-indigo-500/30'
                       }`}
                     >
                       {ms.status === 'completed' ? 'Completed' : 'Mark Done'}
@@ -779,7 +779,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                   onClick={() => setSelectedReadinessFilter(r.id)}
                   className={`text-[11px] px-2.5 py-1 rounded-xl transition cursor-pointer font-medium ${
                     selectedReadinessFilter === r.id
-                      ? isBlack ? 'bg-indigo-600 text-white font-bold' : 'bg-blue-600 text-white'
+                      ? isBlack ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white font-bold' : 'bg-blue-600 text-white'
                       : isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] text-slate-300' : 'bg-slate-100 text-slate-700'
                   }`}
                 >
@@ -810,7 +810,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-2">
-                      <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-400 border border-indigo-500/25">
+                      <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-slate-800/15 text-indigo-400 border border-indigo-500/25">
                         {path.categoryLabel}
                       </span>
                       <button
@@ -1030,7 +1030,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                         <button
                           type="button"
                           onClick={() => handleConfirmCandidateSkill(conf.id, conf.area)}
-                          className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer transition shadow-xs"
+                          className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 dark:bg-[var(--be-accent,#A78343)] dark:hover:bg-[var(--be-accent-hover,#917135)] dark:text-[#17130C] text-white cursor-pointer transition shadow-xs"
                         >
                           I Have This Experience
                         </button>
@@ -1204,7 +1204,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                           <div className="space-y-1.5 flex-1">
                             <div className="flex items-center space-x-2.5">
                               <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${
-                                isDone ? 'bg-emerald-500 text-white' : 'bg-indigo-600 text-white'
+                                isDone ? 'bg-emerald-500 text-white' : 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white'
                               }`}>
                                 {isDone ? <Check className="w-3.5 h-3.5" /> : ms.id.slice(-1)}
                               </span>
@@ -1380,7 +1380,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
               >
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-400 border border-indigo-500/25">
+                    <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-slate-800/15 text-indigo-400 border border-indigo-500/25">
                       {res.type.toUpperCase()}
                     </span>
                     <span className="font-mono text-emerald-400 font-semibold">
@@ -1546,7 +1546,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                   <label className="text-slate-400 block mb-1 font-semibold">Hypothetical Skills Added:</label>
                   <div className="flex flex-wrap gap-1 mb-2">
                     {hypotheticalSkills.map((sk, i) => (
-                      <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">
+                      <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-slate-800/20 text-indigo-300 font-mono">
                         +{sk}
                       </span>
                     ))}
@@ -1665,7 +1665,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                           ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                           : opp.opportunityTier === 'requires_prep'
                           ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                          : 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30'
+                          : 'bg-slate-800/15 text-indigo-400 border border-indigo-500/30'
                       }`}>
                         {opp.opportunityTier === 'target_now' ? 'TARGET NOW' : opp.opportunityTier === 'requires_prep' ? 'REQUIRES PREP' : 'ASPIRATIONAL'}
                       </span>
@@ -1769,7 +1769,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                 type="button"
                 onClick={() => setMapViewMode('graph')}
                 className={`px-3 py-1.5 rounded-xl font-semibold cursor-pointer ${
-                  mapViewMode === 'graph' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'
+                  mapViewMode === 'graph' ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white' : 'bg-slate-800 text-slate-400'
                 }`}
               >
                 Graph Projection
@@ -1778,7 +1778,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                 type="button"
                 onClick={() => setMapViewMode('table')}
                 className={`px-3 py-1.5 rounded-xl font-semibold cursor-pointer ${
-                  mapViewMode === 'table' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'
+                  mapViewMode === 'table' ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white' : 'bg-slate-800 text-slate-400'
                 }`}
               >
                 Accessible List View

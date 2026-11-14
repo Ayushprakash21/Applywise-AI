@@ -100,7 +100,7 @@ export const JobDiscoveryTab: React.FC<JobDiscoveryTabProps> = ({
             <button
               onClick={() => onSearchSources(searchTerm, selectedSource)}
               disabled={isSearching}
-              className="flex items-center space-x-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-indigo-600/30 hover:bg-indigo-500 transition disabled:opacity-50"
+              className="flex items-center space-x-2 rounded-xl bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] px-4 py-2 text-xs font-semibold text-white shadow-md shadow-xs hover:bg-slate-800 transition disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${isSearching ? 'animate-spin' : ''}`} />
               <span>{isSearching ? 'Querying APIs...' : 'Search Live Sources'}</span>
@@ -197,7 +197,7 @@ export const JobDiscoveryTab: React.FC<JobDiscoveryTabProps> = ({
             </p>
             <button
               onClick={() => onSearchSources()}
-              className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500 transition"
+              className="mt-4 rounded-lg bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 transition"
             >
               Fetch Live Jobs
             </button>
@@ -212,7 +212,7 @@ export const JobDiscoveryTab: React.FC<JobDiscoveryTabProps> = ({
               score >= 85
                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                 : score >= 70
-                ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30'
+                ? 'bg-slate-800/10 text-indigo-400 border-indigo-500/30'
                 : 'bg-amber-500/10 text-amber-400 border-amber-500/30';
 
             return (
@@ -320,7 +320,7 @@ export const JobDiscoveryTab: React.FC<JobDiscoveryTabProps> = ({
                       <button
                         onClick={e => handlePrepare(vac.id, e)}
                         disabled={preparingId === vac.id}
-                        className="flex items-center space-x-1.5 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 active:scale-95 transition disabled:opacity-50"
+                        className="flex items-center space-x-1.5 rounded-lg bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-95 transition disabled:opacity-50"
                       >
                         <span>{preparingId === vac.id ? 'Tailoring...' : 'Prepare Application'}</span>
                         <ArrowRight className="h-3.5 w-3.5" />

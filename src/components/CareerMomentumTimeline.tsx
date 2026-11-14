@@ -115,7 +115,7 @@ export const CareerMomentumTimeline: React.FC<CareerMomentumTimelineProps> = ({
               {completedStages} of {stages.length} Milestones
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/15 via-indigo-500/20 to-[#8065F5]/25 dark:bg-[rgba(198,166,106,0.12)] border border-violet-300/40 dark:border-[rgba(198,166,106,0.30)] flex items-center justify-center font-mono text-xs font-bold text-[#8065F5] dark:text-[#C6A66A] shadow-xs">
+          <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-[rgba(198,166,106,0.12)] border border-slate-200 dark:border-[rgba(198,166,106,0.30)] flex items-center justify-center font-mono text-xs font-bold text-slate-800 dark:text-[#C6A66A] shadow-xs">
             {progressPct}%
           </div>
         </div>
@@ -129,7 +129,7 @@ export const CareerMomentumTimeline: React.FC<CareerMomentumTimelineProps> = ({
 
           {/* Active Filled Rail */}
           <div
-            className="absolute top-5 left-6 h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-[#8065F5] dark:from-[#A98B57] dark:via-[#C6A66A] dark:to-[#D9BB80] rounded-full transition-all duration-700"
+            className="absolute top-5 left-6 h-1 bg-slate-900 dark:bg-[#C6A66A] rounded-full transition-all duration-700"
             style={{ width: `${Math.max(0, ((completedStages - 1) / (stages.length - 1)) * 100)}%` }}
           />
 
@@ -145,12 +145,12 @@ export const CareerMomentumTimeline: React.FC<CareerMomentumTimelineProps> = ({
                 >
                   {/* Node Circle */}
                   <div
-                    className={`relative z-10 w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                    className={`relative z-10 w-10 h-10 rounded-2xl flex items-center justify-center transition duration-200 ${
                       stage.completed
-                        ? 'bg-gradient-to-tr from-emerald-500 to-teal-400 dark:from-[#35B887] dark:to-[#2EA376] text-white shadow-md shadow-emerald-500/30 scale-100 group-hover:scale-110'
+                        ? 'bg-emerald-600 dark:bg-[#35B887] text-white shadow-xs'
                         : stage.current
-                        ? 'bg-gradient-to-tr from-blue-600 to-[#8065F5] dark:bg-[#C6A66A] text-white dark:text-[#17130C] shadow-md shadow-violet-500/35 dark:shadow-none ring-4 ring-violet-500/20 dark:ring-[rgba(198,166,106,0.30)] animate-pulse'
-                        : 'bg-white/90 dark:bg-[#191D23] border border-slate-300 dark:border-[rgba(255,255,255,0.10)] text-slate-400 dark:text-[#92949A] group-hover:border-slate-400 dark:group-hover:border-[rgba(198,166,106,0.30)] group-hover:text-slate-600 dark:group-hover:text-[#F2F0EA]'
+                        ? 'bg-slate-900 dark:bg-[#C6A66A] text-white dark:text-[#17130C] ring-2 ring-slate-400 dark:ring-[rgba(198,166,106,0.50)] shadow-xs'
+                        : 'bg-white dark:bg-[#191D23] border border-slate-300 dark:border-[rgba(255,255,255,0.10)] text-slate-400 dark:text-[#92949A]'
                     }`}
                   >
                     {stage.completed ? (

@@ -1209,7 +1209,7 @@ export const HrOutreachPage: React.FC<HrOutreachPageProps> = ({
                     }}
                     className="text-xs font-semibold text-[#C6A66A] hover:underline cursor-pointer"
                   >
-                    Manage Campaign Contacts →
+                    Manage Campaign Contacts
                   </button>
                 </div>
               ))}

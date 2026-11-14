@@ -329,7 +329,7 @@ export const JobMatchExperience: React.FC<JobMatchExperienceProps> = ({
                     onClick={onNavigateToProfile}
                     className="mt-1 text-xs font-semibold text-blue-600 hover:text-blue-700"
                   >
-                    Complete career profile →
+                    Complete career profile
                   </button>
                 )}
               </div>
@@ -464,7 +464,7 @@ export const JobMatchExperience: React.FC<JobMatchExperienceProps> = ({
                 onClick={() => setActiveTab('audit')}
                 className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-colors"
               >
-                Explore Detailed Assessment →
+                Explore Detailed Assessment
               </button>
               <button
                 onClick={() => setActiveTab('tailor')}
@@ -479,14 +479,14 @@ export const JobMatchExperience: React.FC<JobMatchExperienceProps> = ({
                 onClick={() => handleAction('signup')}
                 className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
               >
-                Create Account to Match More Jobs →
+                Create Account to Match More Jobs
               </button>
             ) : onNavigateToProfile ? (
               <button
                 onClick={onNavigateToProfile}
                 className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
               >
-                Update Profile Skills →
+                Update Profile Skills
               </button>
             ) : null}
           </div>

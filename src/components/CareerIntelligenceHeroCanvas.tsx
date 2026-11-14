@@ -313,8 +313,8 @@ export const CareerIntelligenceHeroCanvas: React.FC<CareerIntelligenceHeroCanvas
   if (!webglSupported || reducedMotion) {
     return (
       <div className={`relative flex items-center justify-center w-full h-[240px] select-none ${className}`}>
-        <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-blue-500/25 via-violet-500/20 to-pink-400/20 blur-md animate-pulse flex items-center justify-center">
-          <div className="w-20 h-20 rounded-full bg-white/70 border border-white/90 shadow-lg flex items-center justify-center text-xs font-bold text-violet-700 font-mono">
+        <div className="w-32 h-32 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+          <div className="w-20 h-20 rounded-full bg-white dark:bg-[#191D23] border border-slate-200 dark:border-[rgba(255,255,255,0.09)] shadow-xs flex items-center justify-center text-xs font-bold text-slate-800 dark:text-[#C6A66A] font-mono">
             AV CORE
           </div>
         </div>

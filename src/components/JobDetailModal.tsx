@@ -164,7 +164,7 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({
                 onClose();
               }}
               disabled={isPreparing}
-              className="flex items-center space-x-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-indigo-500 transition disabled:opacity-50"
+              className="flex items-center space-x-1.5 rounded-lg bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-slate-800 transition disabled:opacity-50"
             >
               <span>{isPreparing ? 'Preparing...' : 'Prepare Application Package'}</span>
               <ArrowRight className="h-3.5 w-3.5" />

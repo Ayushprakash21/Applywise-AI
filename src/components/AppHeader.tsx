@@ -168,31 +168,28 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
               </div>
             )}
 
-            {/* Refined Plan Badge (Neumorphic) */}
+            {/* Refined Plan Badge */}
             {isFounderAccount ? (
               <button
                 onClick={onOpenPricing}
                 title="Founder Access: Unrestricted Pro Privileges"
-                className="h-8.5 px-3 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-indigo-500/10 text-blue-800 border border-blue-200/80 hover:border-blue-300 shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-center space-x-1.5 transition active:scale-95"
+                className="h-8.5 px-3 rounded-md text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200/80 hover:bg-amber-100 shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
               >
-                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
                 <span>Founder Pro</span>
               </button>
             ) : plan === 'pro' ? (
               <button
                 onClick={onOpenPricing}
-                className="h-8.5 px-3 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-center space-x-1.5 transition hover:bg-blue-100/70 active:scale-95"
+                className="h-8.5 px-3 rounded-md text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-300 shadow-xs flex items-center space-x-1.5 transition hover:bg-slate-200 cursor-pointer"
               >
-                <Sparkles className="h-3.5 w-3.5 text-blue-600" />
                 <span>Pro Tier</span>
               </button>
             ) : (
               onOpenPricing && (
                 <button
                   onClick={onOpenPricing}
-                  className="hidden sm:flex items-center space-x-1.5 h-8.5 px-3.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-[0_2px_6px_rgba(37,99,235,0.25)] hover:shadow-[0_4px_12px_rgba(37,99,235,0.35)] transition active:scale-95"
+                  className="hidden sm:flex items-center space-x-1.5 h-8.5 px-3.5 rounded-md text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition cursor-pointer"
                 >
-                  <Sparkles className="h-3.5 w-3.5" />
                   <span>Upgrade</span>
                 </button>
               )

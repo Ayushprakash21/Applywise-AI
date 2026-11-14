@@ -240,7 +240,7 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
         /* FORGOT PASSWORD RECOVERY PANEL */
         <div className="space-y-6">
           <div>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-700 border border-violet-300/30 mb-3">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-800/10 text-violet-700 border border-violet-300/30 mb-3">
               Password Recovery
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight whitespace-normal sm:whitespace-nowrap">
@@ -287,20 +287,17 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
             <button
               type="submit"
               disabled={recoveryLoading}
-              className="btn-bouncy w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-[#8065F5] text-white font-medium text-sm shadow-md shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/40 active:shadow-sm disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer transition-all duration-200 select-none"
+              className="w-full py-3 px-6 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm shadow-xs disabled:opacity-50 flex items-center justify-center cursor-pointer transition-colors duration-150 select-none"
             >
               {recoveryLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <>
-                  <span>Send Recovery Instructions</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
+                <span>Send Recovery Instructions</span>
               )}
             </button>
           </form>
 
-          <div className="text-center pt-2">
+          <div className="pt-2">
             <button
               type="button"
               onClick={() => {
@@ -308,9 +305,9 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
                 setError(null);
                 setSuccessMsg(null);
               }}
-              className="text-xs font-semibold text-[#8065F5] hover:text-blue-700 transition cursor-pointer"
+              className="text-xs font-semibold text-[var(--be-accent,#A78343)] hover:underline transition cursor-pointer"
             >
-              ← Return to sign in
+              Return to sign in
             </button>
           </div>
         </div>
@@ -318,8 +315,8 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
         /* STANDARD SIGN IN FORM */
         <div className="space-y-5">
           <div>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-700 border border-blue-300/30 mb-2.5">
-              Welcome Back
+            <span className="text-xs font-semibold text-[var(--be-accent,#A78343)] block mb-1">
+              Candidate Account Sign In
             </span>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight whitespace-normal sm:whitespace-nowrap">
               {title}
@@ -426,15 +423,12 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="btn-bouncy w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-[#8065F5] text-white font-medium text-sm shadow-md shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/40 active:shadow-sm disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer transition-all duration-200 select-none mt-2"
+              className="w-full py-3 px-6 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm shadow-xs disabled:opacity-50 flex items-center justify-center cursor-pointer transition-colors duration-150 select-none mt-2"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <>
-                  <span>{primaryText}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
+                <span>{primaryText}</span>
               )}
             </button>
           </form>

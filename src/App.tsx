@@ -481,7 +481,7 @@ export default function App() {
     try {
       const res = await api.toggleEmergencyStop();
       setSettings(res.settings);
-      showToast(res.emergencyStop ? '🚨 Emergency Stop engaged' : '✅ Automation safely active');
+      showToast(res.emergencyStop ? 'Emergency stop engaged' : 'Automation safely active');
     } catch (err) {
       console.error('Failed to toggle emergency stop:', err);
     }

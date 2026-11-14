@@ -313,7 +313,7 @@ export const COMPARISON_FEATURES: PlanFeature[] = [
   },
   {
     name: 'BLACK: Priority AI Processing Queue',
-    description: 'Priority background scheduling with zero queue delays and early access to next-generation models',
+    description: 'Priority background scheduling with zero queue delays and early access to expanded frontier intelligence models',
     includedInFree: false,
     includedInPro: false,
     includedInBlack: true,

@@ -68,8 +68,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   return (
     <div className="min-h-screen bg-[#E9EDF3] neu-bg text-slate-800 flex flex-col font-sans">
-      {/* Top Navigation - Clean Consumer SaaS Header */}
-      <header className="sticky top-0 z-50 bg-[#EEF2F7]/95 backdrop-blur-md border-b border-slate-300/60 transition-colors">
+      {/* Top Navigation */}
+      <header className="sticky top-0 z-50 bg-[#F5F3EE] border-b border-[#DEDAD0] transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <BrandLogo
             variant="light"
@@ -209,7 +209,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenAuth('login');
                 }}
-                className="w-full py-2.5 rounded-xl neu-button text-center font-semibold text-slate-700"
+                className="w-full py-2.5 rounded-xl neu-button flex items-center justify-center font-semibold text-slate-700"
               >
                 Sign In
               </button>
@@ -218,7 +218,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenAuth('signup');
                 }}
-                className="w-full py-2.5 rounded-xl neu-button-primary text-white font-semibold text-center"
+                className="w-full py-2.5 rounded-xl neu-button-primary text-white font-semibold flex items-center justify-center"
               >
                 Get Started Free
               </button>
@@ -227,42 +227,57 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         )}
       </header>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-16 md:pt-20 md:pb-24 border-b border-slate-300/60">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-6 sm:space-y-7">
-          {/* Friendly System Pill */}
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full neu-inset text-blue-700 text-xs font-semibold">
-            <Sparkles className="h-3.5 w-3.5 text-blue-600" />
-            <span>APPLYVISE AI 2.0 · TRUTHFUL CAREER INTELLIGENCE</span>
+      {/* Hero Section — Architectural Grid Layout */}
+      <section className="relative overflow-hidden pt-12 pb-16 md:pt-16 md:pb-20 border-b border-[#DEDAD0] bg-[#F5F3EE]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
+          <div className="flex items-center space-x-2 text-xs font-semibold text-[#A78343]">
+            <span className="w-2 h-2 bg-[#A78343]" />
+            <span>ApplyVise AI · Unified Career Operating System</span>
           </div>
 
-          {/* Main Hero Headline */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
-            Your next career move <br />
-            <span className="text-blue-600">starts with clarity.</span>
-          </h1>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-8 space-y-4">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-[#191D24] tracking-tight leading-[1.12]">
+                Your Career. Intelligently Orchestrated.
+              </h1>
 
-          {/* Subheading */}
-          <p className="max-w-2xl mx-auto text-sm sm:text-base md:text-lg text-slate-600 leading-relaxed font-normal">
-            Bring your experience, job opportunities, applications, and career goals together in one intelligent workspace. Make informed career decisions with a clearer view of your next step.
-          </p>
+              <p className="max-w-2xl text-sm sm:text-base md:text-lg text-[#555C66] leading-relaxed">
+                Discover opportunities. Build your professional edge. Navigate every career move with AI-powered intelligence grounded in verified candidate facts.
+              </p>
 
-          {/* Dual CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <button
-              onClick={() => onOpenAuth('signup')}
-              className="w-full sm:w-auto px-8 py-3.5 neu-button-primary text-white font-semibold text-sm rounded-xl transition-all flex items-center justify-center space-x-2"
-            >
-              <span>Get Started Free</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
-            <a
-              href="#cockpit"
-              className="w-full sm:w-auto px-8 py-3.5 neu-button text-slate-700 font-semibold text-sm rounded-xl transition-colors flex items-center justify-center space-x-2"
-            >
-              <span>Explore Job Match</span>
-              <ChevronRight className="h-4 w-4 text-slate-400" />
-            </a>
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <button
+                  onClick={() => onOpenAuth('signup')}
+                  className="px-6 py-3.5 bg-[#A78343] hover:bg-[#8E6F37] text-white font-semibold text-sm rounded-md transition-all flex items-center justify-center cursor-pointer shadow-xs"
+                >
+                  Create Candidate Account
+                </button>
+                <a
+                  href="#cockpit"
+                  className="px-6 py-3.5 bg-white border border-[#DEDAD0] hover:bg-[#F0EDE5] text-[#20242B] font-semibold text-sm rounded-md transition-colors flex items-center justify-center cursor-pointer"
+                >
+                  Explore Opportunity Match
+                </a>
+              </div>
+            </div>
+
+            <div className="lg:col-span-4 p-5 rounded-lg bg-white border border-[#DEDAD0] space-y-3 shadow-xs">
+              <span className="text-xs font-semibold text-[#555C66]">Live Verification Status</span>
+              <div className="space-y-2 text-xs text-[#555C66]">
+                <div className="flex justify-between py-1 border-b border-[#DEDAD0]">
+                  <span>Active Vacancy Connectors</span>
+                  <span className="font-bold text-[#147A58]">12 Connectors</span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-[#DEDAD0]">
+                  <span>Hallucination Prevention</span>
+                  <span className="font-bold text-[#147A58]">Enforced</span>
+                </div>
+                <div className="flex justify-between py-1">
+                  <span>ATS Export Format</span>
+                  <span className="font-bold text-[#20242B]">Native DOCX</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Interactive Search Capsule */}

@@ -246,8 +246,8 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
     <AuthGlassCard className="w-full max-w-[440px] sm:max-w-[480px] md:max-w-[500px] lg:max-w-[540px] p-6 sm:p-8 md:p-10 shadow-lg">
       <div className="space-y-5">
         <div>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-700 border border-violet-300/30 mb-2.5">
-            Get Started
+          <span className="text-xs font-semibold text-[var(--be-accent,#A78343)] block mb-1">
+            Candidate Registration
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight whitespace-normal sm:whitespace-nowrap">
             {title}
@@ -420,15 +420,12 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="btn-bouncy w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-[#8065F5] text-white font-medium text-sm shadow-md shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/40 active:shadow-sm disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer transition-all duration-200 select-none mt-2"
+            className="w-full py-3 px-6 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm shadow-xs disabled:opacity-50 flex items-center justify-center cursor-pointer transition-colors duration-150 select-none mt-2"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              <>
-                <span>{primaryText}</span>
-                <ArrowRight className="w-4 h-4" />
-              </>
+              <span>{primaryText}</span>
             )}
           </button>
         </form>

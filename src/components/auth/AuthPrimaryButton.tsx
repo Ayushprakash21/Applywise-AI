@@ -9,7 +9,7 @@ export interface AuthPrimaryButtonProps extends React.ButtonHTMLAttributes<HTMLB
 
 export const AuthPrimaryButton: React.FC<AuthPrimaryButtonProps> = ({
   loading = false,
-  icon = <ArrowRight className="w-4 h-4" />,
+  icon,
   children,
   disabled,
   className = '',
@@ -18,7 +18,7 @@ export const AuthPrimaryButton: React.FC<AuthPrimaryButtonProps> = ({
   return (
     <button
       disabled={disabled || loading}
-      className={`btn-bouncy w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-[#8065F5] text-white font-medium text-sm shadow-md shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/40 active:shadow-sm disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer transition-all duration-200 select-none ${className}`}
+      className={`w-full py-3 px-6 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm shadow-xs disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer transition-colors duration-150 select-none ${className}`}
       {...props}
     >
       {loading ? (

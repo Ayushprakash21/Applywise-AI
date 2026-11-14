@@ -100,19 +100,19 @@ export const ApplicationDetailModal: React.FC<ApplicationDetailModalProps> = ({
         <div className="flex rounded-xl border border-slate-800 bg-slate-950 p-1 text-xs font-semibold">
           <button
             onClick={() => setActiveTab('timeline')}
-            className={`flex-1 py-1.5 rounded-lg transition ${activeTab === 'timeline' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+            className={`flex-1 py-1.5 rounded-lg transition ${activeTab === 'timeline' ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
           >
             Lifecycle Audit Timeline ({application.timeline.length})
           </button>
           <button
             onClick={() => setActiveTab('resume')}
-            className={`flex-1 py-1.5 rounded-lg transition ${activeTab === 'resume' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+            className={`flex-1 py-1.5 rounded-lg transition ${activeTab === 'resume' ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
           >
             Tailored ATS Resume
           </button>
           <button
             onClick={() => setActiveTab('cover_letter')}
-            className={`flex-1 py-1.5 rounded-lg transition ${activeTab === 'cover_letter' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
+            className={`flex-1 py-1.5 rounded-lg transition ${activeTab === 'cover_letter' ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white shadow' : 'text-slate-400 hover:text-slate-200'}`}
           >
             Cover Letter
           </button>

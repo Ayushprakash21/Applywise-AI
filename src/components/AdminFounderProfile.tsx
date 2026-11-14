@@ -353,7 +353,7 @@ export const AdminFounderProfile: React.FC<AdminFounderProfileProps> = ({ onNoti
           <button
             onClick={handlePublish}
             disabled={publishing || saving}
-            className="px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white flex items-center space-x-1.5 shadow-md shadow-indigo-500/20 transition disabled:opacity-50"
+            className="px-4 py-2 rounded-md text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white flex items-center space-x-1.5 shadow-xs transition disabled:opacity-50 cursor-pointer"
           >
             <Send className={`h-3.5 w-3.5 text-white ${publishing ? 'animate-spin' : ''}`} />
             <span>{publishing ? 'Publishing...' : 'Publish to Live'}</span>
@@ -451,7 +451,7 @@ export const AdminFounderProfile: React.FC<AdminFounderProfileProps> = ({ onNoti
             {/* Current Photo Preview Card */}
             <div className="flex flex-col items-center p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-4">
               <div className="relative group">
-                <div className="w-48 h-48 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-600 p-[2px] shadow-lg transition-transform duration-300 group-hover:scale-[1.02]">
+                <div className="w-48 h-48 rounded-2xl bg-slate-800 border border-[#C6A66A] p-[2px] shadow-sm transition-transform duration-300 group-hover:scale-[1.01]">
                   {profile.photoUrl ? (
                     <div className="w-full h-full rounded-[14px] bg-slate-950 overflow-hidden relative">
                       <img
@@ -463,10 +463,10 @@ export const AdminFounderProfile: React.FC<AdminFounderProfileProps> = ({ onNoti
                     </div>
                   ) : (
                     <div className="w-full h-full rounded-[14px] bg-slate-950 flex flex-col items-center justify-center text-white relative">
-                      <span className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-white via-cyan-100 to-blue-300">
+                      <span className="text-4xl font-extrabold tracking-tight text-[#C6A66A]">
                         AP
                       </span>
-                      <span className="text-[9px] uppercase font-mono tracking-widest text-cyan-400 mt-2 font-semibold">
+                      <span className="text-[9px] uppercase font-mono tracking-widest text-[#C6A66A] mt-2 font-semibold">
                         Founder & Architect
                       </span>
                     </div>
@@ -558,7 +558,7 @@ export const AdminFounderProfile: React.FC<AdminFounderProfileProps> = ({ onNoti
                 </div>
                 <div className="w-full h-2 rounded-full bg-indigo-200 overflow-hidden">
                   <div
-                    className="h-full bg-indigo-600 transition-all duration-300"
+                    className="h-full bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
@@ -753,7 +753,7 @@ export const AdminFounderProfile: React.FC<AdminFounderProfileProps> = ({ onNoti
                   <button
                     type="button"
                     onClick={() => handleAddTag()}
-                    className="p-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
+                    className="p-1 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-[var(--be-accent,#A78343)] dark:hover:bg-[var(--be-accent-hover,#917135)] dark:text-[#17130C] text-white shadow-xs"
                   >
                     <Plus className="h-3 w-3" />
                   </button>

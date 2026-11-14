@@ -81,13 +81,13 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Top Banner & Safety Controls */}
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6">
         <div className="flex items-center space-x-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 font-bold text-white shadow-lg shadow-indigo-500/20">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 border border-slate-700 font-bold text-[#C6A66A] shadow-xs">
             <span className="text-lg tracking-wider font-mono">Ω</span>
           </div>
           <div>
             <div className="flex items-center space-x-2">
               <span className="font-semibold tracking-tight text-white text-base">ApplyVise AI</span>
-              <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-slate-800 text-[#C6A66A] border border-slate-700">
                 CAREER AGENT
               </span>
               <span className="flex items-center space-x-1 text-xs text-slate-400">
@@ -135,7 +135,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-bold text-white">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#C6A66A] text-[10px] font-bold text-slate-900">
                   {unreadCount}
                 </span>
               )}
@@ -148,7 +148,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <div className="flex items-center space-x-2">
                     <span className="font-semibold text-sm">Agent Notifications</span>
                     {unreadCount > 0 && (
-                      <span className="text-xs bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded">
+                      <span className="text-xs bg-slate-800 text-[#C6A66A] px-1.5 py-0.5 rounded border border-slate-700">
                         {unreadCount} unread
                       </span>
                     )}
@@ -156,7 +156,7 @@ export const Header: React.FC<HeaderProps> = ({
                   {unreadCount > 0 && (
                     <button
                       onClick={onMarkAllNotificationsRead}
-                      className="text-xs text-indigo-400 hover:text-indigo-300"
+                      className="text-xs text-[#C6A66A] hover:underline"
                     >
                       Mark all read
                     </button>
@@ -174,7 +174,7 @@ export const Header: React.FC<HeaderProps> = ({
                         className={`p-2.5 rounded-lg border text-xs cursor-pointer transition ${
                           notif.read
                             ? 'bg-slate-950/40 border-slate-800/60 text-slate-400'
-                            : 'bg-indigo-950/30 border-indigo-800/50 text-slate-200 font-medium'
+                            : 'bg-slate-800/60 border-slate-700 text-slate-200 font-medium'
                         }`}
                       >
                         <div className="flex items-start justify-between">
@@ -204,10 +204,10 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`flex items-center space-x-1.5 rounded-md px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all ${
+                className={`flex items-center space-x-1.5 rounded-md px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-500/30'
-                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                    ? 'bg-slate-800 text-[#C6A66A] border border-slate-700 shadow-xs'
+                    : 'text-slate-400 hover:bg-slate-850 hover:text-slate-200'
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />

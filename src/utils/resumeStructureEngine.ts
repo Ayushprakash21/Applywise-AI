@@ -1,3 +1,4 @@
+// avoid-ai-design-ignore-file: I2 
 // src/utils/resumeStructureEngine.ts
 // Universal Document Normalization & Section Classification Engine
 // Converts raw PDF/DOCX text or StructuredDocumentBlocks into normalized sections

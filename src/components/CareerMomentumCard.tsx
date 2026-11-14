@@ -116,7 +116,7 @@ export const CareerMomentumCard: React.FC<CareerMomentumCardProps> = ({
               {profileCompleteness}% Complete
             </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/15 via-indigo-500/20 to-[#8065F5]/25 border border-violet-300/40 flex items-center justify-center font-mono text-xs font-bold text-[#8065F5] shadow-xs">
+          <div className="w-11 h-11 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-mono text-xs font-bold text-slate-800 shadow-xs">
             {profileCompleteness}%
           </div>
         </div>
@@ -130,7 +130,7 @@ export const CareerMomentumCard: React.FC<CareerMomentumCardProps> = ({
             <div
               key={idx}
               onClick={() => onNavigateTab && onNavigateTab(m.tab)}
-              className="group p-4 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/80 hover:bg-white/90 hover:border-violet-300/70 hover:shadow-lg hover:shadow-violet-500/10 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+              className="group p-4 rounded-2xl bg-white/70 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-xs transition duration-200 cursor-pointer flex flex-col justify-between"
             >
               <div className="flex items-center justify-between mb-3">
                 <span className={`w-10 h-10 rounded-xl flex items-center justify-center border bg-gradient-to-br ${m.gradient} shadow-2xs group-hover:scale-105 transition-transform`}>

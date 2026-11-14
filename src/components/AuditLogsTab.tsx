@@ -109,9 +109,9 @@ export const AuditLogsTab: React.FC<AuditLogsTabProps> = ({ auditLogs, onResetDe
           <tbody className="divide-y divide-slate-800/60">
             {filteredLogs.map(log => {
               const severityBadge: Record<string, string> = {
-                info: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20',
+                info: 'bg-slate-800/10 text-indigo-300 border-indigo-500/20',
                 warning: 'bg-amber-500/10 text-amber-300 border-amber-500/20',
-                security: 'bg-purple-500/10 text-purple-300 border-purple-500/20',
+                security: 'bg-slate-800/10 text-purple-300 border-purple-500/20',
                 critical: 'bg-red-500/10 text-red-300 border-red-500/20',
               };
 

@@ -102,10 +102,10 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
           <button
             type="button"
             onClick={onNavigateSignup}
-            className={`px-3.5 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-200 cursor-pointer ${
+            className={`px-3.5 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors duration-150 cursor-pointer ${
               activePage === 'signup'
-                ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-[#8065F5] text-white shadow-md shadow-violet-500/30 ring-2 ring-violet-400/40 hover:opacity-95'
-                : 'bg-gradient-to-r from-blue-600 to-[#8065F5] text-white shadow-sm hover:shadow-md hover:shadow-violet-500/25 hover:opacity-95'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-slate-800 hover:bg-slate-900 text-white shadow-xs'
             }`}
           >
             Sign Up

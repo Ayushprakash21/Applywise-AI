@@ -243,14 +243,14 @@ export const PublicResourcePage: React.FC<PublicResourcePageProps> = ({
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-12">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-3">
-            <BookOpen className="w-3.5 h-3.5" /> Career & ATS Intelligence Hub
+        <div className="max-w-3xl mb-12 space-y-2">
+          <span className="text-xs font-semibold text-amber-400">
+            Career & ATS Intelligence Hub
           </span>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
             Authoritative Guides for Modern Job Seekers
           </h1>
-          <p className="text-sm text-stone-400 mt-2">
+          <p className="text-sm text-stone-400 leading-relaxed">
             Deterministic career advice, ATS technical breakdowns, and verified behavioral interview strategies produced by the ApplyVise autonomous growth engine.
           </p>
         </div>

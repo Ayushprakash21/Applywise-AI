@@ -177,7 +177,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                           {lang.nativeName}
                         </span>
                         {lang.direction === 'rtl' && (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-purple-500/15 text-purple-400 border border-purple-500/30">
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-slate-800/15 text-purple-400 border border-purple-500/30">
                             RTL
                           </span>
                         )}

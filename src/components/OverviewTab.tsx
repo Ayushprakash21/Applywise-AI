@@ -59,8 +59,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   return (
     <div className="space-y-6">
       {/* Agent Autonomous Loop Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-indigo-900/60 bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-900 p-6 shadow-xl">
-        <div className="absolute -top-12 -right-12 h-48 w-48 rounded-full bg-indigo-500/10 blur-3xl" />
+      <div className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-sm">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center space-x-2.5">
@@ -71,7 +70,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               <h1 className="text-xl font-bold tracking-tight text-white">
                 Autonomous Career Agent is {settings?.emergencyStop ? 'Halted' : 'Active'}
               </h1>
-              <span className="text-xs px-2.5 py-0.5 rounded-full font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <span className="text-xs px-2.5 py-0.5 rounded-md font-mono bg-slate-800 text-[#C6A66A] border border-slate-700">
                 {settings?.mode.replace(/_/g, ' ')}
               </span>
             </div>
@@ -98,7 +97,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             <button
               onClick={onRunDiscovery}
               disabled={isSearching}
-              className="flex items-center space-x-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 active:scale-95 transition disabled:opacity-50"
+              className="flex items-center space-x-2 rounded-xl bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] px-4 py-2.5 text-xs font-semibold text-white shadow-lg shadow-xs hover:bg-slate-800 active:scale-95 transition disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${isSearching ? 'animate-spin' : ''}`} />
               <span>{isSearching ? 'Querying Sources...' : 'Discover Jobs Now'}</span>
@@ -213,7 +212,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                 AWAITING_APPROVAL: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
                 CONFIRMATION_VERIFIED: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30',
                 SUBMITTED: 'bg-blue-500/10 text-blue-300 border-blue-500/30',
-                APPLICATION_PREPARED: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30',
+                APPLICATION_PREPARED: 'bg-slate-800/10 text-indigo-300 border-indigo-500/30',
                 DISCOVERED: 'bg-slate-700/30 text-slate-300 border-slate-600',
               };
 

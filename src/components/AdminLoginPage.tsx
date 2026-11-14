@@ -78,7 +78,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
       <div className="w-full max-w-md mx-auto px-4 py-8">
         <div className="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-[0_12px_40px_-8px_rgba(15,23,42,0.08)] relative overflow-hidden">
           {/* Subtle security accent bar */}
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-slate-900 via-blue-700 to-indigo-800" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-slate-900" />
 
           {/* Badge & Title */}
           <div className="flex flex-col items-center text-center mb-8">

@@ -166,7 +166,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
           <div className="lg:col-span-7 space-y-5">
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-700 dark:bg-[rgba(198,166,106,0.10)] dark:text-[#C6A66A] border border-violet-300/30 dark:border-[rgba(198,166,106,0.25)] font-mono">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-800/10 text-violet-700 dark:bg-[rgba(198,166,106,0.10)] dark:text-[#C6A66A] border border-violet-300/30 dark:border-[rgba(198,166,106,0.25)] font-mono">
                   Career Intelligence Workspace
                 </span>
                 <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-[rgba(53,184,135,0.12)] dark:text-[#35B887] border border-emerald-200 dark:border-[rgba(53,184,135,0.28)] font-mono">
@@ -175,9 +175,8 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
                 </span>
               </div>
 
-              <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-[#F2F0EA] tracking-tight flex items-center space-x-2">
-                <span>Welcome back, {user.fullName ? user.fullName.split(' ')[0] : 'Job Seeker'}!</span>
-                <span className="text-3xl">👋</span>
+              <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-[#F2F0EA] tracking-tight">
+                Welcome back, {user.fullName ? user.fullName.split(' ')[0] : 'Job Seeker'}
               </h1>
 
               <p className="text-sm sm:text-base text-slate-600 dark:text-[#C0BDB5] mt-2 leading-relaxed max-w-xl font-normal">
@@ -238,7 +237,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500 dark:text-[#92949A] uppercase tracking-wider font-mono">Applications Prepared</span>
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500/15 to-indigo-500/20 dark:bg-[#191D23] border border-blue-300/40 dark:border-[rgba(255,255,255,0.09)] text-blue-600 dark:text-[#76A9D8] flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+              <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-[#191D23] border border-slate-200 dark:border-[rgba(255,255,255,0.09)] text-slate-700 dark:text-[#76A9D8] flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
                 <FileCheck className="h-5 w-5" />
               </div>
             </div>
@@ -263,7 +262,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500 dark:text-[#92949A] uppercase tracking-wider font-mono">Submissions Recorded</span>
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500/15 to-purple-500/20 dark:bg-[#191D23] border border-indigo-300/40 dark:border-[rgba(255,255,255,0.09)] text-indigo-600 dark:text-[#C6A66A] flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+              <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-[#191D23] border border-slate-200 dark:border-[rgba(255,255,255,0.09)] text-slate-700 dark:text-[#C6A66A] flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
                 <Send className="h-5 w-5" />
               </div>
             </div>
@@ -313,7 +312,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500 dark:text-[#92949A] uppercase tracking-wider font-mono">Verified Skills</span>
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-500/15 to-purple-500/20 dark:bg-[#191D23] border border-violet-300/40 dark:border-[rgba(255,255,255,0.09)] text-[#8065F5] dark:text-[#9483E8] flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
+              <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-[#191D23] border border-slate-200 dark:border-[rgba(255,255,255,0.09)] text-slate-700 dark:text-[#9483E8] flex items-center justify-center group-hover:scale-105 transition-transform shadow-xs">
                 <Award className="h-5 w-5" />
               </div>
             </div>
@@ -381,9 +380,9 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
       </section>
 
       {/* 3. RECOMMENDED PRIORITY ACTION BANNER */}
-      <section className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-[#8065F5]/15 dark:bg-[#14171C] border border-violet-300/40 dark:border-[rgba(255,255,255,0.09)] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5 transition-colors">
+      <section className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#14171C] border border-slate-200 dark:border-[rgba(255,255,255,0.09)] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5 transition-colors">
         <div className="flex items-start space-x-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-[#8065F5] dark:bg-[#191D23] text-white dark:text-[#9483E8] border border-transparent dark:border-[rgba(148,131,232,0.30)] flex items-center justify-center shadow-md shadow-violet-500/25 dark:shadow-none shrink-0 mt-0.5">
+          <div className="w-12 h-12 rounded-xl bg-slate-900 dark:bg-[#191D23] text-[#C6A66A] dark:text-[#C6A66A] border border-slate-700 dark:border-[rgba(198,166,106,0.30)] flex items-center justify-center shadow-xs shrink-0 mt-0.5">
             <Zap className="h-6 w-6" />
           </div>
           <div className="space-y-1.5">
@@ -405,7 +404,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
         <button
           type="button"
           onClick={() => handleExecuteAction(nextAction.actionType)}
-          className="be-btn-primary px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-[#8065F5] dark:bg-[#C6A66A] text-white dark:text-[#17130C] text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 shrink-0 shadow-md shadow-violet-500/25 dark:shadow-none hover:shadow-lg dark:hover:bg-[#D9BB80] transition cursor-pointer"
+          className="be-btn-primary px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] text-xs sm:text-sm font-bold flex items-center justify-center space-x-2 shrink-0 shadow-xs transition-colors cursor-pointer"
         >
           <span>{nextAction.actionLabel || 'Take Action'}</span>
           <ArrowRight className="h-4 w-4" />
@@ -468,7 +467,7 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
                 <div
                   key={v.id}
                   onClick={() => onSelectVacancy(v)}
-                  className="group p-5 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/90 hover:bg-white/95 hover:border-violet-300/80 hover:shadow-lg hover:shadow-violet-500/10 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer flex flex-col justify-between space-y-3"
+                  className="group p-5 rounded-2xl bg-white/70 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-xs transition duration-200 cursor-pointer flex flex-col justify-between space-y-3"
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">

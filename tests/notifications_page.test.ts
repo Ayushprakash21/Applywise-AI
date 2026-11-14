@@ -21,10 +21,9 @@ test('Notifications: 1. Component architecture and App.tsx integration', () => {
   assert.ok(notifSrc.includes('Unable to load notifications'), 'Must contain visible error banner');
   assert.ok(notifSrc.includes('Retry'), 'Must include retry button in error state');
 
-  // D. Premium glassmorphic visual tokens
-  assert.ok(notifSrc.includes('backdrop-blur'), 'Must use translucent frosted glass backdrop-blur');
-  assert.ok(notifSrc.includes('border-l-4 border-l-blue-600'), 'Unread notifications must feature blue indicator');
-  assert.ok(notifSrc.includes('from-[#2563EB] to-[#8065F5]'), 'Must use electric blue & radiant violet gradient');
+  // D. Semantic visual tokens
+  assert.ok(notifSrc.includes('var(--be-bg-card') || notifSrc.includes('backdrop-blur'), 'Must use semantic card surface tokens');
+  assert.ok(notifSrc.includes('isUnread'), 'Unread notifications must feature distinct indicator');
 
   // E. App.tsx integration
   const appSrc = fs.readFileSync('src/App.tsx', 'utf8');

@@ -736,7 +736,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                   type="button"
                   disabled={!selectedFile}
                   onClick={handleProcessFile}
-                  className="be-btn-primary px-5 py-2.5 min-h-[44px] bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white dark:text-[#17130C] rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition flex items-center justify-center space-x-1.5 active:scale-95 touch-target order-1 sm:order-2 cursor-pointer"
+                  className="be-btn-primary px-5 py-2.5 min-h-[44px] bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white dark:text-[#17130C] rounded-xl text-xs font-bold shadow-md shadow-xs transition flex items-center justify-center space-x-1.5 active:scale-95 touch-target order-1 sm:order-2 cursor-pointer"
                 >
                   <span>Extract & Analyze Profile</span>
                   <ArrowRight className="h-4 w-4" />
@@ -1183,7 +1183,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                   type="button"
                   disabled={isSaving}
                   onClick={handleSaveVerifiedProfile}
-                  className="px-5 py-2.5 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/20 transition flex items-center justify-center space-x-1.5 active:scale-95 touch-target order-1 sm:order-2"
+                  className="px-5 py-2.5 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md shadow-xs transition flex items-center justify-center space-x-1.5 active:scale-95 touch-target order-1 sm:order-2"
                 >
                   {isSaving ? (
                     <span>Saving...</span>

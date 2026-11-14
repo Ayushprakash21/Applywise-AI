@@ -442,7 +442,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
               <div>No 70%+ alignment vacancies currently cached.</div>
               <button
                 onClick={() => onNavigateTab('radar')}
-                className="px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-semibold text-xs hover:bg-indigo-500 transition"
+                className="px-3 py-1.5 rounded-xl bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white font-semibold text-xs hover:bg-slate-800 transition"
               >
                 Scan Live Radar Feeds
               </button>

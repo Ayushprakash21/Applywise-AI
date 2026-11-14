@@ -8,28 +8,28 @@ interface AuthBackgroundProps {
 export const AuthBackground: React.FC<AuthBackgroundProps> = ({ theme }) => {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden select-none z-0" style={{ contain: 'paint' }}>
-      {/* Dynamic Animated Blurred Light Orbs */}
-      {/* Orb 1: Indigo / Violet top-right */}
+      {/* Subtle Atmospheric Ambient Lighting */}
+      {/* Orb 1: Warm Gold / Champagne top-right */}
       <div 
-        className="auth-orb-1 absolute -top-[12%] right-[8%] w-[680px] h-[680px] rounded-full blur-[140px] opacity-75"
+        className="auth-orb-1 absolute -top-[12%] right-[8%] w-[680px] h-[680px] rounded-full blur-[140px] opacity-40"
         style={{
-          background: 'radial-gradient(circle, rgba(99, 102, 241, 0.35) 0%, rgba(139, 92, 246, 0.22) 45%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(198, 166, 106, 0.18) 0%, rgba(217, 187, 128, 0.10) 45%, transparent 70%)',
         }}
       />
 
-      {/* Orb 2: Sky Blue / Cyan bottom-left */}
+      {/* Orb 2: Soft Slate / Neutral bottom-left */}
       <div 
-        className="auth-orb-2 absolute bottom-[2%] left-[4%] w-[640px] h-[640px] rounded-full blur-[130px] opacity-70"
+        className="auth-orb-2 absolute bottom-[2%] left-[4%] w-[640px] h-[640px] rounded-full blur-[130px] opacity-35"
         style={{
-          background: 'radial-gradient(circle, rgba(56, 189, 248, 0.3) 0%, rgba(147, 197, 253, 0.25) 45%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(148, 163, 184, 0.15) 0%, rgba(203, 213, 225, 0.10) 45%, transparent 70%)',
         }}
       />
 
-      {/* Orb 3: Lavender / Soft Magenta center-right floating */}
+      {/* Orb 3: Champagne Accent floating */}
       <div 
-        className="auth-orb-3 absolute top-[36%] right-[28%] w-[500px] h-[500px] rounded-full blur-[115px] opacity-60"
+        className="auth-orb-3 absolute top-[36%] right-[28%] w-[500px] h-[500px] rounded-full blur-[115px] opacity-30"
         style={{
-          background: 'radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, rgba(216, 180, 254, 0.2) 50%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(198, 166, 106, 0.12) 0%, rgba(226, 197, 138, 0.08) 50%, transparent 70%)',
         }}
       />
 

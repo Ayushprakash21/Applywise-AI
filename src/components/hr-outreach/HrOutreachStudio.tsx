@@ -490,7 +490,7 @@ export const HrOutreachStudio: React.FC<HrOutreachStudioProps> = ({
                 onClick={onGoToAccounts}
                 className="underline font-bold cursor-pointer"
               >
-                Manage Email Accounts →
+                Manage Email Accounts
               </button>
             </div>
           ) : (

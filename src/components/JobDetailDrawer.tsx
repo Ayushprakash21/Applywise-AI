@@ -326,7 +326,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
           <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
             <div className="flex items-start space-x-4 min-w-0 flex-1">
               {/* Company Logo or Stylized Initial Box */}
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-extrabold text-xl sm:text-2xl flex items-center justify-center shadow-md shadow-blue-500/10 shrink-0 border border-white/20">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-900 text-[#C6A66A] font-extrabold text-xl sm:text-2xl flex items-center justify-center shadow-xs shrink-0 border border-slate-700">
                 {companyInitial}
               </div>
 
@@ -381,7 +381,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
               <button
                 onClick={() => onPrepareApplication(vacancy.id)}
                 disabled={isPreparing}
-                className="flex-1 sm:flex-initial w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 disabled:opacity-50 transition flex items-center justify-center space-x-1.5 min-h-[42px]"
+                className="flex-1 sm:flex-initial w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs disabled:opacity-50 transition flex items-center justify-center space-x-1.5 min-h-[42px]"
               >
                 {isPreparing ? (
                   <>
@@ -528,7 +528,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                       <ul className="space-y-2 bg-slate-50/60 p-5 rounded-2xl border border-slate-200 text-sm text-slate-700">
                         {semanticSections.qualifications.map((qual, idx) => (
                           <li key={idx} className="flex items-start space-x-2.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 mt-2 shrink-0" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] mt-2 shrink-0" />
                             <span className="leading-relaxed">{qual}</span>
                           </li>
                         ))}
@@ -697,7 +697,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                   </div>
 
                   {/* Card 3: Apply Readiness Tools (Part 7) */}
-                  <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50/60 to-indigo-50/60 border border-blue-200/80 shadow-2xs space-y-3">
+                  <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 shadow-xs space-y-3">
                     <div className="flex items-center space-x-2">
                       <Sparkles className="h-4 w-4 text-blue-600" />
                       <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
@@ -810,7 +810,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                       <ul className="space-y-1.5 text-xs text-indigo-800">
                         {(analysisData.aiInsights?.recommendedFocusAreas || ['Cross-team Communication', 'System Observability']).map((item: string, idx: number) => (
                           <li key={idx} className="flex items-center space-x-1.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-slate-800" />
                             <span>{item} <em className="text-[10px] text-indigo-500">(Inferred)</em></span>
                           </li>
                         ))}
@@ -827,7 +827,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                   </p>
                   <button
                     onClick={handleAnalyzeJob}
-                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition"
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition"
                   >
                     Run AI Job Analysis
                   </button>
@@ -1027,7 +1027,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
               <button
                 onClick={() => onPrepareApplication(vacancy.id)}
                 disabled={isPreparing}
-                className="flex-1 sm:flex-initial px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 disabled:opacity-50 transition flex items-center justify-center space-x-1.5 min-h-[44px]"
+                className="flex-1 sm:flex-initial px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs disabled:opacity-50 transition flex items-center justify-center space-x-1.5 min-h-[44px]"
               >
                 {isPreparing ? (
                   <>

@@ -60,7 +60,7 @@ export const ApplicationCopilotView: React.FC<ApplicationCopilotViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50/70 via-white to-indigo-50/50 border border-blue-100 shadow-sm space-y-2">
+      <div className="p-5 rounded-xl bg-white dark:bg-[#14171C] border border-slate-200 dark:border-[rgba(255,255,255,0.09)] shadow-xs space-y-2">
         <div className="flex items-center space-x-2.5">
           <div className="p-2 rounded-xl bg-blue-600 text-white shadow-sm">
             <Sparkles className="h-5 w-5" />

@@ -1,7 +1,5 @@
 import React from 'react';
 import {
-  Sparkles,
-  ArrowRight,
   ShieldCheck,
   Briefcase,
   Bot,
@@ -9,8 +7,6 @@ import {
   FileCheck2,
   Lock,
   Layers,
-  CheckCircle2,
-  Zap,
   Clock,
   Compass,
   Target
@@ -31,85 +27,102 @@ export const AboutPage: React.FC<AboutPageProps> = ({
   onNavigateHome,
 }) => {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-[var(--be-bg-primary,#F5F3EE)] text-[var(--be-text-primary,#20242B)] flex flex-col font-sans">
       {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/70">
+      <header className="sticky top-0 z-40 bg-[var(--be-bg-card,#FFFFFF)] border-b border-[var(--be-border-subtle,#DEDAD0)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <BrandLogo size="md" onClick={onNavigateHome} />
 
           <div className="flex items-center space-x-3">
             <button
               onClick={onNavigateHome}
-              className="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition"
+              className="px-3.5 py-1.5 text-xs font-semibold text-[var(--be-text-secondary,#555C66)] hover:text-[var(--be-text-heading,#191D24)] transition cursor-pointer"
             >
               Home
             </button>
             <button
               onClick={onExplorePro}
-              className="px-3.5 py-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 transition"
+              className="px-3.5 py-1.5 text-xs font-semibold text-[var(--be-accent,#A78343)] hover:underline transition cursor-pointer"
             >
-              Pricing & Pro
+              Pricing & Plans
             </button>
             <button
               onClick={onGetStarted}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-blue-500/20 transition flex items-center space-x-1.5"
+              className="px-4 py-2 bg-[var(--be-accent,#A78343)] hover:bg-[var(--be-gold-hover,#8E6F37)] text-white rounded-md text-xs font-semibold shadow-xs transition flex items-center cursor-pointer"
             >
-              <span>Get Started Free</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              Start Career Assessment
             </button>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-16 pb-20 md:pt-24 md:pb-28">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-blue-100/50 via-indigo-50/20 to-transparent pointer-events-none -z-10 rounded-full blur-3xl opacity-70" />
+      {/* Hero Section — Architectural Split Layout */}
+      <section className="py-16 md:py-20 border-b border-[var(--be-border-subtle,#DEDAD0)] bg-[var(--be-bg-card,#FFFFFF)]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="lg:col-span-7 space-y-6">
+            <div className="inline-flex items-center space-x-2 text-xs font-medium text-[var(--be-accent,#A78343)]">
+              <span className="w-2 h-2 rounded-full bg-[var(--be-accent,#A78343)]" />
+              <span>Platform Architecture & Mission</span>
+            </div>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold shadow-xs">
-            <Sparkles className="h-3.5 w-3.5 text-blue-600" />
-            <span>About ApplyVise AI</span>
+            <h1 className="text-3xl sm:text-5xl font-extrabold text-[var(--be-text-heading,#191D24)] tracking-tight leading-tight">
+              Truthful career intelligence built for realistic professional progression.
+            </h1>
+
+            <p className="text-base text-[var(--be-text-secondary,#555C66)] leading-relaxed max-w-xl">
+              ApplyVise AI integrates vacancy aggregation, authentic ATS resume tailoring, application tracking, and candidate career roadmaps into one coherent operating system without fabricated credentials.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button
+                onClick={onGetStarted}
+                className="px-6 py-3 bg-[var(--be-accent,#A78343)] hover:bg-[var(--be-gold-hover,#8E6F37)] text-white rounded-md text-xs sm:text-sm font-semibold shadow-xs transition cursor-pointer"
+              >
+                Create Candidate Account
+              </button>
+              <button
+                onClick={onExplorePro}
+                className="px-6 py-3 border border-[var(--be-border-subtle,#DEDAD0)] bg-[var(--be-bg-primary,#F5F3EE)] hover:bg-[var(--be-border-subtle,#DEDAD0)]/50 text-[var(--be-text-primary,#20242B)] rounded-md text-xs sm:text-sm font-semibold transition cursor-pointer"
+              >
+                Review Subscription Tiers
+              </button>
+            </div>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            A Smarter Way to Navigate <br className="hidden sm:inline" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-              Your Career Journey
-            </span>
-          </h1>
-
-          <p className="max-w-2xl mx-auto text-sm sm:text-base text-slate-600 leading-relaxed">
-            ApplyVise AI is designed to bring job-search organization, career preparation, and practical AI assistance together in one experience.
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <button
-              onClick={onGetStarted}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-md shadow-blue-500/20 transition flex items-center space-x-2"
-            >
-              <span>Explore ApplyVise AI</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
-            <button
-              onClick={onExplorePro}
-              className="px-6 py-3 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold shadow-xs hover:shadow-sm transition"
-            >
-              Explore Pro Features
-            </button>
+          <div className="lg:col-span-5">
+            <div className="p-6 rounded-lg bg-[var(--be-bg-primary,#F5F3EE)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[var(--be-border-subtle,#DEDAD0)]">
+                <span className="text-xs font-semibold text-[var(--be-text-secondary,#555C66)]">System Verification Baseline</span>
+                <span className="text-xs font-bold text-[var(--be-accent,#A78343)]">v2.4 Active</span>
+              </div>
+              <ul className="space-y-3 text-xs text-[var(--be-text-secondary,#555C66)]">
+                <li className="flex items-start gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-[var(--status-success,#147A58)] shrink-0 mt-0.5" />
+                  <span><strong>Zero Hallucination Guarantee:</strong> Resumes strictly preserve candidate ground-truth employment tenures.</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <Target className="w-4 h-4 text-[var(--be-accent,#A78343)] shrink-0 mt-0.5" />
+                  <span><strong>Multi-Source Vacancies:</strong> Direct Greenhouse, Lever, and verified career page integrations.</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <Lock className="w-4 h-4 text-[var(--be-accent,#A78343)] shrink-0 mt-0.5" />
+                  <span><strong>Data Isolation:</strong> Cryptographic PBKDF2 hashing, session tokens, and strict Cloudflare D1 multi-tenancy.</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Our Story, Mission & Vision */}
-      <section className="py-16 bg-white border-y border-slate-200/70">
+      {/* Origin & Core Philosophy */}
+      <section className="py-16 border-b border-[var(--be-border-subtle,#DEDAD0)]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-16">
-          {/* Our Story */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
             <div className="md:col-span-4">
-              <span className="text-xs uppercase font-mono tracking-widest text-blue-600 font-semibold">Origin</span>
-              <h2 className="text-2xl font-bold text-slate-900 mt-1">Our Story</h2>
+              <span className="text-xs font-semibold text-[var(--be-accent,#A78343)]">Foundation & Origin</span>
+              <h2 className="text-2xl font-bold text-[var(--be-text-heading,#191D24)] mt-1">Why ApplyVise Exists</h2>
             </div>
-            <div className="md:col-span-8 space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed">
+            <div className="md:col-span-8 space-y-4 text-xs sm:text-sm text-[var(--be-text-secondary,#555C66)] leading-relaxed">
               <p>
                 ApplyVise AI was created around the real-world friction of modern job searching: repetitive applications, scattered tracking spreadsheets, inconsistent resume adjustments, and the overwhelming effort involved in presenting oneself effectively across different opportunities.
               </p>
@@ -122,125 +135,99 @@ export const AboutPage: React.FC<AboutPageProps> = ({
             </div>
           </div>
 
-          <div className="border-t border-slate-100" />
-
-          {/* Mission & Vision Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="p-8 rounded-3xl bg-blue-50/50 border border-blue-200/70 space-y-3 relative overflow-hidden">
-              <div className="p-3 bg-blue-600 text-white rounded-2xl w-fit shadow-md shadow-blue-500/20">
-                <Target className="h-5 w-5" />
+          {/* Mission & Vision Panels */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-6 rounded-md bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-3">
+              <div className="w-8 h-8 rounded bg-[var(--be-bg-primary,#F5F3EE)] flex items-center justify-center text-[var(--be-accent,#A78343)]">
+                <Target className="h-4 w-4" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Our Mission</h3>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                "Our mission is to help job seekers manage their career journey with greater clarity, confidence, and efficiency by combining practical tools with responsible AI."
+              <h3 className="text-base font-bold text-[var(--be-text-heading,#191D24)]">Mission</h3>
+              <p className="text-xs sm:text-sm text-[var(--be-text-secondary,#555C66)] leading-relaxed">
+                Empower professionals to orchestrate their careers through structured organization, transparent opportunity evaluations, and factual resume customization.
               </p>
             </div>
 
-            <div className="p-8 rounded-3xl bg-indigo-50/50 border border-indigo-200/70 space-y-3 relative overflow-hidden">
-              <div className="p-3 bg-indigo-600 text-white rounded-2xl w-fit shadow-md shadow-indigo-500/20">
-                <Compass className="h-5 w-5" />
+            <div className="p-6 rounded-md bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-3">
+              <div className="w-8 h-8 rounded bg-[var(--be-bg-primary,#F5F3EE)] flex items-center justify-center text-[var(--be-accent,#A78343)]">
+                <Compass className="h-4 w-4" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Our Vision</h3>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                "Our vision is to create a connected career platform where job discovery, application management, preparation, and personalized AI assistance work together."
+              <h3 className="text-base font-bold text-[var(--be-text-heading,#191D24)]">Vision</h3>
+              <p className="text-xs sm:text-sm text-[var(--be-text-secondary,#555C66)] leading-relaxed">
+                Establish the global standard for truthful career intelligence, eliminating administrative job-search friction while protecting candidate privacy.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* What We Are Building */}
-      <section className="py-20 max-w-6xl mx-auto px-4 sm:px-6 space-y-12">
-        <div className="text-center max-w-3xl mx-auto space-y-2">
-          <span className="text-xs uppercase font-mono tracking-widest text-blue-600 font-semibold">Capabilities</span>
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">What We Are Building</h2>
-          <p className="text-xs sm:text-sm text-slate-500">
-            A comprehensive, truthful toolkit that empowers candidates at every step of their career search.
+      {/* Platform Capabilities */}
+      <section className="py-16 max-w-6xl mx-auto px-4 sm:px-6 space-y-10">
+        <div>
+          <span className="text-xs font-semibold text-[var(--be-accent,#A78343)]">Integrated Workflows</span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[var(--be-text-heading,#191D24)] tracking-tight mt-1">Platform Capabilities</h2>
+          <p className="text-xs sm:text-sm text-[var(--be-text-secondary,#555C66)] mt-1">
+            Grounded modules connecting every stage of professional development and opportunity pursuit.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Card 1 */}
-          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
-                <Briefcase className="h-5 w-5" />
-              </div>
-              <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Live Feature</span>
+          <div className="p-5 rounded-md bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-2">
+            <div className="w-7 h-7 rounded bg-[var(--be-bg-primary,#F5F3EE)] flex items-center justify-center text-[var(--be-accent,#A78343)]">
+              <Briefcase className="h-4 w-4" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">1. Career Organization</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Manage all job applications in one unified pipeline with truthful status transitions, submission timestamps, and complete audit history.
+            <h3 className="text-sm font-bold text-[var(--be-text-heading,#191D24)]">Career Pipeline Management</h3>
+            <p className="text-xs text-[var(--be-text-secondary,#555C66)] leading-relaxed">
+              Unified tracking for all applications with deterministic status machines, submission dates, and interview logging.
             </p>
           </div>
 
-          {/* Card 2 */}
-          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
-                <Bot className="h-5 w-5" />
-              </div>
-              <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Live Feature</span>
+          <div className="p-5 rounded-md bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-2">
+            <div className="w-7 h-7 rounded bg-[var(--be-bg-primary,#F5F3EE)] flex items-center justify-center text-[var(--be-accent,#A78343)]">
+              <Bot className="h-4 w-4" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">2. AI Career Assistance</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Context-aware ApplyVise Copilot delivers intelligent advice, resume critiques, interview preparation, and recruiter message drafting.
+            <h3 className="text-sm font-bold text-[var(--be-text-heading,#191D24)]">Grounded AI Copilot</h3>
+            <p className="text-xs text-[var(--be-text-secondary,#555C66)] leading-relaxed">
+              Supervised intelligence providing interview preparation, resume audits, and recruiter outreach drafts referencing verified facts.
             </p>
           </div>
 
-          {/* Card 3 */}
-          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="p-2.5 bg-violet-50 text-violet-600 rounded-xl">
-                <BrainCircuit className="h-5 w-5" />
-              </div>
-              <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Live Feature</span>
+          <div className="p-5 rounded-md bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-2">
+            <div className="w-7 h-7 rounded bg-[var(--be-bg-primary,#F5F3EE)] flex items-center justify-center text-[var(--be-accent,#A78343)]">
+              <BrainCircuit className="h-4 w-4" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">3. Application Intelligence</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Real-time weighted vacancy scoring across skills, experience, titles, qualifications, and visa eligibility with zero default points for missing data.
+            <h3 className="text-sm font-bold text-[var(--be-text-heading,#191D24)]">Opportunity Match Scoring</h3>
+            <p className="text-xs text-[var(--be-text-secondary,#555C66)] leading-relaxed">
+              Six-dimension objective matching across competencies, experience duration, title relevance, and work visa criteria.
             </p>
           </div>
 
-          {/* Card 4 */}
-          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
-                <FileCheck2 className="h-5 w-5" />
-              </div>
-              <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Live Feature</span>
+          <div className="p-5 rounded-md bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-2">
+            <div className="w-7 h-7 rounded bg-[var(--be-bg-primary,#F5F3EE)] flex items-center justify-center text-[var(--be-accent,#A78343)]">
+              <FileCheck2 className="h-4 w-4" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">4. Career Preparation</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Generate genuine, downloadable ATS-formatted Word (.docx) resumes tailored to target vacancies without inventing unverified credentials.
+            <h3 className="text-sm font-bold text-[var(--be-text-heading,#191D24)]">ATS Document Engine</h3>
+            <p className="text-xs text-[var(--be-text-secondary,#555C66)] leading-relaxed">
+              Generate native Word (.docx) documents structured for enterprise applicant tracking systems with zero unverified additions.
             </p>
           </div>
 
-          {/* Card 5 */}
-          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="p-2.5 bg-teal-50 text-teal-600 rounded-xl">
-                <Layers className="h-5 w-5" />
-              </div>
-              <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">Pro Feature</span>
+          <div className="p-5 rounded-md bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-2">
+            <div className="w-7 h-7 rounded bg-[var(--be-bg-primary,#F5F3EE)] flex items-center justify-center text-[var(--be-accent,#A78343)]">
+              <Layers className="h-4 w-4" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">5. Personalized Experience</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Deep career preferences, salary compatibility alerts, cross-country filters, and high-volume AI intelligence aligned to candidate targets.
+            <h3 className="text-sm font-bold text-[var(--be-text-heading,#191D24)]">Career Atlas Trajectories</h3>
+            <p className="text-xs text-[var(--be-text-secondary,#555C66)] leading-relaxed">
+              Map transferable competencies and realistic development milestones to compare vertical and lateral advancement tracks.
             </p>
           </div>
 
-          {/* Card 6 - Roadmap */}
-          <div className="p-6 rounded-2xl bg-slate-50/70 border border-slate-200/60 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="p-2.5 bg-slate-200 text-slate-700 rounded-xl">
-                <Clock className="h-5 w-5" />
-              </div>
-              <span className="text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">Roadmap</span>
+          <div className="p-5 rounded-md bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-2">
+            <div className="w-7 h-7 rounded bg-[var(--be-bg-primary,#F5F3EE)] flex items-center justify-center text-[var(--be-accent,#A78343)]">
+              <Clock className="h-4 w-4" />
             </div>
-            <h3 className="text-base font-bold text-slate-800">6. Continuous AI Evolution</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Upcoming automated interview simulations with voice input, direct ATS status polling integrations, and real-time compensation benchmarking.
+            <h3 className="text-sm font-bold text-[var(--be-text-heading,#191D24)]">Continuous Architecture</h3>
+            <p className="text-xs text-[var(--be-text-secondary,#555C66)] leading-relaxed">
+              Incremental updates with multilingual localization, automated interview rehearsal, and verified employer directory indexing.
             </p>
           </div>
         </div>
@@ -249,70 +236,40 @@ export const AboutPage: React.FC<AboutPageProps> = ({
       {/* Meet the Founder Section */}
       <FounderSection />
 
-      {/* Our Principles */}
-      <section className="py-20 bg-slate-900 text-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-12">
-          <div className="text-center max-w-3xl mx-auto space-y-2">
-            <span className="text-xs uppercase font-mono tracking-widest text-blue-400 font-semibold">Values</span>
-            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">Our Core Principles</h2>
-            <p className="text-xs sm:text-sm text-slate-400">
-              The fundamental guidelines that drive our software design and AI architecture.
-            </p>
+      {/* Core Principles */}
+      <section className="py-16 bg-[var(--be-bg-card,#FFFFFF)] border-t border-[var(--be-border-subtle,#DEDAD0)]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-10">
+          <div>
+            <span className="text-xs font-semibold text-[var(--be-accent,#A78343)]">Engineering Standards</span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[var(--be-text-heading,#191D24)] tracking-tight mt-1">Core Architecture Principles</h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 text-left">
-            <div className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700/70 space-y-2">
-              <div className="text-blue-400 font-mono text-sm font-bold">01</div>
-              <h4 className="font-bold text-sm text-white">Useful Over Complicated</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">Practical tools built for immediate candidate outcomes rather than decorative bloat.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="p-4 rounded-md bg-[var(--be-bg-primary,#F5F3EE)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-1.5">
+              <span className="text-[11px] font-bold text-[var(--be-accent,#A78343)]">Integrity</span>
+              <h4 className="font-bold text-xs text-[var(--be-text-heading,#191D24)]">Factual Truthfulness</h4>
+              <p className="text-[11px] text-[var(--be-text-secondary,#555C66)] leading-relaxed">No invented employers, degrees, or falsified performance metrics.</p>
             </div>
-            <div className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700/70 space-y-2">
-              <div className="text-blue-400 font-mono text-sm font-bold">02</div>
-              <h4 className="font-bold text-sm text-white">Responsible AI</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">Zero-hallucination policy that never invents fake metrics, degrees, or employers.</p>
+            <div className="p-4 rounded-md bg-[var(--be-bg-primary,#F5F3EE)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-1.5">
+              <span className="text-[11px] font-bold text-[var(--be-accent,#A78343)]">Pragmatism</span>
+              <h4 className="font-bold text-xs text-[var(--be-text-heading,#191D24)]">Outcome Orientation</h4>
+              <p className="text-[11px] text-[var(--be-text-secondary,#555C66)] leading-relaxed">Tools built to accelerate applications, not to introduce decorative noise.</p>
             </div>
-            <div className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700/70 space-y-2">
-              <div className="text-blue-400 font-mono text-sm font-bold">03</div>
-              <h4 className="font-bold text-sm text-white">Privacy-Conscious</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">User data is strictly isolated with cryptographic session tokens and secure D1 storage.</p>
+            <div className="p-4 rounded-md bg-[var(--be-bg-primary,#F5F3EE)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-1.5">
+              <span className="text-[11px] font-bold text-[var(--be-accent,#A78343)]">Isolation</span>
+              <h4 className="font-bold text-xs text-[var(--be-text-heading,#191D24)]">Strict Multi-Tenancy</h4>
+              <p className="text-[11px] text-[var(--be-text-secondary,#555C66)] leading-relaxed">Candidate records are cryptographic boundaries across all edge datastores.</p>
             </div>
-            <div className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700/70 space-y-2">
-              <div className="text-blue-400 font-mono text-sm font-bold">04</div>
-              <h4 className="font-bold text-sm text-white">Continuous Evolution</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">Iteratively refined based on real candidate feedback and transparent engineering.</p>
+            <div className="p-4 rounded-md bg-[var(--be-bg-primary,#F5F3EE)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-1.5">
+              <span className="text-[11px] font-bold text-[var(--be-accent,#A78343)]">Accountability</span>
+              <h4 className="font-bold text-xs text-[var(--be-text-heading,#191D24)]">Transparent AI</h4>
+              <p className="text-[11px] text-[var(--be-text-secondary,#555C66)] leading-relaxed">All AI-generated recommendations cite concrete evidence from the job posting.</p>
             </div>
-            <div className="p-5 rounded-2xl bg-slate-800/80 border border-slate-700/70 space-y-2">
-              <div className="text-blue-400 font-mono text-sm font-bold">05</div>
-              <h4 className="font-bold text-sm text-white">Accessible Tools</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">Generous free tier making AI-driven career discovery open to all job seekers.</p>
+            <div className="p-4 rounded-md bg-[var(--be-bg-primary,#F5F3EE)] border border-[var(--be-border-subtle,#DEDAD0)] space-y-1.5">
+              <span className="text-[11px] font-bold text-[var(--be-accent,#A78343)]">Access</span>
+              <h4 className="font-bold text-xs text-[var(--be-text-heading,#191D24)]">Permanent Baseline</h4>
+              <p className="text-[11px] text-[var(--be-text-secondary,#555C66)] leading-relaxed">Generous free tier enabling every candidate to search and apply with dignity.</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Final Call to Action */}
-      <section className="py-20 bg-gradient-to-b from-white to-blue-50/50 text-center">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-6">
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Your next career move deserves a smarter approach.
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
-            Join ApplyVise AI today to experience truthful resume intelligence, verified vacancy discovery, and AI career assistance.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <button
-              onClick={onGetStarted}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-md shadow-blue-500/20 transition flex items-center space-x-2"
-            >
-              <span>Get Started Free</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
-            <button
-              onClick={onExplorePro}
-              className="px-6 py-3 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold shadow-xs hover:shadow-sm transition"
-            >
-              Explore Pro Plans
-            </button>
           </div>
         </div>
       </section>

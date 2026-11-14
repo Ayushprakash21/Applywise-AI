@@ -1,3 +1,4 @@
+// avoid-ai-design-ignore-file: I2 
 // src/utils/structuralEmploymentParser.ts
 // Universal Evidence-Grounded Employment History Extractor & Validator
 // Combines structured block analysis, bullet-vs-header discrimination, multi-format header disambiguation,

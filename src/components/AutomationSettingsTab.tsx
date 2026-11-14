@@ -83,7 +83,7 @@ export const AutomationSettingsTab: React.FC<AutomationSettingsTabProps> = ({
 
         <button
           onClick={handleSave}
-          className="flex items-center space-x-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-indigo-500 transition"
+          className="flex items-center space-x-1.5 rounded-xl bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-slate-800 transition"
         >
           <Save className="h-4 w-4" />
           <span>{isSaved ? 'Settings Saved' : 'Save Settings'}</span>

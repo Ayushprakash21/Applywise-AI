@@ -290,7 +290,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 className={`be-btn-primary flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs ${
                   isBlack
                     ? 'bg-[#C6A66A] hover:bg-[#D9BB80] text-[#17130C] border border-[rgba(198,166,106,0.30)]'
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                    : 'bg-slate-900 hover:bg-slate-800 dark:bg-[var(--be-accent,#A78343)] dark:hover:bg-[var(--be-accent-hover,#917135)] dark:text-[#17130C] text-white'
                 }`}
               >
                 <Plus className={`w-3.5 h-3.5 ${isBlack ? 'text-[#17130C]' : 'text-white'}`} />
@@ -437,7 +437,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                   onClick={() => setFilterMode(f.id as any)}
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
                     filterMode === f.id
-                      ? isBlack ? 'bg-[#C6A66A] text-[#17130C] shadow-xs font-bold' : 'bg-indigo-600 text-white'
+                      ? isBlack ? 'bg-[#C6A66A] text-[#17130C] shadow-xs font-bold' : 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white'
                       : isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#C0BDB5] hover:text-[#F2F0EA]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                   }`}
                 >
@@ -642,7 +642,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                                 ? 'bg-[#C6A66A] text-[#17130C]'
                                 : 'bg-[var(--be-bg-elevated,#191D23)] border border-[rgba(255,255,255,0.10)] text-[#C0BDB5] hover:border-[rgba(198,166,106,0.30)] hover:text-[#F2F0EA]'
                               : isCompared
-                              ? 'bg-indigo-600 text-white'
+                              ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white'
                               : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                           }`}
                         >
@@ -722,7 +722,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                           className={`be-btn-primary px-3.5 py-2 rounded-xl font-bold text-xs shadow-xs transition flex items-center space-x-1 cursor-pointer ${
                             isBlack
                               ? 'bg-[#C6A66A] hover:bg-[#D9BB80] text-[#17130C] border border-[rgba(198,166,106,0.30)]'
-                              : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                              : 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] hover:bg-slate-800 text-white'
                           }`}
                         >
                           <span className={isBlack ? 'text-[#17130C] font-bold' : 'text-white'}>Review Dossier</span>
@@ -747,7 +747,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
             </span>
             <button
               onClick={() => setShowCompareDrawer(true)}
-              className="px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition"
+              className="px-3 py-1.5 rounded-xl bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white font-semibold hover:bg-slate-800 transition"
             >
               Compare Opportunities
             </button>

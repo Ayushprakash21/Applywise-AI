@@ -168,7 +168,7 @@ export const ManualJobModal: React.FC<ManualJobModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting || !title.trim() || !company.trim()}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-lg bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-slate-800 disabled:opacity-50"
             >
               {isSubmitting ? 'Importing...' : 'Ingest & Evaluate'}
             </button>

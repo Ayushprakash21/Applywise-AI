@@ -323,7 +323,7 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
               onClick={() => { setDiscoveryPreset('stretch'); setCurrentPage(1); }}
               className={`px-3 py-1.5 rounded-xl text-xs transition ${
                 discoveryPreset === 'stretch'
-                  ? 'bg-purple-600 text-white font-bold shadow-xs'
+                  ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white font-bold shadow-xs'
                   : 'bg-white text-purple-800 border border-purple-200 hover:border-purple-300'
               }`}
             >

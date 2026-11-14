@@ -242,12 +242,12 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
             <span className="flex h-2 w-2 relative">
               {unreadCount > 0 && (
                 <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                  isBlack ? 'bg-[#C6A66A]' : 'bg-violet-400'
+                  isBlack ? 'bg-[#C6A66A]' : 'bg-blue-500'
                 }`} />
               )}
               <span className={`relative inline-flex rounded-full h-2 w-2 ${
                 unreadCount > 0
-                  ? isBlack ? 'bg-[#C6A66A]' : 'bg-violet-600'
+                  ? isBlack ? 'bg-[#C6A66A]' : 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C]'
                   : isBlack ? 'bg-[#737780]' : 'bg-slate-300'
               }`} />
             </span>
@@ -442,12 +442,9 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
         </div>
       ) : filteredNotifications.length === 0 ? (
         /* Empty State */
-        <div className="p-10 sm:p-14 rounded-3xl bg-white/70 backdrop-blur-2xl border border-white/80 shadow-2xs text-center flex flex-col items-center justify-center relative overflow-hidden">
-          {/* Subtle Ambient Radial Glow */}
-          <div className="absolute w-64 h-64 rounded-full bg-gradient-to-tr from-blue-300/20 via-violet-300/15 to-transparent blur-3xl pointer-events-none" />
-
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-blue-100 to-indigo-100 border border-blue-200/60 flex items-center justify-center text-blue-600 mb-4 shadow-xs relative">
-            <Inbox className="w-8 h-8" />
+        <div className="p-10 sm:p-14 rounded-2xl bg-white dark:bg-[#14171C] border border-slate-200 dark:border-[rgba(255,255,255,0.09)] shadow-xs text-center flex flex-col items-center justify-center relative">
+          <div className="w-14 h-14 rounded-xl bg-slate-100 dark:bg-[#191D23] border border-slate-200 dark:border-[rgba(255,255,255,0.09)] flex items-center justify-center text-slate-700 dark:text-[#C6A66A] mb-4 shadow-xs relative">
+            <Inbox className="w-7 h-7" />
           </div>
 
           <h3 className="text-base sm:text-lg font-bold text-slate-900">
@@ -509,10 +506,10 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
             return (
               <div
                 key={notification.id}
-                className={`p-4 sm:p-5 rounded-3xl transition-all duration-200 relative border ${
+                className={`p-4 sm:p-5 rounded-2xl transition-all duration-200 relative border ${
                   isUnread
-                    ? 'bg-[var(--be-bg-card,#14171C)] backdrop-blur-2xl border-[var(--be-border-subtle,rgba(255,255,255,0.09))] hover:border-[rgba(198,166,106,0.30)] shadow-2xs hover:shadow-md border-l-4 border-l-blue-600'
-                    : 'bg-[var(--be-bg-card,#14171C)]/75 backdrop-blur-xl border-[rgba(255,255,255,0.06)] shadow-2xs hover:bg-[var(--be-bg-card,#14171C)] opacity-90'
+                    ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.12))] shadow-xs'
+                    : 'bg-[var(--be-bg-card,#14171C)]/80 border-[var(--be-border-subtle,rgba(255,255,255,0.06))] opacity-90'
                 }`}
               >
                 <div className="flex items-start gap-3.5 sm:gap-4">

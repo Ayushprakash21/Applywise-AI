@@ -201,7 +201,7 @@ export const RecruiterReview: React.FC<RecruiterReviewProps> = ({
 
           <button
             onClick={onNavigateToResumeStudio}
-            className="mt-6 w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-xs transition flex items-center justify-center space-x-1.5"
+            className="mt-6 w-full py-2.5 rounded-xl bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] hover:bg-slate-800 text-white font-semibold text-xs shadow-xs transition flex items-center justify-center space-x-1.5"
           >
             <span>Edit Resume in Studio</span>
             <ArrowRight className="w-3.5 h-3.5" />

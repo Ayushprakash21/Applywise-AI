@@ -1,0 +1,6190 @@
+{
+  "tool": "avoid-ai-design",
+  "version": "0.4.0",
+  "scanned": 145,
+  "summary": {
+    "P0": 35,
+    "P1": 264,
+    "P2": 141,
+    "total": 440
+  },
+  "findings": [
+    {
+      "file": "src\\App.tsx",
+      "id": "I2",
+      "severity": "P1",
+      "name": "Emoji as interface icons",
+      "why": "Emoji standing in for iconography in features, nav, or footers.",
+      "lines": [
+        484
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\App.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        567
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        66,
+        76
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "C6",
+      "severity": "P0",
+      "name": "Gradient-filled headline text",
+      "why": "bg-clip-text gradients are a 2024-era default flourish that also hurts legibility.",
+      "lines": [
+        76
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "L1",
+      "severity": "P0",
+      "name": "Pill badge + centered hero",
+      "why": "Badge, centered H1, centered subhead, two centered CTAs: the landing-page skeleton that makes no spatial decision.",
+      "lines": [
+        74
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        140
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, ArrowRight, CheckCircle2, Zap"
+      ]
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        88,
+        130,
+        140,
+        305
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        36
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        109,
+        155,
+        256
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "SD5",
+      "severity": "P1",
+      "name": "One word accented in the headline",
+      "why": "Coloring, italicizing, or highlighting a single headline word is among the commonest tells of a generated page.",
+      "lines": [
+        74
+      ],
+      "notes": [
+        "\"Your Career Journey\""
+      ]
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "SD6",
+      "severity": "P1",
+      "name": "Decorative 01 / 02 / 03 markers",
+      "why": "Two-digit numerals are only information when the content is a real sequence; otherwise they are decoration.",
+      "lines": [
+        265,
+        270,
+        275,
+        280,
+        285
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        55,
+        88,
+        130,
+        140,
+        305
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        109,
+        155,
+        169,
+        183,
+        197,
+        211,
+        225,
+        239,
+        256
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AboutPage.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        169,
+        183,
+        197,
+        211
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\admin\\AdminLanguageManagement.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Zap, Check"
+      ]
+    },
+    {
+      "file": "src\\components\\admin\\AdminLanguageManagement.tsx",
+      "id": "K6",
+      "severity": "P1",
+      "name": "Icon in a tinted rounded square",
+      "why": "The stock 'feature icon' treatment, one chip per card.",
+      "lines": [
+        135,
+        166
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\admin\\AdminLanguageManagement.tsx",
+      "id": "SD4d",
+      "severity": "P2",
+      "name": "Template chrome: meta strings joined with middle dots",
+      "why": "'A · B · C' metadata strings are a stock chrome move, not a decision about this content.",
+      "lines": [
+        94,
+        95,
+        216
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\admin\\AdminLanguageManagement.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        143,
+        203,
+        357,
+        394,
+        417,
+        421,
+        439,
+        459
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\admin\\AdminLanguageManagement.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        143,
+        179,
+        180,
+        224,
+        446,
+        459
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\admin\\growth-engine\\GrowthEngineDashboard.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        5
+      ],
+      "notes": [
+        "Sparkles, CheckCircle2, Zap"
+      ]
+    },
+    {
+      "file": "src\\components\\admin\\growth-engine\\GrowthEngineDashboard.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        290,
+        304,
+        421,
+        881,
+        946,
+        1044,
+        1100
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\admin\\growth-engine\\GrowthEngineDashboard.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\admin\\growth-engine\\GrowthEngineDashboard.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        452,
+        465,
+        478,
+        491,
+        508,
+        524,
+        538,
+        552,
+        739,
+        792,
+        957,
+        1064,
+        1075,
+        1177,
+        1221
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\admin\\growth-engine\\GrowthEngineDashboard.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        314,
+        670,
+        744,
+        780,
+        806,
+        811,
+        932,
+        962,
+        978,
+        1047,
+        1067,
+        1155,
+        1165,
+        1209,
+        1262
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\admin\\growth-engine\\GrowthEngineDashboard.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        290,
+        291,
+        326,
+        327,
+        384,
+        392,
+        459,
+        480,
+        485,
+        524,
+        530,
+        587,
+        618,
+        669,
+        762,
+        767,
+        982,
+        1002,
+        1092,
+        1194,
+        1417
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminConsole.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        5
+      ],
+      "notes": [
+        "Shield, CheckCircle2, Sparkles"
+      ]
+    },
+    {
+      "file": "src\\components\\AdminConsole.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        309,
+        769
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminConsole.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\AdminConsole.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\AdminConsole.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        325,
+        429,
+        464,
+        571,
+        656,
+        778,
+        821,
+        833,
+        866,
+        896,
+        934,
+        979,
+        1000,
+        1020,
+        1040,
+        1060,
+        1080,
+        1135,
+        1161,
+        1263,
+        1326
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminConsole.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        328,
+        389,
+        429,
+        464,
+        571,
+        656,
+        821,
+        833,
+        866,
+        896,
+        934,
+        1157,
+        1188,
+        1263,
+        1273,
+        1346,
+        1363
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminConsole.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        752,
+        955,
+        956,
+        1001,
+        1086
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminFounderProfile.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        356,
+        454
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminFounderProfile.tsx",
+      "id": "C6",
+      "severity": "P0",
+      "name": "Gradient-filled headline text",
+      "why": "bg-clip-text gradients are a 2024-era default flourish that also hurts legibility.",
+      "lines": [
+        466
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminFounderProfile.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        561,
+        756
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminFounderProfile.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        5
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles"
+      ]
+    },
+    {
+      "file": "src\\components\\AdminFounderProfile.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        356,
+        391,
+        454
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminFounderProfile.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        304,
+        309,
+        469
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminFounderProfile.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        356
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminFounderProfile.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        396,
+        446,
+        644,
+        654,
+        664,
+        791
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminFounderProfile.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        304,
+        305,
+        366,
+        368,
+        371
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminHrDiscoveryDiagnostics.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\AdminLoginPage.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        81
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminLoginPage.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Shield, CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\AdminLoginPage.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        175
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminResumeManagement.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        513
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminResumeManagement.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Check"
+      ]
+    },
+    {
+      "file": "src\\components\\AdminResumeManagement.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        247,
+        487
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminResumeManagement.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\AdminResumeManagement.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        198,
+        206,
+        214,
+        222,
+        230,
+        238,
+        332,
+        365,
+        372,
+        382,
+        383,
+        390,
+        391,
+        400,
+        405,
+        410,
+        415,
+        423,
+        497,
+        504,
+        549,
+        572,
+        592,
+        598,
+        602,
+        606,
+        612,
+        620,
+        626,
+        630,
+        634,
+        638,
+        666,
+        722,
+        749,
+        753,
+        758
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminResumeManagement.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        206,
+        208,
+        209,
+        312,
+        319,
+        400,
+        635,
+        691,
+        717,
+        749
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminUserProvisioning.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        5
+      ],
+      "notes": [
+        "Shield, Sparkles, CheckCircle2, Check, Zap"
+      ]
+    },
+    {
+      "file": "src\\components\\AdminUserProvisioning.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        458,
+        756,
+        895,
+        987,
+        1004,
+        1143,
+        1242
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminUserProvisioning.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        754,
+        1002,
+        1141,
+        1240,
+        1313
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminUserProvisioning.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\AdminUserProvisioning.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        479,
+        595,
+        1051,
+        1056
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AdminUserProvisioning.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        367,
+        420,
+        421,
+        681,
+        696,
+        785,
+        786,
+        790,
+        1143,
+        1148,
+        1191,
+        1211,
+        1226,
+        1247,
+        1295
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AiAutopilotStudio.tsx",
+      "id": "I2",
+      "severity": "P1",
+      "name": "Emoji as interface icons",
+      "why": "Emoji standing in for iconography in features, nav, or footers.",
+      "lines": [
+        82,
+        83,
+        114,
+        118
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AiAutopilotStudio.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, Shield"
+      ]
+    },
+    {
+      "file": "src\\components\\AiAutopilotStudio.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        220,
+        253,
+        401
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AiAutopilotStudio.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        146,
+        282,
+        287,
+        401,
+        417,
+        431
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AICopilot.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, Zap, CheckCircle2, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\AICopilot.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        256
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AppHeader.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        176,
+        193
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AppHeader.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Shield, Sparkles, CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\AppHeader.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        89,
+        285
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AppHeader.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        107,
+        142,
+        144,
+        176,
+        206,
+        212,
+        326
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationControl.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        338
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationControl.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        160,
+        213,
+        228,
+        395
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationControl.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Check, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\ApplicationControl.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        133,
+        260,
+        351
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationControl.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\ApplicationControl.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\ApplicationControl.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        141,
+        148,
+        170,
+        174,
+        178,
+        182,
+        186,
+        190,
+        271,
+        332
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationControl.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        183,
+        321,
+        338
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationCopilotView.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        63
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationCopilotView.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, Check, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\ApplicationCopilotView.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        106,
+        125,
+        147,
+        172,
+        196
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationCopilotView.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        119,
+        185,
+        208
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationCopilotView.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        92,
+        171
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationDetailModal.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        103,
+        109,
+        115
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationDetailModal.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\ApplicationDetailModal.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        51
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationDetailModal.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\ApplicationDetailModal.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        65,
+        80,
+        82,
+        86,
+        234
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationJourneyView.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\ApplicationJourneyView.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        110,
+        140
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationReadinessView.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\ApplicationReadinessView.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\ApplicationReadinessView.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        35,
+        46,
+        53,
+        58,
+        76,
+        119
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationsPage.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        436
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationsPage.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, ArrowRight, Sparkles, Check"
+      ]
+    },
+    {
+      "file": "src\\components\\ApplicationsPage.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        247,
+        460
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ApplicationsPage.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        129,
+        204,
+        213,
+        268,
+        274,
+        275,
+        545,
+        590
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\auth\\AuthBackground.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        16,
+        32
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\auth\\AuthPrimaryButton.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        21
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\auth\\AuthPrimaryButton.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\auth\\AuthPrimaryButton.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        21
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\auth\\GoogleAuthButton.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        52
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\auth\\GoogleAuthButton.tsx",
+      "id": "M4",
+      "severity": "P2",
+      "name": "Bounce / elastic easing",
+      "why": "Springy overshoot reads dated and generic unless the product is genuinely playful.",
+      "lines": [
+        62
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AuthFeatureCards.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles"
+      ]
+    },
+    {
+      "file": "src\\components\\AuthFeatureCards.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        59
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AuthHeader.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        105
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AuthHeader.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        41,
+        128
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AuthHeader.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        105
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AuthModals.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        52
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AuthVisualCanvas.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        434,
+        458
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AuthVisualCanvas.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        433
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AuthVisualCanvas.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        433
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AutomationSettingsTab.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        86
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AutomationSettingsTab.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles"
+      ]
+    },
+    {
+      "file": "src\\components\\AutomationSettingsTab.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        76,
+        86,
+        95,
+        114,
+        136,
+        155,
+        174
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AutomationSettingsTab.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\AutomationSettingsTab.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        114,
+        143,
+        162,
+        181
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\AutomationSettingsTab.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        174,
+        181,
+        182,
+        196,
+        276,
+        357
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\BlackEliteAppearanceControl.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Check, Sparkles"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerAtlas.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        694,
+        780,
+        1033,
+        1206,
+        1771,
+        1780
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerAtlas.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "ArrowRight, CheckCircle2, Sparkles, Check, Zap, BarChart3"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerAtlas.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        306
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerAtlas.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerAtlas.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        314,
+        441,
+        481,
+        555,
+        629,
+        675,
+        813,
+        916,
+        1055,
+        1139,
+        1185,
+        1275,
+        1324,
+        1342,
+        1364,
+        1431,
+        1445,
+        1595,
+        1643,
+        1717,
+        1761
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerAtlas.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        314,
+        321,
+        342,
+        352,
+        441,
+        444,
+        460,
+        481,
+        484,
+        493,
+        502,
+        521,
+        555,
+        568,
+        579,
+        589,
+        601,
+        613,
+        629,
+        675,
+        694,
+        700,
+        739,
+        813,
+        835,
+        916,
+        952,
+        983,
+        998,
+        1025,
+        1055,
+        1077,
+        1088,
+        1099,
+        1103,
+        1107,
+        1114,
+        1116,
+        1139,
+        1185,
+        1188,
+        1223,
+        1247,
+        1252,
+        1275,
+        1289,
+        1299,
+        1311,
+        1364,
+        1383,
+        1404,
+        1431,
+        1549,
+        1603,
+        1607,
+        1611,
+        1615,
+        1623,
+        1643,
+        1663,
+        1672,
+        1695,
+        1699,
+        1717,
+        1740,
+        1761,
+        1859,
+        1865,
+        1870
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerAtlas.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        340,
+        444,
+        499,
+        565,
+        613,
+        713,
+        835,
+        844,
+        853,
+        948,
+        962,
+        1025,
+        1088,
+        1197,
+        1206,
+        1231,
+        1290,
+        1386,
+        1517,
+        1604,
+        1616,
+        1663,
+        1678,
+        1734,
+        1796,
+        1806,
+        1847,
+        1849,
+        1870
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerCommandCenter.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        241,
+        266,
+        316,
+        384
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerCommandCenter.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, CheckCircle2, ArrowRight, Zap, Check"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerCommandCenter.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        237,
+        262,
+        287,
+        312,
+        386,
+        408,
+        471,
+        528,
+        554,
+        562,
+        601,
+        632
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerCommandCenter.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        163,
+        237,
+        262,
+        287,
+        312,
+        445,
+        471,
+        528,
+        562,
+        601,
+        632
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerCommandCenter.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        240,
+        265,
+        290,
+        315,
+        530
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerCommandCenter.tsx",
+      "id": "SD5",
+      "severity": "P1",
+      "name": "One word accented in the headline",
+      "why": "Coloring, italicizing, or highlighting a single headline word is among the commonest tells of a generated page.",
+      "lines": [
+        178
+      ],
+      "notes": [
+        "\"👋\""
+      ]
+    },
+    {
+      "file": "src\\components\\CareerCommandCenter.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        386,
+        408,
+        471
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerCommandCenter.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        169,
+        172,
+        240,
+        265,
+        290,
+        315,
+        391,
+        394,
+        475,
+        484,
+        530,
+        533
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerCommandCenter.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        172,
+        173,
+        291,
+        303,
+        367,
+        480,
+        547,
+        635
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerDesk.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        445
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerDesk.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, ArrowRight, Sparkles, CheckCircle"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerDesk.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        142,
+        216
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerDesk.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerDesk.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        150,
+        200,
+        253,
+        264,
+        279,
+        290,
+        375,
+        428
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerDesk.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        150,
+        197,
+        253,
+        264,
+        279,
+        290,
+        378,
+        463
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerDesk.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        343,
+        398,
+        463
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerFitLens.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerFitLens.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerFitLens.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        96,
+        242,
+        262
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerFitLens.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        242,
+        262,
+        306
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerFitLens.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        80,
+        180,
+        184,
+        191,
+        220,
+        242,
+        250,
+        275
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerIntelligenceHeroCanvas.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        316
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerIntelligenceReport.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerIntelligenceReport.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerIntelligenceReport.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        70,
+        108,
+        143,
+        165,
+        172,
+        187,
+        196,
+        205
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerIntelligenceReport.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        98,
+        99,
+        132,
+        143,
+        163
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerMomentumCard.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        119
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerMomentumCard.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerMomentumCard.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        90,
+        133
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerMomentumCard.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        133
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerMomentumCard.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        99,
+        102,
+        114,
+        115,
+        119
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerMomentumCard.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        94,
+        99,
+        159
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerMomentumTimeline.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        118,
+        132
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerMomentumTimeline.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Check, Sparkles, CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerMomentumTimeline.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        92
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerMomentumTimeline.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        148
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerMomentumTimeline.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        97,
+        100,
+        113,
+        114,
+        118
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerMomentumTimeline.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        148
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerTwinPage.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        908
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerTwinPage.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        541
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerTwinPage.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, ArrowRight, Check"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerTwinPage.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        983,
+        1095
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerTwinPage.tsx",
+      "id": "L6",
+      "severity": "P1",
+      "name": "The default page shell",
+      "why": "One centered width for every section is a reflex, not a spatial decision.",
+      "lines": [
+        261,
+        271,
+        294
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerTwinPage.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\CareerTwinPage.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        483,
+        550,
+        709,
+        743,
+        853,
+        911
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CareerTwinPage.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        302,
+        322,
+        435,
+        454,
+        455,
+        457,
+        458,
+        470,
+        485,
+        486,
+        487,
+        558,
+        605,
+        661,
+        679,
+        759,
+        764,
+        840,
+        893,
+        954
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CinematicProductShowcase.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        3
+      ],
+      "notes": [
+        "Sparkles, CheckCircle2, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\CinematicProductShowcase.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        734,
+        757,
+        787,
+        814,
+        927
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CinematicProductShowcase.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        661,
+        740,
+        759,
+        931
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CinematicProductShowcase.tsx",
+      "id": "SD4d",
+      "severity": "P2",
+      "name": "Template chrome: meta strings joined with middle dots",
+      "why": "'A · B · C' metadata strings are a stock chrome move, not a decision about this content.",
+      "lines": [
+        662,
+        932
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CinematicProductShowcase.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        661,
+        740,
+        762,
+        846,
+        853,
+        868,
+        918,
+        931
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\CinematicProductShowcase.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        963,
+        964
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\DashboardShell.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        202,
+        501
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\DashboardShell.tsx",
+      "id": "CP3",
+      "severity": "P1",
+      "name": "Arrow glyph welded to a CTA",
+      "why": "A '→' appended to button or link text is a reflex flourish.",
+      "lines": [
+        400
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\DashboardShell.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, BarChart3, Shield, CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\DashboardShell.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        208,
+        340,
+        456,
+        557
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\DashboardShell.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        294,
+        356,
+        487,
+        522
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\DashboardShell.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        280,
+        291,
+        538
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ErrorBoundary.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\FitEvidenceMapView.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        96
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FitEvidenceMapView.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        99
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FitEvidenceMapView.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, Check, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\FitEvidenceMapView.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\FitEvidenceMapView.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        64,
+        114,
+        130,
+        136,
+        137,
+        188
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FlowLogin.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        290,
+        429
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FlowLogin.tsx",
+      "id": "L1",
+      "severity": "P0",
+      "name": "Pill badge + centered hero",
+      "why": "Badge, centered H1, centered subhead, two centered CTAs: the landing-page skeleton that makes no spatial decision.",
+      "lines": [
+        324
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FlowLogin.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\FlowLogin.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        290,
+        429
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FlowLogin.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        262,
+        263,
+        340,
+        341
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FlowSignup.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        423
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FlowSignup.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\FlowSignup.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        423
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FlowSignup.tsx",
+      "id": "CP6",
+      "severity": "P2",
+      "name": "Generic CTA label",
+      "why": "A CTA should say what happens ('Start a free trial'), not 'Get started' / 'Learn more' / 'Submit'.",
+      "lines": [
+        249
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FlowSignup.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        268,
+        269
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FounderSection.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        98
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FounderSection.tsx",
+      "id": "C6",
+      "severity": "P0",
+      "name": "Gradient-filled headline text",
+      "why": "bg-clip-text gradients are a 2024-era default flourish that also hurts legibility.",
+      "lines": [
+        111
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FounderSection.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\FounderSection.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        83
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FounderSection.tsx",
+      "id": "K9",
+      "severity": "P1",
+      "name": "The default dark SaaS card",
+      "why": "zinc-950 surfaces with white/10 hairlines: the unmodified 'modern dark' card.",
+      "lines": [
+        83,
+        143,
+        172,
+        207
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\FounderSection.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        196
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\GlobalFooter.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        67,
+        164,
+        170,
+        259,
+        264
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\GlobalSearchBar.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\GlobalSearchBar.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        289
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\GlobalSearchBar.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        264,
+        306,
+        382
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\GlobalSearchBar.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        335
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\GlobalSourceIntelligence.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\GlobalSourceIntelligence.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        957
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\GlobalSourceIntelligence.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        345,
+        385,
+        419,
+        504,
+        518,
+        558,
+        625,
+        675,
+        690,
+        696,
+        699,
+        711,
+        770,
+        819,
+        826,
+        834,
+        837,
+        842,
+        882,
+        920,
+        933,
+        937,
+        942
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\Header.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        84
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\Header.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        138,
+        207
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\Header.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, BarChart3"
+      ]
+    },
+    {
+      "file": "src\\components\\Header.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        80,
+        146
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\Header.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\Header.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        84,
+        207
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\Header.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        94
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\hr-outreach\\HrOutreachModals.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        3
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles"
+      ]
+    },
+    {
+      "file": "src\\components\\hr-outreach\\HrOutreachModals.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        266,
+        394,
+        567
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\hr-outreach\\HrOutreachModals.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        79,
+        263,
+        390
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\hr-outreach\\HrOutreachModals.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\hr-outreach\\HrOutreachModals.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        151,
+        172,
+        316
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\hr-outreach\\HrOutreachModals.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        115,
+        118,
+        121,
+        124,
+        127,
+        330
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\hr-outreach\\HrOutreachStudio.tsx",
+      "id": "CP3",
+      "severity": "P1",
+      "name": "Arrow glyph welded to a CTA",
+      "why": "A '→' appended to button or link text is a reflex flourish.",
+      "lines": [
+        493
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\hr-outreach\\HrOutreachStudio.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        3
+      ],
+      "notes": [
+        "Sparkles, CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\hr-outreach\\HrOutreachStudio.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        676
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\hr-outreach\\HrOutreachStudio.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\hr-outreach\\HrOutreachStudio.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        543,
+        587,
+        660
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\HrOutreachPage.tsx",
+      "id": "CP3",
+      "severity": "P1",
+      "name": "Arrow glyph welded to a CTA",
+      "why": "A '→' appended to button or link text is a reflex flourish.",
+      "lines": [
+        1212
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\HrOutreachPage.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        6
+      ],
+      "notes": [
+        "Sparkles, CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\HrOutreachPage.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        554,
+        801,
+        951,
+        1010,
+        1078,
+        1183,
+        1300,
+        1304,
+        1305,
+        1591
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\HrOutreachPage.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        413,
+        1063,
+        1070,
+        1387,
+        1428,
+        1449,
+        1479
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\IntegrationsTab.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        39
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\IntegrationsTab.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Zap"
+      ]
+    },
+    {
+      "file": "src\\components\\IntegrationsTab.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        60,
+        64,
+        81
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\IntegrationsTab.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        64,
+        65
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\InterviewsPage.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, ArrowRight, Zap"
+      ]
+    },
+    {
+      "file": "src\\components\\InterviewsPage.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\InterviewsPage.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        123,
+        185,
+        243
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\InterviewsPage.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        73,
+        123,
+        140,
+        185,
+        243
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\InterviewsPage.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        73,
+        140,
+        169,
+        207
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\InterviewStudio.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, ArrowRight, Zap, CheckCircle2, CheckCircle"
+      ]
+    },
+    {
+      "file": "src\\components\\InterviewStudio.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        316,
+        439,
+        500,
+        776
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\InterviewStudio.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\InterviewStudio.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\InterviewStudio.tsx",
+      "id": "SD4d",
+      "severity": "P2",
+      "name": "Template chrome: meta strings joined with middle dots",
+      "why": "'A · B · C' metadata strings are a stock chrome move, not a decision about this content.",
+      "lines": [
+        140,
+        549
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\InterviewStudio.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        324,
+        331,
+        448,
+        451,
+        457,
+        478,
+        510,
+        514,
+        520,
+        539,
+        548,
+        638,
+        646,
+        657,
+        667,
+        674,
+        682,
+        692,
+        699,
+        705,
+        785,
+        789
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\InterviewStudio.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        324,
+        419,
+        448,
+        469,
+        514,
+        521,
+        557,
+        572,
+        582,
+        646,
+        668,
+        705,
+        716,
+        717,
+        749,
+        785,
+        800
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobComparisonDrawer.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\JobComparisonDrawer.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        37,
+        40
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobComparisonDrawer.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\JobComparisonDrawer.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        83,
+        153,
+        223
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobComparisonDrawer.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        114,
+        120,
+        138,
+        184,
+        190,
+        208
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDescriptionRenderer.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        3
+      ],
+      "notes": [
+        "CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\JobDescriptionRenderer.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\JobDetailDrawer.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        329,
+        700
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDetailDrawer.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        531,
+        813
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDetailDrawer.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, CheckCircle2, ArrowRight, Check, Zap"
+      ]
+    },
+    {
+      "file": "src\\components\\JobDetailDrawer.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        329,
+        384,
+        830,
+        1030
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDetailDrawer.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        280,
+        286,
+        987
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDetailDrawer.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\JobDetailDrawer.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        335,
+        476,
+        488,
+        506,
+        524,
+        542,
+        616,
+        671,
+        703,
+        766,
+        777,
+        793,
+        807,
+        939
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDetailDrawer.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        329,
+        384,
+        830,
+        1030
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDetailDrawer.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        339,
+        602,
+        662,
+        750
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDetailDrawer.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        344,
+        345,
+        370,
+        457,
+        507,
+        585,
+        642,
+        792,
+        793,
+        796,
+        799,
+        891,
+        911,
+        923,
+        930,
+        940,
+        948,
+        952,
+        959,
+        963,
+        968,
+        1022
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDetailModal.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        167
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDetailModal.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\JobDetailModal.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        36
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDetailModal.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\JobDetailModal.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        46,
+        76,
+        115
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDiscoveryTab.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        103,
+        200,
+        323
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDiscoveryTab.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\JobDiscoveryTab.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        90,
+        103,
+        222
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDiscoveryTab.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\JobDiscoveryTab.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        103
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobDiscoveryTab.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        112,
+        232
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobImportModal.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        459,
+        471,
+        483,
+        527,
+        601,
+        648,
+        972
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobImportModal.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, ArrowRight, CheckCircle2, Check"
+      ]
+    },
+    {
+      "file": "src\\components\\JobImportModal.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        377,
+        527,
+        601,
+        648,
+        972
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobImportModal.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        372
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobImportModal.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\JobImportModal.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        540,
+        695,
+        739,
+        753,
+        769,
+        784,
+        805,
+        828,
+        862,
+        911
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobImportModal.tsx",
+      "id": "SD4d",
+      "severity": "P2",
+      "name": "Template chrome: meta strings joined with middle dots",
+      "why": "'A · B · C' metadata strings are a stock chrome move, not a decision about this content.",
+      "lines": [
+        521,
+        995
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobImportModal.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        540,
+        547,
+        592,
+        676,
+        695,
+        706,
+        709,
+        739,
+        753,
+        769,
+        784,
+        805,
+        828,
+        862,
+        870,
+        911,
+        919,
+        994
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobImportModal.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        681,
+        695
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobMatchExperience.tsx",
+      "id": "CP3",
+      "severity": "P1",
+      "name": "Arrow glyph welded to a CTA",
+      "why": "A '→' appended to button or link text is a reflex flourish.",
+      "lines": [
+        332,
+        467,
+        482,
+        489
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobMatchExperience.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Check, Sparkles"
+      ]
+    },
+    {
+      "file": "src\\components\\JobMatchExperience.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        207,
+        278,
+        340,
+        383,
+        420,
+        508,
+        520,
+        538,
+        620,
+        696,
+        709,
+        727
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobMatchExperience.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        558,
+        623,
+        735
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobSearchPage.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        324
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobSearchPage.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, ArrowRight, CheckCircle2, Zap"
+      ]
+    },
+    {
+      "file": "src\\components\\JobSearchPage.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        875
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobSearchPage.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\JobSearchPage.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        424,
+        667,
+        739,
+        786,
+        816
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\JobSearchPage.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        230,
+        264,
+        312,
+        670,
+        682,
+        750,
+        779,
+        801,
+        914
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\LandingPage.tsx",
+      "id": "L1",
+      "severity": "P0",
+      "name": "Pill badge + centered hero",
+      "why": "Badge, centered H1, centered subhead, two centered CTAs: the landing-page skeleton that makes no spatial decision.",
+      "lines": [
+        240
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\LandingPage.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, CheckCircle2, Check, ArrowRight, Shield"
+      ]
+    },
+    {
+      "file": "src\\components\\LandingPage.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        72
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\LandingPage.tsx",
+      "id": "L6",
+      "severity": "P1",
+      "name": "The default page shell",
+      "why": "One centered width for every section is a reflex, not a spatial decision.",
+      "lines": [
+        73,
+        320,
+        333,
+        409,
+        492,
+        511,
+        578
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\LandingPage.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        335,
+        411,
+        476,
+        513,
+        526,
+        562,
+        566,
+        581
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\LandingPage.tsx",
+      "id": "SD5",
+      "severity": "P1",
+      "name": "One word accented in the headline",
+      "why": "Coloring, italicizing, or highlighting a single headline word is among the commonest tells of a generated page.",
+      "lines": [
+        240
+      ],
+      "notes": [
+        "\"starts with clarity.\""
+      ]
+    },
+    {
+      "file": "src\\components\\LandingPage.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        369,
+        379,
+        613
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\LanguageSelector.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Check, Sparkles"
+      ]
+    },
+    {
+      "file": "src\\components\\LanguageSelector.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        82
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\LegalModals.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Shield, CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\LegalModals.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        35,
+        122,
+        287
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\LegalModals.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        33,
+        120,
+        285
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\LegalModals.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        461
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ManualJobModal.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        171
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ManualJobModal.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        63
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\NotificationsPage.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        447,
+        449
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\NotificationsPage.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        244,
+        248
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\NotificationsPage.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, Check, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\NotificationsPage.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        227,
+        237,
+        265,
+        277,
+        407,
+        432,
+        445,
+        512,
+        613
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\NotificationsPage.tsx",
+      "id": "K4",
+      "severity": "P1",
+      "name": "Colored side-stripe on cards",
+      "why": "Colored left/top borders are almost as reliable an AI tell as em dashes are in text.",
+      "lines": [
+        512
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\NotificationsPage.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        619
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\OpportunityRadar.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        290,
+        438,
+        639,
+        722,
+        750
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\OpportunityRadar.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, CheckCircle2, Zap, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\OpportunityRadar.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        260,
+        543,
+        786
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\OpportunityRadar.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\OpportunityRadar.tsx",
+      "id": "SD4d",
+      "severity": "P2",
+      "name": "Template chrome: meta strings joined with middle dots",
+      "why": "'A · B · C' metadata strings are a stock chrome move, not a decision about this content.",
+      "lines": [
+        251,
+        253,
+        910
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\OpportunityRadar.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        268,
+        275,
+        405,
+        476,
+        500,
+        559,
+        572,
+        585,
+        610,
+        792,
+        795,
+        816,
+        826,
+        909
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\OpportunityRadar.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        361,
+        362,
+        572,
+        603
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\OverviewTab.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        62
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\OverviewTab.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        101
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\OverviewTab.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\OverviewTab.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\OverviewTab.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        101
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\OverviewTab.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        68,
+        69,
+        83,
+        169,
+        172,
+        173,
+        175,
+        176,
+        239,
+        263,
+        264,
+        298
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PersonalCareerIntelligenceView.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, ArrowRight, Sparkles"
+      ]
+    },
+    {
+      "file": "src\\components\\PersonalCareerIntelligenceView.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\PersonalCareerIntelligenceView.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        68,
+        125,
+        149
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PersonalCareerIntelligenceView.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        125,
+        138,
+        149,
+        193,
+        198,
+        213,
+        230,
+        250,
+        264,
+        283
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PersonalCareerIntelligenceView.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        126,
+        134,
+        136
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PreferencesTab.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        101,
+        179,
+        392
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PreferencesTab.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Check"
+      ]
+    },
+    {
+      "file": "src\\components\\PreferencesTab.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\PreferencesTab.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        103,
+        165
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PricingPage.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        227,
+        558
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PricingPage.tsx",
+      "id": "C6",
+      "severity": "P0",
+      "name": "Gradient-filled headline text",
+      "why": "bg-clip-text gradients are a 2024-era default flourish that also hurts legibility.",
+      "lines": [
+        227,
+        673
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PricingPage.tsx",
+      "id": "L1",
+      "severity": "P0",
+      "name": "Pill badge + centered hero",
+      "why": "Badge, centered H1, centered subhead, two centered CTAs: the landing-page skeleton that makes no spatial decision.",
+      "lines": [
+        223
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PricingPage.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Check, Sparkles, ArrowRight, Zap, Shield"
+      ]
+    },
+    {
+      "file": "src\\components\\PricingPage.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        612,
+        642,
+        742
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PricingPage.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        163
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PricingPage.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\PricingPage.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\PricingPage.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        253,
+        266,
+        653,
+        693,
+        742,
+        770
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PricingPage.tsx",
+      "id": "SD5",
+      "severity": "P1",
+      "name": "One word accented in the headline",
+      "why": "Coloring, italicizing, or highlighting a single headline word is among the commonest tells of a generated page.",
+      "lines": [
+        223
+      ],
+      "notes": [
+        "\"Intelligent AI Capabilities\""
+      ]
+    },
+    {
+      "file": "src\\components\\PricingPage.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        198,
+        612
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PricingPage.tsx",
+      "id": "SD4w",
+      "severity": "P2",
+      "name": "Template chrome: 'WORD — fragment' labels",
+      "why": "Labels built as an uppercase word + spaced em dash + fragment are a recurring generated pattern.",
+      "lines": [
+        641,
+        654
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PricingPage.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        392,
+        441,
+        446,
+        459,
+        526,
+        584,
+        612,
+        849
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ProfileAndPreferencesPage.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\ProfileAndPreferencesPage.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        242,
+        420,
+        494
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ProfileAndPreferencesPage.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        194,
+        303,
+        472,
+        711
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ProfileIdentityComponent.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, Shield, Check"
+      ]
+    },
+    {
+      "file": "src\\components\\ProfileIdentityComponent.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        359
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ProfileIdentityComponent.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        315,
+        324,
+        329,
+        333,
+        476,
+        488,
+        493,
+        498
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ProfilePhotoCropModal.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Check"
+      ]
+    },
+    {
+      "file": "src\\components\\ProfilePhotoCropModal.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        293
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ProfileTab.tsx",
+      "id": "C1",
+      "severity": "P0",
+      "name": "Purple / indigo gradient",
+      "why": "The canonical unchosen gradient (the Tailwind indigo-500 lineage).",
+      "lines": [
+        179
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ProfileTab.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        461,
+        597
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ProfileTab.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\ProfileTab.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        129,
+        155,
+        179,
+        379,
+        557
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ProfileTab.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        556
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ProfileTab.tsx",
+      "id": "K4",
+      "severity": "P1",
+      "name": "Colored side-stripe on cards",
+      "why": "Colored left/top borders are almost as reliable an AI tell as em dashes are in text.",
+      "lines": [
+        277
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ProfileTab.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\ProfileTab.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        229,
+        382,
+        520
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ProfileTab.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        280,
+        309,
+        337,
+        493,
+        580
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ProfileTab.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        133,
+        155,
+        352
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PublicResourcePage.tsx",
+      "id": "L1",
+      "severity": "P0",
+      "name": "Pill badge + centered hero",
+      "why": "Badge, centered H1, centered subhead, two centered CTAs: the landing-page skeleton that makes no spatial decision.",
+      "lines": [
+        250
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PublicResourcePage.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        5
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\PublicResourcePage.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        84,
+        215
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PublicResourcePage.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\PublicResourcePage.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        92,
+        161,
+        223
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\PublicResourcePage.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        134
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\QueueTab.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        107
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\QueueTab.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\QueueTab.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        62,
+        121,
+        165,
+        176
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\QueueTab.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\QueueTab.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        137,
+        176,
+        191
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\RecruiterReview.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        204
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\RecruiterReview.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, ArrowRight, CheckCircle"
+      ]
+    },
+    {
+      "file": "src\\components\\RecruiterReview.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        127
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\RecruiterReview.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\RecruiterReview.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        135,
+        215,
+        268,
+        374
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\RecruiterReview.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        135,
+        142,
+        186,
+        390
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\RecruiterReview.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        193,
+        221,
+        222,
+        233,
+        320,
+        322,
+        390
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ReportsTab.tsx",
+      "id": "C2",
+      "severity": "P1",
+      "name": "Indigo / violet primary buttons",
+      "why": "The accent defaulted instead of being chosen.",
+      "lines": [
+        111
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ReportsTab.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "BarChart3, CheckCircle2, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\ReportsTab.tsx",
+      "id": "L4",
+      "severity": "P1",
+      "name": "Round-number stat strip",
+      "why": "'12,000+ · 99.9% · 4.9★' reads as placeholder proof; one specific, true metric beats four invented ones.",
+      "lines": [
+        129
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ReportsTab.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\ReportsTab.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        120,
+        121,
+        127,
+        129,
+        131,
+        133,
+        135,
+        137,
+        139
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ResumeOnboardingModal.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\ResumeOnboardingModal.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        436
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ResumeOnboardingModal.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\ResumeOnboardingModal.tsx",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        739,
+        1186
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ResumeOnboardingModal.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        527,
+        537,
+        705,
+        772,
+        774,
+        779,
+        1115,
+        1186
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ResumePreviewModal.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Check, Sparkles"
+      ]
+    },
+    {
+      "file": "src\\components\\ResumePreviewModal.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        88
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ResumePreviewModal.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\ResumePreviewModal.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        217,
+        227,
+        244,
+        272
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ResumePreviewModal.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        101,
+        102,
+        134
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ResumeStudioTab.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Sparkles, Check, CheckCircle2"
+      ]
+    },
+    {
+      "file": "src\\components\\ResumeStudioTab.tsx",
+      "id": "SD1",
+      "severity": "P1",
+      "name": "Cream ground + terracotta/clay accent (the Claude look)",
+      "why": "The warm-cream + terracotta cluster (#F4F1EA / #D97757 territory) is what models reach for to look tasteful.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind cream + orange/amber accent"
+      ]
+    },
+    {
+      "file": "src\\components\\ResumeStudioTab.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        267,
+        287,
+        297,
+        307,
+        342,
+        355
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ResumeStudioTab.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        105,
+        106,
+        125,
+        167,
+        220,
+        221,
+        222,
+        228,
+        232,
+        235
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\TrackerTab.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "CheckCircle2, Sparkles, ArrowRight"
+      ]
+    },
+    {
+      "file": "src\\components\\TrackerTab.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        203
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\TypographySettingsModal.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        5
+      ],
+      "notes": [
+        "Check, Sparkles"
+      ]
+    },
+    {
+      "file": "src\\components\\TypographySettingsModal.tsx",
+      "id": "K2",
+      "severity": "P1",
+      "name": "One radius + soft shadow on every surface",
+      "why": "Identical radius and shadow everywhere flattens hierarchy into a template.",
+      "lines": [
+        83,
+        151,
+        307
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\TypographySettingsModal.tsx",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        80
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\TypographySettingsModal.tsx",
+      "id": "SD4",
+      "severity": "P1",
+      "name": "Template chrome: tracked ALL-CAPS labels",
+      "why": "An uppercase, letter-spaced label on everything is chrome that appears whatever the subject.",
+      "lines": [
+        160,
+        182,
+        195,
+        208,
+        223,
+        237,
+        255,
+        268,
+        286
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\TypographySettingsModal.tsx",
+      "id": "SD4m",
+      "severity": "P2",
+      "name": "Template chrome: monospace as small data labels",
+      "why": "A mono face for tiny labels and readouts is decoration standing in for information design.",
+      "lines": [
+        160,
+        273,
+        354
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\components\\ui\\SelectSystem.tsx",
+      "id": "I3",
+      "severity": "P1",
+      "name": "The worn Lucide set / the sparkle-for-AI glyph",
+      "why": "Sparkles, Zap, Rocket, Shield, BarChart3, ArrowRight in the same roles, and a sparkle beside anything 'AI'.",
+      "lines": [
+        11
+      ],
+      "notes": [
+        "Check"
+      ]
+    },
+    {
+      "file": "src\\components\\ui\\SelectSystem.tsx",
+      "id": "SD2",
+      "severity": "P1",
+      "name": "Near-black ground + one acid-green or vermilion accent",
+      "why": "Near-black with a single bright acid-green or vermilion signal is the second 'tasteful default' cluster.",
+      "lines": [
+        1
+      ],
+      "notes": [
+        "Tailwind near-black + lime/green accent"
+      ]
+    },
+    {
+      "file": "src\\components\\ui\\SelectSystem.tsx",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        758
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\config\\plans.ts",
+      "id": "CP1",
+      "severity": "P1",
+      "name": "Vague aspirational headline",
+      "why": "Brand-agnostic filler that could front any product.",
+      "lines": [
+        316
+      ],
+      "notes": [
+        "next-generation"
+      ]
+    },
+    {
+      "file": "src\\config\\plans.ts",
+      "id": "CP2",
+      "severity": "P2",
+      "name": "Beige superlatives",
+      "why": "'Seamless', 'powerful', 'cutting-edge': the microcopy equivalent of beige.",
+      "lines": [
+        93
+      ],
+      "notes": [
+        "powerful"
+      ]
+    },
+    {
+      "file": "src\\data\\globalLocations.ts",
+      "id": "SD4d",
+      "severity": "P2",
+      "name": "Template chrome: meta strings joined with middle dots",
+      "why": "'A · B · C' metadata strings are a stock chrome move, not a decision about this content.",
+      "lines": [
+        712,
+        745,
+        773
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\data\\platformOptions.ts",
+      "id": "SD4w",
+      "severity": "P2",
+      "name": "Template chrome: 'WORD — fragment' labels",
+      "why": "Labels built as an uppercase word + spaced em dash + fragment are a recurring generated pattern.",
+      "lines": [
+        55,
+        56
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\data\\seedData.ts",
+      "id": "CP2",
+      "severity": "P2",
+      "name": "Beige superlatives",
+      "why": "'Seamless', 'powerful', 'cutting-edge': the microcopy equivalent of beige.",
+      "lines": [
+        382
+      ],
+      "notes": [
+        "blazing-fast"
+      ]
+    },
+    {
+      "file": "src\\index.css",
+      "id": "K3",
+      "severity": "P1",
+      "name": "Glassmorphism (backdrop-blur)",
+      "why": "Frosted surfaces by reflex; keep blur only where layering is real, like a nav over scrolling content.",
+      "lines": [
+        19,
+        20,
+        36,
+        37,
+        178,
+        179,
+        185,
+        186,
+        228,
+        229,
+        236,
+        237,
+        417,
+        418,
+        424,
+        425,
+        431,
+        972,
+        979,
+        1422,
+        1423,
+        1434,
+        1435,
+        1444,
+        1445,
+        1465,
+        1466
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\index.css",
+      "id": "C5",
+      "severity": "P2",
+      "name": "Colored glow shadows",
+      "why": "A saturated shadow is decoration that says nothing about elevation.",
+      "lines": [
+        131,
+        138,
+        243
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\index.css",
+      "id": "M4",
+      "severity": "P2",
+      "name": "Bounce / elastic easing",
+      "why": "Springy overshoot reads dated and generic unless the product is genuinely playful.",
+      "lines": [
+        1497
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\index.css",
+      "id": "SD4d",
+      "severity": "P2",
+      "name": "Template chrome: meta strings joined with middle dots",
+      "why": "'A · B · C' metadata strings are a stock chrome move, not a decision about this content.",
+      "lines": [
+        307,
+        474,
+        679
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\index.css",
+      "id": "SD4w",
+      "severity": "P2",
+      "name": "Template chrome: 'WORD — fragment' labels",
+      "why": "Labels built as an uppercase word + spaced em dash + fragment are a recurring generated pattern.",
+      "lines": [
+        306,
+        947,
+        1063
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\index.css",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        249
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\services\\api.ts",
+      "id": "SD4w",
+      "severity": "P2",
+      "name": "Template chrome: 'WORD — fragment' labels",
+      "why": "Labels built as an uppercase word + spaced em dash + fragment are a recurring generated pattern.",
+      "lines": [
+        1721,
+        1758
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\services\\googleAuth.ts",
+      "id": "CP2",
+      "severity": "P2",
+      "name": "Beige superlatives",
+      "why": "'Seamless', 'powerful', 'cutting-edge': the microcopy equivalent of beige.",
+      "lines": [
+        2
+      ],
+      "notes": [
+        "Robust"
+      ]
+    },
+    {
+      "file": "src\\utils\\blackEliteTheme.ts",
+      "id": "SD4d",
+      "severity": "P2",
+      "name": "Template chrome: meta strings joined with middle dots",
+      "why": "'A · B · C' metadata strings are a stock chrome move, not a decision about this content.",
+      "lines": [
+        54,
+        65,
+        128,
+        201,
+        264,
+        327
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\utils\\blackEliteTheme.ts",
+      "id": "SD4w",
+      "severity": "P2",
+      "name": "Template chrome: 'WORD — fragment' labels",
+      "why": "Labels built as an uppercase word + spaced em dash + fragment are a recurring generated pattern.",
+      "lines": [
+        2
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\utils\\blackEliteTheme.ts",
+      "id": "SD8",
+      "severity": "P2",
+      "name": "Emerald as the purple-avoiding accent",
+      "why": "When purple is ruled out, emerald is the model's next reflex; it is still a default unless the brief earns it.",
+      "lines": [
+        328,
+        341,
+        342,
+        343,
+        349,
+        351,
+        352,
+        370,
+        371,
+        377,
+        379,
+        380
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\utils\\growthEngine.ts",
+      "id": "CP2",
+      "severity": "P2",
+      "name": "Beige superlatives",
+      "why": "'Seamless', 'powerful', 'cutting-edge': the microcopy equivalent of beige.",
+      "lines": [
+        86
+      ],
+      "notes": [
+        "Robust"
+      ]
+    },
+    {
+      "file": "src\\utils\\resumeStructureEngine.ts",
+      "id": "I2",
+      "severity": "P1",
+      "name": "Emoji as interface icons",
+      "why": "Emoji standing in for iconography in features, nav, or footers.",
+      "lines": [
+        151,
+        185
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\utils\\structuralEmploymentParser.ts",
+      "id": "I2",
+      "severity": "P1",
+      "name": "Emoji as interface icons",
+      "why": "Emoji standing in for iconography in features, nav, or footers.",
+      "lines": [
+        203,
+        260,
+        613,
+        625
+      ],
+      "notes": []
+    },
+    {
+      "file": "src\\utils\\typographySystem.ts",
+      "id": "CP2",
+      "severity": "P2",
+      "name": "Beige superlatives",
+      "why": "'Seamless', 'powerful', 'cutting-edge': the microcopy equivalent of beige.",
+      "lines": [
+        5
+      ],
+      "notes": [
+        "seamless"
+      ]
+    },
+    {
+      "file": "src\\utils\\typographySystem.ts",
+      "id": "SD4w",
+      "severity": "P2",
+      "name": "Template chrome: 'WORD — fragment' labels",
+      "why": "Labels built as an uppercase word + spaced em dash + fragment are a recurring generated pattern.",
+      "lines": [
+        2
+      ],
+      "notes": []
+    }
+  ]
+}

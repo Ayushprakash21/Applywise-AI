@@ -67,7 +67,7 @@ describe('APPLYVISE AI — Global Header Account Section Redesign Suite', () => 
 
     // Notification dropdown panel
     assert.ok(shellSrc.includes('Mark all as read'), 'Dropdown must provide mark-as-read action');
-    assert.ok(shellSrc.includes('View all in Notifications →'), 'Dropdown must link to full notifications view');
+    assert.ok(shellSrc.includes('View all in Notifications'), 'Dropdown must link to full notifications view');
   });
 
   it('5. Account Profile Dropdown: Unified container without nested button boxes and crown-anchored membership', () => {

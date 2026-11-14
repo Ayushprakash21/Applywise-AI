@@ -458,7 +458,7 @@ export const JobImportModal: React.FC<JobImportModalProps> = ({
                   onClick={() => setActiveTab('url')}
                   className={`flex-1 py-2 px-3 rounded-xl transition flex items-center justify-center space-x-2 ${
                     activeTab === 'url'
-                      ? isBlack ? 'bg-[#1C2028] text-[#C6A66A] shadow-sm border border-[rgba(198,166,106,0.3)]' : 'bg-indigo-600 text-white'
+                      ? isBlack ? 'bg-[#1C2028] text-[#C6A66A] shadow-sm border border-[rgba(198,166,106,0.3)]' : 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -470,7 +470,7 @@ export const JobImportModal: React.FC<JobImportModalProps> = ({
                   onClick={() => setActiveTab('paste')}
                   className={`flex-1 py-2 px-3 rounded-xl transition flex items-center justify-center space-x-2 ${
                     activeTab === 'paste'
-                      ? isBlack ? 'bg-[#1C2028] text-[#C6A66A] shadow-sm border border-[rgba(198,166,106,0.3)]' : 'bg-indigo-600 text-white'
+                      ? isBlack ? 'bg-[#1C2028] text-[#C6A66A] shadow-sm border border-[rgba(198,166,106,0.3)]' : 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -482,7 +482,7 @@ export const JobImportModal: React.FC<JobImportModalProps> = ({
                   onClick={() => setActiveTab('manual')}
                   className={`flex-1 py-2 px-3 rounded-xl transition flex items-center justify-center space-x-2 ${
                     activeTab === 'manual'
-                      ? isBlack ? 'bg-[#1C2028] text-[#C6A66A] shadow-sm border border-[rgba(198,166,106,0.3)]' : 'bg-indigo-600 text-white'
+                      ? isBlack ? 'bg-[#1C2028] text-[#C6A66A] shadow-sm border border-[rgba(198,166,106,0.3)]' : 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -527,7 +527,7 @@ export const JobImportModal: React.FC<JobImportModalProps> = ({
                       className={`be-btn-primary flex items-center space-x-2 px-5 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                         isBlack
                           ? 'bg-[#C6A66A] hover:bg-[#D9BB80] text-[#17130C] border border-[rgba(198,166,106,0.30)] shadow-md shadow-[#C6A66A]/10'
-                          : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md'
+                          : 'bg-slate-900 hover:bg-slate-800 dark:bg-[var(--be-accent,#A78343)] dark:hover:bg-[var(--be-accent-hover,#917135)] dark:text-[#17130C] text-white shadow-md'
                       }`}
                     >
                       <span className={isBlack ? 'text-[#17130C] font-bold' : 'text-white'}>Fetch Job Details</span>
@@ -601,7 +601,7 @@ export const JobImportModal: React.FC<JobImportModalProps> = ({
                       className={`flex items-center space-x-2 px-5 py-2.5 rounded-2xl text-xs font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                         isBlack
                           ? 'bg-gradient-to-r from-[#C6A66A] to-[#E8D49E] text-[#090A0C] hover:opacity-95 shadow-md shadow-[#C6A66A]/10'
-                          : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md'
+                          : 'bg-slate-900 hover:bg-slate-800 dark:bg-[var(--be-accent,#A78343)] dark:hover:bg-[var(--be-accent-hover,#917135)] dark:text-[#17130C] text-white shadow-md'
                       }`}
                     >
                       <Sparkles className="w-3.5 h-3.5" />
@@ -648,7 +648,7 @@ export const JobImportModal: React.FC<JobImportModalProps> = ({
                       className={`flex items-center space-x-2 px-5 py-2.5 rounded-2xl text-xs font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                         isBlack
                           ? 'bg-gradient-to-r from-[#C6A66A] to-[#E8D49E] text-[#090A0C] hover:opacity-95 shadow-md shadow-[#C6A66A]/10'
-                          : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md'
+                          : 'bg-slate-900 hover:bg-slate-800 dark:bg-[var(--be-accent,#A78343)] dark:hover:bg-[var(--be-accent-hover,#917135)] dark:text-[#17130C] text-white shadow-md'
                       }`}
                     >
                       <span>Continue to Details & Save</span>
@@ -972,7 +972,7 @@ export const JobImportModal: React.FC<JobImportModalProps> = ({
                   className={`be-btn-primary flex items-center space-x-2 px-6 py-2.5 rounded-2xl text-xs font-bold transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                     isBlack
                       ? 'bg-[#C6A66A] hover:bg-[#D9BB80] text-[#17130C] border border-[rgba(198,166,106,0.30)] shadow-lg shadow-[#C6A66A]/15'
-                      : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md'
+                      : 'bg-slate-900 hover:bg-slate-800 dark:bg-[var(--be-accent,#A78343)] dark:hover:bg-[var(--be-accent-hover,#917135)] dark:text-[#17130C] text-white shadow-md'
                   }`}
                 >
                   {step === 'saving' ? (

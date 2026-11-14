@@ -538,7 +538,7 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
               <div className="space-y-2">
                 {twin.learningObjectives.map((obj, idx) => (
                   <div key={idx} className="flex items-center space-x-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 text-xs">
-                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-800" />
                     <span className="text-slate-800 font-medium">{obj}</span>
                   </div>
                 ))}
@@ -905,15 +905,15 @@ export const CareerTwinPage: React.FC<CareerTwinPageProps> = ({ onShowToast }) =
 
           {/* Adaptive Intelligence Recommendations */}
           {insights && insights.recommendations.length > 0 && (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 shadow-xs">
               <div className="flex items-center space-x-2 mb-2">
-                <Sparkles className="h-4 w-4 text-blue-700" />
-                <h4 className="text-xs font-bold text-blue-950 uppercase tracking-wider">Career Intelligence Insights</h4>
+                <Sparkles className="h-4 w-4 text-slate-700" />
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Career Intelligence Insights</h4>
               </div>
               <div className="space-y-2">
                 {insights.recommendations.map((rec, rIdx) => (
-                  <div key={rIdx} className="flex items-start space-x-2 text-xs text-blue-900">
-                    <ArrowRight className="h-3.5 w-3.5 text-blue-600 shrink-0 mt-0.5" />
+                  <div key={rIdx} className="flex items-start space-x-2 text-xs text-slate-700">
+                    <ArrowRight className="h-3.5 w-3.5 text-slate-500 shrink-0 mt-0.5" />
                     <span>{rec}</span>
                   </div>
                 ))}

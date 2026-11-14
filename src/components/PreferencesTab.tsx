@@ -98,7 +98,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
 
         <button
           onClick={handleSave}
-          className="flex items-center space-x-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-indigo-500 transition"
+          className="flex items-center space-x-1.5 rounded-xl bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-slate-800 transition"
         >
           {isSaved ? <Check className="h-4 w-4 text-emerald-400" /> : <Save className="h-4 w-4" />}
           <span>{isSaved ? 'Preferences Saved' : 'Save Preferences'}</span>
@@ -178,7 +178,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
                       onClick={() => toggleArrangement(arr)}
                       className={`px-3 py-1.5 rounded-lg border text-xs font-semibold uppercase tracking-wider transition ${
                         checked
-                          ? 'bg-indigo-600 text-white border-indigo-500'
+                          ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white border-indigo-500'
                           : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
                       }`}
                     >
@@ -389,7 +389,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
               />
               <button
                 onClick={addPreferredCompany}
-                className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500"
+                className="rounded-lg bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800"
               >
                 Add
               </button>

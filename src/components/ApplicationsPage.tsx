@@ -433,7 +433,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                   {app.status === 'GUIDED_COMPLETION_REQUIRED' && (
                     <button
                       onClick={() => setGuidedModalApp(app)}
-                      className="flex-1 sm:flex-initial justify-center px-4 py-2 min-h-[40px] bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold shadow-xs transition flex items-center space-x-1.5 touch-target"
+                      className="flex-1 sm:flex-initial justify-center px-4 py-2 min-h-[40px] bg-slate-900 hover:bg-slate-800 dark:bg-[var(--be-accent,#A78343)] dark:hover:bg-[var(--be-accent-hover,#917135)] dark:text-[#17130C] text-white rounded-xl text-xs font-semibold shadow-xs transition flex items-center space-x-1.5 touch-target"
                     >
                       <Sparkles className="h-3.5 w-3.5" />
                       <span>Complete Guided Submission</span>

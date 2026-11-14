@@ -157,7 +157,7 @@ export const ApplicationControl: React.FC<ApplicationControlProps> = ({
 
           <button
             onClick={onNavigateToJobs}
-            className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition flex items-center space-x-1.5 self-start lg:self-auto cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] hover:bg-slate-800 text-white font-semibold text-xs transition flex items-center space-x-1.5 self-start lg:self-auto cursor-pointer"
           >
             <Briefcase className="w-3.5 h-3.5" />
             <span>Discover Opportunities</span>
@@ -212,7 +212,7 @@ export const ApplicationControl: React.FC<ApplicationControlProps> = ({
             onClick={() => setActiveStageFilter('all')}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
               activeStageFilter === 'all'
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white'
                 : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:bg-slate-50'
             }`}
           >
@@ -227,7 +227,7 @@ export const ApplicationControl: React.FC<ApplicationControlProps> = ({
                 onClick={() => setActiveStageFilter(st.status)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
                   activeStageFilter === st.status
-                    ? 'bg-indigo-600 text-white'
+                    ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] text-white'
                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:bg-slate-50'
                 }`}
               >
@@ -335,7 +335,7 @@ export const ApplicationControl: React.FC<ApplicationControlProps> = ({
                   </div>
                   <div className="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-indigo-500 via-blue-500 to-emerald-500 transition-all duration-300"
+                      className="h-full bg-[var(--be-accent,#C6A66A)] transition-all duration-300"
                       style={{ width: `${(stageDef.stageNumber / 12) * 100}%` }}
                     />
                   </div>
@@ -392,7 +392,7 @@ export const ApplicationControl: React.FC<ApplicationControlProps> = ({
               <button
                 onClick={() => handleApproveAndProceed(selectedAppForApproval)}
                 disabled={!declaredConsent || isApproving}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition disabled:opacity-50 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] hover:bg-slate-800 text-white font-semibold text-xs transition disabled:opacity-50 cursor-pointer"
               >
                 {isApproving ? 'Authorizing...' : 'Authorize Submission'}
               </button>

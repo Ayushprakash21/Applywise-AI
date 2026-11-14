@@ -430,11 +430,11 @@ export const AuthVisualCanvas: React.FC<AuthVisualCanvasProps> = ({
         <div className="absolute bottom-13 w-64 h-3 rounded-full bg-blue-400/40 blur-[2px]" />
 
         {/* Fallback Glass Sculpture Illustration */}
-        <div className="relative z-10 flex flex-col items-center justify-center p-8 rounded-3xl bg-white/40 backdrop-blur-xl border border-white/80 shadow-2xl shadow-violet-500/10">
-          <div className="w-40 h-40 rounded-full bg-gradient-to-tr from-blue-500/30 via-violet-500/25 to-pink-400/30 blur-md animate-pulse" />
+        <div className="relative z-10 flex flex-col items-center justify-center p-8 rounded-3xl bg-white/40 border border-white/80 shadow-xl shadow-slate-900/5">
+          <div className="w-40 h-40 rounded-full bg-gradient-to-tr from-amber-500/20 via-slate-400/20 to-amber-200/20 blur-md" />
           <div className="absolute inset-0 flex items-center justify-center">
             {mode === 'signin' ? (
-              <svg className="w-44 h-44 text-violet-500/80 drop-shadow-xl" viewBox="0 0 100 100" fill="none">
+              <svg className="w-44 h-44 text-amber-600/80 drop-shadow-md" viewBox="0 0 100 100" fill="none">
                 <circle cx="50" cy="50" r="38" stroke="url(#ringGrad)" strokeWidth="3" />
                 <path
                   d="M30 50 C 30 25, 70 25, 70 50 C 70 75, 30 75, 30 50 Z"
@@ -444,22 +444,22 @@ export const AuthVisualCanvas: React.FC<AuthVisualCanvasProps> = ({
                 />
                 <defs>
                   <linearGradient id="ringGrad" x1="0" y1="0" x2="100" y2="100">
-                    <stop offset="0%" stopColor="#3B82F6" />
-                    <stop offset="100%" stopColor="#8065F5" />
+                    <stop offset="0%" stopColor="#C6A66A" />
+                    <stop offset="100%" stopColor="#8E6F37" />
                   </linearGradient>
                   <linearGradient id="ringGrad2" x1="0" y1="100" x2="100" y2="0">
-                    <stop offset="0%" stopColor="#8065F5" />
-                    <stop offset="100%" stopColor="#60A5FA" />
+                    <stop offset="0%" stopColor="#A78343" />
+                    <stop offset="100%" stopColor="#C6A66A" />
                   </linearGradient>
                 </defs>
               </svg>
             ) : (
               <div className="w-36 h-48 rounded-2xl bg-white/60 border border-white/90 shadow-xl flex flex-col items-center justify-center p-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-violet-600 flex items-center justify-center text-white font-bold text-sm shadow-md mb-3">
+                <div className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center text-[#C6A66A] font-bold text-sm shadow-md mb-3">
                   AV
                 </div>
                 <div className="w-20 h-2 bg-slate-300/80 rounded-full mb-2" />
-                <div className="w-14 h-2 bg-violet-400/60 rounded-full" />
+                <div className="w-14 h-2 bg-amber-400/60 rounded-full" />
               </div>
             )}
           </div>

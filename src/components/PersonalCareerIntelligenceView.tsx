@@ -61,7 +61,7 @@ export const PersonalCareerIntelligenceView: React.FC<PersonalCareerIntelligence
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-700/60 gap-3">
         <div className="flex items-center space-x-2">
-          <div className="p-2 rounded-xl bg-purple-500/10 text-purple-600">
+          <div className="p-2 rounded-xl bg-slate-800/10 text-purple-600">
             <Brain className="h-5 w-5" />
           </div>
           <div>

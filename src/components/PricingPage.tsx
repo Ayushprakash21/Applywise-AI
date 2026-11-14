@@ -195,49 +195,70 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             ) : (
               <button
                 onClick={() => onOpenAuth('signup')}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition flex items-center space-x-1.5 cursor-pointer ${
+                className={`px-4 py-2 rounded-md text-xs font-semibold shadow-xs transition cursor-pointer ${
                   isBlack
                     ? 'bg-[#C6A66A] hover:bg-[#E2C58A] text-[#08090B] font-bold'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'
+                    : 'bg-slate-900 hover:bg-slate-800 text-white'
                 }`}
               >
-                <span>Sign Up Free</span>
-                <ArrowRight className="h-3.5 w-3.5" />
+                Sign Up Free
               </button>
             )}
           </div>
         </div>
       </header>
 
-      {/* Hero & Controls */}
-      <section className="pt-16 pb-12 max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-6">
-        <div className={`inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs ${
-          isBlack
-            ? 'bg-[rgba(198,166,106,0.12)] border border-[rgba(198,166,106,0.30)] text-[#C6A66A]'
-            : 'bg-blue-50 border border-blue-200/80 text-blue-700'
-        }`}>
-          <Sparkles className={`h-3.5 w-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-blue-600'}`} />
-          <span>Simple, Honest Career Plans</span>
+      {/* Hero Header — Editorial Layout */}
+      <section className="pt-14 pb-8 max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[var(--be-border-subtle,rgba(255,255,255,0.08))]">
+          <div className="space-y-2">
+            <span className="text-xs font-semibold text-[var(--be-accent,#A78343)]">
+              Subscription Entitlements & Pricing
+            </span>
+            <h1 className={`text-2xl sm:text-4xl font-extrabold tracking-tight ${
+              isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
+            }`}>
+              Invest in Your Career with Intelligent AI Capabilities
+            </h1>
+            <p className={`max-w-xl text-xs sm:text-sm leading-relaxed ${
+              isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'
+            }`}>
+              Transparent subscriptions designed to maximize your application results with zero-hallucination resume intelligence.
+            </p>
+          </div>
+
+          {/* Currency Toggle */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrency('INR')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
+                currency === 'INR'
+                  ? isBlack
+                    ? 'bg-[#C6A66A] text-[#08090B]'
+                    : 'bg-slate-900 text-white'
+                  : isBlack
+                  ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              INR (₹)
+            </button>
+            <button
+              onClick={() => setCurrency('USD')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
+                currency === 'USD'
+                  ? isBlack
+                    ? 'bg-[#C6A66A] text-[#08090B]'
+                    : 'bg-slate-900 text-white'
+                  : isBlack
+                  ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              USD ($)
+            </button>
+          </div>
         </div>
-
-        <h1 className={`text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight ${
-          isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
-        }`}>
-          Invest in Your Career with <br />
-          <span className={`text-transparent bg-clip-text ${
-            isBlack
-              ? 'bg-gradient-to-r from-[#E2C58A] via-[#C6A66A] to-[#E2C58A]'
-              : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-700'
-          }`}>
-            Intelligent AI Capabilities
-          </span>
-        </h1>
-
-        <p className={`max-w-2xl mx-auto text-xs sm:text-sm leading-relaxed ${
-          isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'
-        }`}>
-          Transparent subscriptions designed to maximize your application results with zero-hallucination resume intelligence.
-        </p>
 
         {/* User Membership & Entitlement Status Card */}
         {currentUser && (
@@ -558,7 +579,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             <div className={`absolute top-0 right-0 text-[10px] font-mono uppercase font-bold px-4 py-1 rounded-bl-xl shadow-xs border-l border-b ${
               isBlack
                 ? 'bg-[rgba(117,169,214,0.18)] text-[#75A9D6] border-[rgba(117,169,214,0.35)]'
-                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent'
+                : 'bg-blue-600 text-white border-blue-700'
             }`}>
               {currentPlanId === 'pro' && !isFreeAccess ? 'YOUR ACTIVE PLAN' : 'POPULAR CHOICE'}
             </div>
@@ -620,7 +641,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                     : 'bg-blue-600 text-white border-transparent cursor-default'
                   : isBlack
                   ? 'bg-[#C6A66A] hover:bg-[#E2C58A] text-[#08090B] font-bold border-[rgba(198,166,106,0.30)] shadow-xs'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white border-transparent shadow-blue-500/25'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white border-transparent shadow-xs'
               }`}
             >
               {loadingPlan === 'pro' ? (
@@ -670,7 +691,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                 {/* Price Display */}
                 <div className="pt-2">
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FBF4D8] via-[#D6B46A] to-[#F3DEAC]">
+                    <span className="text-4xl sm:text-5xl font-black text-[#E5C477]">
                       {currency === 'INR'
                         ? (billingInterval === 'annual' ? '₹1,332' : '₹1,599')
                         : (billingInterval === 'annual' ? '$16.65' : '$19.99')}

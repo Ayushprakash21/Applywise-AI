@@ -82,8 +82,8 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
         {/* Cinematic Founder Capsule */}
         <div className={`rounded-3xl border overflow-hidden p-6 sm:p-10 md:p-14 relative ${
           isDark
-            ? 'bg-slate-950/70 backdrop-blur-2xl border-white/10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]'
-            : 'bg-white border-slate-200 shadow-xl'
+            ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))] shadow-md'
+            : 'bg-white border-slate-200 shadow-md'
         }`}>
           {/* Subtle top edge highlight */}
           {isDark && (
@@ -95,26 +95,26 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
             <div className="lg:col-span-4 flex flex-col items-center text-center space-y-5">
               {/* Premium Photo or Monogram Mark with Orbital Lighting */}
               <div className="relative group">
-                <div className="w-44 h-44 sm:w-52 sm:h-52 rounded-3xl bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-600 p-[2px] shadow-[0_0_40px_rgba(14,165,233,0.25)] transition-transform duration-500 group-hover:scale-[1.02]">
+                <div className="w-44 h-44 sm:w-52 sm:h-52 rounded-2xl bg-slate-800 border border-[var(--be-border-focus,#C6A66A)] p-[2px] shadow-sm transition-transform duration-300 group-hover:scale-[1.01]">
                   {profile.photoUrl ? (
-                    <div className="w-full h-full rounded-[22px] bg-slate-950 overflow-hidden relative group/img">
+                    <div className="w-full h-full rounded-[14px] bg-slate-950 overflow-hidden relative group/img">
                       <img
                         src={profile.photoUrl}
                         alt={profile.name}
-                        className="w-full h-full object-cover rounded-[22px] transition-transform duration-700 group-hover/img:scale-105"
+                        className="w-full h-full object-cover rounded-[14px] transition-transform duration-700 group-hover/img:scale-105"
                       />
-                      <div className="absolute inset-0 border border-white/15 rounded-[22px] pointer-events-none" />
+                      <div className="absolute inset-0 border border-white/15 rounded-[14px] pointer-events-none" />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
                     </div>
                   ) : (
-                    <div className="w-full h-full rounded-[22px] bg-slate-950 flex flex-col items-center justify-center text-white relative overflow-hidden">
-                      <span className="text-4xl sm:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-white via-cyan-100 to-blue-300">
+                    <div className="w-full h-full rounded-[14px] bg-slate-950 flex flex-col items-center justify-center text-white relative overflow-hidden">
+                      <span className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#C6A66A]">
                         AP
                       </span>
-                      <span className="text-[10px] uppercase font-mono tracking-widest text-cyan-400 mt-2 font-semibold">
+                      <span className="text-[10px] uppercase font-mono tracking-widest text-[#C6A66A] mt-2 font-semibold">
                         Founder & Architect
                       </span>
-                      <div className="absolute inset-0 border border-white/10 rounded-[22px] pointer-events-none" />
+                      <div className="absolute inset-0 border border-white/10 rounded-[14px] pointer-events-none" />
                     </div>
                   )}
                 </div>
@@ -142,7 +142,7 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
                       key={idx}
                       className={`px-2.5 py-1 rounded-lg border ${
                         isDark
-                          ? 'bg-slate-900/80 border-white/10 text-slate-300'
+                          ? 'bg-[var(--be-bg-surface,#181C22)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-300'
                           : 'bg-slate-100 border-slate-200 text-slate-700'
                       }`}
                     >
@@ -171,17 +171,17 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
               {profile.quote && (
                 <div className={`p-5 rounded-2xl border relative ${
                   isDark
-                    ? 'bg-slate-900/60 border-white/10 shadow-[inset_0_1px_2px_rgba(255,255,255,0.05)]'
+                    ? 'bg-[var(--be-bg-surface,#181C22)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))]'
                     : 'bg-slate-50 border-slate-200'
                 }`}>
-                  <Quote className="h-6 w-6 text-cyan-400/30 absolute top-3 right-4" />
+                  <Quote className="h-6 w-6 text-[var(--be-accent,#A78343)] opacity-40 absolute top-3 right-4" />
                   <p className={`text-xs sm:text-sm italic leading-relaxed ${
                     isDark ? 'text-slate-200' : 'text-slate-700'
                   }`}>
                     "{profile.quote}"
                   </p>
                   <div className="mt-3 text-right">
-                    <span className={`text-xs font-semibold ${isDark ? 'text-cyan-400' : 'text-slate-900'}`}>
+                    <span className={`text-xs font-semibold ${isDark ? 'text-[var(--be-accent,#A78343)]' : 'text-slate-900'}`}>
                       — {profile.quoteAuthor || profile.name}
                     </span>
                   </div>
@@ -193,7 +193,7 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
                 {onReadStory && (
                   <button
                     onClick={onReadStory}
-                    className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-md shadow-cyan-500/20 transition flex items-center space-x-2 active:scale-95"
+                    className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] hover:bg-slate-800 transition flex items-center space-x-2"
                   >
                     <span>Read Full Founder Story</span>
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -206,7 +206,7 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
                   rel="noopener noreferrer"
                   className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition flex items-center space-x-2 ${
                     isDark
-                      ? 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-white/10 hover:border-cyan-500/40'
+                      ? 'bg-[var(--be-bg-surface,#181C22)] hover:bg-[var(--be-bg-card,#14171C)] text-slate-200 border-[var(--be-border-subtle,rgba(255,255,255,0.08))]'
                       : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
                   }`}
                 >

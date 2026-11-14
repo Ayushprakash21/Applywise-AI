@@ -176,7 +176,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           {/* Identity Card */}
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 font-bold text-lg text-white shadow-md">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800 border border-slate-700 font-bold text-lg text-[#C6A66A] shadow-xs">
                 {profile.fullName.split(' ').map(n => n[0]).join('')}
               </div>
               <div>
@@ -268,16 +268,16 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           {/* Education & Certifications */}
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-4">
             <h3 className="text-sm font-semibold text-white flex items-center space-x-1.5">
-              <GraduationCap className="h-4 w-4 text-indigo-400" />
+              <GraduationCap className="h-4 w-4 text-[var(--be-accent,#A78343)]" />
               <span>Education & Credentials</span>
             </h3>
 
             <div className="space-y-3">
               {profile.education.map(edu => (
-                <div key={edu.id} className="text-xs border-l-2 border-indigo-500 pl-3 space-y-0.5">
+                <div key={edu.id} className="text-xs border-l-2 border-slate-700 pl-3 space-y-0.5">
                   <div className="font-semibold text-slate-100">{edu.degree}</div>
                   <div className="text-slate-400">{edu.institution} · Class of {edu.graduationYear}</div>
-                  {edu.gpa && <div className="text-[11px] text-indigo-400/90 font-mono">GPA: {edu.gpa}</div>}
+                  {edu.gpa && <div className="text-[11px] text-slate-400 font-mono">GPA: {edu.gpa}</div>}
                 </div>
               ))}
             </div>
@@ -458,7 +458,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                         </button>
                         <button
                           onClick={() => handleSaveExp(exp.id!)}
-                          className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold text-white shadow-xs flex items-center space-x-1 transition"
+                          className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-[var(--be-accent,#A78343)] dark:hover:bg-[var(--be-accent-hover,#917135)] dark:text-[#17130C] text-xs font-semibold text-white shadow-xs flex items-center space-x-1 transition"
                         >
                           <Save className="h-3.5 w-3.5" />
                           <span>Save & Confirm</span>
@@ -594,7 +594,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 <button
                   onClick={handleParseSubmit}
                   disabled={isParsingResume || resumeTextInput.trim().length < 50}
-                  className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-indigo-500 disabled:opacity-50 flex items-center space-x-1.5"
+                  className="rounded-lg bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-slate-800 disabled:opacity-50 flex items-center space-x-1.5"
                 >
                   {isParsingResume ? (
                     <>

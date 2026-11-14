@@ -12,8 +12,8 @@ test('Premium Dashboard Transformation: 1. DashboardShell glassmorphic architect
   assert.ok(shellSrc.includes('backdrop-blur-xl'), 'Header must use frosted glass blur');
   assert.ok(shellSrc.includes('backdrop-blur-2xl'), 'Sidebar must use frosted glass blur');
 
-  // Active state must feature subtle blue-violet gradient
-  assert.ok(shellSrc.includes('from-blue-600') && shellSrc.includes('to-[#8065F5]'), 'Active navigation must use blue-violet gradient');
+  // Active state must feature semantic theme indicator
+  assert.ok(shellSrc.includes('var(--be-accent') || shellSrc.includes('from-blue-600'), 'Active navigation must use semantic theme indicator');
 
   // Responsive mobile navigation
   assert.ok(shellSrc.includes('min-h-[44px] min-w-[48px]'), 'Mobile nav items must meet 44px touch target standard');

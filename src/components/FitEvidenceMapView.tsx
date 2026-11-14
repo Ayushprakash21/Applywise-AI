@@ -93,10 +93,10 @@ export const FitEvidenceMapView: React.FC<FitEvidenceMapViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Signature Header Banner */}
-      <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/60 border border-indigo-100 shadow-sm space-y-3">
+      <div className="p-5 rounded-xl bg-white dark:bg-[#14171C] border border-slate-200 dark:border-[rgba(255,255,255,0.09)] shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center space-x-2">
-            <div className="p-2 rounded-xl bg-indigo-600 text-white shadow-sm">
+            <div className="p-2 rounded-lg bg-slate-900 dark:bg-[#191D23] text-[#C6A66A] shadow-xs">
               <Layers className="h-5 w-5" />
             </div>
             <div>

@@ -13,190 +13,181 @@
 }
 
 @layer utilities {
-  /* Glassmorphism surfaces: light, translucent, refined */
+  /* Unified Surfaces: Solid, High-Contrast, Professional */
   .glass-card {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+    background: var(--be-bg-card, #FFFFFF);
+    border: 1px solid var(--be-border-subtle, rgba(226, 232, 240, 0.8));
+    box-shadow: var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.05));
   }
 
   .glass-card-hover {
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .glass-card-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.03);
-    border-color: rgba(191, 219, 254, 0.8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--be-accent, rgba(198, 166, 106, 0.4));
   }
 
   .glass-panel {
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(241, 245, 249, 0.9);
+    background: var(--be-bg-elevated, #FFFFFF);
+    border: 1px solid var(--be-border-subtle, rgba(241, 245, 249, 0.9));
+    box-shadow: var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.05));
   }
 
   .glass-input {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid #CBD5E1;
-    box-shadow: inset 0 2px 4px 0 rgba(15, 23, 42, 0.03);
-    transition: all 0.15s ease-in-out;
+    background: var(--be-bg-input, #FFFFFF);
+    color: var(--be-text-primary, #1E293B);
+    border: 1px solid var(--be-border-subtle, #CBD5E1);
+    box-shadow: inset 0 1px 2px 0 rgba(15, 23, 42, 0.02);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
   }
   .glass-input:focus {
-    border-color: #3B82F6;
+    border-color: var(--be-accent, #C6A66A);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), inset 0 1px 2px 0 rgba(15, 23, 42, 0.02);
+    box-shadow: 0 0 0 2px var(--be-accent-muted, rgba(198, 166, 106, 0.15));
   }
 
-  /* Neumorphic Design System (Light Tactile UI) */
+  /* Tactile UI Utilities (Standardized to Design System Tokens) */
   :root {
-    --neu-bg: #E9EDF3;
-    --neu-surface: #EEF2F7;
-    --neu-shadow-dark: #C5CEDA;
+    --neu-bg: var(--be-bg-primary, #F5F3EE);
+    --neu-surface: var(--be-bg-card, #FFFFFF);
+    --neu-shadow-dark: rgba(0, 0, 0, 0.06);
     --neu-shadow-light: #FFFFFF;
-    --neu-text-primary: #1E293B;
-    --neu-text-secondary: #64748B;
-    --neu-accent: #2563EB;
-    --neu-accent-hover: #1D4ED8;
+    --neu-text-primary: var(--be-text-primary, #1E293B);
+    --neu-text-secondary: var(--be-text-secondary, #64748B);
+    --neu-accent: var(--be-accent, #C6A66A);
+    --neu-accent-hover: var(--be-gold-hover, #D9BB80);
   }
 
   .neu-bg {
-    background-color: #E9EDF3;
+    background-color: var(--be-bg-primary, #F5F3EE);
   }
 
   .neu-surface {
-    background-color: #EEF2F7;
-    color: #1E293B;
+    background-color: var(--be-bg-card, #FFFFFF);
+    color: var(--be-text-primary, #1E293B);
+    border: 1px solid var(--be-border-subtle, #DEDAD0);
   }
 
   .neu-raised {
-    background: #EEF2F7;
-    box-shadow: 8px 8px 16px #C5CEDA, -8px -8px 16px #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    background: var(--be-bg-card, #FFFFFF);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--be-border-subtle, #DEDAD0);
+    transition: all 0.2s ease;
   }
 
   .neu-raised-hover {
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .neu-raised-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 10px 10px 20px #C5CEDA, -10px -10px 20px #FFFFFF;
-    border-color: rgba(255, 255, 255, 0.9);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--be-accent, #C6A66A);
   }
 
   .neu-inset {
-    background: #E9EDF3;
-    box-shadow: inset 4px 4px 8px #C5CEDA, inset -4px -4px 8px #FFFFFF;
-    border: 1px solid rgba(197, 206, 218, 0.5);
+    background: var(--be-bg-primary, #F5F3EE);
+    border: 1px solid var(--be-border-subtle, #DEDAD0);
     transition: all 0.2s ease;
   }
 
   .neu-card {
-    background: #EEF2F7;
-    box-shadow: 8px 8px 16px #C5CEDA, -8px -8px 16px #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    border-radius: 1.25rem;
+    background: var(--be-bg-card, #FFFFFF);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--be-border-subtle, #DEDAD0);
+    border-radius: 0.875rem;
   }
 
   .neu-panel {
-    background: #EEF2F7;
-    box-shadow: 6px 6px 14px #C5CEDA, -6px -6px 14px #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    border-radius: 1.5rem;
+    background: var(--be-bg-elevated, #FFFFFF);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--be-border-subtle, #DEDAD0);
+    border-radius: 1rem;
   }
 
   .neu-button {
-    background: #EEF2F7;
-    color: #1E293B;
-    box-shadow: 5px 5px 10px #C5CEDA, -5px -5px 10px #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    background: var(--be-bg-card, #FFFFFF);
+    color: var(--be-text-primary, #1E293B);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--be-border-subtle, #DEDAD0);
+    transition: all 0.15s ease;
   }
   .neu-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 6px 6px 12px #C5CEDA, -6px -6px 12px #FFFFFF;
-    color: #2563EB;
+    border-color: var(--be-accent, #C6A66A);
+    color: var(--be-accent, #C6A66A);
   }
   .neu-button:active {
     transform: translateY(0);
-    box-shadow: inset 3px 3px 6px #C5CEDA, inset -3px -3px 6px #FFFFFF;
+    background: var(--be-bg-primary, #F5F3EE);
   }
 
   .neu-button-primary {
-    background: #2563EB;
-    color: #FFFFFF;
-    box-shadow: 4px 4px 10px rgba(37, 99, 235, 0.35), -3px -3px 8px #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    background: var(--be-accent, #C6A66A);
+    color: var(--be-accent-contrast, #08090B);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-weight: 600;
+    transition: all 0.15s ease;
   }
   .neu-button-primary:hover {
-    background: #1D4ED8;
-    transform: translateY(-1px);
-    box-shadow: 6px 6px 14px rgba(37, 99, 235, 0.45), -4px -4px 10px #FFFFFF;
+    background: var(--be-gold-hover, #D9BB80);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   }
   .neu-button-primary:active {
     transform: translateY(0);
-    box-shadow: inset 3px 3px 6px rgba(15, 23, 42, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.2);
   }
 
   .neu-input {
-    background: #E9EDF3;
-    color: #1E293B;
-    box-shadow: inset 4px 4px 8px #C5CEDA, inset -4px -4px 8px #FFFFFF;
-    border: 1px solid rgba(197, 206, 218, 0.6);
-    transition: all 0.2s ease;
+    background: var(--be-bg-input, #FFFFFF);
+    color: var(--be-text-primary, #1E293B);
+    border: 1px solid var(--be-border-subtle, #DEDAD0);
+    transition: border-color 0.15s ease;
   }
   .neu-input:focus {
     outline: none;
-    border-color: #2563EB;
-    box-shadow: inset 3px 3px 6px #C5CEDA, inset -3px -3px 6px #FFFFFF, 0 0 0 3px rgba(37, 99, 235, 0.15);
+    border-color: var(--be-accent, #C6A66A);
+    box-shadow: 0 0 0 2px var(--be-accent-muted, rgba(198, 166, 106, 0.15));
   }
 
   .neu-chip {
-    background: #EEF2F7;
-    color: #64748B;
-    box-shadow: 3px 3px 6px #C5CEDA, -3px -3px 6px #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    transition: all 0.2s ease;
+    background: var(--be-bg-card, #FFFFFF);
+    color: var(--be-text-secondary, #64748B);
+    border: 1px solid var(--be-border-subtle, #DEDAD0);
+    transition: all 0.15s ease;
   }
   .neu-chip:hover {
-    color: #2563EB;
-    box-shadow: 4px 4px 8px #C5CEDA, -4px -4px 8px #FFFFFF;
+    color: var(--be-accent, #C6A66A);
+    border-color: var(--be-accent, #C6A66A);
   }
   .neu-chip.active, .neu-chip:active {
-    color: #2563EB;
+    color: var(--be-accent-contrast, #08090B);
+    background: var(--be-accent, #C6A66A);
+    border-color: var(--be-accent, #C6A66A);
     font-weight: 600;
-    box-shadow: inset 2px 2px 4px #C5CEDA, inset -2px -2px 4px #FFFFFF;
   }
 
-  /* Cinematic Dark / Daoism aesthetic styles */
+  /* Cinematic Dark / Architecture Surfaces */
   .dark-glass {
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--be-bg-card, #14171C);
+    border: 1px solid var(--be-border-subtle, rgba(255, 255, 255, 0.08));
   }
 
   .dark-glass-glow {
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(6, 182, 212, 0.25);
-    box-shadow: 0 0 35px -5px rgba(6, 182, 212, 0.15);
+    background: var(--be-bg-card, #14171C);
+    border: 1px solid var(--be-border-focus, rgba(198, 166, 106, 0.3));
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   }
 
   .bg-grid-cyber {
     background-image: 
-      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
   .bg-radial-ambient {
-    background: radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.12) 0%, transparent 65%);
+    background: radial-gradient(circle at 50% 0%, rgba(198, 166, 106, 0.06) 0%, transparent 65%);
   }
 
   /* Responsive Touch & Mobile Utilities */
@@ -222,25 +213,21 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Premium Hybrid Neu-Glass Surface (Refined tactile glassmorphism) */
+  /* Standardized Card Surfaces */
   .neu-glass {
-    background: rgba(238, 242, 247, 0.82);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.85);
-    box-shadow: 6px 6px 16px #C5CEDA, -6px -6px 16px #FFFFFF;
+    background: var(--be-bg-card, #FFFFFF);
+    border: 1px solid var(--be-border-subtle, #DEDAD0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
 
   .neu-glass-dark {
-    background: rgba(15, 23, 42, 0.82);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+    background: var(--be-bg-card, #14171C);
+    border: 1px solid var(--be-border-subtle, rgba(255, 255, 255, 0.08));
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   }
 
   .neu-glow-primary {
-    box-shadow: 0 0 20px -3px rgba(37, 99, 235, 0.25), 6px 6px 14px #C5CEDA, -6px -6px 14px #FFFFFF;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
   }
 
   /* Career Fit Evidence Badges */

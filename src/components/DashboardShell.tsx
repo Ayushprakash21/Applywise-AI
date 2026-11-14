@@ -197,11 +197,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
           : undefined
       }
     >
-      {/* Ambient Flowing Background (matching authentication experience) */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden select-none z-0">
-        <div className="absolute -top-[10%] right-[15%] w-[680px] h-[680px] rounded-full bg-gradient-to-br from-indigo-300/15 via-purple-300/10 to-transparent blur-[140px]" />
-        <div className="absolute bottom-[10%] left-[5%] w-[640px] h-[640px] rounded-full bg-gradient-to-tr from-blue-300/15 via-sky-200/20 to-transparent blur-[130px]" />
-      </div>
+      {/* Ambient Flowing Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden select-none z-0" />
 
       {/* Top Fixed Header - Frosted Translucent Glass */}
       <header
@@ -395,9 +392,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                         setNotificationsOpen(false);
                         onSelectTab('notifications');
                       }}
-                      className={`text-[11px] font-semibold hover:underline cursor-pointer ${plan === 'black' ? 'text-[#C6A66A]' : 'text-blue-600'}`}
+                      className={`text-[11px] font-semibold hover:underline cursor-pointer ${plan === 'black' ? 'text-[#C6A66A]' : 'text-slate-800'}`}
                     >
-                      View all in Notifications →
+                      View all in Notifications
                     </button>
                   </div>
                 </div>
@@ -498,20 +495,20 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                         key={item.id}
                         type="button"
                         onClick={() => onSelectTab(item.id)}
-                        className={`w-full flex items-center px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative ${
+                        className={`w-full flex items-center px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-colors duration-150 cursor-pointer group relative ${
                           isActive
-                            ? 'bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-[#8065F5]/15 border border-violet-400/30 text-blue-700 shadow-2xs'
-                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                            ? 'bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#DEDAD0)] text-[var(--be-text-heading,#191D24)] shadow-xs font-bold'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
                         }`}
                         title={sidebarCollapsed ? item.label : undefined}
                       >
-                        {/* Active vertical glow indicator */}
+                        {/* Active vertical indicator */}
                         {isActive && (
-                          <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-gradient-to-b from-blue-600 to-[#8065F5]" />
+                          <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[var(--be-accent,#A78343)]" />
                         )}
 
                         <Icon className={`w-4.5 h-4.5 shrink-0 transition-colors ${
-                          isActive ? 'text-[#8065F5]' : 'text-slate-400 group-hover:text-slate-700'
+                          isActive ? 'text-[var(--be-accent,#A78343)]' : 'text-slate-400 group-hover:text-slate-700'
                         }`} />
 
                         {!sidebarCollapsed && (
@@ -519,7 +516,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                         )}
 
                         {!sidebarCollapsed && item.badge !== undefined && item.badge > 0 && (
-                          <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#8065F5] text-white">
+                          <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[var(--be-accent,#A78343)] text-white">
                             {item.badge}
                           </span>
                         )}

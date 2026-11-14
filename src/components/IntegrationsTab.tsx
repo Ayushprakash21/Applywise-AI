@@ -36,7 +36,7 @@ export const IntegrationsTab: React.FC<IntegrationsTabProps> = ({
         <button
           onClick={onTestIntegrations}
           disabled={isTesting}
-          className="flex items-center space-x-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-indigo-500 transition disabled:opacity-50"
+          className="flex items-center space-x-2 rounded-xl bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-slate-800 transition disabled:opacity-50"
         >
           <RefreshCw className={`h-4 w-4 ${isTesting ? 'animate-spin' : ''}`} />
           <span>{isTesting ? 'Testing Health...' : 'Check All Adapters'}</span>
