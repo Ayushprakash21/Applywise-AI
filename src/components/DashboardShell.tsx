@@ -40,6 +40,7 @@ import { NotificationItem, AutomationSettings, AccountUsageStats } from '../type
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 import { ProfileIdentityComponent } from './ProfileIdentityComponent.tsx';
 import { HeaderLanguageSelector } from './HeaderLanguageSelector.tsx';
+import { GlobalThemeSwitch } from './ui/GlobalThemeSwitch.tsx';
 import { useLanguage } from '../context/LanguageContext.tsx';
 
 export type DashboardTab =
@@ -319,6 +320,9 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
             {/* B. Compact Header Language Selector */}
             <HeaderLanguageSelector plan={plan} />
+
+            {/* Global Theme Switch */}
+            <GlobalThemeSwitch />
 
             {/* C. Notification Button & Dropdown */}
             <div className="relative" ref={notifRef}>

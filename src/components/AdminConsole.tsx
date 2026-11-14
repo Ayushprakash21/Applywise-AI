@@ -45,6 +45,7 @@ import { GrowthEngineDashboard } from './admin/growth-engine/GrowthEngineDashboa
 import { AdminLanguageManagement } from './admin/AdminLanguageManagement.tsx';
 import { TypographySettingsModal } from './TypographySettingsModal.tsx';
 import { GlobalSearchBar } from './GlobalSearchBar.tsx';
+import { GlobalThemeSwitch } from './ui/GlobalThemeSwitch.tsx';
 import { getEffectivePlan } from '../config/freeAccess.ts';
 import { FilterSelect, SearchableSelect } from './ui/SelectSystem.tsx';
 import { initBlackEliteTheme } from '../utils/blackEliteTheme.ts';
@@ -349,6 +350,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-3">
+            <GlobalThemeSwitch size="sm" />
+
             <button
               type="button"
               onClick={() => setTypographyModalOpen(true)}

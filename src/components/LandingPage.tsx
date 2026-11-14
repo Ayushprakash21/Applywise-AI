@@ -24,15 +24,15 @@ import {
   Bookmark,
   Send,
   Briefcase,
-  AlertCircle,
-  Sun,
-  Moon
+  AlertCircle
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
 import { GlobalFooter } from './GlobalFooter.tsx';
 import { JobVacancy } from '../types/index.ts';
 import { FounderSection } from './FounderSection.tsx';
 import { CareerNetworkVisual } from './CareerNetworkVisual.tsx';
+import { GlobalThemeSwitch } from './ui/GlobalThemeSwitch.tsx';
+import { useTheme } from '../context/ThemeContext.tsx';
 import { JobMatchExperience } from './JobMatchExperience.tsx';
 import { CareerIntelligenceHero } from './hero/CareerIntelligenceHero.tsx';
 import {
@@ -68,32 +68,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentAppearance, setCurrentAppearance] = useState<BlackEliteAppearance>(getStoredAppearance);
-  const [currentPalette, setCurrentPalette] = useState<BlackElitePalette>(getStoredPalette);
-
-  useEffect(() => {
-    const handleThemeUpdate = (e: Event) => {
-      const customEvent = e as CustomEvent<{ palette: BlackElitePalette; appearance: BlackEliteAppearance }>;
-      if (customEvent.detail) {
-        if (customEvent.detail.palette) setCurrentPalette(customEvent.detail.palette);
-        if (customEvent.detail.appearance) setCurrentAppearance(customEvent.detail.appearance);
-      }
-    };
-    if (typeof window !== 'undefined') {
-      window.addEventListener(THEME_CHANGE_EVENT, handleThemeUpdate);
-    }
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener(THEME_CHANGE_EVENT, handleThemeUpdate);
-      }
-    };
-  }, []);
-
-  const toggleAppearance = () => {
-    const nextMode = currentAppearance === 'dark' ? 'light' : 'dark';
-    setCurrentAppearance(nextMode);
-    setBlackEliteAppearance(nextMode, true);
-  };
+  const { appearance, isDark } = useTheme();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,8 +82,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 bg-[var(--be-bg-canvas,#F5F3EE)] border-b border-[var(--be-border-subtle,#DEDAD0)] transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
+          {/* Brand Logo */}
           <BrandLogo
-            variant={currentAppearance === 'dark' ? 'dark' : 'light'}
+            variant={isDark ? 'dark' : 'light'}
             size="md"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           />
@@ -148,16 +124,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             )}
           </nav>
 
-          {/* Action CTAs & Appearance Toggle */}
+          {/* Action CTAs & Global Theme Switch Slider */}
           <div className="hidden lg:flex items-center space-x-3">
-            <button
-              type="button"
-              onClick={toggleAppearance}
-              aria-label={currentAppearance === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              className="p-2 rounded-xl text-[var(--be-text-secondary,#555C66)] hover:text-[var(--be-text-primary,#20242B)] hover:bg-[var(--be-hover-bg,rgba(0,0,0,0.05))] transition-colors border border-transparent hover:border-[var(--be-border-subtle,#DEDAD0)] cursor-pointer"
-            >
-              {currentAppearance === 'dark' ? <Sun className="h-4 w-4 text-[var(--be-accent,#C6A66A)]" /> : <Moon className="h-4 w-4" />}
-            </button>
+            <GlobalThemeSwitch />
             <button
               onClick={() => onOpenAuth('login')}
               aria-label="Sign In"
@@ -182,14 +151,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Mobile menu trigger */}
           <div className="lg:hidden flex items-center space-x-2">
-            <button
-              type="button"
-              onClick={toggleAppearance}
-              aria-label={currentAppearance === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              className="p-2 text-[var(--be-text-secondary,#555C66)]"
-            >
-              {currentAppearance === 'dark' ? <Sun className="h-5 w-5 text-[var(--be-accent,#C6A66A)]" /> : <Moon className="h-5 w-5" />}
-            </button>
+            <GlobalThemeSwitch size="sm" />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-[var(--be-text-secondary,#555C66)] hover:text-[var(--be-text-primary,#20242B)] transition-colors"

@@ -17,6 +17,7 @@ import {
 import { api } from '../services/api.ts';
 import { MarketingContentItem } from '../types/growthEngine.ts';
 import { BrandLogo } from './BrandLogo.tsx';
+import { GlobalThemeSwitch } from './ui/GlobalThemeSwitch.tsx';
 
 interface PublicResourcePageProps {
   slug?: string;
@@ -79,31 +80,33 @@ export const PublicResourcePage: React.FC<PublicResourcePageProps> = ({
   // Individual Article View
   if (slug && article) {
     return (
-      <div className="min-h-screen bg-stone-950 text-stone-200 selection:bg-amber-500 selection:text-black">
+      <div className="min-h-screen bg-[var(--be-bg-canvas,#F5F3EE)] text-[var(--be-text-primary,#191D24)] transition-colors">
         {/* Navigation Bar */}
-        <header className="sticky top-0 z-50 bg-stone-950/90 backdrop-blur-md border-b border-stone-850 px-6 py-4">
+        <header className="sticky top-0 z-50 bg-[var(--be-bg-card,#FFFFFF)]/90 backdrop-blur-md border-b border-[var(--be-border-subtle,#DEDAD0)] px-6 py-4">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             <button
               type="button"
               onClick={onNavigateHome}
-              className="flex items-center gap-2 text-white hover:opacity-90 transition"
+              className="flex items-center gap-2 hover:opacity-90 transition cursor-pointer text-[var(--be-text-primary,#191D24)]"
             >
               <BrandLogo size="sm" />
-              <span className="font-extrabold tracking-tight text-lg">ApplyVise <span className="text-amber-400 font-normal text-xs uppercase tracking-widest ml-1">AI</span></span>
+              <span className="font-extrabold tracking-tight text-lg">ApplyVise <span className="text-[var(--be-accent,#A78343)] font-normal text-xs uppercase tracking-widest ml-1">AI</span></span>
             </button>
 
             <div className="flex items-center gap-3">
+              <GlobalThemeSwitch size="sm" />
               <button
                 type="button"
                 onClick={() => onNavigateRoute('/resources')}
-                className="text-xs text-stone-400 hover:text-white transition flex items-center gap-1"
+                className="text-xs text-[var(--be-text-secondary,#555C66)] hover:text-[var(--be-text-primary,#191D24)] transition flex items-center gap-1 cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> All Guides
               </button>
               <button
                 type="button"
                 onClick={() => onNavigateRoute('/signup')}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black transition"
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white transition cursor-pointer"
+                style={{ backgroundColor: 'var(--be-accent, #A78343)' }}
               >
                 Sign Up Free
               </button>
@@ -211,30 +214,32 @@ export const PublicResourcePage: React.FC<PublicResourcePageProps> = ({
 
   // Catalog View (/resources)
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-200">
-      <header className="sticky top-0 z-50 bg-stone-950/90 backdrop-blur-md border-b border-stone-850 px-6 py-4">
+    <div className="min-h-screen bg-[var(--be-bg-canvas,#F5F3EE)] text-[var(--be-text-primary,#191D24)] transition-colors">
+      <header className="sticky top-0 z-50 bg-[var(--be-bg-card,#FFFFFF)]/90 backdrop-blur-md border-b border-[var(--be-border-subtle,#DEDAD0)] px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <button
             type="button"
             onClick={onNavigateHome}
-            className="flex items-center gap-2 text-white hover:opacity-90 transition"
+            className="flex items-center gap-2 hover:opacity-90 transition cursor-pointer text-[var(--be-text-primary,#191D24)]"
           >
             <BrandLogo size="sm" />
-            <span className="font-extrabold tracking-tight text-lg">ApplyVise <span className="text-amber-400 font-normal text-xs uppercase tracking-widest ml-1">AI</span></span>
+            <span className="font-extrabold tracking-tight text-lg">ApplyVise <span className="text-[var(--be-accent,#A78343)] font-normal text-xs uppercase tracking-widest ml-1">AI</span></span>
           </button>
 
           <div className="flex items-center gap-3">
+            <GlobalThemeSwitch size="sm" />
             <button
               type="button"
               onClick={() => onNavigateRoute('/pricing')}
-              className="text-xs text-stone-400 hover:text-white transition"
+              className="text-xs text-[var(--be-text-secondary,#555C66)] hover:text-[var(--be-text-primary,#191D24)] transition cursor-pointer"
             >
               Pricing
             </button>
             <button
               type="button"
               onClick={() => onNavigateRoute('/signup')}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black transition"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white transition cursor-pointer"
+              style={{ backgroundColor: 'var(--be-accent, #A78343)' }}
             >
               Sign Up Free
             </button>

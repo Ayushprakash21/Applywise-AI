@@ -17,6 +17,8 @@ import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
 import { SUBSCRIPTION_PLANS, COMPARISON_FEATURES, PlanId } from '../config/plans.ts';
 import { AuthUser, api, ApiError } from '../services/api.ts';
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
+import { GlobalThemeSwitch } from './ui/GlobalThemeSwitch.tsx';
+import { useTheme } from '../context/ThemeContext.tsx';
 
 interface PricingPageProps {
   currentUser: AuthUser | null;
@@ -53,12 +55,10 @@ export const PricingPage: React.FC<PricingPageProps> = ({
   }, [currentUser]);
 
   const isFreeAccess = isPermanentFreeAccessAccount(currentUser);
+  const { isDark } = useTheme();
 
-  // Unified theme awareness: respects plan, allowlist, and active DOM attribute
-  const isBlack = currentPlanId === 'black' || isFreeAccess || (typeof document !== 'undefined' && (
-    document.body.classList.contains('theme-black') ||
-    document.documentElement.getAttribute('data-theme') === 'black'
-  ));
+  // Unified theme awareness: respects global theme state and active appearance
+  const isBlack = isDark;
 
   const handleSelectPlan = async (planId: PlanId) => {
     setErrorMessage(null);
@@ -167,6 +167,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           <BrandLogo size="md" variant={isBlack ? 'dark' : 'light'} onClick={onNavigateHome} />
 
           <div className="flex items-center space-x-3">
+            <GlobalThemeSwitch size="sm" />
             <button
               onClick={onNavigateHome}
               className={`px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer ${

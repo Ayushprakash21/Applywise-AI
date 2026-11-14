@@ -194,66 +194,66 @@ export const AdminResumeManagement: React.FC<AdminResumeManagementProps> = ({ on
     <div className="space-y-6">
       {/* 1. Summary Metrics Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
-          <span className="text-[10px] uppercase font-mono text-slate-400 font-semibold block">Total Ingested</span>
+        <div className="p-4 rounded-2xl bg-[var(--be-bg-card,#FFFFFF)] dark:bg-slate-900/60 border border-[var(--be-border-subtle,#E2E8F0)] dark:border-slate-800 space-y-1 shadow-2xs">
+          <span className="text-[10px] uppercase font-mono text-[var(--be-text-muted,#64748B)] dark:text-slate-400 font-semibold block">Total Ingested</span>
           <div className="flex items-baseline space-x-2">
-            <span className="text-xl font-bold text-white font-mono">{summary?.total ?? totalResumes}</span>
-            <FileText className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="text-xl font-bold text-[var(--be-text-primary,#0F172A)] dark:text-white font-mono">{summary?.total ?? totalResumes}</span>
+            <FileText className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
-          <span className="text-[10px] uppercase font-mono text-emerald-400 font-semibold block">Processed</span>
+        <div className="p-4 rounded-2xl bg-[var(--be-bg-card,#FFFFFF)] dark:bg-slate-900/60 border border-[var(--be-border-subtle,#E2E8F0)] dark:border-slate-800 space-y-1 shadow-2xs">
+          <span className="text-[10px] uppercase font-mono text-emerald-600 dark:text-emerald-400 font-semibold block">Processed</span>
           <div className="flex items-baseline space-x-2">
-            <span className="text-xl font-bold text-emerald-400 font-mono">{summary?.successCount ?? 0}</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">{summary?.successCount ?? 0}</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
-          <span className="text-[10px] uppercase font-mono text-rose-400 font-semibold block">Extraction Failed</span>
+        <div className="p-4 rounded-2xl bg-[var(--be-bg-card,#FFFFFF)] dark:bg-slate-900/60 border border-[var(--be-border-subtle,#E2E8F0)] dark:border-slate-800 space-y-1 shadow-2xs">
+          <span className="text-[10px] uppercase font-mono text-rose-600 dark:text-rose-400 font-semibold block">Extraction Failed</span>
           <div className="flex items-baseline space-x-2">
-            <span className="text-xl font-bold text-rose-400 font-mono">{summary?.failedCount ?? 0}</span>
-            <XCircle className="w-3.5 h-3.5 text-rose-400" />
+            <span className="text-xl font-bold text-rose-600 dark:text-rose-400 font-mono">{summary?.failedCount ?? 0}</span>
+            <XCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
-          <span className="text-[10px] uppercase font-mono text-amber-400 font-semibold block">Pending Queue</span>
+        <div className="p-4 rounded-2xl bg-[var(--be-bg-card,#FFFFFF)] dark:bg-slate-900/60 border border-[var(--be-border-subtle,#E2E8F0)] dark:border-slate-800 space-y-1 shadow-2xs">
+          <span className="text-[10px] uppercase font-mono text-amber-600 dark:text-amber-400 font-semibold block">Pending Queue</span>
           <div className="flex items-baseline space-x-2">
-            <span className="text-xl font-bold text-amber-400 font-mono">{summary?.pendingCount ?? 0}</span>
-            <Clock className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-xl font-bold text-amber-600 dark:text-amber-400 font-mono">{summary?.pendingCount ?? 0}</span>
+            <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
-          <span className="text-[10px] uppercase font-mono text-purple-400 font-semibold block">Scanned / OCR</span>
+        <div className="p-4 rounded-2xl bg-[var(--be-bg-card,#FFFFFF)] dark:bg-slate-900/60 border border-[var(--be-border-subtle,#E2E8F0)] dark:border-slate-800 space-y-1 shadow-2xs">
+          <span className="text-[10px] uppercase font-mono text-purple-600 dark:text-purple-400 font-semibold block">Scanned / OCR</span>
           <div className="flex items-baseline space-x-2">
-            <span className="text-xl font-bold text-purple-400 font-mono">{summary?.scannedCount ?? 0}</span>
-            <Layers className="w-3.5 h-3.5 text-purple-400" />
+            <span className="text-xl font-bold text-purple-600 dark:text-purple-400 font-mono">{summary?.scannedCount ?? 0}</span>
+            <Layers className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
-          <span className="text-[10px] uppercase font-mono text-cyan-400 font-semibold block">Partial Extractions</span>
+        <div className="p-4 rounded-2xl bg-[var(--be-bg-card,#FFFFFF)] dark:bg-slate-900/60 border border-[var(--be-border-subtle,#E2E8F0)] dark:border-slate-800 space-y-1 shadow-2xs">
+          <span className="text-[10px] uppercase font-mono text-cyan-600 dark:text-cyan-400 font-semibold block">Partial Extractions</span>
           <div className="flex items-baseline space-x-2">
-            <span className="text-xl font-bold text-cyan-400 font-mono">{summary?.partialCount ?? 0}</span>
-            <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-xl font-bold text-cyan-600 dark:text-cyan-400 font-mono">{summary?.partialCount ?? 0}</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
           </div>
         </div>
       </div>
 
       {/* 2. Filter & Action Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[var(--be-bg-card,#FFFFFF)] dark:bg-slate-900/80 border border-[var(--be-border-subtle,#E2E8F0)] dark:border-slate-800 backdrop-blur-md shadow-2xs">
         <div className="flex items-center space-x-2 flex-1 max-w-md">
           <div className="relative w-full">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search by file name, candidate email or ID..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+              className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-[var(--be-bg-input,#FFFFFF)] dark:bg-slate-950 border border-[var(--be-border-subtle,#CBD5E1)] dark:border-slate-800 text-xs text-[var(--be-text-primary,#0F172A)] dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
             />
           </div>
         </div>
@@ -326,10 +326,10 @@ export const AdminResumeManagement: React.FC<AdminResumeManagementProps> = ({ on
       )}
 
       {/* 3. Resumes Table */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden shadow-xs">
+      <div className="rounded-2xl border border-[var(--be-border-subtle,#E2E8F0)] dark:border-slate-800 bg-[var(--be-bg-card,#FFFFFF)] dark:bg-slate-900/40 overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950/70 border-b border-slate-800 text-slate-400 font-mono uppercase text-[10px]">
+            <thead className="bg-[var(--be-bg-elevated,#F8FAFC)] dark:bg-slate-950/70 border-b border-[var(--be-border-subtle,#E2E8F0)] dark:border-slate-800 text-[var(--be-text-secondary,#64748B)] dark:text-slate-400 font-mono uppercase text-[10px]">
               <tr>
                 <th className="py-3 px-4">Candidate / Document</th>
                 <th className="py-3 px-3">Format / Size</th>
@@ -489,9 +489,9 @@ export const AdminResumeManagement: React.FC<AdminResumeManagementProps> = ({ on
           />
 
           {/* Drawer Body */}
-          <div className="relative w-full max-w-2xl bg-slate-900 border-l border-slate-800 h-full shadow-2xl flex flex-col z-10 text-slate-200">
+          <div className="relative w-full max-w-2xl bg-[var(--be-bg-card,#FFFFFF)] dark:bg-slate-900 border-l border-[var(--be-border-subtle,#CBD5E1)] dark:border-slate-800 h-full shadow-2xl flex flex-col z-10 text-[var(--be-text-primary,#0F172A)] dark:text-slate-200">
             {/* Drawer Header */}
-            <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
+            <div className="p-5 border-b border-[var(--be-border-subtle,#CBD5E1)] dark:border-slate-800 flex items-center justify-between bg-[var(--be-bg-elevated,#F8FAFC)] dark:bg-slate-950/80">
               <div className="min-w-0 pr-4">
                 <div className="flex items-center space-x-2">
                   <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800 font-bold">

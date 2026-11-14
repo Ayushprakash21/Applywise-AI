@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
+import { GlobalThemeSwitch } from './ui/GlobalThemeSwitch.tsx';
 
 export interface AuthHeaderProps {
   activePage: 'login' | 'signup';
@@ -85,8 +86,9 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
           </a>
         </nav>
 
-        {/* RIGHT: Authentication Switchers & Mobile Hamburger */}
+        {/* RIGHT: Global Theme Switch, Authentication Switchers & Mobile Hamburger */}
         <div className="flex items-center space-x-2.5 sm:space-x-3 shrink-0">
+          <GlobalThemeSwitch size="sm" />
           <button
             type="button"
             onClick={onNavigateLogin}
@@ -154,6 +156,10 @@ export const AuthHeader: React.FC<AuthHeaderProps> = ({
           >
             Support
           </a>
+          <div className="pt-2 border-t border-slate-200/60 dark:border-white/10 flex items-center justify-between">
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Appearance</span>
+            <GlobalThemeSwitch size="sm" />
+          </div>
         </div>
       )}
     </header>

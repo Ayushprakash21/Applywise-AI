@@ -22,6 +22,7 @@ import { NotificationItem, AutomationSettings, AccountUsageStats } from '../type
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 import { ProfileIdentityComponent } from './ProfileIdentityComponent.tsx';
 import { HeaderLanguageSelector } from './HeaderLanguageSelector.tsx';
+import { GlobalThemeSwitch } from './ui/GlobalThemeSwitch.tsx';
 
 interface AppHeaderProps {
   user: AuthUser;
@@ -214,6 +215,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
             {/* Header Language Selector */}
             <HeaderLanguageSelector plan={plan} />
+
+            {/* Global Theme Switch */}
+            <GlobalThemeSwitch size="sm" />
 
             {/* Notification Bell */}
             <div className="relative" ref={notifRef}>

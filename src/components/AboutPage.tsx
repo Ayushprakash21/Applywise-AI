@@ -15,6 +15,7 @@ import { BrandLogo } from './BrandLogo.tsx';
 import { GlobalFooter } from './GlobalFooter.tsx';
 import { FounderSection } from './FounderSection.tsx';
 import { useTheme } from '../context/ThemeContext.tsx';
+import { GlobalThemeSwitch } from './ui/GlobalThemeSwitch.tsx';
 
 interface AboutPageProps {
   onGetStarted: () => void;
@@ -36,6 +37,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
           <BrandLogo size="md" onClick={onNavigateHome} />
 
           <div className="flex items-center space-x-3">
+            <GlobalThemeSwitch size="sm" />
             <button
               onClick={onNavigateHome}
               className="px-3.5 py-1.5 text-xs font-semibold text-[var(--be-text-secondary,#555C66)] hover:text-[var(--be-text-heading,#191D24)] transition cursor-pointer"
