@@ -42,19 +42,21 @@ export const CareerIntelligenceReport: React.FC<CareerIntelligenceReportProps> =
   };
 
   // Derive explicit skills vs target job requirements
-  const explicitSkills = profile?.skills?.map(s => s.name) || [];
-  const targetReqs = selectedJob?.requirements || [
-    'System Architecture & Distributed Consensus',
-    'TypeScript / Modern Frameworks',
-    'Cloudflare Workers / Edge Runtime',
-    'High Availability Systems'
-  ];
+  const explicitSkills: string[] = profile?.skills?.map((s) => s.name) || [];
+  const targetReqs: string[] =
+    selectedJob?.requirements && selectedJob.requirements.length > 0
+      ? selectedJob.requirements
+      : selectedJob?.tags && selectedJob.tags.length > 0
+        ? selectedJob.tags
+        : selectedJob?.title
+          ? [`Demonstrated competency in ${selectedJob.title}`, 'Relevant industry experience', 'Cross-functional collaboration']
+          : [];
 
-  const matched = targetReqs.filter(req =>
-    explicitSkills.some(s => req.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(req.toLowerCase()))
+  const matched: string[] = targetReqs.filter((req: string) =>
+    explicitSkills.some((s) => req.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(req.toLowerCase()))
   );
 
-  const missing = targetReqs.filter(req => !matched.includes(req));
+  const missing: string[] = targetReqs.filter((req: string) => !matched.includes(req));
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -185,14 +187,18 @@ export const CareerIntelligenceReport: React.FC<CareerIntelligenceReportProps> =
             <span className="font-mono text-cyan-400 text-[10px] uppercase font-bold">01 / Resume Alignment</span>
             <h4 className="font-bold text-white">Highlight Aligned Competencies</h4>
             <p className="text-slate-400 leading-relaxed text-[11px]">
-              Emphasize your Go, Edge KV, and Distributed Systems achievements at the top of your resume for this position.
+              {matched.length > 0
+                ? `Emphasize your verified competencies in ${matched.slice(0, 3).join(', ')} at the top of your resume for this position.`
+                : 'Highlight foundational skills and relevant accomplishments from your master profile.'}
             </p>
           </div>
           <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2">
             <span className="font-mono text-cyan-400 text-[10px] uppercase font-bold">02 / Address Gaps</span>
             <h4 className="font-bold text-white">Target Unverified Requirements</h4>
             <p className="text-slate-400 leading-relaxed text-[11px]">
-              If you possess experience in unverified areas, update your master profile before tailoring your submission.
+              {missing.length > 0
+                ? `If you possess experience in ${missing.slice(0, 3).join(', ')}, add and verify them in your Career Profile before tailoring your submission.`
+                : 'All key evaluated requirements match your verified profile facts.'}
             </p>
           </div>
           <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2">

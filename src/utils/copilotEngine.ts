@@ -11,6 +11,7 @@ import {
 } from '../types/index.ts';
 import { calculateJobMatch } from './rules.ts';
 import { buildFactsFromProfile, getVerifiedFacts } from './candidateFactRegistry.ts';
+import { formatExperiencePeriod } from './structuralEmploymentParser.ts';
 
 export interface CopilotContext {
   page?: string;
@@ -71,13 +72,14 @@ export const copilotTools: CopilotToolRegistry = {
       location: profile.location || 'Not provided',
       summary: profile.summary || 'No summary provided',
       verifiedFactCount: verifiedFacts.length,
-      hasEmploymentHistory: (profile.employmentHistory || []).length > 0,
+      hasEmploymentHistory: (profile.experiences || profile.employmentHistory || []).length > 0,
       hasSkills: (profile.skills || []).length > 0
     };
   },
 
   getVerifiedEmploymentHistory: (profile, facts) => {
-    if (!profile || !profile.employmentHistory || profile.employmentHistory.length === 0) {
+    const experiences = profile?.experiences || profile?.employmentHistory || [];
+    if (!profile || experiences.length === 0) {
       return [];
     }
     const verifiedFacts = getVerifiedFacts(facts.length > 0 ? facts : buildFactsFromProfile(profile));
@@ -85,11 +87,11 @@ export const copilotTools: CopilotToolRegistry = {
       verifiedFacts.filter(f => f.category === 'EMPLOYMENT').map(f => f.value.toLowerCase())
     );
 
-    return profile.employmentHistory.map(emp => ({
+    return experiences.map(emp => ({
       company: emp.company,
       role: emp.role,
-      duration: emp.duration || (emp.startDate && emp.endDate ? `${emp.startDate} - ${emp.endDate}` : 'Unspecified'),
-      achievements: emp.achievements || [],
+      duration: (formatExperiencePeriod(emp.startDate, emp.endDate, emp.current) || (emp as any).duration || 'Unspecified') as string,
+      achievements: (emp.achievements && emp.achievements.length > 0) ? emp.achievements : (emp.description ? [emp.description] : []),
       isVerified: verifiedEmployers.has(emp.company.toLowerCase()) || verifiedFacts.length === 0
     }));
   },
@@ -305,10 +307,11 @@ Match Evidence & Gaps: ${JSON.stringify(matchEvidence || 'No active job evaluate
 
   // If asking about resume / bullet points
   if (qLower.includes('bullet') || qLower.includes('resume') || qLower.includes('tailor') || qLower.includes('cv')) {
-    if (!profile || !profile.employmentHistory || profile.employmentHistory.length === 0) {
+    const experiences = profile?.experiences || profile?.employmentHistory || [];
+    if (!profile || experiences.length === 0) {
       return `I don't have any verified employment history in your profile yet. Please add your real work history under **Career Profile** so I can generate truthful resume recommendations.`;
     }
-    const latestEmp = profile.employmentHistory[0];
+    const latestEmp = experiences[0];
     return `**Grounded Resume Recommendations for ${profile.fullName}:**\n\nBased exclusively on your verified role as **${latestEmp.role}** at **${latestEmp.company}**:\n\n` +
       `1. **Focus on Verified Scope:** Lead with your authentic responsibilities in ${latestEmp.role}.\n` +
       `2. **Quantify Only Real Outcomes:** If you have documented metrics from your work at ${latestEmp.company}, include them. Do not include estimated or fabricated numbers.\n` +

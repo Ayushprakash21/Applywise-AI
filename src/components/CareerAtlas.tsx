@@ -39,6 +39,7 @@ export interface CareerAtlasProps {
 export const CareerAtlas: React.FC<CareerAtlasProps> = ({
   profile,
   facts,
+  preferences,
   onNavigateToJobs,
   plan = 'free',
 }) => {
@@ -68,27 +69,31 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
     loadTrajectories();
   }, []);
 
-  const activeTrajectory = trajectories.find(t => t.id === selectedTrajectoryId) || trajectories[0] || {
+  const verifiedSkills = (profile?.skills || []).map(s => s.name);
+  const candidateCurrentTitle = profile?.currentTitle || 'Professional';
+  const candidateTargetRole = preferences?.targetRoles?.[0] || `Lead ${candidateCurrentTitle}`;
+
+  const fallbackTrajectory: CareerTrajectory = {
     id: 'traj_default',
     userId: 'current',
-    trajectoryTitle: 'Operations & Process Leadership',
-    targetRole: 'Director of Enterprise Operations',
-    currentAlignmentScore: 82,
-    transferableSkills: ['Process Optimization', 'Enterprise Supply Chain', 'SLA Management', 'Cross-Functional Leadership'],
-    missingSkills: ['Six Sigma Black Belt', 'Multi-Region Logistics', 'P&L Budget Oversight'],
-    requiredExperienceYears: 8,
-    recommendedCertifications: ['Lean Six Sigma Black Belt', 'APICS Certified Supply Chain Professional (CSCP)'],
+    trajectoryTitle: `${candidateCurrentTitle} → ${candidateTargetRole}`,
+    targetRole: candidateTargetRole,
+    currentAlignmentScore: verifiedSkills.length > 0 ? 82 : 65,
+    transferableSkills: verifiedSkills.length > 0 ? verifiedSkills.slice(0, 4) : ['Strategic Planning', 'Cross-Functional Execution', 'Process Leadership'],
+    missingSkills: ['Executive Stakeholder Alignment', 'Multi-Region Operations / Scale', 'P&L Budget Oversight'],
+    requiredExperienceYears: Math.max(5, (profile?.totalExperienceYears || 3) + 2),
+    recommendedCertifications: ['Executive Leadership Certification', 'Industry Advanced Credential'],
     learningPath: [
-      { step: 1, title: 'Complete Lean Six Sigma Black Belt practical project', estimatedHours: 40, rationale: 'Validates quantitative process excellence methodology', isCompleted: false },
-      { step: 2, title: 'Lead multi-site process standardization initiative', estimatedHours: 60, rationale: 'Demonstrates distributed leadership capability', isCompleted: false },
-      { step: 3, title: 'P&L Budget Oversight & Financial Modeling', estimatedHours: 35, rationale: 'Demonstrates direct accountability for operating margins', isCompleted: false },
+      { step: 1, title: `Lead strategic high-impact ${candidateCurrentTitle} initiative`, estimatedHours: 40, rationale: 'Demonstrates elevated responsibility and strategic execution', isCompleted: false },
+      { step: 2, title: `Cross-functional alignment for ${candidateTargetRole} competencies`, estimatedHours: 60, rationale: 'Bridges leadership gaps and demonstrates organizational scope', isCompleted: false },
+      { step: 3, title: 'Operating metrics, governance, and budget accountability', estimatedHours: 35, rationale: 'Validates senior-level ownership and business impact', isCompleted: false },
     ],
     isActive: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 
-  const verifiedSkills = (profile?.skills || []).map(s => s.name);
+  const activeTrajectory = trajectories.find(t => t.id === selectedTrajectoryId) || trajectories[0] || fallbackTrajectory;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">

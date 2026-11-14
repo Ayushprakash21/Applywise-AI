@@ -694,12 +694,15 @@ export default function App() {
               vacancies={vacancies}
               onNavigateTab={tab => handleSelectTab(tab as DashboardTab)}
               onSelectVacancy={v => setSelectedVacancy(v)}
+              onOpenProfile={() => setActiveTab('profile')}
+              onOpenPreferences={() => setSettingsModalOpen(true)}
               onOpenOnboarding={() => setOnboardingOpen(true)}
               onOpenImportModal={() => setJobImportOpen(true)}
               onAskCopilotPrompt={(prompt: string) => {
                 setCopilotPrompt(prompt);
                 setCopilotOpen(true);
               }}
+              plan={isBlackSubscriber ? 'black' : ((subscription?.planId as 'free' | 'pro' | 'black') || subscription?.plan || 'free')}
             />
           )}
 
@@ -734,8 +737,19 @@ export default function App() {
                 setRecruiterReviewAppId(appId);
                 setActiveTab('recruiter_review');
               }}
+              onUpdateStatus={async (id, newStatus, notes) => {
+                try {
+                  await api.transitionStatus(id, newStatus, notes);
+                  showToast(`Application transitioned to ${newStatus}`);
+                  await loadUserData();
+                } catch (err: any) {
+                  showToast(err?.message || 'Failed to update application status');
+                }
+              }}
               onRefresh={loadUserData}
               onNavigateToRadar={() => setActiveTab('radar')}
+              onNavigateToJobs={() => setActiveTab('jobs')}
+              plan={isBlackSubscriber ? 'black' : ((subscription?.planId as 'free' | 'pro' | 'black') || subscription?.plan || 'free')}
             />
           )}
 
@@ -764,10 +778,12 @@ export default function App() {
             <CareerAtlas
               profile={profile}
               preferences={preferences}
+              onNavigateToJobs={() => setActiveTab('jobs')}
               onAskCopilot={(prompt: string) => {
                 setCopilotPrompt(prompt);
                 setCopilotOpen(true);
               }}
+              plan={isBlackSubscriber ? 'black' : ((subscription?.planId as 'free' | 'pro' | 'black') || subscription?.plan || 'free')}
             />
           )}
 
