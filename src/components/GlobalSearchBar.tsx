@@ -294,8 +294,9 @@ export const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({
           style={
             isBlack
               ? {
-                  backgroundColor: 'var(--be-bg-surface, rgba(16, 19, 24, 0.95))',
+                  backgroundColor: 'var(--be-bg-card, #101318)',
                   borderColor: 'var(--be-border-subtle, rgba(255, 255, 255, 0.10))',
+                  color: 'var(--be-text-primary, #F2F0EA)',
                 }
               : undefined
           }

@@ -226,7 +226,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
           {/* Total Badge */}
           <div className={`px-3.5 py-2 rounded-2xl backdrop-blur-xl border shadow-2xs flex items-center gap-2 ${
             isBlack
-              ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]'
+              ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
               : 'bg-white/70 border-white/80'
           }`}>
             <span className={`text-xs font-medium ${isBlack ? 'text-[#92949A]' : 'text-slate-400'}`}>Total</span>
@@ -236,7 +236,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
           {/* Unread Badge */}
           <div className={`px-3.5 py-2 rounded-2xl backdrop-blur-xl border shadow-2xs flex items-center gap-2 ${
             isBlack
-              ? 'bg-[#14171C] border-[rgba(198,166,106,0.30)]'
+              ? 'bg-[var(--be-bg-card,#14171C)] border-[rgba(198,166,106,0.30)]'
               : 'bg-white/70 border-white/80'
           }`}>
             <span className="flex h-2 w-2 relative">
@@ -264,7 +264,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
           {/* Read Badge */}
           <div className={`px-3.5 py-2 rounded-2xl backdrop-blur-xl border shadow-2xs flex items-center gap-2 ${
             isBlack
-              ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]'
+              ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
               : 'bg-white/70 border-white/80'
           }`}>
             <span className={`text-xs font-medium ${isBlack ? 'text-[#92949A]' : 'text-slate-400'}`}>Read</span>
@@ -276,13 +276,13 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
       {/* 2. Control Bar: Filter Tabs, Search & Global Actions */}
       <div className={`p-3 sm:p-4 rounded-3xl backdrop-blur-2xl border shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 ${
         isBlack
-          ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]'
+          ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
           : 'bg-white/70 border-white/80'
       }`}>
         {/* Left: Tab Switcher */}
         <div className={`flex items-center p-1 rounded-2xl w-full sm:w-auto ${
           isBlack
-            ? 'bg-[#0D1014] border border-[rgba(255,255,255,0.09)]'
+            ? 'bg-[#0D1014] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
             : 'bg-slate-100/80'
         }`}>
           <button
@@ -291,7 +291,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
             className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               filter === 'all'
                 ? isBlack
-                  ? 'bg-[#191D23] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-2xs'
+                  ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-2xs'
                   : 'bg-white text-slate-900 shadow-2xs'
                 : isBlack
                   ? 'text-[#C0BDB5] hover:text-[#F2F0EA]'
@@ -306,7 +306,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
             className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               filter === 'unread'
                 ? isBlack
-                  ? 'bg-[#191D23] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-2xs'
+                  ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-2xs'
                   : 'bg-white text-slate-900 shadow-2xs'
                 : isBlack
                   ? 'text-[#C0BDB5] hover:text-[#F2F0EA]'
@@ -330,7 +330,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
             className={`flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               filter === 'read'
                 ? isBlack
-                  ? 'bg-[#191D23] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-2xs'
+                  ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-2xs'
                   : 'bg-white text-slate-900 shadow-2xs'
                 : isBlack
                   ? 'text-[#C0BDB5] hover:text-[#F2F0EA]'
@@ -376,7 +376,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
             disabled={unreadCount === 0 || isProcessingAll}
             className={`be-btn-secondary flex-1 sm:flex-initial px-3.5 py-2 rounded-2xl text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer border ${
               isBlack
-                ? 'bg-[#191D23] hover:bg-[#20252D] text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)]'
+                ? 'bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#20252D] text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)]'
                 : 'bg-white/80 hover:bg-white text-slate-700 hover:text-slate-900 border-slate-200/80'
             }`}
             title="Mark all notifications as read"
@@ -391,7 +391,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
             disabled={isLoading}
             className={`p-2 rounded-2xl transition shadow-2xs cursor-pointer disabled:opacity-50 border ${
               isBlack
-                ? 'bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)]'
+                ? 'bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)]'
                 : 'bg-white/80 hover:bg-white text-slate-600 hover:text-slate-900 border-slate-200/80'
             }`}
             title="Refresh notifications"
@@ -511,8 +511,8 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
                 key={notification.id}
                 className={`p-4 sm:p-5 rounded-3xl transition-all duration-200 relative border ${
                   isUnread
-                    ? 'bg-[#14171C] backdrop-blur-2xl border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.30)] shadow-2xs hover:shadow-md border-l-4 border-l-blue-600'
-                    : 'bg-[#14171C]/75 backdrop-blur-xl border-[rgba(255,255,255,0.06)] shadow-2xs hover:bg-[#14171C] opacity-90'
+                    ? 'bg-[var(--be-bg-card,#14171C)] backdrop-blur-2xl border-[var(--be-border-subtle,rgba(255,255,255,0.09))] hover:border-[rgba(198,166,106,0.30)] shadow-2xs hover:shadow-md border-l-4 border-l-blue-600'
+                    : 'bg-[var(--be-bg-card,#14171C)]/75 backdrop-blur-xl border-[rgba(255,255,255,0.06)] shadow-2xs hover:bg-[var(--be-bg-card,#14171C)] opacity-90'
                 }`}
               >
                 <div className="flex items-start gap-3.5 sm:gap-4">
@@ -561,7 +561,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
                     </p>
 
                     {/* Contextual Actions Bar */}
-                    <div className="mt-3 flex flex-wrap items-center gap-2.5 pt-2 border-t border-[rgba(255,255,255,0.08)]">
+                    <div className="mt-3 flex flex-wrap items-center gap-2.5 pt-2 border-t border-[var(--be-border-subtle,rgba(255,255,255,0.08))]">
                       {/* Related Destination Action (if supported by metadata or type) */}
                       {(notification.type === 'match' || notification.vacancyId) && onNavigateToJobs && (
                         <button
@@ -581,7 +581,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
                           <button
                             type="button"
                             onClick={onNavigateToApplications}
-                            className="px-3 py-1.5 rounded-xl text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer border bg-[#191D23] hover:bg-[#20252D] text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)]"
+                            className="px-3 py-1.5 rounded-xl text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer border bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#20252D] text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)]"
                           >
                             <span>View Applications</span>
                             <ExternalLink className="w-3 h-3 text-[#C6A66A]" />
@@ -594,7 +594,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
                           type="button"
                           onClick={() => handleMarkOne(notification.id)}
                           disabled={isProcessingThis}
-                          className="ml-auto px-3 py-1.5 rounded-xl text-[11px] font-semibold transition flex items-center gap-1.5 cursor-pointer border bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.35)] shadow-2xs"
+                          className="ml-auto px-3 py-1.5 rounded-xl text-[11px] font-semibold transition flex items-center gap-1.5 cursor-pointer border bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.35)] shadow-2xs"
                         >
                           <Check className="w-3.5 h-3.5 text-[#C6A66A]" />
                           <span>{isProcessingThis ? 'Updating...' : 'Mark as read'}</span>
@@ -612,7 +612,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({
       {/* 5. Zero-Hallucination & Safe Activity Guarantee */}
       <div className={`p-4 rounded-3xl backdrop-blur-md border flex items-center justify-between text-xs ${
         isBlack
-          ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#C0BDB5]'
+          ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#C0BDB5]'
           : 'bg-white/40 border-white/60 text-slate-500'
       }`}>
         <div className="flex items-center gap-2">

@@ -427,21 +427,21 @@ body.theme-black {
 }
 
 .theme-black nav[aria-label="Mobile Navigation"] {
-  background: #111318 !important;
+  background: var(--be-bg-sidebar, #111318) !important;
   backdrop-filter: blur(20px) !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.09) !important;
+  border-top: 1px solid var(--be-border-subtle, rgba(255, 255, 255, 0.09)) !important;
 }
 
 /* Navigation items in sidebar & mobile */
 .theme-black aside button:not([class*="rounded-full"]),
 .theme-black nav button {
-  color: #C0BDB5 !important;
+  color: var(--be-text-secondary, #C0BDB5) !important;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .theme-black aside button:hover:not([class*="border-violet-400"]),
 .theme-black nav button:hover:not([class*="font-bold"]) {
-  color: #F2F0EA !important;
-  background-color: rgba(255, 255, 255, 0.04) !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
+  background-color: var(--be-hover-bg, rgba(255, 255, 255, 0.04)) !important;
 }
 
 /* Selected navigation item with restrained champagne highlight (Zero Neon Bloom) */
@@ -449,20 +449,20 @@ body.theme-black {
 .theme-black aside button[class*="text-blue-700"],
 .theme-black aside button[class*="from-blue-600"],
 .theme-black nav button[class*="font-bold"] {
-  background: rgba(198, 166, 106, 0.08) !important;
-  border: 1px solid rgba(198, 166, 106, 0.30) !important;
-  color: #C6A66A !important;
+  background: var(--be-nav-active-bg, rgba(198, 166, 106, 0.08)) !important;
+  border: 1px solid var(--be-nav-active-border, rgba(198, 166, 106, 0.30)) !important;
+  color: var(--be-nav-active-text, #C6A66A) !important;
   box-shadow: none !important;
 }
 .theme-black aside button [class*="bg-gradient-to-b from-blue-600"] {
-  background: #C6A66A !important;
+  background: var(--be-accent, #C6A66A) !important;
   box-shadow: none !important;
 }
 .theme-black aside button [class*="text-[#8065F5]"] {
-  color: #C6A66A !important;
+  color: var(--be-accent, #C6A66A) !important;
 }
 .theme-black nav button[class*="text-[#8065F5]"] {
-  color: #C6A66A !important;
+  color: var(--be-accent, #C6A66A) !important;
 }
 
 .theme-black header .be-header-badge[class*="font-mono"][class*="uppercase"] {
@@ -944,42 +944,306 @@ body.theme-black {
 }
 
 /* ==========================================================================
-   APPLYVISE BLACK ELITE — LIGHT APPEARANCE OVERRIDES
+   APPLYVISE BLACK ELITE — LIGHT APPEARANCE SYSTEM & SAFETY GUARDS
    When data-be-appearance="light" / .theme-black-light is active
+   High-contrast, elegant, zero-bleed light theme architecture.
    ========================================================================== */
 .theme-black-light,
-[data-be-appearance="light"] {
+[data-be-appearance="light"],
+[data-theme-mode="light"] {
   color-scheme: light;
+  background-color: var(--be-bg-primary, #F5F3EE) !important;
+  color: var(--be-text-primary, #20242B) !important;
 }
 
-.theme-black-light .bg-white,
-.theme-black-light .bg-white\/50,
-.theme-black-light .bg-white\/70,
-.theme-black-light .bg-white\/80,
-.theme-black-light .bg-white\/90,
-.theme-black-light .bg-white\/95,
-.theme-black-light .be-card,
-.theme-black-light .glass-card,
-.theme-black-light .neu-card,
-[data-be-appearance="light"] .bg-white,
-[data-be-appearance="light"] .be-card {
-  box-shadow: 0 2px 12px -2px rgba(15, 23, 42, 0.08) !important;
+/* 1. Shell, Header, Sidebar & Bottom Navigation in Light Mode */
+.theme-black-light .min-h-screen,
+[data-be-appearance="light"] .min-h-screen,
+.theme-black-light [class*="bg-[#E9EEF6]"],
+[data-be-appearance="light"] [class*="bg-[#E9EEF6]"] {
+  background-color: var(--be-bg-primary, #F5F3EE) !important;
+  color: var(--be-text-primary, #20242B) !important;
 }
 
-.theme-black-light .neu-inset,
-[data-be-appearance="light"] .neu-inset {
-  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.05) !important;
+.theme-black-light header,
+[data-be-appearance="light"] header {
+  background: var(--be-bg-header, rgba(245, 243, 238, 0.95)) !important;
+  border-bottom: 1px solid var(--be-border-subtle, #DEDAD0) !important;
+  backdrop-filter: blur(20px) !important;
 }
 
-.theme-black-light input,
-.theme-black-light textarea,
-.theme-black-light select,
-[data-be-appearance="light"] input,
-[data-be-appearance="light"] textarea,
-[data-be-appearance="light"] select {
+.theme-black-light aside,
+[data-be-appearance="light"] aside {
+  background: var(--be-bg-sidebar, #F0EDE5) !important;
+  border-right: 1px solid var(--be-border-subtle, #DEDAD0) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+.theme-black-light nav[aria-label="Mobile Navigation"],
+[data-be-appearance="light"] nav[aria-label="Mobile Navigation"] {
+  background: var(--be-bg-sidebar, #F0EDE5) !important;
+  border-top: 1px solid var(--be-border-subtle, #DEDAD0) !important;
+}
+
+/* Sidebar navigation buttons in Light Mode */
+.theme-black-light aside button:not([class*="rounded-full"]),
+.theme-black-light nav button,
+[data-be-appearance="light"] aside button:not([class*="rounded-full"]),
+[data-be-appearance="light"] nav button {
+  color: var(--be-text-secondary, #555C66) !important;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.theme-black-light aside button:hover:not([class*="border-violet-400"]),
+.theme-black-light nav button:hover:not([class*="font-bold"]),
+[data-be-appearance="light"] aside button:hover:not([class*="border-violet-400"]),
+[data-be-appearance="light"] nav button:hover:not([class*="font-bold"]) {
+  color: var(--be-text-primary, #20242B) !important;
+  background-color: var(--be-hover-bg, rgba(0, 0, 0, 0.04)) !important;
+}
+
+.theme-black-light aside button[class*="border-violet-400"],
+.theme-black-light aside button[class*="text-blue-700"],
+.theme-black-light aside button[class*="from-blue-600"],
+.theme-black-light nav button[class*="font-bold"],
+[data-be-appearance="light"] aside button[class*="border-violet-400"],
+[data-be-appearance="light"] nav button[class*="font-bold"] {
+  background: var(--be-nav-active-bg, rgba(167, 131, 67, 0.12)) !important;
+  border: 1px solid var(--be-nav-active-border, #DCC69D) !important;
+  color: var(--be-nav-active-text, #A78343) !important;
+  box-shadow: none !important;
+}
+
+.theme-black-light aside button [class*="bg-gradient-to-b from-blue-600"],
+[data-be-appearance="light"] aside button [class*="bg-gradient-to-b from-blue-600"] {
+  background: var(--be-accent, #A78343) !important;
+}
+.theme-black-light aside button [class*="text-[#8065F5]"],
+[data-be-appearance="light"] aside button [class*="text-[#8065F5]"] {
+  color: var(--be-accent, #A78343) !important;
+}
+
+.theme-black-light aside h4,
+[data-be-appearance="light"] aside h4 {
+  color: var(--be-text-muted, #707782) !important;
+}
+
+/* 2. Light Mode Typography Overrides */
+.theme-black-light h1,
+.theme-black-light h2,
+.theme-black-light h3,
+.theme-black-light h4,
+.theme-black-light h5,
+.theme-black-light h6,
+[data-be-appearance="light"] h1,
+[data-be-appearance="light"] h2,
+[data-be-appearance="light"] h3,
+[data-be-appearance="light"] h4,
+[data-be-appearance="light"] h5,
+[data-be-appearance="light"] h6 {
+  color: var(--be-text-primary, #191D24) !important;
+  letter-spacing: -0.015em;
+}
+
+.theme-black-light p,
+.theme-black-light .text-slate-600,
+.theme-black-light .text-slate-500,
+[data-be-appearance="light"] p,
+[data-be-appearance="light"] .text-slate-600,
+[data-be-appearance="light"] .text-slate-500 {
+  color: var(--be-text-secondary, #555C66) !important;
+}
+
+.theme-black-light .text-slate-400,
+.theme-black-light .text-gray-400,
+[data-be-appearance="light"] .text-slate-400,
+[data-be-appearance="light"] .text-gray-400 {
+  color: var(--be-text-muted, #707782) !important;
+}
+
+/* 3. SAFETY GUARDS — Neutralize hardcoded dark background classes in light mode */
+.theme-black-light [class*="bg-[#14171C]"],
+.theme-black-light [class*="bg-[#101926]"],
+.theme-black-light [class*="bg-[#1A132B]"],
+.theme-black-light [class*="bg-[#181A20]"],
+.theme-black-light [class*="bg-[#10261D]"],
+.theme-black-light [class*="bg-[#101318]"],
+[data-be-appearance="light"] [class*="bg-[#14171C]"],
+[data-be-appearance="light"] [class*="bg-[#101926]"],
+[data-be-appearance="light"] [class*="bg-[#1A132B]"],
+[data-be-appearance="light"] [class*="bg-[#181A20]"],
+[data-be-appearance="light"] [class*="bg-[#10261D]"],
+[data-be-appearance="light"] [class*="bg-[#101318]"] {
+  background-color: var(--be-bg-card, #FFFFFF) !important;
+  color: var(--be-text-primary, #20242B) !important;
+  border-color: var(--be-border-subtle, #DEDAD0) !important;
+  box-shadow: 0 2px 12px -2px rgba(15, 23, 42, 0.06), 0 1px 3px 0 rgba(15, 23, 42, 0.04) !important;
+}
+
+.theme-black-light [class*="bg-[#191D23]"],
+.theme-black-light [class*="bg-[#152234]"],
+.theme-black-light [class*="bg-[#221A37]"],
+.theme-black-light [class*="bg-[#1F222A]"],
+.theme-black-light [class*="bg-[#163327]"],
+.theme-black-light [class*="bg-[#20252D]"],
+[data-be-appearance="light"] [class*="bg-[#191D23]"],
+[data-be-appearance="light"] [class*="bg-[#152234]"],
+[data-be-appearance="light"] [class*="bg-[#221A37]"],
+[data-be-appearance="light"] [class*="bg-[#1F222A]"],
+[data-be-appearance="light"] [class*="bg-[#163327]"],
+[data-be-appearance="light"] [class*="bg-[#20252D]"] {
+  background-color: var(--be-bg-elevated, #FAF8F5) !important;
+  color: var(--be-text-primary, #20242B) !important;
+  border-color: var(--be-border-subtle, #DEDAD0) !important;
+}
+
+.theme-black-light [class*="bg-[#090A0C]"],
+.theme-black-light [class*="bg-[#070B12]"],
+.theme-black-light [class*="bg-[#0C0814]"],
+.theme-black-light [class*="bg-[#0B0C0E]"],
+.theme-black-light [class*="bg-[#060E0A]"],
+.theme-black-light [class*="bg-[#0D0F12]"],
+.theme-black-light [class*="bg-[#0B111A]"],
+.theme-black-light [class*="bg-[#120D1D]"],
+.theme-black-light [class*="bg-[#101114]"],
+.theme-black-light [class*="bg-[#091610]"],
+[data-be-appearance="light"] [class*="bg-[#090A0C]"],
+[data-be-appearance="light"] [class*="bg-[#070B12]"],
+[data-be-appearance="light"] [class*="bg-[#0C0814]"],
+[data-be-appearance="light"] [class*="bg-[#0B0C0E]"],
+[data-be-appearance="light"] [class*="bg-[#060E0A]"],
+[data-be-appearance="light"] [class*="bg-[#0D0F12]"],
+[data-be-appearance="light"] [class*="bg-[#0B111A]"],
+[data-be-appearance="light"] [class*="bg-[#120D1D]"],
+[data-be-appearance="light"] [class*="bg-[#101114]"],
+[data-be-appearance="light"] [class*="bg-[#091610]"] {
+  background-color: var(--be-bg-primary, #F5F3EE) !important;
+  color: var(--be-text-primary, #20242B) !important;
+}
+
+/* Neutralize hardcoded dark borders in light mode */
+.theme-black-light [class*="border-[rgba(255,255,255"],
+[data-be-appearance="light"] [class*="border-[rgba(255,255,255"] {
+  border-color: var(--be-border-subtle, #DEDAD0) !important;
+}
+
+/* Neutralize inverted light text classes in light mode */
+.theme-black-light [class*="text-[#F2F0EA]"],
+.theme-black-light [class*="text-[#F0F6FC]"],
+.theme-black-light [class*="text-[#F5F3FF]"],
+.theme-black-light [class*="text-[#F8FAFC]"],
+.theme-black-light [class*="text-[#F0FDF4]"],
+[data-be-appearance="light"] [class*="text-[#F2F0EA]"],
+[data-be-appearance="light"] [class*="text-[#F0F6FC]"],
+[data-be-appearance="light"] [class*="text-[#F5F3FF]"],
+[data-be-appearance="light"] [class*="text-[#F8FAFC]"],
+[data-be-appearance="light"] [class*="text-[#F0FDF4]"] {
+  color: var(--be-text-primary, #20242B) !important;
+}
+
+.theme-black-light [class*="text-[#C0BDB5]"],
+.theme-black-light [class*="text-[#94A3B8]"],
+.theme-black-light [class*="text-[#C4B5FD]"],
+.theme-black-light [class*="text-[#CBD5E1]"],
+.theme-black-light [class*="text-[#A7F3D0]"],
+[data-be-appearance="light"] [class*="text-[#C0BDB5]"],
+[data-be-appearance="light"] [class*="text-[#94A3B8]"],
+[data-be-appearance="light"] [class*="text-[#C4B5FD]"],
+[data-be-appearance="light"] [class*="text-[#CBD5E1]"],
+[data-be-appearance="light"] [class*="text-[#A7F3D0]"] {
+  color: var(--be-text-secondary, #555C66) !important;
+}
+
+/* 4. Buttons in Light Mode */
+.theme-black-light .be-btn-primary,
+.theme-black-light .neu-button-primary,
+[data-be-appearance="light"] .be-btn-primary,
+[data-be-appearance="light"] .neu-button-primary {
+  background: var(--be-accent, #A78343) !important;
+  color: #FFFFFF !important;
+  border-color: var(--accent-hover, #8C6C35) !important;
+  box-shadow: 0 2px 8px rgba(167, 131, 67, 0.25) !important;
+}
+
+.theme-black-light .be-btn-primary *,
+.theme-black-light .neu-button-primary *,
+[data-be-appearance="light"] .be-btn-primary *,
+[data-be-appearance="light"] .neu-button-primary * {
+  color: #FFFFFF !important;
+  fill: #FFFFFF;
+}
+
+.theme-black-light .be-btn-primary:hover:not(:disabled),
+.theme-black-light .neu-button-primary:hover:not(:disabled),
+[data-be-appearance="light"] .be-btn-primary:hover:not(:disabled),
+[data-be-appearance="light"] .neu-button-primary:hover:not(:disabled) {
+  background: var(--accent-hover, #8C6C35) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(167, 131, 67, 0.35) !important;
+}
+
+.theme-black-light .be-btn-secondary,
+.theme-black-light .neu-button,
+[data-be-appearance="light"] .be-btn-secondary,
+[data-be-appearance="light"] .neu-button {
+  background-color: var(--surface-primary, #FFFFFF) !important;
+  border: 1px solid var(--border-default, #DEDAD0) !important;
+  color: var(--text-primary, #20242B) !important;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
 }
 
+.theme-black-light .be-btn-secondary *,
+.theme-black-light .neu-button *,
+[data-be-appearance="light"] .be-btn-secondary *,
+[data-be-appearance="light"] .neu-button * {
+  color: var(--text-primary, #20242B) !important;
+}
+
+.theme-black-light .be-btn-secondary:hover:not(:disabled),
+.theme-black-light .neu-button:hover:not(:disabled),
+[data-be-appearance="light"] .be-btn-secondary:hover:not(:disabled),
+[data-be-appearance="light"] .neu-button:hover:not(:disabled) {
+  background-color: var(--surface-secondary, #F0EEE8) !important;
+  border-color: var(--accent-primary, #A78343) !important;
+  color: var(--text-heading, #191D24) !important;
+}
+
+/* 5. Inputs and Forms in Light Mode */
+.theme-black-light input,
+.theme-black-light textarea,
+.theme-black-light select,
+.theme-black-light .neu-input,
+.theme-black-light .glass-input,
+.theme-black-light .be-input,
+[data-be-appearance="light"] input,
+[data-be-appearance="light"] textarea,
+[data-be-appearance="light"] select,
+[data-be-appearance="light"] .neu-input,
+[data-be-appearance="light"] .glass-input,
+[data-be-appearance="light"] .be-input {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--be-border-subtle, #DEDAD0) !important;
+  color: var(--be-text-primary, #20242B) !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+.theme-black-light input::placeholder,
+.theme-black-light textarea::placeholder,
+[data-be-appearance="light"] input::placeholder,
+[data-be-appearance="light"] textarea::placeholder {
+  color: var(--be-text-disabled, #9299A3) !important;
+}
+
+.theme-black-light input:focus,
+.theme-black-light textarea:focus,
+.theme-black-light select:focus,
+[data-be-appearance="light"] input:focus,
+[data-be-appearance="light"] textarea:focus,
+[data-be-appearance="light"] select:focus {
+  border-color: var(--be-accent, #A78343) !important;
+  box-shadow: 0 0 0 2px var(--be-accent-muted, rgba(167, 131, 67, 0.20)) !important;
+}
+
+/* 6. Modals, Drawers and Dropdown Menus in Light Mode */
 .theme-black-light .fixed.inset-0.bg-slate-900\/40,
 .theme-black-light .fixed.inset-0.bg-black\/50,
 [data-be-appearance="light"] .fixed.inset-0.bg-slate-900\/40,
@@ -988,8 +1252,98 @@ body.theme-black {
 }
 
 .theme-black-light [role="dialog"],
-[data-be-appearance="light"] [role="dialog"] {
-  box-shadow: 0 24px 60px -12px rgba(15, 23, 42, 0.18) !important;
+[data-be-appearance="light"] [role="dialog"],
+.theme-black-light div[ref="userMenuRef"] div,
+.theme-black-light div[ref="notifRef"] div,
+[data-be-appearance="light"] div[ref="userMenuRef"] div,
+[data-be-appearance="light"] div[ref="notifRef"] div {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--be-border-subtle, #DEDAD0) !important;
+  color: var(--be-text-primary, #20242B) !important;
+  box-shadow: 0 20px 40px -12px rgba(15, 23, 42, 0.15) !important;
+}
+
+.theme-black-light [role="dialog"] [class*="border-b"],
+.theme-black-light [role="dialog"] [class*="border-t"],
+[data-be-appearance="light"] [role="dialog"] [class*="border-b"],
+[data-be-appearance="light"] [role="dialog"] [class*="border-t"] {
+  border-color: var(--be-border-subtle, #DEDAD0) !important;
+}
+
+/* 7. Tables in Light Mode */
+.theme-black-light th,
+[data-be-appearance="light"] th {
+  background-color: var(--be-bg-secondary, #F0EEE8) !important;
+  color: var(--be-text-secondary, #555C66) !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid var(--be-border-subtle, #DEDAD0) !important;
+}
+.theme-black-light td,
+[data-be-appearance="light"] td {
+  border-bottom: 1px solid var(--be-border-subtle, #DEDAD0) !important;
+  color: var(--be-text-primary, #20242B) !important;
+}
+.theme-black-light tr:hover td,
+[data-be-appearance="light"] tr:hover td {
+  background-color: var(--be-hover-bg, rgba(0, 0, 0, 0.03)) !important;
+}
+
+/* 8. AI Copilot Floating Launcher in Light Mode */
+.theme-black-light button[aria-label="Open ApplyVise Copilot"],
+[data-be-appearance="light"] button[aria-label="Open ApplyVise Copilot"] {
+  background-color: #FFFFFF !important;
+  border: 1px solid var(--be-border-focus, #DCC69D) !important;
+  color: var(--be-text-primary, #20242B) !important;
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.15) !important;
+}
+.theme-black-light button[aria-label="Open ApplyVise Copilot"]:hover,
+[data-be-appearance="light"] button[aria-label="Open ApplyVise Copilot"]:hover {
+  background-color: var(--be-bg-elevated, #FAF8F5) !important;
+  border-color: var(--be-accent, #A78343) !important;
+}
+.theme-black-light button[aria-label="Open ApplyVise Copilot"] span,
+[data-be-appearance="light"] button[aria-label="Open ApplyVise Copilot"] span {
+  color: var(--be-text-primary, #20242B) !important;
+}
+
+/* 9. Header Controls: Active Safe Pill, Notification Pill, Search KBD */
+.theme-black-light [data-testid="active-safe-pill"],
+[data-be-appearance="light"] [data-testid="active-safe-pill"],
+.theme-black-light button[title*="Active Safe"],
+[data-be-appearance="light"] button[title*="Active Safe"] {
+  background-color: #E8F5E9 !important;
+  border-color: rgba(20, 122, 88, 0.3) !important;
+  color: #147A58 !important;
+}
+
+.theme-black-light kbd,
+[data-be-appearance="light"] kbd,
+.theme-black-light .search-kbd,
+[data-be-appearance="light"] .search-kbd {
+  background-color: var(--be-bg-secondary, #F0EEE8) !important;
+  border: 1px solid var(--be-border-subtle, #DEDAD0) !important;
+  color: var(--be-text-secondary, #555C66) !important;
+}
+
+/* Cards elevation & neu-chips in Light Mode */
+.theme-black-light .neu-chip,
+[data-be-appearance="light"] .neu-chip {
+  background: var(--be-bg-elevated, #FAF8F5) !important;
+  color: var(--be-text-secondary, #555C66) !important;
+  border: 1px solid var(--be-border-subtle, #DEDAD0) !important;
+  box-shadow: none !important;
+}
+.theme-black-light .neu-chip:hover,
+[data-be-appearance="light"] .neu-chip:hover {
+  background: var(--be-hover-bg, rgba(0, 0, 0, 0.04)) !important;
+  color: var(--be-text-primary, #20242B) !important;
+  border-color: var(--be-accent, #A78343) !important;
+}
+.theme-black-light .neu-chip.active,
+[data-be-appearance="light"] .neu-chip.active {
+  background: var(--be-accent-muted, #F4EBD9) !important;
+  border-color: var(--be-accent, #A78343) !important;
+  color: var(--be-accent, #A78343) !important;
 }
 
 /* ==========================================================================

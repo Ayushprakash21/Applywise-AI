@@ -474,7 +474,7 @@ export const AdminUserProvisioning: React.FC<AdminUserProvisioningProps> = ({ cu
           { label: 'Expiring in 30d', value: metrics?.expiringWithin30Days ?? '—', icon: Clock, color: 'text-amber-400' },
           { label: 'Expired', value: metrics?.expiredMemberships ?? '—', icon: AlertTriangle, color: 'text-red-400' },
         ].map((card, idx) => (
-          <div key={idx} className="p-4 rounded-xl bg-[#14171C] border border-white/[0.08] flex flex-col justify-between">
+          <div key={idx} className="p-4 rounded-xl bg-[var(--be-bg-card,#14171C)] border border-white/[0.08] flex flex-col justify-between">
             <div className="flex items-center justify-between text-[#92949A] mb-2">
               <span className="text-[10px] font-semibold uppercase tracking-wider">{card.label}</span>
               <card.icon className={`w-3.5 h-3.5 ${card.color}`} />
@@ -487,7 +487,7 @@ export const AdminUserProvisioning: React.FC<AdminUserProvisioningProps> = ({ cu
       </div>
 
       {/* Controls: Search, Filters, Quick Toggles */}
-      <div className="p-4 rounded-2xl bg-[#14171C] border border-white/[0.08] space-y-4">
+      <div className="p-4 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-white/[0.08] space-y-4">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Search Form */}
           <form onSubmit={handleSearchSubmit} className="relative flex-1">
@@ -589,7 +589,7 @@ export const AdminUserProvisioning: React.FC<AdminUserProvisioningProps> = ({ cu
       </div>
 
       {/* Membership Management Table */}
-      <div className="rounded-2xl bg-[#14171C] border border-white/[0.08] overflow-hidden">
+      <div className="rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-white/[0.08] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-[#0D1014] text-[#92949A] uppercase tracking-wider text-[10px] font-semibold border-b border-white/[0.08]">
@@ -729,7 +729,7 @@ export const AdminUserProvisioning: React.FC<AdminUserProvisioningProps> = ({ cu
             <button
               onClick={() => loadItems(page - 1)}
               disabled={page <= 1 || loadingItems}
-              className="p-1.5 rounded-lg bg-[#14171C] border border-white/[0.08] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/[0.05] text-[#F2F0EA]"
+              className="p-1.5 rounded-lg bg-[var(--be-bg-card,#14171C)] border border-white/[0.08] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/[0.05] text-[#F2F0EA]"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -739,7 +739,7 @@ export const AdminUserProvisioning: React.FC<AdminUserProvisioningProps> = ({ cu
             <button
               onClick={() => loadItems(page + 1)}
               disabled={page >= totalPages || loadingItems}
-              className="p-1.5 rounded-lg bg-[#14171C] border border-white/[0.08] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/[0.05] text-[#F2F0EA]"
+              className="p-1.5 rounded-lg bg-[var(--be-bg-card,#14171C)] border border-white/[0.08] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/[0.05] text-[#F2F0EA]"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -753,7 +753,7 @@ export const AdminUserProvisioning: React.FC<AdminUserProvisioningProps> = ({ cu
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
           <div
-            className="w-full max-w-xl bg-[#14171C] border border-[#C6A66A]/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto"
+            className="w-full max-w-xl bg-[var(--be-bg-card,#14171C)] border border-[#C6A66A]/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto"
             onClick={e => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -1001,7 +1001,7 @@ export const AdminUserProvisioning: React.FC<AdminUserProvisioningProps> = ({ cu
       {activeModalAction === 'modify' && actionUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
           <div
-            className="w-full max-w-lg bg-[#14171C] border border-[#C6A66A]/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            className="w-full max-w-lg bg-[var(--be-bg-card,#14171C)] border border-[#C6A66A]/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
             onClick={e => e.stopPropagation()}
           >
             <div className="p-5 border-b border-white/[0.08] flex items-center justify-between bg-[#111318]">
@@ -1140,7 +1140,7 @@ export const AdminUserProvisioning: React.FC<AdminUserProvisioningProps> = ({ cu
       {activeModalAction === 'extend' && actionUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
           <div
-            className="w-full max-w-lg bg-[#14171C] border border-emerald-500/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            className="w-full max-w-lg bg-[var(--be-bg-card,#14171C)] border border-emerald-500/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
             onClick={e => e.stopPropagation()}
           >
             <div className="p-5 border-b border-white/[0.08] flex items-center justify-between bg-[#111318]">
@@ -1239,7 +1239,7 @@ export const AdminUserProvisioning: React.FC<AdminUserProvisioningProps> = ({ cu
       {activeModalAction === 'status' && actionUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
           <div
-            className="w-full max-w-lg bg-[#14171C] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            className="w-full max-w-lg bg-[var(--be-bg-card,#14171C)] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
             onClick={e => e.stopPropagation()}
           >
             <div className="p-5 border-b border-white/[0.08] flex items-center justify-between bg-[#111318]">
@@ -1350,7 +1350,7 @@ export const AdminUserProvisioning: React.FC<AdminUserProvisioningProps> = ({ cu
                   </h4>
                   <div className="space-y-2.5">
                     {historyData.grants.map((g, idx) => (
-                      <div key={idx} className="p-3.5 rounded-xl bg-[#14171C] border border-white/[0.08] space-y-1.5">
+                      <div key={idx} className="p-3.5 rounded-xl bg-[var(--be-bg-card,#14171C)] border border-white/[0.08] space-y-1.5">
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-[#F2F0EA]">{g.plan.toUpperCase()}</span>
                           <span className="text-[10px] text-[#92949A]">{g.status.toUpperCase()}</span>

@@ -355,7 +355,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
           <button
             onClick={loadAllData}
             disabled={isRefreshing || isAnyLoading}
-            className="px-3 py-1.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.09)] text-xs font-semibold text-[#F2F0EA] hover:border-[rgba(198,166,106,0.30)] hover:text-[#C6A66A] flex items-center space-x-1.5 transition cursor-pointer disabled:opacity-50"
+            className="px-3 py-1.5 rounded-xl bg-[var(--be-bg-card,#14171C)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-xs font-semibold text-[#F2F0EA] hover:border-[rgba(198,166,106,0.30)] hover:text-[#C6A66A] flex items-center space-x-1.5 transition cursor-pointer disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing || isAnyLoading ? 'animate-spin text-[#C6A66A]' : ''}`} />
             <span>Refresh All</span>
@@ -373,7 +373,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
 
       {/* STATE 5: COMPLETE API FAILURE BANNER */}
       {isCompleteFailure && (
-        <div className="p-6 rounded-2xl bg-[#14171C] border border-rose-500/40 text-center space-y-4 shadow-xl">
+        <div className="p-6 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-rose-500/40 text-center space-y-4 shadow-xl">
           <div className="w-12 h-12 mx-auto rounded-2xl bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/30">
             <AlertTriangle className="w-6 h-6" />
           </div>
@@ -497,8 +497,8 @@ export const GlobalSourceIntelligence: React.FC = () => {
         ].map((card, i) => {
           const Icon = card.icon;
           return (
-            <div key={i} className={`p-4 rounded-2xl bg-[#14171C] border space-y-1.5 shadow-xs ${
-              card.isError ? 'border-rose-500/40 bg-rose-950/10' : 'border-[rgba(255,255,255,0.09)]'
+            <div key={i} className={`p-4 rounded-2xl bg-[var(--be-bg-card,#14171C)] border space-y-1.5 shadow-xs ${
+              card.isError ? 'border-rose-500/40 bg-rose-950/10' : 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
             }`}>
               <div className="flex items-center justify-between text-[#92949A]">
                 <span className="text-[10px] font-mono font-bold tracking-wider uppercase">{card.label}</span>
@@ -524,7 +524,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
       </div>
 
       {/* Sub-Tab Navigation */}
-      <div className="flex items-center space-x-2 border-b border-[rgba(255,255,255,0.09)] pb-3">
+      <div className="flex items-center space-x-2 border-b border-[var(--be-border-subtle,rgba(255,255,255,0.09))] pb-3">
         {[
           {
             id: 'sources',
@@ -551,7 +551,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
             className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-2 transition cursor-pointer ${
               activeSubTab === tab.id
                 ? 'bg-[#C6A66A] text-[#17130C] font-bold shadow-xs'
-                : 'bg-[#14171C] text-[#C0BDB5] hover:text-[#F2F0EA] hover:bg-[#191D23] border border-[rgba(255,255,255,0.06)]'
+                : 'bg-[var(--be-bg-card,#14171C)] text-[#C0BDB5] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-elevated,#191D23)] border border-[rgba(255,255,255,0.06)]'
             }`}
           >
             <span>{tab.label}</span>
@@ -573,14 +573,14 @@ export const GlobalSourceIntelligence: React.FC = () => {
         <div className="space-y-4">
           {sourcesState.status === 'error' ? (
             /* Sub-Tab 1 Error State */
-            <div className="p-8 rounded-2xl bg-[#14171C] border border-rose-500/30 text-center space-y-3">
+            <div className="p-8 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-rose-500/30 text-center space-y-3">
               <AlertTriangle className="w-8 h-8 mx-auto text-rose-400" />
               <h4 className="text-sm font-bold text-[#F2F0EA]">Unable to Load Job Sources Registry</h4>
               <p className="text-xs text-[#C0BDB5] max-w-md mx-auto">{sourcesState.error}</p>
               <button
                 onClick={loadSources}
                 disabled={isAnyLoading}
-                className="px-3.5 py-1.5 rounded-xl bg-[#0D1014] border border-[rgba(198,166,106,0.30)] text-xs font-semibold text-[#C6A66A] hover:bg-[#191D23] transition flex items-center space-x-1.5 mx-auto cursor-pointer"
+                className="px-3.5 py-1.5 rounded-xl bg-[#0D1014] border border-[rgba(198,166,106,0.30)] text-xs font-semibold text-[#C6A66A] hover:bg-[var(--be-bg-elevated,#191D23)] transition flex items-center space-x-1.5 mx-auto cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isAnyLoading ? 'animate-spin' : ''}`} />
                 <span>Retry Sources</span>
@@ -597,7 +597,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Search registered sources by name, company, or domain..."
-                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#0D1014] border border-[rgba(255,255,255,0.09)] text-xs text-[#F2F0EA] placeholder-[#737780] focus:outline-none focus:border-[#C6A66A]"
+                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#0D1014] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-xs text-[#F2F0EA] placeholder-[#737780] focus:outline-none focus:border-[#C6A66A]"
                   />
                 </div>
                 <div className="w-48 shrink-0">
@@ -619,10 +619,10 @@ export const GlobalSourceIntelligence: React.FC = () => {
               </div>
 
               {/* Sources Table */}
-              <div className="bg-[#14171C] rounded-2xl border border-[rgba(255,255,255,0.09)] overflow-hidden shadow-xs">
+              <div className="bg-[var(--be-bg-card,#14171C)] rounded-2xl border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] overflow-hidden shadow-xs">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#111318] text-[#92949A] uppercase font-mono text-[10px] border-b border-[rgba(255,255,255,0.09)]">
+                    <thead className="bg-[#111318] text-[#92949A] uppercase font-mono text-[10px] border-b border-[var(--be-border-subtle,rgba(255,255,255,0.09))]">
                       <tr>
                         <th className="py-3 px-4">Source / Employer</th>
                         <th className="py-3 px-4">Category & Adapter</th>
@@ -638,7 +638,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
                         [1, 2, 3].map(idx => (
                           <tr key={idx} className="animate-pulse">
                             <td colSpan={7} className="py-4 px-4">
-                              <div className="h-4 bg-[#191D23] rounded w-3/4 mb-1" />
+                              <div className="h-4 bg-[var(--be-bg-elevated,#191D23)] rounded w-3/4 mb-1" />
                               <div className="h-3 bg-[#111318] rounded w-1/2" />
                             </td>
                           </tr>
@@ -669,7 +669,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
                         </tr>
                       ) : (
                         filteredSources.map(s => (
-                          <tr key={s.id} className="hover:bg-[#191D23] transition">
+                          <tr key={s.id} className="hover:bg-[var(--be-bg-elevated,#191D23)] transition">
                             <td className="py-3 px-4">
                               <div className="font-bold text-[#F2F0EA]">{s.name}</div>
                               <div className="text-[11px] font-mono text-[#92949A] flex items-center space-x-1">
@@ -687,7 +687,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
                               </div>
                             </td>
                             <td className="py-3 px-4">
-                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0D1014] text-[#C0BDB5] border border-[rgba(255,255,255,0.08)] uppercase">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0D1014] text-[#C0BDB5] border border-[var(--be-border-subtle,rgba(255,255,255,0.08))] uppercase">
                                 {s.adapterType || s.category}
                               </span>
                             </td>
@@ -715,7 +715,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
                               <button
                                 onClick={() => handleManualSync(s.id)}
                                 disabled={isSyncing === s.id}
-                                className="px-2.5 py-1 rounded-lg bg-[#0D1014] border border-[rgba(255,255,255,0.09)] text-[11px] font-semibold text-[#F2F0EA] hover:border-[rgba(198,166,106,0.30)] hover:text-[#C6A66A] transition cursor-pointer disabled:opacity-50"
+                                className="px-2.5 py-1 rounded-lg bg-[#0D1014] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[11px] font-semibold text-[#F2F0EA] hover:border-[rgba(198,166,106,0.30)] hover:text-[#C6A66A] transition cursor-pointer disabled:opacity-50"
                               >
                                 {isSyncing === s.id ? 'Syncing...' : 'Sync Now'}
                               </button>
@@ -737,14 +737,14 @@ export const GlobalSourceIntelligence: React.FC = () => {
         <div className="space-y-4">
           {companiesState.status === 'error' ? (
             /* Sub-Tab 2 Error State */
-            <div className="p-8 rounded-2xl bg-[#14171C] border border-rose-500/30 text-center space-y-3">
+            <div className="p-8 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-rose-500/30 text-center space-y-3">
               <Building className="w-8 h-8 mx-auto text-rose-400" />
               <h4 className="text-sm font-bold text-[#F2F0EA]">Unable to Load Company Career Directory</h4>
               <p className="text-xs text-[#C0BDB5] max-w-md mx-auto">{companiesState.error}</p>
               <button
                 onClick={() => loadCompanies()}
                 disabled={isAnyLoading}
-                className="px-3.5 py-1.5 rounded-xl bg-[#0D1014] border border-[rgba(198,166,106,0.30)] text-xs font-semibold text-[#C6A66A] hover:bg-[#191D23] transition flex items-center space-x-1.5 mx-auto cursor-pointer"
+                className="px-3.5 py-1.5 rounded-xl bg-[#0D1014] border border-[rgba(198,166,106,0.30)] text-xs font-semibold text-[#C6A66A] hover:bg-[var(--be-bg-elevated,#191D23)] transition flex items-center space-x-1.5 mx-auto cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isAnyLoading ? 'animate-spin' : ''}`} />
                 <span>Retry Directory</span>
@@ -760,14 +760,14 @@ export const GlobalSourceIntelligence: React.FC = () => {
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Search companies by name, domain, or industry..."
-                  className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#0D1014] border border-[rgba(255,255,255,0.09)] text-xs text-[#F2F0EA] placeholder-[#737780] focus:outline-none focus:border-[#C6A66A]"
+                  className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#0D1014] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-xs text-[#F2F0EA] placeholder-[#737780] focus:outline-none focus:border-[#C6A66A]"
                 />
               </div>
 
-              <div className="bg-[#14171C] rounded-2xl border border-[rgba(255,255,255,0.09)] overflow-hidden shadow-xs">
+              <div className="bg-[var(--be-bg-card,#14171C)] rounded-2xl border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] overflow-hidden shadow-xs">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#111318] text-[#92949A] uppercase font-mono text-[10px] border-b border-[rgba(255,255,255,0.09)]">
+                    <thead className="bg-[#111318] text-[#92949A] uppercase font-mono text-[10px] border-b border-[var(--be-border-subtle,rgba(255,255,255,0.09))]">
                       <tr>
                         <th className="py-3 px-4">Company</th>
                         <th className="py-3 px-4">Careers Site</th>
@@ -782,7 +782,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
                         [1, 2, 3].map(idx => (
                           <tr key={idx} className="animate-pulse">
                             <td colSpan={6} className="py-4 px-4">
-                              <div className="h-4 bg-[#191D23] rounded w-3/4 mb-1" />
+                              <div className="h-4 bg-[var(--be-bg-elevated,#191D23)] rounded w-3/4 mb-1" />
                               <div className="h-3 bg-[#111318] rounded w-1/2" />
                             </td>
                           </tr>
@@ -813,7 +813,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
                         </tr>
                       ) : (
                         filteredCompanies.map(c => (
-                          <tr key={c.id} className="hover:bg-[#191D23] transition">
+                          <tr key={c.id} className="hover:bg-[var(--be-bg-elevated,#191D23)] transition">
                             <td className="py-3 px-4">
                               <div className="font-bold text-[#F2F0EA]">{c.name}</div>
                               <div className="text-[11px] font-mono text-[#92949A]">{c.industry}</div>
@@ -863,14 +863,14 @@ export const GlobalSourceIntelligence: React.FC = () => {
         <div className="space-y-4">
           {coverageState.status === 'error' ? (
             /* Sub-Tab 3 Error State */
-            <div className="p-8 rounded-2xl bg-[#14171C] border border-rose-500/30 text-center space-y-3">
+            <div className="p-8 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-rose-500/30 text-center space-y-3">
               <Globe className="w-8 h-8 mx-auto text-rose-400" />
               <h4 className="text-sm font-bold text-[#F2F0EA]">Unable to Load Geographic Coverage Matrix</h4>
               <p className="text-xs text-[#C0BDB5] max-w-md mx-auto">{coverageState.error}</p>
               <button
                 onClick={loadCoverage}
                 disabled={isAnyLoading}
-                className="px-3.5 py-1.5 rounded-xl bg-[#0D1014] border border-[rgba(198,166,106,0.30)] text-xs font-semibold text-[#C6A66A] hover:bg-[#191D23] transition flex items-center space-x-1.5 mx-auto cursor-pointer"
+                className="px-3.5 py-1.5 rounded-xl bg-[#0D1014] border border-[rgba(198,166,106,0.30)] text-xs font-semibold text-[#C6A66A] hover:bg-[var(--be-bg-elevated,#191D23)] transition flex items-center space-x-1.5 mx-auto cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isAnyLoading ? 'animate-spin' : ''}`} />
                 <span>Retry Coverage</span>
@@ -878,7 +878,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="p-4 rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.09)] space-y-1">
+              <div className="p-4 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] space-y-1">
                 <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-[#C6A66A]">
                   Worldwide Geographic Coverage & Source Density
                 </h3>
@@ -890,15 +890,15 @@ export const GlobalSourceIntelligence: React.FC = () => {
               {coverageState.status === 'loading' && (!coverage?.countries || coverage.countries.length === 0) ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                   {[1, 2, 3, 4].map(idx => (
-                    <div key={idx} className="p-4 rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.09)] space-y-3 animate-pulse">
-                      <div className="h-4 bg-[#191D23] rounded w-1/2" />
+                    <div key={idx} className="p-4 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] space-y-3 animate-pulse">
+                      <div className="h-4 bg-[var(--be-bg-elevated,#191D23)] rounded w-1/2" />
                       <div className="h-6 bg-[#0D1014] rounded w-3/4" />
                     </div>
                   ))}
                 </div>
               ) : (!coverage?.countries || coverage.countries.length === 0) ? (
                 /* STATE 3: ZERO COVERAGE RECORDS */
-                <div className="p-10 rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.09)] text-center space-y-2">
+                <div className="p-10 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-center space-y-2">
                   <Database className="w-8 h-8 mx-auto text-[#92949A] opacity-50" />
                   <div className="text-xs font-bold text-[#F2F0EA]">Zero Geographic Records</div>
                   <p className="text-[11px] text-[#92949A] max-w-sm mx-auto">
@@ -910,7 +910,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
                   {(coverage?.countries || []).map((country, idx) => (
                     <div
                       key={idx}
-                      className="p-4 rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.09)] space-y-3"
+                      className="p-4 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] space-y-3"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
@@ -922,7 +922,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
                             ? 'bg-[rgba(53,184,135,0.12)] text-[#35B887] border border-[rgba(53,184,135,0.30)]'
                             : country.coverageStatus === 'moderate'
                             ? 'bg-[rgba(198,166,106,0.12)] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]'
-                            : 'bg-[#191D23] text-[#92949A] border border-[rgba(255,255,255,0.09)]'
+                            : 'bg-[var(--be-bg-elevated,#191D23)] text-[#92949A] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
                         }`}>
                           {country.coverageStatus}
                         </span>
@@ -978,7 +978,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
                   value={newCompany.name}
                   onChange={e => setNewCompany({ ...newCompany, name: e.target.value })}
                   placeholder="e.g. Stripe, OpenAI, Notion"
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#0D1014] border border-[rgba(255,255,255,0.09)] text-xs text-[#F2F0EA] focus:outline-none focus:border-[#C6A66A]"
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#0D1014] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-xs text-[#F2F0EA] focus:outline-none focus:border-[#C6A66A]"
                 />
               </div>
 
@@ -991,13 +991,13 @@ export const GlobalSourceIntelligence: React.FC = () => {
                     value={newCompany.careersUrl}
                     onChange={e => setNewCompany({ ...newCompany, careersUrl: e.target.value })}
                     placeholder="https://jobs.ashbyhq.com/company or https://boards.greenhouse.io/company"
-                    className="flex-1 px-3.5 py-2 rounded-xl bg-[#0D1014] border border-[rgba(255,255,255,0.09)] text-xs text-[#F2F0EA] focus:outline-none focus:border-[#C6A66A]"
+                    className="flex-1 px-3.5 py-2 rounded-xl bg-[#0D1014] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-xs text-[#F2F0EA] focus:outline-none focus:border-[#C6A66A]"
                   />
                   <button
                     type="button"
                     onClick={handleDetectATS}
                     disabled={isDetecting}
-                    className="px-3 py-2 rounded-xl bg-[#191D23] border border-[rgba(198,166,106,0.30)] text-xs font-semibold text-[#C6A66A] hover:bg-[#C6A66A] hover:text-[#17130C] transition cursor-pointer"
+                    className="px-3 py-2 rounded-xl bg-[var(--be-bg-elevated,#191D23)] border border-[rgba(198,166,106,0.30)] text-xs font-semibold text-[#C6A66A] hover:bg-[#C6A66A] hover:text-[#17130C] transition cursor-pointer"
                   >
                     {isDetecting ? 'Detecting...' : 'Detect ATS'}
                   </button>
@@ -1043,7 +1043,7 @@ export const GlobalSourceIntelligence: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl bg-[#0D1014] text-xs font-semibold text-[#C0BDB5] hover:text-[#F2F0EA] border border-[rgba(255,255,255,0.09)] transition cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[#0D1014] text-xs font-semibold text-[#C0BDB5] hover:text-[#F2F0EA] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] transition cursor-pointer"
                 >
                   Cancel
                 </button>

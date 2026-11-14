@@ -305,7 +305,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
           ==================================================================== */}
       <div className={`p-6 sm:p-8 rounded-3xl border transition-all shadow-sm ${
         isBlack
-          ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA]'
+          ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F2F0EA]'
           : 'bg-white/80 border-slate-200/90 text-slate-900 shadow-slate-900/5 backdrop-blur-xl'
       }`}>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -335,7 +335,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
           {/* Quick Stats Pill */}
           <div className="flex flex-wrap items-center gap-2 self-start lg:self-center">
             <div className={`px-3 py-2 rounded-2xl border text-xs flex items-center space-x-2 ${
-              isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.08)]' : 'bg-slate-50 border-slate-200'
+              isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))]' : 'bg-slate-50 border-slate-200'
             }`}>
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
               <div>
@@ -345,7 +345,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
             </div>
 
             <div className={`px-3 py-2 rounded-2xl border text-xs flex items-center space-x-2 ${
-              isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.08)]' : 'bg-slate-50 border-slate-200'
+              isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))]' : 'bg-slate-50 border-slate-200'
             }`}>
               <Sparkles className="w-4 h-4 text-amber-500" />
               <div>
@@ -360,7 +360,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                 onClick={() => onAskCopilot(`Based on my verified profile as a ${profile?.currentTitle || 'candidate'}, what are my best 3 next career directions and what skills should I develop first?`)}
                 className={`px-3.5 py-2 rounded-2xl text-xs font-semibold flex items-center space-x-2 cursor-pointer transition ${
                   isBlack
-                    ? 'bg-[#191D23] hover:bg-[#20252D] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]'
+                    ? 'bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#20252D] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]'
                     : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
                 }`}
               >
@@ -399,7 +399,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                       ? 'bg-[var(--be-accent,#C6A66A)] text-[var(--be-accent-contrast,#17130C)] font-bold shadow-xs'
                       : 'bg-blue-600 text-white font-semibold shadow-xs'
                     : isBlack
-                    ? 'text-slate-400 hover:text-slate-200 hover:bg-[#191D23]'
+                    ? 'text-slate-400 hover:text-slate-200 hover:bg-[var(--be-bg-elevated,#191D23)]'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
@@ -435,7 +435,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* 1. Current Verified Profile */}
             <div className={`p-6 rounded-3xl border space-y-4 lg:col-span-1 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
@@ -461,7 +461,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                 <div className="flex flex-wrap gap-1.5">
                   {(profile?.skills || []).slice(0, 6).map((s, idx) => (
                     <span key={idx} className={`text-[10px] px-2 py-0.5 rounded-lg border font-medium ${
-                      isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.08)] text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-700'
+                      isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-700'
                     }`}>
                       {s.name}
                     </span>
@@ -475,7 +475,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
 
             {/* 2. Recommended Next Career Move */}
             <div className={`p-6 rounded-3xl border space-y-4 lg:col-span-2 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
@@ -532,7 +532,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                       }}
                       className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1 cursor-pointer transition ${
                         isBlack
-                          ? 'bg-[#191D23] hover:bg-[#20252D] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]'
+                          ? 'bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#20252D] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]'
                           : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
                       }`}
                     >
@@ -548,7 +548,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
           {/* Transparent Career-Readiness Assessment Card (Explainable, zero arbitrary percentages!) */}
           {activeAssessment && (
             <div className={`p-6 sm:p-7 rounded-3xl border space-y-5 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/70">
                 <div>
@@ -574,7 +574,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                 {/* 1. What is being measured */}
                 <div className={`p-4 rounded-2xl border space-y-1.5 ${
-                  isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]' : 'bg-slate-50 border-slate-200'
+                  isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.06))]' : 'bg-slate-50 border-slate-200'
                 }`}>
                   <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">WHAT IS MEASURED</span>
                   <p className="leading-relaxed text-slate-500 dark:text-slate-400">
@@ -584,7 +584,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
 
                 {/* 2. Data Used */}
                 <div className={`p-4 rounded-2xl border space-y-1.5 ${
-                  isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]' : 'bg-slate-50 border-slate-200'
+                  isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.06))]' : 'bg-slate-50 border-slate-200'
                 }`}>
                   <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">DATA SOURCES USED</span>
                   <ul className="space-y-1 text-slate-500 dark:text-slate-400 list-disc pl-3">
@@ -596,7 +596,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
 
                 {/* 3. Missing Evidence */}
                 <div className={`p-4 rounded-2xl border space-y-1.5 ${
-                  isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]' : 'bg-slate-50 border-slate-200'
+                  isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.06))]' : 'bg-slate-50 border-slate-200'
                 }`}>
                   <span className="text-[10px] font-mono font-bold text-rose-400 uppercase">MISSING EVIDENCE</span>
                   <ul className="space-y-1 text-slate-500 dark:text-slate-400 list-disc pl-3">
@@ -608,7 +608,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
 
                 {/* 4. How to Improve */}
                 <div className={`p-4 rounded-2xl border space-y-1.5 ${
-                  isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]' : 'bg-slate-50 border-slate-200'
+                  isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.06))]' : 'bg-slate-50 border-slate-200'
                 }`}>
                   <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase">HOW TO IMPROVE SCORE</span>
                   <p className="leading-relaxed text-slate-500 dark:text-slate-400">
@@ -623,7 +623,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Priority Skill Gaps */}
             <div className={`p-6 rounded-3xl border space-y-4 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
@@ -641,7 +641,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
               <div className="space-y-3">
                 {activeAssessment?.missingCompetencies.slice(0, 3).map((gap, idx) => (
                   <div key={idx} className={`p-3.5 rounded-2xl border flex items-start justify-between gap-3 ${
-                    isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]' : 'bg-slate-50 border-slate-200'
+                    isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.06))]' : 'bg-slate-50 border-slate-200'
                   }`}>
                     <div className="space-y-1 text-xs">
                       <div className="flex items-center space-x-2">
@@ -669,7 +669,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
 
             {/* Upcoming Roadmap Milestones */}
             <div className={`p-6 rounded-3xl border space-y-4 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
@@ -687,7 +687,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
               <div className="space-y-3">
                 {roadmapMilestones.slice(0, 2).map((ms, idx) => (
                   <div key={idx} className={`p-3.5 rounded-2xl border flex items-start justify-between gap-3 ${
-                    isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]' : 'bg-slate-50 border-slate-200'
+                    isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.06))]' : 'bg-slate-50 border-slate-200'
                   }`}>
                     <div className="space-y-1 text-xs">
                       <div className="flex items-center space-x-2">
@@ -733,7 +733,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
         <div className="space-y-6">
           {/* Controls Bar: Category Filter, Readiness Filter */}
           <div className={`p-5 rounded-3xl border flex flex-col md:flex-row md:items-center justify-between gap-4 ${
-            isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+            isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
           }`}>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-slate-400 font-mono uppercase font-semibold">Track Category:</span>
@@ -756,7 +756,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                         ? 'bg-[var(--be-accent,#C6A66A)] text-[#17130C] font-bold'
                         : 'bg-blue-600 text-white font-semibold'
                       : isBlack
-                      ? 'bg-[#191D23] text-slate-300 hover:bg-[#20252D]'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-slate-300 hover:bg-[#20252D]'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
@@ -780,7 +780,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                   className={`text-[11px] px-2.5 py-1 rounded-xl transition cursor-pointer font-medium ${
                     selectedReadinessFilter === r.id
                       ? isBlack ? 'bg-indigo-600 text-white font-bold' : 'bg-blue-600 text-white'
-                      : isBlack ? 'bg-[#191D23] text-slate-300' : 'bg-slate-100 text-slate-700'
+                      : isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] text-slate-300' : 'bg-slate-100 text-slate-700'
                   }`}
                 >
                   {r.label}
@@ -801,10 +801,10 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                   className={`p-6 rounded-3xl border transition-all flex flex-col justify-between space-y-4 ${
                     isSelected
                       ? isBlack
-                        ? 'border-[var(--be-accent,#C6A66A)] bg-[#191D23] shadow-md'
+                        ? 'border-[var(--be-accent,#C6A66A)] bg-[var(--be-bg-elevated,#191D23)] shadow-md'
                         : 'border-blue-600 bg-white shadow-md'
                       : isBlack
-                      ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] hover:border-slate-500'
+                      ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] hover:border-slate-500'
                       : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
                   }`}
                 >
@@ -876,7 +876,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                             ? 'bg-[var(--be-accent,#C6A66A)] text-[#17130C]'
                             : 'bg-blue-600 text-white'
                           : isBlack
-                          ? 'bg-[#191D23] hover:bg-[#222731] text-slate-200 border border-[rgba(255,255,255,0.08)]'
+                          ? 'bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#222731] text-slate-200 border border-[var(--be-border-subtle,rgba(255,255,255,0.08))]'
                           : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
                       }`}
                     >
@@ -890,7 +890,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                       }}
                       title="View live matching vacancies"
                       className={`p-2 rounded-xl text-xs border cursor-pointer ${
-                        isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.08)] text-slate-300' : 'bg-slate-100 border-slate-200'
+                        isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-300' : 'bg-slate-100 border-slate-200'
                       }`}
                     >
                       <Briefcase className="w-4 h-4" />
@@ -910,7 +910,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
         <div className="space-y-6">
           {/* Target Role Banner */}
           <div className={`p-6 rounded-3xl border flex flex-col md:flex-row md:items-center justify-between gap-4 ${
-            isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+            isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
           }`}>
             <div className="space-y-1">
               <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
@@ -942,7 +942,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Matching & Transferable Competencies */}
             <div className={`p-6 rounded-3xl border space-y-4 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
                 <span className="text-xs font-bold text-emerald-400 flex items-center space-x-1.5">
@@ -955,7 +955,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
               <div className="space-y-3">
                 {activeAssessment.matchingCompetencies.map((comp, idx) => (
                   <div key={idx} className={`p-3.5 rounded-2xl border space-y-1.5 ${
-                    isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]' : 'bg-slate-50 border-slate-200'
+                    isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.06))]' : 'bg-slate-50 border-slate-200'
                   }`}>
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-slate-200">{comp.skill}</span>
@@ -973,7 +973,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
 
             {/* Missing Competencies & Candidate Confirmation Required */}
             <div className={`p-6 rounded-3xl border space-y-4 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <div className="flex items-center justify-between pb-3 border-b border-slate-200/70">
                 <span className="text-xs font-bold text-rose-400 flex items-center space-x-1.5">
@@ -986,7 +986,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
               <div className="space-y-3">
                 {activeAssessment.missingCompetencies.map((comp, idx) => (
                   <div key={idx} className={`p-3.5 rounded-2xl border space-y-2 ${
-                    isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]' : 'bg-slate-50 border-slate-200'
+                    isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.06))]' : 'bg-slate-50 border-slate-200'
                   }`}>
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center space-x-2">
@@ -1050,7 +1050,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
       {activeTab === 'skills' && activeAssessment && (
         <div className="space-y-6">
           <div className={`p-6 rounded-3xl border space-y-2 ${
-            isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+            isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
           }`}>
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
               SKILL GAP INTELLIGENCE
@@ -1068,7 +1068,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
               <div
                 key={idx}
                 className={`p-6 rounded-3xl border space-y-4 transition ${
-                  isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+                  isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/60">
@@ -1114,7 +1114,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                     <span className="text-slate-400 text-[11px] font-mono">Verified Credential Options:</span>
                     {item.certifications.map((c, i) => (
                       <span key={i} className={`text-[10px] px-2 py-0.5 rounded-lg border font-mono ${
-                        isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.08)] text-slate-300' : 'bg-slate-100 border-slate-200'
+                        isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-300' : 'bg-slate-100 border-slate-200'
                       }`}>
                         {c.name} ({c.provider})
                       </span>
@@ -1133,7 +1133,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
       {activeTab === 'roadmap' && (
         <div className="space-y-6">
           <div className={`p-6 rounded-3xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-            isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+            isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
           }`}>
             <div className="space-y-1">
               <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
@@ -1160,7 +1160,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                   className={`text-[11px] px-2.5 py-1 rounded-xl font-medium cursor-pointer transition ${
                     weeklyHours === opt.hours
                       ? isBlack ? 'bg-[var(--be-accent,#C6A66A)] text-[#17130C] font-bold' : 'bg-blue-600 text-white'
-                      : isBlack ? 'bg-[#191D23] text-slate-300' : 'bg-slate-100 text-slate-700'
+                      : isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] text-slate-300' : 'bg-slate-100 text-slate-700'
                   }`}
                 >
                   {opt.label}
@@ -1197,7 +1197,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                         className={`p-6 rounded-3xl border transition-all space-y-3.5 ${
                           isDone
                             ? isBlack ? 'bg-[#111317] border-emerald-900/40 opacity-90' : 'bg-emerald-50/40 border-emerald-200'
-                            : isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+                            : isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
                         }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
@@ -1232,7 +1232,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                                 isDone
                                   ? 'bg-emerald-500 text-white'
                                   : isBlack
-                                  ? 'bg-[#191D23] hover:bg-[#222731] text-slate-200 border border-[rgba(255,255,255,0.12)]'
+                                  ? 'bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#222731] text-slate-200 border border-[rgba(255,255,255,0.12)]'
                                   : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
                               }`}
                             >
@@ -1270,7 +1270,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
       {activeTab === 'market' && marketSnapshot && (
         <div className="space-y-6">
           <div className={`p-6 rounded-3xl border space-y-2 ${
-            isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+            isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
           }`}>
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
               MARKET DEMAND & SALARY INTELLIGENCE
@@ -1284,7 +1284,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
           {/* 3 Metric Summary Boxes */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className={`p-6 rounded-3xl border space-y-2 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <span className="text-[10px] font-mono uppercase text-slate-400 block font-bold">ACTIVE LIVE VACANCIES</span>
               <div className="text-3xl font-bold font-mono text-emerald-400">
@@ -1294,7 +1294,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
             </div>
 
             <div className={`p-6 rounded-3xl border space-y-2 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <span className="text-[10px] font-mono uppercase text-slate-400 block font-bold">DISCLOSED SALARY MEDIAN</span>
               <div className="text-3xl font-bold font-mono text-amber-400">
@@ -1306,7 +1306,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
             </div>
 
             <div className={`p-6 rounded-3xl border space-y-2 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <span className="text-[10px] font-mono uppercase text-slate-400 block font-bold">REMOTE CONCENTRATION</span>
               <div className="text-3xl font-bold font-mono text-indigo-400">
@@ -1319,7 +1319,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
           {/* Hiring Companies & Geographic Distribution */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className={`p-6 rounded-3xl border space-y-4 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <h3 className="text-sm font-bold uppercase tracking-wider font-mono text-slate-300">
                 Top Hiring Companies
@@ -1327,7 +1327,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
               <div className="flex flex-wrap gap-2">
                 {marketSnapshot.topHiringCompanies.map((comp, idx) => (
                   <span key={idx} className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center space-x-1.5 ${
-                    isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.08)] text-slate-200' : 'bg-slate-100 border-slate-200 text-slate-800'
+                    isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-200' : 'bg-slate-100 border-slate-200 text-slate-800'
                   }`}>
                     <Building className="w-3.5 h-3.5 text-slate-400" />
                     <span>{comp}</span>
@@ -1337,7 +1337,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
             </div>
 
             <div className={`p-6 rounded-3xl border space-y-4 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <h3 className="text-sm font-bold uppercase tracking-wider font-mono text-slate-300">
                 Data Sourcing & Freshness Transparency
@@ -1359,7 +1359,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
       {activeTab === 'learning' && (
         <div className="space-y-6">
           <div className={`p-6 rounded-3xl border space-y-2 ${
-            isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+            isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
           }`}>
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
               QUALIFICATION & LEARNING RECOMMENDATION ENGINE
@@ -1375,7 +1375,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
               <div
                 key={res.id}
                 className={`p-6 rounded-3xl border space-y-4 flex flex-col justify-between ${
-                  isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+                  isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
                 }`}
               >
                 <div className="space-y-2.5">
@@ -1426,7 +1426,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
       {activeTab === 'scenarios' && (
         <div className="space-y-6">
           <div className={`p-6 rounded-3xl border space-y-2 ${
-            isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+            isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
           }`}>
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
               INTERACTIVE SCENARIO SIMULATION LAB
@@ -1440,7 +1440,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Simulation Controls Form */}
             <div className={`p-6 rounded-3xl border space-y-4 lg:col-span-1 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <h3 className="text-sm font-bold uppercase tracking-wider font-mono text-slate-300">
                 Simulation Parameters
@@ -1459,7 +1459,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                           scenarioTargetRole === p.targetRole
                             ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 font-semibold'
                             : isBlack
-                              ? 'bg-[#191D23] border-[rgba(255,255,255,0.08)] text-slate-300 hover:border-[rgba(255,255,255,0.18)]'
+                              ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-300 hover:border-[rgba(255,255,255,0.18)]'
                               : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
                         }`}
                       >
@@ -1481,7 +1481,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                           scenarioCountry === c
                             ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 font-semibold'
                             : isBlack
-                              ? 'bg-[#191D23] border-[rgba(255,255,255,0.08)] text-slate-300 hover:border-[rgba(255,255,255,0.18)]'
+                              ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-300 hover:border-[rgba(255,255,255,0.18)]'
                               : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
                         }`}
                       >
@@ -1518,7 +1518,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                           scenarioPriority === opt.key
                             ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 font-semibold'
                             : isBlack
-                              ? 'bg-[#191D23] border-[rgba(255,255,255,0.08)] text-slate-300 hover:border-[rgba(255,255,255,0.18)]'
+                              ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-300 hover:border-[rgba(255,255,255,0.18)]'
                               : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
                         }`}
                       >
@@ -1558,7 +1558,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                       value={scenarioCustomSkill}
                       onChange={e => setScenarioCustomSkill(e.target.value)}
                       className={`flex-1 p-1.5 rounded-lg border text-xs ${
-                        isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.12)] text-[#F2F0EA]' : 'bg-white border-slate-200'
+                        isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[rgba(255,255,255,0.12)] text-[#F2F0EA]' : 'bg-white border-slate-200'
                       }`}
                     />
                     <button
@@ -1590,7 +1590,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
 
             {/* Simulation Results Output */}
             <div className={`p-6 rounded-3xl border space-y-4 lg:col-span-2 ${
-              isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+              isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
             }`}>
               <h3 className="text-sm font-bold uppercase tracking-wider font-mono text-slate-300">
                 Projected Transition Feasibility
@@ -1599,26 +1599,26 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
               {scenarioResult ? (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                    <div className={`p-3.5 rounded-2xl border ${isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]' : 'bg-slate-50 border-slate-200'}`}>
+                    <div className={`p-3.5 rounded-2xl border ${isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.06))]' : 'bg-slate-50 border-slate-200'}`}>
                       <span className="text-[10px] font-mono text-slate-400 block font-bold">PROJECTED ALIGNMENT</span>
                       <strong className="text-xl font-mono text-emerald-400">{scenarioResult.projectedSkillAlignment}%</strong>
                     </div>
-                    <div className={`p-3.5 rounded-2xl border ${isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]' : 'bg-slate-50 border-slate-200'}`}>
+                    <div className={`p-3.5 rounded-2xl border ${isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.06))]' : 'bg-slate-50 border-slate-200'}`}>
                       <span className="text-[10px] font-mono text-slate-400 block font-bold">ESTIMATED PREP</span>
                       <strong className="text-xl font-mono text-amber-400">{scenarioResult.projectedTransitionMonths} Mo.</strong>
                     </div>
-                    <div className={`p-3.5 rounded-2xl border ${isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]' : 'bg-slate-50 border-slate-200'}`}>
+                    <div className={`p-3.5 rounded-2xl border ${isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.06))]' : 'bg-slate-50 border-slate-200'}`}>
                       <span className="text-[10px] font-mono text-slate-400 block font-bold">MARKET VACANCIES</span>
                       <strong className="text-xl font-mono text-indigo-400">{scenarioResult.marketOpportunityCount}</strong>
                     </div>
-                    <div className={`p-3.5 rounded-2xl border ${isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]' : 'bg-slate-50 border-slate-200'}`}>
+                    <div className={`p-3.5 rounded-2xl border ${isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.06))]' : 'bg-slate-50 border-slate-200'}`}>
                       <span className="text-[10px] font-mono text-slate-400 block font-bold">OVERALL SCORE</span>
                       <strong className="text-xl font-mono text-emerald-400">{scenarioResult.overallScenarioFeasibilityScore}/100</strong>
                     </div>
                   </div>
 
                   <div className={`p-4 rounded-2xl border text-xs space-y-1.5 ${
-                    isBlack ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]' : 'bg-slate-50 border-slate-200'
+                    isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border-[var(--be-border-subtle,rgba(255,255,255,0.06))]' : 'bg-slate-50 border-slate-200'
                   }`}>
                     <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">AI SIMULATION BRIEF</span>
                     <p className="text-slate-300 leading-relaxed">{scenarioResult.explanation}</p>
@@ -1638,7 +1638,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
       {activeTab === 'opportunities' && (
         <div className="space-y-6">
           <div className={`p-6 rounded-3xl border space-y-2 ${
-            isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+            isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
           }`}>
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
               LIVE OPPORTUNITY MAPPING (GCDE INTEGRATION)
@@ -1654,7 +1654,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
               <div
                 key={opp.id}
                 className={`p-6 rounded-3xl border transition-all space-y-3.5 ${
-                  isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+                  isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/60">
@@ -1712,7 +1712,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
       {activeTab === 'progress' && (
         <div className="space-y-6">
           <div className={`p-6 rounded-3xl border space-y-2 ${
-            isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+            isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
           }`}>
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
               PERSISTED CAREER PROGRESS TRACKER
@@ -1728,7 +1728,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
               <div
                 key={evt.id}
                 className={`p-4 rounded-2xl border flex items-start space-x-3.5 ${
-                  isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200'
+                  isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200'
                 }`}
               >
                 <div className="p-2 rounded-xl bg-emerald-500/15 text-emerald-400 shrink-0 mt-0.5">
@@ -1754,7 +1754,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
           ==================================================================== */}
       {activeTab === 'map' && (
         <div className={`p-6 sm:p-8 rounded-3xl border space-y-6 ${
-          isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white border-slate-200 shadow-xs'
+          isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white border-slate-200 shadow-xs'
         }`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/60">
             <div className="space-y-0.5">

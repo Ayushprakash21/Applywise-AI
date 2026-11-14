@@ -17,14 +17,20 @@ export interface PaletteTokens {
   bgElevated: string;
   bgInput?: string;
   borderSubtle: string;
+  borderDefault?: string;
+  borderStrong?: string;
   borderFocus: string;
   textPrimary: string;
   textSecondary: string;
   textMuted: string;
+  textDisabled?: string;
+  textHeading?: string;
+  textInverse?: string;
   accent: string;
   accentLight: string;
   accentMuted: string;
   accentContrast: string;
+  accentHover?: string;
   hoverBg?: string;
   navActiveBg?: string;
   navActiveBorder?: string;
@@ -35,6 +41,10 @@ export interface PaletteTokens {
   statusSuccess?: string;
   statusWarning?: string;
   statusError?: string;
+  statusInfo?: string;
+  shadowCard?: string;
+  shadowElevated?: string;
+  focusRing?: string;
 }
 
 export interface PaletteMeta {
@@ -146,32 +156,42 @@ export const BLACK_ELITE_PALETTES: Record<BlackElitePalette, PaletteMeta> = {
       statusError: '#D67575',
     },
     light: {
-      bgPrimary: '#F8F6F2',
-      bgSecondary: '#EFECE5',
-      bgSidebar: '#EDE8DF',
-      bgHeader: '#EDE8DF',
+      bgPrimary: '#F5F3EE',
+      bgSecondary: '#F0EEE8',
+      bgSidebar: '#F0EDE5',
+      bgHeader: '#F5F3EE',
       bgCard: '#FFFFFF',
-      bgElevated: '#FAF8F5',
+      bgElevated: '#FFFFFF',
       bgInput: '#FFFFFF',
-      borderSubtle: 'rgba(180, 140, 75, 0.20)',
-      borderFocus: 'rgba(180, 140, 75, 0.50)',
-      textPrimary: '#1E1B18',
-      textSecondary: '#57524A',
-      textMuted: '#878177',
-      accent: '#A07C3E',
-      accentLight: '#85642B',
-      accentMuted: 'rgba(160, 124, 62, 0.12)',
+      borderSubtle: '#DEDAD0',
+      borderDefault: '#DEDAD0',
+      borderStrong: '#C9C3B8',
+      borderFocus: 'rgba(167, 131, 67, 0.45)',
+      textPrimary: '#20242B',
+      textSecondary: '#555C66',
+      textMuted: '#707782',
+      textDisabled: '#9299A3',
+      textHeading: '#191D24',
+      textInverse: '#FFFFFF',
+      accent: '#A78343',
+      accentLight: '#C6A66A',
+      accentHover: '#8C6C35',
+      accentMuted: '#F4EBD9',
       accentContrast: '#FFFFFF',
-      hoverBg: 'rgba(160, 124, 62, 0.06)',
-      navActiveBg: 'rgba(160, 124, 62, 0.10)',
-      navActiveBorder: 'rgba(160, 124, 62, 0.35)',
-      navActiveText: '#A07C3E',
-      chartGrid: 'rgba(160, 124, 62, 0.08)',
-      chartPrimary: '#A07C3E',
-      chartSecondary: '#85642B',
-      statusSuccess: '#16A34A',
-      statusWarning: '#D97706',
-      statusError: '#DC2626',
+      hoverBg: 'rgba(167, 131, 67, 0.08)',
+      navActiveBg: 'rgba(167, 131, 67, 0.12)',
+      navActiveBorder: '#DCC69D',
+      navActiveText: '#A78343',
+      chartGrid: 'rgba(0, 0, 0, 0.06)',
+      chartPrimary: '#A78343',
+      chartSecondary: '#8C6C35',
+      statusSuccess: '#147A58',
+      statusWarning: '#9A6517',
+      statusError: '#B43D43',
+      statusInfo: '#315E9C',
+      shadowCard: '0 2px 12px -2px rgba(15, 23, 42, 0.06)',
+      shadowElevated: '0 8px 24px -4px rgba(15, 23, 42, 0.08)',
+      focusRing: 'rgba(167, 131, 67, 0.25)',
     },
   },
   dusk: {
@@ -409,8 +429,10 @@ export function applyThemeToDOM(
   root.setAttribute('data-theme', 'black');
   root.setAttribute('data-be-palette', palette);
   root.setAttribute('data-be-appearance', appearance);
+  root.setAttribute('data-theme-mode', appearance);
   body.setAttribute('data-be-palette', palette);
   body.setAttribute('data-be-appearance', appearance);
+  body.setAttribute('data-theme-mode', appearance);
 
   root.classList.add('theme-black');
   body.classList.add('theme-black');
@@ -420,6 +442,7 @@ export function applyThemeToDOM(
   const tokens = meta[appearance];
 
   const varMap: Record<string, string> = {
+    // Legacy Black Elite namespace tokens (backward-compatible)
     '--be-bg-primary': tokens.bgPrimary,
     '--be-bg-secondary': tokens.bgSecondary,
     '--be-bg-sidebar': tokens.bgSidebar,
@@ -443,12 +466,49 @@ export function applyThemeToDOM(
     '--be-chart-grid': tokens.chartGrid || (appearance === 'light' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'),
     '--be-chart-primary': tokens.chartPrimary || tokens.accent,
     '--be-chart-secondary': tokens.chartSecondary || tokens.accentLight,
-    '--be-status-success': tokens.statusSuccess || '#35B887',
-    '--be-status-warning': tokens.statusWarning || '#D9AA61',
-    '--be-status-error': tokens.statusError || '#D67575',
+    '--be-status-success': tokens.statusSuccess || '#147A58',
+    '--be-status-warning': tokens.statusWarning || '#9A6517',
+    '--be-status-error': tokens.statusError || '#B43D43',
+    '--be-status-info': tokens.statusInfo || '#315E9C',
     '--be-swatch-1': meta.swatches[0],
     '--be-swatch-2': meta.swatches[1],
     '--be-swatch-3': meta.swatches[2],
+
+    // Global Semantic Token Architecture (Standard Platform Tokens)
+    '--app-bg': tokens.bgPrimary,
+    '--surface-primary': tokens.bgCard,
+    '--surface-secondary': tokens.bgSecondary,
+    '--surface-elevated': tokens.bgElevated,
+    '--surface-input': tokens.bgInput || (appearance === 'light' ? '#FFFFFF' : tokens.bgSecondary),
+    '--surface-overlay': appearance === 'light' ? 'rgba(15, 23, 42, 0.45)' : 'rgba(9, 10, 12, 0.88)',
+    '--surface-sidebar': tokens.bgSidebar,
+    '--surface-header': tokens.bgHeader || tokens.bgSidebar,
+
+    '--text-primary': tokens.textPrimary,
+    '--text-secondary': tokens.textSecondary,
+    '--text-muted': tokens.textMuted,
+    '--text-disabled': tokens.textDisabled || (appearance === 'light' ? '#9299A3' : '#737780'),
+    '--text-heading': tokens.textHeading || tokens.textPrimary,
+    '--text-inverse': tokens.textInverse || (appearance === 'light' ? '#FFFFFF' : '#090A0C'),
+
+    '--border-subtle': tokens.borderSubtle,
+    '--border-default': tokens.borderDefault || tokens.borderSubtle,
+    '--border-strong': tokens.borderStrong || tokens.borderFocus,
+    '--border-focus': tokens.borderFocus,
+
+    '--accent-primary': tokens.accent,
+    '--accent-hover': tokens.accentHover || tokens.accentLight,
+    '--accent-subtle': tokens.accentMuted,
+    '--accent-contrast': tokens.accentContrast,
+
+    '--status-success': tokens.statusSuccess || '#147A58',
+    '--status-warning': tokens.statusWarning || '#9A6517',
+    '--status-danger': tokens.statusError || '#B43D43',
+    '--status-info': tokens.statusInfo || '#315E9C',
+
+    '--shadow-card': tokens.shadowCard || (appearance === 'light' ? '0 2px 12px -2px rgba(15, 23, 42, 0.08)' : '0 4px 20px -2px rgba(0, 0, 0, 0.5)'),
+    '--shadow-elevated': tokens.shadowElevated || (appearance === 'light' ? '0 10px 25px -3px rgba(15, 23, 42, 0.1)' : '0 16px 40px -8px rgba(0, 0, 0, 0.85)'),
+    '--focus-ring': tokens.focusRing || tokens.borderFocus,
   };
 
   Object.entries(varMap).forEach(([k, v]) => {

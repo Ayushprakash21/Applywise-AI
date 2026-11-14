@@ -259,7 +259,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
       {/* 1. Header & Radar Controls */}
       <div className={`p-6 sm:p-8 rounded-3xl border transition-all shadow-sm ${
         isBlack
-          ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA]'
+          ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F2F0EA]'
           : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
       }`}>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -304,7 +304,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 disabled={isRefreshing}
                 className={`be-btn-secondary flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer disabled:opacity-50 ${
                   isBlack
-                    ? 'bg-[#191D23] border border-[rgba(255,255,255,0.12)] text-[#F2F0EA] hover:border-[rgba(198,166,106,0.30)] hover:bg-[#20252D]'
+                    ? 'bg-[var(--be-bg-elevated,#191D23)] border border-[rgba(255,255,255,0.12)] text-[#F2F0EA] hover:border-[rgba(198,166,106,0.30)] hover:bg-[#20252D]'
                     : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
                 }`}
               >
@@ -315,14 +315,14 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
 
             <div className={`flex items-center p-1 rounded-xl text-xs ${
               isBlack
-                ? 'bg-[#0D1014] border border-[rgba(255,255,255,0.09)]'
+                ? 'bg-[#0D1014] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
                 : 'bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700'
             }`}>
               <button
                 onClick={() => setViewMode('dossier')}
                 className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
                   viewMode === 'dossier'
-                    ? isBlack ? 'bg-[#191D23] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                    ? isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
                     : isBlack ? 'text-[#C0BDB5] hover:text-[#F2F0EA]' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -333,7 +333,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 onClick={() => setViewMode('spatial')}
                 className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold transition ${
                   viewMode === 'spatial'
-                    ? isBlack ? 'bg-[#191D23] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                    ? isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
                     : isBlack ? 'text-[#C0BDB5] hover:text-[#F2F0EA]' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -344,7 +344,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 onClick={() => setViewMode('signals')}
                 className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold transition ${
                   viewMode === 'signals'
-                    ? isBlack ? 'bg-[#191D23] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                    ? isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] border border-[rgba(198,166,106,0.30)] shadow-xs' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
                     : isBlack ? 'text-[#C0BDB5] hover:text-[#F2F0EA]' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -438,7 +438,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer ${
                     filterMode === f.id
                       ? isBlack ? 'bg-[#C6A66A] text-[#17130C] shadow-xs font-bold' : 'bg-indigo-600 text-white'
-                      : isBlack ? 'bg-[#191D23] border border-[rgba(255,255,255,0.09)] text-[#C0BDB5] hover:text-[#F2F0EA]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                      : isBlack ? 'bg-[var(--be-bg-elevated,#191D23)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#C0BDB5] hover:text-[#F2F0EA]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                   }`}
                 >
                   {f.label}
@@ -464,7 +464,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
               <div
                 key={sig.id}
                 className={`p-5 rounded-3xl border transition-all flex flex-col justify-between space-y-4 ${
-                  isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.25)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
+                  isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] hover:border-[rgba(198,166,106,0.25)]' : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800'
                 }`}
               >
                 <div className="space-y-2.5">
@@ -542,7 +542,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                     onClick={() => onSelectVacancy(vac)}
                     className={`p-5 sm:p-6 rounded-3xl border transition-all cursor-pointer shadow-2xs ${
                       isBlack
-                        ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA] hover:border-[rgba(198,166,106,0.30)]'
+                        ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F2F0EA] hover:border-[rgba(198,166,106,0.30)]'
                         : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl hover:border-indigo-400/80'
                     }`}
                   >
@@ -619,7 +619,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                                 key={idx}
                                 className={`text-[10px] px-2 py-0.5 rounded font-medium ${
                                   isBlack
-                                    ? 'bg-[#191D23] border border-[rgba(255,255,255,0.09)] text-[#C0BDB5]'
+                                    ? 'bg-[var(--be-bg-elevated,#191D23)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#C0BDB5]'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                                 }`}
                               >
@@ -640,7 +640,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                             isBlack
                               ? isCompared
                                 ? 'bg-[#C6A66A] text-[#17130C]'
-                                : 'bg-[#191D23] border border-[rgba(255,255,255,0.10)] text-[#C0BDB5] hover:border-[rgba(198,166,106,0.30)] hover:text-[#F2F0EA]'
+                                : 'bg-[var(--be-bg-elevated,#191D23)] border border-[rgba(255,255,255,0.10)] text-[#C0BDB5] hover:border-[rgba(198,166,106,0.30)] hover:text-[#F2F0EA]'
                               : isCompared
                               ? 'bg-indigo-600 text-white'
                               : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
@@ -657,7 +657,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                             isBlack
                               ? isSaved
                                 ? 'bg-[#D9AA61] text-[#17130C]'
-                                : 'bg-[#191D23] border border-[rgba(255,255,255,0.10)] text-[#C0BDB5] hover:border-[rgba(198,166,106,0.30)] hover:text-[#F2F0EA]'
+                                : 'bg-[var(--be-bg-elevated,#191D23)] border border-[rgba(255,255,255,0.10)] text-[#C0BDB5] hover:border-[rgba(198,166,106,0.30)] hover:text-[#F2F0EA]'
                               : isSaved
                               ? 'bg-amber-400 text-black'
                               : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
@@ -672,7 +672,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                           aria-label="Dismiss opening"
                           className={`p-2 rounded-xl text-xs transition cursor-pointer ${
                             isBlack
-                              ? 'bg-[#191D23] border border-[rgba(255,255,255,0.10)] text-[#92949A] hover:text-[#D67575] hover:border-[rgba(214,117,117,0.30)]'
+                              ? 'bg-[var(--be-bg-elevated,#191D23)] border border-[rgba(255,255,255,0.10)] text-[#92949A] hover:text-[#D67575] hover:border-[rgba(214,117,117,0.30)]'
                               : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-red-500 hover:bg-slate-200'
                           }`}
                         >
@@ -706,7 +706,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                             onClick={e => e.stopPropagation()}
                             className={`px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-1 cursor-pointer ${
                               isBlack
-                                ? 'bg-[#191D23] hover:bg-[#C6A66A] text-[#C6A66A] hover:text-[#17130C] border border-[rgba(198,166,106,0.25)]'
+                                ? 'bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#C6A66A] text-[#C6A66A] hover:text-[#17130C] border border-[rgba(198,166,106,0.25)]'
                                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                             }`}
                             title="Apply directly on employer site"
@@ -786,7 +786,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
             <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-[#15181E] border border-[rgba(198,166,106,0.30)] p-6 space-y-5 shadow-2xl text-[#F2F0EA]">
               {/* Header */}
-              <div className="flex items-start justify-between border-b border-[rgba(255,255,255,0.09)] pb-4">
+              <div className="flex items-start justify-between border-b border-[var(--be-border-subtle,rgba(255,255,255,0.09))] pb-4">
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
                     <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[rgba(198,166,106,0.15)] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]">
@@ -811,7 +811,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
               </div>
 
               {/* Overall Score Highlight */}
-              <div className="p-4 rounded-2xl bg-[#0D1014] border border-[rgba(255,255,255,0.09)] flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-[#0D1014] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] flex items-center justify-between">
                 <div className="space-y-0.5 max-w-md">
                   <div className="text-[10px] font-mono font-bold text-[#92949A] uppercase">Overall Match Alignment</div>
                   <div className="text-xs text-[#C0BDB5] leading-relaxed">{breakdown.recommendationReason}</div>
@@ -828,7 +828,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 </h4>
 
                 {/* Dim 1: Core Skills */}
-                <div className="p-3.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.06)] space-y-2">
+                <div className="p-3.5 rounded-xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(255,255,255,0.06)] space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-[#F2F0EA]">1. Core Skills Match ({breakdown.dimensions.coreSkills.weight})</span>
                     <span className="font-mono font-bold text-[#C6A66A]">{breakdown.dimensions.coreSkills.score} / {breakdown.dimensions.coreSkills.maxScore}</span>
@@ -848,7 +848,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                     <div className="flex flex-wrap items-center gap-1.5 pt-1">
                       <span className="text-[10px] text-[#92949A]">Missing:</span>
                       {breakdown.dimensions.coreSkills.missingSkills.slice(0, 4).map((sk, idx) => (
-                        <span key={idx} className="px-2 py-0.5 rounded text-[10px] font-medium bg-[#191D23] text-[#D9AA61] border border-[rgba(217,170,97,0.25)]">
+                        <span key={idx} className="px-2 py-0.5 rounded text-[10px] font-medium bg-[var(--be-bg-elevated,#191D23)] text-[#D9AA61] border border-[rgba(217,170,97,0.25)]">
                           {sk}
                         </span>
                       ))}
@@ -857,7 +857,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 </div>
 
                 {/* Dim 2: Experience */}
-                <div className="p-3.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.06)] space-y-1">
+                <div className="p-3.5 rounded-xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(255,255,255,0.06)] space-y-1">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-[#F2F0EA]">2. Experience Level & Seniority ({breakdown.dimensions.experience.weight})</span>
                     <span className="font-mono font-bold text-[#C6A66A]">{breakdown.dimensions.experience.score} / {breakdown.dimensions.experience.maxScore}</span>
@@ -866,7 +866,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 </div>
 
                 {/* Dim 3: Role Alignment */}
-                <div className="p-3.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.06)] space-y-1">
+                <div className="p-3.5 rounded-xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(255,255,255,0.06)] space-y-1">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-[#F2F0EA]">3. Role & Title Alignment ({breakdown.dimensions.roleAlignment.weight})</span>
                     <span className="font-mono font-bold text-[#C6A66A]">{breakdown.dimensions.roleAlignment.score} / {breakdown.dimensions.roleAlignment.maxScore}</span>
@@ -875,7 +875,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 </div>
 
                 {/* Dim 4: Mandatory Qualifications */}
-                <div className="p-3.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.06)] space-y-1">
+                <div className="p-3.5 rounded-xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(255,255,255,0.06)] space-y-1">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-[#F2F0EA]">4. Mandatory Qualifications Gate ({breakdown.dimensions.mandatoryQualifications.weight})</span>
                     <span className={`font-mono font-bold ${breakdown.dimensions.mandatoryQualifications.hasMandatoryGaps ? 'text-[#D67575]' : 'text-[#35B887]'}`}>
@@ -886,7 +886,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 </div>
 
                 {/* Dim 5: Geo & Work Mode */}
-                <div className="p-3.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.06)] space-y-1">
+                <div className="p-3.5 rounded-xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(255,255,255,0.06)] space-y-1">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-[#F2F0EA]">5. Geographic & Work Mode Compatibility ({breakdown.dimensions.geoAndWorkMode.weight})</span>
                     <span className="font-mono font-bold text-[#C6A66A]">{breakdown.dimensions.geoAndWorkMode.score} / {breakdown.dimensions.geoAndWorkMode.maxScore}</span>
@@ -895,7 +895,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 </div>
 
                 {/* Dim 6: Candidate Preferences */}
-                <div className="p-3.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.06)] space-y-1">
+                <div className="p-3.5 rounded-xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(255,255,255,0.06)] space-y-1">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-[#F2F0EA]">6. Candidate Preferences Alignment ({breakdown.dimensions.candidatePreferences.weight})</span>
                     <span className="font-mono font-bold text-[#C6A66A]">{breakdown.dimensions.candidatePreferences.score} / {breakdown.dimensions.candidatePreferences.maxScore}</span>
@@ -905,7 +905,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
               </div>
 
               {/* Footer Actions */}
-              <div className="pt-2 flex items-center justify-between border-t border-[rgba(255,255,255,0.09)]">
+              <div className="pt-2 flex items-center justify-between border-t border-[var(--be-border-subtle,rgba(255,255,255,0.09))]">
                 <span className="text-[10px] font-mono text-[#92949A]">
                   Zero Score Fabrication · Evaluated {new Date(breakdown.evaluatedAt).toLocaleDateString()}
                 </span>
@@ -916,7 +916,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                       href={selectedBreakdownVacancy.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3.5 py-2 rounded-xl bg-[#191D23] border border-[rgba(198,166,106,0.30)] text-xs font-semibold text-[#C6A66A] hover:bg-[#C6A66A] hover:text-[#17130C] transition flex items-center space-x-1.5"
+                      className="px-3.5 py-2 rounded-xl bg-[var(--be-bg-elevated,#191D23)] border border-[rgba(198,166,106,0.30)] text-xs font-semibold text-[#C6A66A] hover:bg-[#C6A66A] hover:text-[#17130C] transition flex items-center space-x-1.5"
                     >
                       <span>Apply on Site</span>
                       <ExternalLink className="w-3.5 h-3.5" />

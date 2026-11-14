@@ -141,7 +141,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
       {/* 1. Header & Executive Greeting */}
       <div className={`p-6 sm:p-8 rounded-3xl border transition-all shadow-sm ${
         isBlack
-          ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA]'
+          ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F2F0EA]'
           : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
       }`}>
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -167,7 +167,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
           {/* Profile Completion Badge */}
           <div className={`p-4 rounded-2xl border flex items-center space-x-4 min-w-[240px] ${
             isBlack
-              ? 'bg-[#0D0F12] border-[rgba(255,255,255,0.08)]'
+              ? 'bg-[#0D0F12] border-[var(--be-border-subtle,rgba(255,255,255,0.08))]'
               : 'bg-slate-50/80 dark:bg-slate-950/60 border-slate-200/80 dark:border-slate-800'
           }`}>
             <div className="relative flex items-center justify-center">
@@ -215,7 +215,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
       {/* 2. Personalized Career Brief */}
       <div className={`p-6 sm:p-7 rounded-3xl border ${
         isBlack
-          ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA]'
+          ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F2F0EA]'
           : 'bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-white backdrop-blur-xl'
       }`}>
         <div className="flex items-center justify-between pb-4 border-b border-slate-200/60 dark:border-slate-800/80">
@@ -303,7 +303,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
         <div
           onClick={() => onNavigateTab('control')}
           className={`p-5 rounded-2xl border transition-all cursor-pointer hover:border-indigo-400 ${
-            isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.3)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
+            isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] hover:border-[rgba(198,166,106,0.3)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between text-slate-400 text-xs">
@@ -319,7 +319,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
         <div
           onClick={() => onNavigateTab('control')}
           className={`p-5 rounded-2xl border transition-all cursor-pointer hover:border-indigo-400 ${
-            isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.3)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
+            isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] hover:border-[rgba(198,166,106,0.3)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between text-slate-400 text-xs">
@@ -335,7 +335,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
         <div
           onClick={() => onNavigateTab('interview_studio')}
           className={`p-5 rounded-2xl border transition-all cursor-pointer hover:border-indigo-400 ${
-            isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.3)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
+            isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] hover:border-[rgba(198,166,106,0.3)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between text-slate-400 text-xs">
@@ -351,7 +351,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
         <div
           onClick={() => onNavigateTab('control')}
           className={`p-5 rounded-2xl border transition-all cursor-pointer hover:border-indigo-400 ${
-            isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.3)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
+            isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] hover:border-[rgba(198,166,106,0.3)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
           }`}
         >
           <div className="flex items-center justify-between text-slate-400 text-xs">
@@ -369,7 +369,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Priority Actions */}
         <div className={`lg:col-span-1 p-6 rounded-3xl border space-y-4 ${
-          isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
+          isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
         }`}>
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">
@@ -422,7 +422,7 @@ export const CareerDesk: React.FC<CareerDeskProps> = ({
 
         {/* High-Alignment Opportunities */}
         <div className={`lg:col-span-2 p-6 rounded-3xl border space-y-4 ${
-          isBlack ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
+          isBlack ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'bg-white/70 dark:bg-slate-900/70 border-white/80 dark:border-slate-800'
         }`}>
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">

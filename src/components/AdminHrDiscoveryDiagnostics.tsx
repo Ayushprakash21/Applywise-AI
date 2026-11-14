@@ -110,7 +110,7 @@ export const AdminHrDiscoveryDiagnostics: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header & Operational Controls */}
-      <div className="p-5 rounded-2xl bg-[#14171C] border border-[rgba(198,166,106,0.30)] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="p-5 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(198,166,106,0.30)] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2.5">
             <div className="p-2 rounded-xl bg-[rgba(198,166,106,0.15)] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]">
@@ -138,7 +138,7 @@ export const AdminHrDiscoveryDiagnostics: React.FC = () => {
             type="button"
             disabled={busyAction !== null}
             onClick={handleRetryFailed}
-            className="px-3 py-2 rounded-xl bg-[#191D23] border border-[rgba(255,255,255,0.12)] text-[#F2F0EA] text-xs font-semibold flex items-center space-x-1.5 hover:border-[#C6A66A] disabled:opacity-50 cursor-pointer"
+            className="px-3 py-2 rounded-xl bg-[var(--be-bg-elevated,#191D23)] border border-[rgba(255,255,255,0.12)] text-[#F2F0EA] text-xs font-semibold flex items-center space-x-1.5 hover:border-[#C6A66A] disabled:opacity-50 cursor-pointer"
           >
             <RotateCcw className="h-3.5 w-3.5 text-amber-400" />
             <span>{busyAction === 'retry' ? 'Retrying...' : 'Retry Failed'}</span>
@@ -147,7 +147,7 @@ export const AdminHrDiscoveryDiagnostics: React.FC = () => {
             type="button"
             disabled={busyAction !== null}
             onClick={handleRevalidateStale}
-            className="px-3 py-2 rounded-xl bg-[#191D23] border border-[rgba(255,255,255,0.12)] text-[#F2F0EA] text-xs font-semibold flex items-center space-x-1.5 hover:border-[#C6A66A] disabled:opacity-50 cursor-pointer"
+            className="px-3 py-2 rounded-xl bg-[var(--be-bg-elevated,#191D23)] border border-[rgba(255,255,255,0.12)] text-[#F2F0EA] text-xs font-semibold flex items-center space-x-1.5 hover:border-[#C6A66A] disabled:opacity-50 cursor-pointer"
           >
             <CheckCircle2 className="h-3.5 w-3.5 text-[#35B887]" />
             <span>{busyAction === 'revalidate' ? 'Checking...' : 'Revalidate Stale'}</span>
@@ -195,7 +195,7 @@ export const AdminHrDiscoveryDiagnostics: React.FC = () => {
             sub: `${totals?.staleContacts ?? 0} stale, ${totals?.invalidOrFailedContacts ?? 0} invalid/failed`,
           },
         ].map((card) => (
-          <div key={card.label} className="p-3.5 rounded-xl bg-[#14171C] border border-[rgba(255,255,255,0.08)]">
+          <div key={card.label} className="p-3.5 rounded-xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(255,255,255,0.08)]">
             <div className="text-[11px] font-medium text-[#92949A]">{card.label}</div>
             <div className="text-xl font-bold text-[#F2F0EA] mt-1 font-mono">{card.value}</div>
             <div className="text-[10px] text-[#92949A] mt-0.5">{card.sub}</div>
@@ -204,7 +204,7 @@ export const AdminHrDiscoveryDiagnostics: React.FC = () => {
       </div>
 
       {/* Queue State Breakdown */}
-      <div className="p-4 rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.08)] space-y-3">
+      <div className="p-4 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(255,255,255,0.08)] space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-[#F2F0EA] flex items-center space-x-2">
             <Database className="h-4 w-4 text-[#C6A66A]" />
@@ -235,7 +235,7 @@ export const AdminHrDiscoveryDiagnostics: React.FC = () => {
       </div>
 
       {/* Source Breakdown Table */}
-      <div className="rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.08)] overflow-hidden">
+      <div className="rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(255,255,255,0.08)] overflow-hidden">
         <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between">
           <h2 className="text-sm font-bold text-[#F2F0EA]">Extraction Yield by GCDE Source</h2>
           <span className="text-[11px] text-[#92949A]">{diagnostics?.sourceBreakdown.length ?? 0} queued sources</span>
@@ -253,7 +253,7 @@ export const AdminHrDiscoveryDiagnostics: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
               {(diagnostics?.sourceBreakdown || []).map((row) => (
-                <tr key={row.source} className="hover:bg-[#191D23]">
+                <tr key={row.source} className="hover:bg-[var(--be-bg-elevated,#191D23)]">
                   <td className="px-4 py-2.5 font-mono text-[#F2F0EA]">{row.source}</td>
                   <td className="px-4 py-2.5 font-mono text-[#C0BDB5]">{row.totalQueued}</td>
                   <td className="px-4 py-2.5 font-mono text-[#35B887] font-bold">{row.contactsFound}</td>
@@ -274,7 +274,7 @@ export const AdminHrDiscoveryDiagnostics: React.FC = () => {
       </div>
 
       {/* Recent Runs */}
-      <div className="rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.08)] overflow-hidden">
+      <div className="rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(255,255,255,0.08)] overflow-hidden">
         <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.08)] flex items-center space-x-2">
           <Activity className="h-4 w-4 text-[#C6A66A]" />
           <h2 className="text-sm font-bold text-[#F2F0EA]">Recent Extraction Runs</h2>
@@ -294,11 +294,11 @@ export const AdminHrDiscoveryDiagnostics: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
               {(diagnostics?.recentRuns || []).map((run) => (
-                <tr key={run.id} className="hover:bg-[#191D23]">
+                <tr key={run.id} className="hover:bg-[var(--be-bg-elevated,#191D23)]">
                   <td className="px-4 py-2.5 text-[#C0BDB5] font-mono">{new Date(run.startedAt).toLocaleString()}</td>
                   <td className="px-4 py-2.5 text-[#C6A66A] font-mono">{run.triggerType}</td>
                   <td className="px-4 py-2.5">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#191D23] border border-white/10 text-[#F2F0EA]">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--be-bg-elevated,#191D23)] border border-white/10 text-[#F2F0EA]">
                       {run.status}
                     </span>
                   </td>
@@ -325,7 +325,7 @@ export const AdminHrDiscoveryDiagnostics: React.FC = () => {
       </div>
 
       {/* Failing & Dead-Letter Records */}
-      <div className="rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.08)] overflow-hidden">
+      <div className="rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(255,255,255,0.08)] overflow-hidden">
         <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between">
           <h2 className="text-sm font-bold text-[#F2F0EA] flex items-center space-x-2">
             <XCircle className="h-4 w-4 text-rose-400" />
@@ -347,7 +347,7 @@ export const AdminHrDiscoveryDiagnostics: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
               {(diagnostics?.failingRecords || []).map((rec) => (
-                <tr key={rec.id} className="hover:bg-[#191D23]">
+                <tr key={rec.id} className="hover:bg-[var(--be-bg-elevated,#191D23)]">
                   <td className="px-4 py-2.5 font-semibold text-[#F2F0EA]">{rec.companyName}</td>
                   <td className="px-4 py-2.5 font-mono text-[#92949A]">{rec.source}</td>
                   <td className="px-4 py-2.5 font-mono text-rose-300">{rec.status}</td>
@@ -365,7 +365,7 @@ export const AdminHrDiscoveryDiagnostics: React.FC = () => {
                       type="button"
                       disabled={busyAction !== null}
                       onClick={() => handleReprocessJob(rec.jobId)}
-                      className="px-2 py-1 rounded-lg bg-[#191D23] border border-white/15 text-[11px] text-[#F2F0EA] hover:border-[#35B887] cursor-pointer disabled:opacity-50"
+                      className="px-2 py-1 rounded-lg bg-[var(--be-bg-elevated,#191D23)] border border-white/15 text-[11px] text-[#F2F0EA] hover:border-[#35B887] cursor-pointer disabled:opacity-50"
                     >
                       {busyAction === `reprocess:${rec.jobId}` ? 'Running...' : 'Reprocess'}
                     </button>
@@ -387,7 +387,7 @@ export const AdminHrDiscoveryDiagnostics: React.FC = () => {
       {/* Diagnostic Inspector Modal */}
       {inspectedItem && (
         <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-[#14171C] border border-[rgba(198,166,106,0.40)] p-5 space-y-3">
+          <div className="w-full max-w-lg rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(198,166,106,0.40)] p-5 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-[#F2F0EA]">Queue Diagnostic Inspector</h3>
               <button

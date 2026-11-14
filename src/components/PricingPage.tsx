@@ -161,7 +161,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
     }`}>
       {/* Top Header */}
       <header className={`sticky top-0 z-40 backdrop-blur-md border-b transition-colors ${
-        isBlack ? 'bg-[#101216]/90 border-[rgba(255,255,255,0.09)] text-[#F0EEE9]' : 'bg-white/80 border-slate-200/70 text-slate-800'
+        isBlack ? 'bg-[#101216]/90 border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F0EEE9]' : 'bg-white/80 border-slate-200/70 text-slate-800'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <BrandLogo size="md" variant={isBlack ? 'dark' : 'light'} onClick={onNavigateHome} />
@@ -243,11 +243,11 @@ export const PricingPage: React.FC<PricingPageProps> = ({
         {currentUser && (
           <div className={`max-w-2xl mx-auto p-5 rounded-2xl border shadow-sm text-left space-y-3 ${
             isBlack
-              ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)] text-[#F0EEE9]'
+              ? 'bg-[#13161B] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F0EEE9]'
               : 'bg-white border border-slate-200/90 text-slate-800'
           }`}>
             <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b ${
-              isBlack ? 'border-[rgba(255,255,255,0.09)]' : 'border-slate-100'
+              isBlack ? 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'border-slate-100'
             }`}>
               <div>
                 <span className={`text-[10px] font-bold uppercase tracking-wider block ${
@@ -275,7 +275,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                         ? 'bg-[rgba(117,169,214,0.18)] text-[#75A9D6] border border-[rgba(117,169,214,0.30)]'
                         : 'bg-blue-50 text-blue-700 border border-blue-200'
                       : isBlack
-                      ? 'bg-[#191D23] text-[#B7B4AD] border border-[rgba(255,255,255,0.08)]'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#B7B4AD] border border-[var(--be-border-subtle,rgba(255,255,255,0.08))]'
                       : 'bg-slate-100 text-slate-700'
                   }`}>
                     {subDetails?.status === 'expired' ? 'Expired' : (subDetails?.status || 'Active')}
@@ -359,7 +359,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           {/* Monthly / Annual Toggle */}
           <div className={`inline-flex p-1 rounded-2xl border ${
             isBlack
-              ? 'bg-[#0B0D10] border-[rgba(255,255,255,0.09)]'
+              ? 'bg-[#0B0D10] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
               : 'bg-slate-100 border-slate-200'
           }`}>
             <button
@@ -367,7 +367,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
               className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
                 billingInterval === 'monthly'
                   ? isBlack
-                    ? 'bg-[#191D23] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
+                    ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
                     : 'bg-white text-slate-900 shadow-xs'
                   : isBlack
                   ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
@@ -381,7 +381,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
               className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-1.5 cursor-pointer ${
                 billingInterval === 'annual'
                   ? isBlack
-                    ? 'bg-[#191D23] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
+                    ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
                     : 'bg-white text-slate-900 shadow-xs'
                   : isBlack
                   ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
@@ -402,7 +402,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           {/* Currency Toggle */}
           <div className={`inline-flex p-1 rounded-2xl border text-xs font-semibold ${
             isBlack
-              ? 'bg-[#0B0D10] border-[rgba(255,255,255,0.09)]'
+              ? 'bg-[#0B0D10] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
               : 'bg-slate-100 border-slate-200'
           }`}>
             <button
@@ -410,7 +410,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
               className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
                 currency === 'INR'
                   ? isBlack
-                    ? 'bg-[#191D23] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
+                    ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
                     : 'bg-white text-slate-900 shadow-xs'
                   : isBlack
                   ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
@@ -424,7 +424,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
               className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
                 currency === 'USD'
                   ? isBlack
-                    ? 'bg-[#191D23] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
+                    ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
                     : 'bg-white text-slate-900 shadow-xs'
                   : isBlack
                   ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
@@ -483,7 +483,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           {/* 1. Free Plan Card */}
           <div className={`p-6 sm:p-8 rounded-3xl border shadow-sm flex flex-col justify-between space-y-6 ${
             isBlack
-              ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)]'
+              ? 'bg-[#13161B] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
               : `bg-white border ${currentPlanId === 'free' ? 'border-blue-400 ring-2 ring-blue-100' : 'border-slate-200/80'}`
           }`}>
             <div className="space-y-4">
@@ -499,7 +499,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                 {currentPlanId === 'free' && currentUser && !isFreeAccess && (
                   <span className={`text-[10px] uppercase font-mono font-bold px-2 py-0.5 rounded-full border ${
                     isBlack
-                      ? 'bg-[#191D23] text-[#B7B4AD] border-[rgba(255,255,255,0.09)]'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#B7B4AD] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
                       : 'bg-slate-100 text-slate-700 border-slate-200'
                   }`}>
                     Current Plan
@@ -518,7 +518,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                 {SUBSCRIPTION_PLANS.free.description}
               </p>
 
-              <div className={`border-t pt-4 space-y-2.5 ${isBlack ? 'border-[rgba(255,255,255,0.09)]' : 'border-slate-100'}`}>
+              <div className={`border-t pt-4 space-y-2.5 ${isBlack ? 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'border-slate-100'}`}>
                 <span className={`text-xs font-bold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'}`}>Included in Free:</span>
                 <ul className={`space-y-2 text-xs ${isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'}`}>
                   {SUBSCRIPTION_PLANS.free.features.map(f => (
@@ -537,10 +537,10 @@ export const PricingPage: React.FC<PricingPageProps> = ({
               className={`w-full py-3 min-h-[44px] rounded-xl text-xs font-semibold transition touch-target cursor-pointer border ${
                 currentPlanId === 'free' && currentUser
                   ? isBlack
-                    ? 'bg-[#191D23] text-[#858781] border-[rgba(255,255,255,0.08)] cursor-default'
+                    ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#858781] border-[var(--be-border-subtle,rgba(255,255,255,0.08))] cursor-default'
                     : 'bg-slate-100 text-slate-400 border-transparent cursor-default'
                   : isBlack
-                  ? 'bg-[#191D23] hover:bg-[#20252D] text-[#F0EEE9] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs'
+                  ? 'bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#20252D] text-[#F0EEE9] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs'
                   : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs'
               }`}
             >
@@ -591,7 +591,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                 {SUBSCRIPTION_PLANS.pro.description}
               </p>
 
-              <div className={`border-t pt-4 space-y-2.5 ${isBlack ? 'border-[rgba(255,255,255,0.09)]' : 'border-blue-100'}`}>
+              <div className={`border-t pt-4 space-y-2.5 ${isBlack ? 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'border-blue-100'}`}>
                 <span className={`text-xs font-bold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'}`}>
                   Everything in Free, plus:
                 </span>
@@ -616,7 +616,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                     : 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white border-transparent cursor-default'
                   : currentPlanId === 'pro' && currentUser
                   ? isBlack
-                    ? 'bg-[#191D23] text-[#75A9D6] border-[rgba(117,169,214,0.35)] cursor-default'
+                    ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#75A9D6] border-[rgba(117,169,214,0.35)] cursor-default'
                     : 'bg-blue-600 text-white border-transparent cursor-default'
                   : isBlack
                   ? 'bg-[#C6A66A] hover:bg-[#E2C58A] text-[#08090B] font-bold border-[rgba(198,166,106,0.30)] shadow-xs'
@@ -789,14 +789,14 @@ export const PricingPage: React.FC<PricingPageProps> = ({
 
           <div className={`rounded-3xl border overflow-hidden shadow-xs ${
             isBlack
-              ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)]'
+              ? 'bg-[#13161B] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
               : 'bg-white border-slate-200'
           }`}>
             <div className="overflow-x-auto overflow-touch">
               <table className="w-full text-left text-xs min-w-[700px]">
                 <thead className={`border-b font-bold ${
                   isBlack
-                    ? 'bg-[#0B0D10] border-[rgba(255,255,255,0.09)] text-[#F0EEE9]'
+                    ? 'bg-[#0B0D10] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F0EEE9]'
                     : 'bg-slate-50/80 border-slate-200 text-slate-600'
                 }`}>
                   <tr>
@@ -827,7 +827,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                       key={feat.name}
                       className={`transition ${
                         isBlack
-                          ? feat.isBlackExclusive ? 'bg-[rgba(198,166,106,0.05)] hover:bg-[#191D23]/60' : 'hover:bg-[#191D23]/50'
+                          ? feat.isBlackExclusive ? 'bg-[rgba(198,166,106,0.05)] hover:bg-[var(--be-bg-elevated,#191D23)]/60' : 'hover:bg-[var(--be-bg-elevated,#191D23)]/50'
                           : feat.isBlackExclusive ? 'bg-amber-50/15 hover:bg-slate-50/60' : 'hover:bg-slate-50/60'
                       }`}
                     >
@@ -896,7 +896,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           <div className="space-y-4 text-xs">
             <div className={`p-5 rounded-2xl border space-y-1.5 shadow-2xs ${
               isBlack
-                ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)]'
+                ? 'bg-[#13161B] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
                 : 'bg-white border-slate-200'
             }`}>
               <h4 className={`font-bold text-sm flex items-center gap-2 ${
@@ -913,7 +913,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             </div>
             <div className={`p-5 rounded-2xl border space-y-1.5 shadow-2xs ${
               isBlack
-                ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)]'
+                ? 'bg-[#13161B] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
                 : 'bg-white border-slate-200'
             }`}>
               <h4 className={`font-bold text-sm ${
@@ -929,7 +929,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             </div>
             <div className={`p-5 rounded-2xl border space-y-1.5 shadow-2xs ${
               isBlack
-                ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)]'
+                ? 'bg-[#13161B] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
                 : 'bg-white border-slate-200'
             }`}>
               <h4 className={`font-bold text-sm ${
@@ -945,7 +945,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             </div>
             <div className={`p-5 rounded-2xl border space-y-1.5 shadow-2xs ${
               isBlack
-                ? 'bg-[#13161B] border-[rgba(255,255,255,0.09)]'
+                ? 'bg-[#13161B] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
                 : 'bg-white border-slate-200'
             }`}>
               <h4 className={`font-bold text-sm ${

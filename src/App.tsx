@@ -42,6 +42,7 @@ import { GlobalFooter } from './components/GlobalFooter.tsx';
 import { InterviewStudio } from './components/InterviewStudio.tsx';
 import { RecruiterReview } from './components/RecruiterReview.tsx';
 import { CareerAtlas } from './components/CareerAtlas.tsx';
+import { initBlackEliteTheme } from './utils/blackEliteTheme.ts';
 
 // Code-split heavy routes and administrative modules for production performance
 const AdminConsole = React.lazy(() => import('./components/AdminConsole.tsx').then(m => ({ default: m.AdminConsole })));
@@ -160,6 +161,7 @@ export default function App() {
       root.classList.remove('theme-black');
       body.classList.remove('theme-black');
     }
+    initBlackEliteTheme(isBlackSubscriber ? 'black' : 'free');
   }, [isBlackSubscriber]);
 
 

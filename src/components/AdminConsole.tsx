@@ -47,6 +47,7 @@ import { TypographySettingsModal } from './TypographySettingsModal.tsx';
 import { GlobalSearchBar } from './GlobalSearchBar.tsx';
 import { getEffectivePlan } from '../config/freeAccess.ts';
 import { FilterSelect, SearchableSelect } from './ui/SelectSystem.tsx';
+import { initBlackEliteTheme } from '../utils/blackEliteTheme.ts';
 
 interface AdminConsoleProps {
   currentUser: AuthUser;
@@ -69,8 +70,12 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
   onLogout,
 }) => {
   const plan = getEffectivePlan(currentUser);
-  // Executive Admin Console is strictly and permanently styled in luxury BLACK ELITE
+  // Executive Admin Console is responsive to curated palette & appearance tokens
   const isBlack = true;
+
+  useEffect(() => {
+    initBlackEliteTheme();
+  }, []);
   const [activeTab, setTabState] = useState<ExtendedAdminTab>(() => {
     if (initialTab) return initialTab;
     if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin/gcde')) {
@@ -299,15 +304,15 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#090A0C] text-[#F2F0EA] flex flex-col font-sans theme-black" data-theme="black">
+    <div className="min-h-screen bg-[var(--be-bg-primary,#090A0C)] text-[var(--be-text-primary,#F2F0EA)] flex flex-col font-sans">
       {/* Top Fixed Admin Navigation Bar */}
-      <header className="sticky top-0 z-50 w-full bg-[#111318] text-[#F2F0EA] border-b border-[rgba(255,255,255,0.09)] shadow-xl backdrop-blur-md">
+      <header className="sticky top-0 z-50 w-full bg-[var(--be-bg-header,#111318)] text-[var(--be-text-primary,#F2F0EA)] border-b border-[var(--be-border-subtle,rgba(255,255,255,0.09))] shadow-xs backdrop-blur-md">
         <div className="max-w-[1720px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3 sm:space-x-4">
             <button
               type="button"
               onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-              className="lg:hidden p-2 rounded-xl text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#191D23] transition cursor-pointer"
+              className="lg:hidden p-2 rounded-xl text-[#92949A] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-elevated,#191D23)] transition cursor-pointer"
               aria-label="Toggle Navigation Drawer"
             >
               {mobileDrawerOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -347,7 +352,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             <button
               type="button"
               onClick={() => setTypographyModalOpen(true)}
-              className="h-8 px-3 rounded-xl bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] text-xs font-semibold border border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
+              className="h-8 px-3 rounded-xl bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] text-xs font-semibold border border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
               title="Configure global typography and font weights"
             >
               <Type className="h-3.5 w-3.5 text-[#C6A66A]" />
@@ -356,7 +361,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
 
             <button
               onClick={onNavigateHome}
-              className="h-8 px-3 rounded-xl bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] text-xs font-semibold border border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
+              className="h-8 px-3 rounded-xl bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] text-xs font-semibold border border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Back to App</span>
@@ -366,7 +371,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               onClick={loadData}
               title="Refresh console data"
               disabled={loading}
-              className="h-8 w-8 rounded-xl bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] border border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs flex items-center justify-center transition disabled:opacity-50 cursor-pointer"
+              className="h-8 w-8 rounded-xl bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] border border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs flex items-center justify-center transition disabled:opacity-50 cursor-pointer"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-[#C6A66A]' : 'text-[#C6A66A]'}`} />
             </button>
@@ -401,7 +406,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
       <div className="flex-1 flex w-full max-w-[1720px] mx-auto relative z-10 min-h-0">
         {/* Left Desktop Sidebar — Frosted Glass Executive Vertical Navigation */}
         <aside
-          className={`hidden lg:flex flex-col border-r border-[rgba(255,255,255,0.08)] bg-[#111318] transition-all duration-300 relative select-none shrink-0 ${
+          className={`hidden lg:flex flex-col border-r border-[var(--be-border-subtle,rgba(255,255,255,0.08))] bg-[var(--be-bg-sidebar,#111318)] transition-all duration-300 relative select-none shrink-0 ${
             sidebarCollapsed ? 'w-20' : 'w-68'
           }`}
         >
@@ -409,7 +414,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
           <button
             type="button"
             onClick={toggleSidebarCollapsed}
-            className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-[#191D23] border border-[rgba(255,255,255,0.14)] text-[#C0BDB5] hover:text-[#F2F0EA] hover:border-[rgba(198,166,106,0.40)] flex items-center justify-center transition shadow-md z-30 cursor-pointer"
+            className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-[var(--be-bg-elevated,#191D23)] border border-[rgba(255,255,255,0.14)] text-[#C0BDB5] hover:text-[#F2F0EA] hover:border-[rgba(198,166,106,0.40)] flex items-center justify-center transition shadow-md z-30 cursor-pointer"
             aria-label={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
             title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
@@ -437,8 +442,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   onClick={() => setActiveTab('overview')}
                   className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
                     activeTab === 'overview'
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)] ring-1 ring-[rgba(198,166,106,0.20)]'
-                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)] ring-1 ring-[rgba(198,166,106,0.20)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-card,#14171C)] border border-transparent'
                   } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
                   title={sidebarCollapsed ? 'Overview & KPIs' : undefined}
                 >
@@ -472,8 +477,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   onClick={() => setActiveTab('sources')}
                   className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
                     activeTab === 'sources'
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.50)] ring-1 ring-[rgba(198,166,106,0.25)]'
-                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.50)] ring-1 ring-[rgba(198,166,106,0.25)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-card,#14171C)] border border-transparent'
                   } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
                   title={sidebarCollapsed ? 'Global Career Discovery Engine' : undefined}
                 >
@@ -486,7 +491,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     <span className={`shrink-0 ml-2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${
                       activeTab === 'sources'
                         ? 'bg-[rgba(198,166,106,0.25)] text-[#C6A66A] border border-[rgba(198,166,106,0.40)]'
-                        : 'bg-[#0D1014] text-[#92949A] border border-[rgba(255,255,255,0.08)]'
+                        : 'bg-[#0D1014] text-[#92949A] border border-[var(--be-border-subtle,rgba(255,255,255,0.08))]'
                     }`}>
                       GCDE
                     </span>
@@ -507,8 +512,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   onClick={() => setActiveTab('hr_discovery')}
                   className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
                     activeTab === 'hr_discovery'
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-card,#14171C)] border border-transparent'
                   } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
                   title={sidebarCollapsed ? 'HR Discovery Diagnostics' : undefined}
                 >
@@ -535,8 +540,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   }}
                   className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
                     activeTab === 'growth_engine'
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-card,#14171C)] border border-transparent'
                   } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
                   title={sidebarCollapsed ? 'Growth Engine' : undefined}
                 >
@@ -548,7 +553,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     <span className={`shrink-0 ml-2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${
                       activeTab === 'growth_engine'
                         ? 'bg-[rgba(198,166,106,0.25)] text-[#C6A66A] border border-[rgba(198,166,106,0.40)]'
-                        : 'bg-[#0D1014] text-[#92949A] border border-[rgba(255,255,255,0.08)]'
+                        : 'bg-[#0D1014] text-[#92949A] border border-[var(--be-border-subtle,rgba(255,255,255,0.08))]'
                     }`}>
                       AI MKTG
                     </span>
@@ -579,8 +584,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   onClick={() => setActiveTab('users')}
                   className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
                     activeTab === 'users'
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-card,#14171C)] border border-transparent'
                   } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
                   title={sidebarCollapsed ? `Users & Roles (${totalUsers})` : undefined}
                 >
@@ -604,8 +609,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   onClick={() => setActiveTab('provisioning')}
                   className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
                     activeTab === 'provisioning'
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-card,#14171C)] border border-transparent'
                   } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
                   title={sidebarCollapsed ? 'User Provisioning' : undefined}
                 >
@@ -629,8 +634,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   onClick={() => setActiveTab('founder')}
                   className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
                     activeTab === 'founder'
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-card,#14171C)] border border-transparent'
                   } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
                   title={sidebarCollapsed ? 'Founder Profile' : undefined}
                 >
@@ -664,8 +669,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   onClick={() => setActiveTab('resumes')}
                   className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
                     activeTab === 'resumes'
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-card,#14171C)] border border-transparent'
                   } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
                   title={sidebarCollapsed ? `Resume Operations (${stats?.totalResumes ?? '...'})` : undefined}
                 >
@@ -689,8 +694,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   onClick={() => setActiveTab('audit')}
                   className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
                     activeTab === 'audit'
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-card,#14171C)] border border-transparent'
                   } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
                   title={sidebarCollapsed ? 'Security & Audit Trail' : undefined}
                 >
@@ -714,8 +719,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   onClick={() => setActiveTab('system')}
                   className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
                     activeTab === 'system'
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-card,#14171C)] border border-transparent'
                   } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
                   title={sidebarCollapsed ? 'System Health & Edge' : undefined}
                 >
@@ -738,8 +743,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   onClick={() => setActiveTab('languages')}
                   className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
                     activeTab === 'languages'
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)] ring-1 ring-[rgba(198,166,106,0.20)]'
-                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)] ring-1 ring-[rgba(198,166,106,0.20)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-card,#14171C)] border border-transparent'
                   } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
                   title={sidebarCollapsed ? 'Language & Localization' : undefined}
                 >
@@ -767,7 +772,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
 
             {/* Drawer Content */}
             <div className="relative w-72 max-w-[85vw] bg-[#111318] border-r border-[rgba(255,255,255,0.12)] p-4 flex flex-col space-y-5 overflow-y-auto z-10 shadow-2xl">
-              <div className="flex items-center justify-between pb-3 border-b border-[rgba(255,255,255,0.08)]">
+              <div className="flex items-center justify-between pb-3 border-b border-[var(--be-border-subtle,rgba(255,255,255,0.08))]">
                 <div className="flex items-center space-x-2">
                   <Shield className="h-4 w-4 text-[#C6A66A]" />
                   <span className="text-xs font-bold uppercase tracking-wider text-[#F2F0EA]">Admin Navigation</span>
@@ -775,7 +780,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                 <button
                   type="button"
                   onClick={() => setMobileDrawerOpen(false)}
-                  className="p-1.5 rounded-lg text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#191D23]"
+                  className="p-1.5 rounded-lg text-[#92949A] hover:text-[#F2F0EA] hover:bg-[var(--be-bg-elevated,#191D23)]"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -817,7 +822,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   <button
                     type="button"
                     onClick={() => { setActiveTab('overview'); setMobileDrawerOpen(false); }}
-                    className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'overview' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                    className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'overview' ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
                   >
                     <Activity className="h-4 w-4" />
                     <span>Overview & KPIs</span>
@@ -830,7 +835,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     <button
                       type="button"
                       onClick={() => { setActiveTab('sources'); setMobileDrawerOpen(false); }}
-                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center justify-between ${activeTab === 'sources' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center justify-between ${activeTab === 'sources' ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
                     >
                       <div className="flex items-center space-x-2">
                         <Globe className="h-4 w-4" />
@@ -841,7 +846,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     <button
                       type="button"
                       onClick={() => { setActiveTab('hr_discovery'); setMobileDrawerOpen(false); }}
-                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'hr_discovery' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'hr_discovery' ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
                     >
                       <Sparkles className="h-4 w-4" />
                       <span>HR Diagnostics</span>
@@ -849,7 +854,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     <button
                       type="button"
                       onClick={() => { setActiveTab('growth_engine'); setMobileDrawerOpen(false); }}
-                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'growth_engine' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'growth_engine' ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
                     >
                       <TrendingUp className="h-4 w-4" />
                       <span>Growth Engine</span>
@@ -863,7 +868,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     <button
                       type="button"
                       onClick={() => { setActiveTab('users'); setMobileDrawerOpen(false); }}
-                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'users' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'users' ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
                     >
                       <Users className="h-4 w-4" />
                       <span>Users & Roles ({totalUsers})</span>
@@ -871,7 +876,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     <button
                       type="button"
                       onClick={() => { setActiveTab('provisioning'); setMobileDrawerOpen(false); }}
-                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'provisioning' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'provisioning' ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
                     >
                       <Award className="h-4 w-4" />
                       <span>User Provisioning</span>
@@ -879,7 +884,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     <button
                       type="button"
                       onClick={() => { setActiveTab('founder'); setMobileDrawerOpen(false); }}
-                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'founder' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'founder' ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
                     >
                       <Sparkles className="h-4 w-4" />
                       <span>Founder Profile</span>
@@ -893,7 +898,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     <button
                       type="button"
                       onClick={() => { setActiveTab('resumes'); setMobileDrawerOpen(false); }}
-                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'resumes' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'resumes' ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
                     >
                       <FileText className="h-4 w-4" />
                       <span>Resume Operations</span>
@@ -901,7 +906,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     <button
                       type="button"
                       onClick={() => { setActiveTab('audit'); setMobileDrawerOpen(false); }}
-                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'audit' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'audit' ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
                     >
                       <Shield className="h-4 w-4" />
                       <span>Security & Audit</span>
@@ -909,7 +914,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     <button
                       type="button"
                       onClick={() => { setActiveTab('system'); setMobileDrawerOpen(false); }}
-                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'system' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'system' ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
                     >
                       <Database className="h-4 w-4" />
                       <span>System Health</span>
@@ -924,13 +929,13 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
         {/* Main Content Viewport */}
         <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 space-y-6 overflow-y-auto">
           {/* Mobile Quick-Switcher Bar (Visible on mobile/tablet viewports) */}
-          <div className="lg:hidden block space-y-2 pb-2 border-b border-[rgba(255,255,255,0.08)]">
+          <div className="lg:hidden block space-y-2 pb-2 border-b border-[var(--be-border-subtle,rgba(255,255,255,0.08))]">
             <div className="flex flex-wrap items-center gap-1.5 text-xs">
               <span className="text-[10px] font-mono text-[#92949A] uppercase tracking-wider">Module:</span>
               <button
                 type="button"
                 onClick={() => setMobileDrawerOpen(true)}
-                className="px-3 py-1.5 rounded-xl bg-[#191D23] text-[#C6A66A] border border-[rgba(198,166,106,0.30)] flex items-center space-x-1.5 text-xs font-semibold cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-[var(--be-bg-elevated,#191D23)] text-[#C6A66A] border border-[rgba(198,166,106,0.30)] flex items-center space-x-1.5 text-xs font-semibold cursor-pointer"
               >
                 <Menu className="h-3.5 w-3.5" />
                 <span>Switch Admin Section</span>
@@ -967,7 +972,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               <div className={`p-5 rounded-2xl space-y-3 transition border ${
                 isBlack
-                  ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA] be-card'
+                  ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F2F0EA] be-card'
                   : 'bg-white border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] text-slate-900'
               }`}>
                 <div className="flex items-center justify-between">
@@ -980,7 +985,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   <span className={`text-3xl font-extrabold ${isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'}`}>{stats?.totalUsers ?? '...'}</span>
                   <span className={`text-xs ${isBlack ? 'text-[#C0BDB5]' : 'text-slate-500'}`}>accounts</span>
                 </div>
-                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[rgba(255,255,255,0.09)] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
+                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
                   <Shield className={`h-3.5 w-3.5 ${isBlack ? 'text-[#C6A66A]' : 'text-indigo-600'}`} />
                   <span><strong>{stats?.totalAdmins ?? 0}</strong> provisioned administrators</span>
                 </div>
@@ -988,7 +993,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
 
               <div className={`p-5 rounded-2xl space-y-3 transition border ${
                 isBlack
-                  ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA] be-card'
+                  ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F2F0EA] be-card'
                   : 'bg-white border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] text-slate-900'
               }`}>
                 <div className="flex items-center justify-between">
@@ -1001,14 +1006,14 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   <span className={`text-3xl font-extrabold ${isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'}`}>{stats?.totalApplications ?? '...'}</span>
                   <span className={`text-xs ${isBlack ? 'text-[#C0BDB5]' : 'text-slate-500'}`}>records</span>
                 </div>
-                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[rgba(255,255,255,0.09)] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
+                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
                   <span>Enforcing 5-application limit on Free tier</span>
                 </div>
               </div>
 
               <div onClick={() => setActiveTab('resumes')} className={`p-5 rounded-2xl space-y-3 cursor-pointer transition border ${
                 isBlack
-                  ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.30)] text-[#F2F0EA] be-card'
+                  ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] hover:border-[rgba(198,166,106,0.30)] text-[#F2F0EA] be-card'
                   : 'bg-white border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] hover:border-violet-300 text-slate-900'
               }`}>
                 <div className="flex items-center justify-between">
@@ -1021,14 +1026,14 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   <span className={`text-3xl font-extrabold ${isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'}`}>{stats?.totalResumes ?? '...'}</span>
                   <span className={`text-xs ${isBlack ? 'text-[#C0BDB5]' : 'text-slate-500'}`}>documents</span>
                 </div>
-                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[rgba(255,255,255,0.09)] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
+                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
                   <span>Enforcing 1-active master limit on Free tier</span>
                 </div>
               </div>
 
               <div className={`p-5 rounded-2xl space-y-3 transition border ${
                 isBlack
-                  ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA] be-card'
+                  ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F2F0EA] be-card'
                   : 'bg-white border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] text-slate-900'
               }`}>
                 <div className="flex items-center justify-between">
@@ -1041,14 +1046,14 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   <span className={`text-3xl font-extrabold ${isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'}`}>{stats?.activeSubscriptions ?? '...'}</span>
                   <span className={`text-xs ${isBlack ? 'text-[#C0BDB5]' : 'text-slate-500'}`}>subscriptions</span>
                 </div>
-                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[rgba(255,255,255,0.09)] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
+                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
                   <span>Plus 2 authorized permanent free-access accounts</span>
                 </div>
               </div>
 
               <div className={`p-5 rounded-2xl space-y-3 transition border ${
                 isBlack
-                  ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA] be-card'
+                  ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F2F0EA] be-card'
                   : 'bg-white border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] text-slate-900'
               }`}>
                 <div className="flex items-center justify-between">
@@ -1061,14 +1066,14 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   <span className={`text-3xl font-extrabold ${isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'}`}>{stats?.totalVacancies ?? '...'}</span>
                   <span className={`text-xs ${isBlack ? 'text-[#C0BDB5]' : 'text-slate-500'}`}>live openings</span>
                 </div>
-                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[rgba(255,255,255,0.09)] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
+                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
                   <span>Syncing every 10 min via Cloudflare Triggers</span>
                 </div>
               </div>
 
               <div className={`p-5 rounded-2xl space-y-3 transition border ${
                 isBlack
-                  ? 'bg-[#14171C] border-[rgba(255,255,255,0.09)] text-[#F2F0EA] be-card'
+                  ? 'bg-[var(--be-bg-card,#14171C)] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F2F0EA] be-card'
                   : 'bg-white border-slate-200/80 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_3px_rgba(0,0,0,0.04)] text-slate-900'
               }`}>
                 <div className="flex items-center justify-between">
@@ -1080,14 +1085,14 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                 <div className="flex items-baseline space-x-2">
                   <span className={`text-lg font-bold ${isBlack ? 'text-[#35B887]' : 'text-emerald-700'}`}>Client Configured</span>
                 </div>
-                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[rgba(255,255,255,0.09)] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
+                <div className={`text-[11px] flex items-center space-x-1 pt-1 border-t ${isBlack ? 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#C0BDB5]' : 'border-slate-100 text-slate-500'}`}>
                   <span>Cryptographic tokeninfo signature verification active</span>
                 </div>
               </div>
             </div>
 
             {/* Quick Actions / Guide */}
-            <div className="p-5 rounded-2xl text-xs space-y-2 border transition bg-[#14171C] border-[rgba(198,166,106,0.30)] text-[#F2F0EA] shadow-xs admin-security-card">
+            <div className="p-5 rounded-2xl text-xs space-y-2 border transition bg-[var(--be-bg-card,#14171C)] border-[rgba(198,166,106,0.30)] text-[#F2F0EA] shadow-xs admin-security-card">
               <div className="font-bold flex items-center space-x-2 text-[#F2F0EA]">
                 <Shield className="h-4 w-4 text-[#C6A66A]" />
                 <span>Administrator Provisioning & Security Architecture</span>
@@ -1124,10 +1129,10 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             </div>
 
             {/* Users Table */}
-            <div className="bg-[#14171C] rounded-2xl border border-[rgba(255,255,255,0.09)] shadow-xs overflow-hidden">
+            <div className="bg-[var(--be-bg-card,#14171C)] rounded-2xl border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-[#C0BDB5]">
-                  <thead className="bg-[#0D1014] border-b border-[rgba(255,255,255,0.09)] text-[11px] font-semibold text-[#92949A] uppercase tracking-wider">
+                  <thead className="bg-[#0D1014] border-b border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[11px] font-semibold text-[#92949A] uppercase tracking-wider">
                     <tr>
                       <th className="px-5 py-3.5">User</th>
                       <th className="px-5 py-3.5">Role</th>
@@ -1146,7 +1151,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                       </tr>
                     ) : (
                       users.map(u => (
-                        <tr key={u.id} className="hover:bg-[#191D23]/60 transition">
+                        <tr key={u.id} className="hover:bg-[var(--be-bg-elevated,#191D23)]/60 transition">
                           <td className="px-5 py-3.5">
                             <div className="font-semibold text-[#F2F0EA]">{u.fullName}</div>
                             <div className="text-[11px] text-[#92949A] font-mono">{u.email}</div>
@@ -1158,7 +1163,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                                 <span>ADMIN</span>
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#191D23] border border-[rgba(255,255,255,0.09)] text-[#C0BDB5] font-medium text-[10px] uppercase">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[var(--be-bg-elevated,#191D23)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#C0BDB5] font-medium text-[10px] uppercase">
                                 User
                               </span>
                             )}
@@ -1169,7 +1174,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                                 ? 'bg-[rgba(198,166,106,0.18)] text-[#C6A66A] border-[rgba(198,166,106,0.35)]'
                                 : u.planId === 'pro'
                                 ? 'bg-[rgba(118,169,216,0.18)] text-[#76A9D8] border-[rgba(118,169,216,0.35)]'
-                                : 'bg-[#191D23] text-[#92949A] border-[rgba(255,255,255,0.09)]'
+                                : 'bg-[var(--be-bg-elevated,#191D23)] text-[#92949A] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
                             }`}>
                               {u.planId || 'free'}
                             </span>
@@ -1194,7 +1199,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xs border transition cursor-pointer ${
                                   u.role === 'admin'
                                     ? 'bg-[rgba(214,117,117,0.15)] text-[#D67575] border-[rgba(214,117,117,0.30)] hover:bg-[rgba(214,117,117,0.25)]'
-                                    : 'bg-[#191D23] text-[#C6A66A] border-[rgba(198,166,106,0.30)] hover:bg-[#20252D]'
+                                    : 'bg-[var(--be-bg-elevated,#191D23)] text-[#C6A66A] border-[rgba(198,166,106,0.30)] hover:bg-[#20252D]'
                                 }`}
                               >
                                 {updatingUserId === u.id ? (
@@ -1247,7 +1252,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             className="space-y-6"
           >
             {/* Executive GCDE Hero Header */}
-            <div className="p-5 rounded-2xl bg-[#14171C] border border-[rgba(198,166,106,0.30)] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+            <div className="p-5 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[rgba(198,166,106,0.30)] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
               <div className="space-y-1">
                 <div className="flex items-center space-x-2.5">
                   <div className="p-2 rounded-xl bg-[rgba(198,166,106,0.15)] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]">
@@ -1315,10 +1320,10 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               </div>
             </div>
 
-            <div className="bg-[#14171C] rounded-2xl border border-[rgba(255,255,255,0.09)] shadow-xs overflow-hidden">
+            <div className="bg-[var(--be-bg-card,#14171C)] rounded-2xl border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-[#C0BDB5]">
-                  <thead className="bg-[#0D1014] border-b border-[rgba(255,255,255,0.09)] text-[11px] font-semibold text-[#92949A] uppercase tracking-wider">
+                  <thead className="bg-[#0D1014] border-b border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[11px] font-semibold text-[#92949A] uppercase tracking-wider">
                     <tr>
                       <th className="px-5 py-3.5">Timestamp</th>
                       <th className="px-5 py-3.5">Severity</th>
@@ -1337,7 +1342,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                       </tr>
                     ) : (
                       auditLogs.map(log => (
-                        <tr key={log.id} className="hover:bg-[#191D23]/60 transition">
+                        <tr key={log.id} className="hover:bg-[var(--be-bg-elevated,#191D23)]/60 transition">
                           <td className="px-5 py-3.5 text-[11px] text-[#92949A] font-mono whitespace-nowrap">
                             {new Date(log.timestamp).toLocaleString()}
                           </td>
@@ -1347,7 +1352,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                                 ? 'bg-[rgba(214,117,117,0.18)] text-[#D67575] border-[rgba(214,117,117,0.35)]'
                                 : log.severity === 'warning'
                                 ? 'bg-[rgba(217,170,97,0.18)] text-[#D9AA61] border-[rgba(217,170,97,0.35)]'
-                                : 'bg-[#191D23] text-[#92949A] border-[rgba(255,255,255,0.09)]'
+                                : 'bg-[var(--be-bg-elevated,#191D23)] text-[#92949A] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
                             }`}>
                               {log.severity || 'info'}
                             </span>
@@ -1386,7 +1391,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Database Health Card */}
-              <div className="p-6 rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.09)] shadow-xs space-y-4">
+              <div className="p-6 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] shadow-xs space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Database className="h-5 w-5 text-[#C6A66A]" />
@@ -1397,15 +1402,15 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   </span>
                 </div>
                 <div className="space-y-2 text-xs text-[#C0BDB5]">
-                  <div className="flex justify-between py-1 border-b border-[rgba(255,255,255,0.06)]">
+                  <div className="flex justify-between py-1 border-b border-[var(--be-border-subtle,rgba(255,255,255,0.06))]">
                     <span>Database ID</span>
                     <span className="font-mono text-[#F2F0EA]">36c07326-65a2-44cf-8f38-4df1a7103cd5</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-[rgba(255,255,255,0.06)]">
+                  <div className="flex justify-between py-1 border-b border-[var(--be-border-subtle,rgba(255,255,255,0.06))]">
                     <span>Database Engine</span>
                     <span className="font-semibold text-[#F2F0EA]">SQLite at the Edge</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-[rgba(255,255,255,0.06)]">
+                  <div className="flex justify-between py-1 border-b border-[var(--be-border-subtle,rgba(255,255,255,0.06))]">
                     <span>Persisted Accounts</span>
                     <span className="font-bold text-[#F2F0EA]">{systemHealth?.database?.userCount ?? 0}</span>
                   </div>
@@ -1417,7 +1422,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               </div>
 
               {/* Edge Runtime Card */}
-              <div className="p-6 rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.09)] shadow-xs space-y-4">
+              <div className="p-6 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] shadow-xs space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Cpu className="h-5 w-5 text-[#76A9D8]" />
@@ -1428,15 +1433,15 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                   </span>
                 </div>
                 <div className="space-y-2 text-xs text-[#C0BDB5]">
-                  <div className="flex justify-between py-1 border-b border-[rgba(255,255,255,0.06)]">
+                  <div className="flex justify-between py-1 border-b border-[var(--be-border-subtle,rgba(255,255,255,0.06))]">
                     <span>Environment</span>
                     <span className="font-semibold text-[#F2F0EA]">Cloudflare Workers (Edge)</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-[rgba(255,255,255,0.06)]">
+                  <div className="flex justify-between py-1 border-b border-[var(--be-border-subtle,rgba(255,255,255,0.06))]">
                     <span>Compatibility Flags</span>
                     <span className="font-mono text-[#F2F0EA]">nodejs_compat</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-[rgba(255,255,255,0.06)]">
+                  <div className="flex justify-between py-1 border-b border-[var(--be-border-subtle,rgba(255,255,255,0.06))]">
                     <span>Server Time (UTC)</span>
                     <span className="font-mono text-[#F2F0EA]">{systemHealth?.serverTime ? new Date(systemHealth.serverTime).toUTCString() : '...'}</span>
                   </div>
@@ -1448,10 +1453,10 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               </div>
 
               {/* Integrations Status */}
-              <div className="p-6 rounded-2xl bg-[#14171C] border border-[rgba(255,255,255,0.09)] shadow-xs space-y-4 md:col-span-2">
+              <div className="p-6 rounded-2xl bg-[var(--be-bg-card,#14171C)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] shadow-xs space-y-4 md:col-span-2">
                 <h3 className="text-sm font-bold text-[#F2F0EA]">Service Integrations</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                  <div className="p-4 rounded-xl bg-[#191D23] border border-[rgba(255,255,255,0.09)] space-y-2">
+                  <div className="p-4 rounded-xl bg-[var(--be-bg-elevated,#191D23)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-[#F2F0EA]">Google OAuth GIS</span>
                       <span className="px-2 py-0.5 rounded-full bg-[rgba(53,184,135,0.15)] text-[#35B887] border border-[rgba(53,184,135,0.30)] text-[10px] font-bold uppercase">Active</span>
@@ -1461,7 +1466,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-[#191D23] border border-[rgba(255,255,255,0.09)] space-y-2">
+                  <div className="p-4 rounded-xl bg-[var(--be-bg-elevated,#191D23)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-[#F2F0EA]">Gemini 2.5 AI</span>
                       <span className="px-2 py-0.5 rounded-full bg-[rgba(53,184,135,0.15)] text-[#35B887] border border-[rgba(53,184,135,0.30)] text-[10px] font-bold uppercase">Ready</span>
@@ -1471,7 +1476,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-[#191D23] border border-[rgba(255,255,255,0.09)] space-y-2">
+                  <div className="p-4 rounded-xl bg-[var(--be-bg-elevated,#191D23)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-[#F2F0EA]">Live Job Connectors</span>
                       <span className="px-2 py-0.5 rounded-full bg-[rgba(53,184,135,0.15)] text-[#35B887] border border-[rgba(53,184,135,0.30)] text-[10px] font-bold uppercase">Active</span>
@@ -1481,7 +1486,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-[#191D23] border border-[rgba(255,255,255,0.09)] space-y-2 sm:col-span-3">
+                  <div className="p-4 rounded-xl bg-[var(--be-bg-elevated,#191D23)] border border-[var(--be-border-subtle,rgba(255,255,255,0.09))] space-y-2 sm:col-span-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Compass className="h-4 w-4 text-[#C6A66A]" />
