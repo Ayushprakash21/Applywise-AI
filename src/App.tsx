@@ -78,6 +78,7 @@ const PROTECTED_ROUTES = new Set([
 
 const KNOWN_ROUTES = new Set([
   '/',
+  '/404',
   '/about',
   '/pricing',
   '/admin',
@@ -114,6 +115,7 @@ export default function App() {
 
   // Client-side URL routing state ('/' | '/about' | '/pricing')
   const [currentRoute, setCurrentRoute] = useState<string>(() => normalizePath(window.location.pathname || '/'));
+  const [notFoundContext, setNotFoundContext] = useState<{ planId?: string | null; destination?: string | null } | null>(null);
 
   // Navigation: signed-in tabs (Career Command Center is default overview)
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
@@ -548,10 +550,20 @@ export default function App() {
           </div>
         </div>
       }>
-      {!KNOWN_ROUTES.has(currentRoute) ? (
+      {!KNOWN_ROUTES.has(currentRoute) || currentRoute === '/404' ? (
         <NotFoundPage
           onNavigateHome={() => navigateTo('/')}
+          onNavigateRadar={() => {
+            if (currentUser) {
+              setActiveTab('radar');
+              navigateTo('/');
+            } else {
+              navigateTo('/pricing');
+            }
+          }}
           onNavigateLogin={() => navigateTo('/login')}
+          planId={notFoundContext?.planId}
+          destination={notFoundContext?.destination}
         />
       ) : currentRoute === '/about' ? (
         <AboutPage
@@ -577,6 +589,10 @@ export default function App() {
             }
           }}
           onNavigateHome={() => navigateTo('/')}
+          onNavigateNotFound={(planId, destination) => {
+            setNotFoundContext({ planId, destination });
+            navigateTo('/404');
+          }}
           onSubscriptionUpdated={loadUserData}
         />
       ) : currentRoute === '/admin' || currentRoute === '/admin/gcde' ? (

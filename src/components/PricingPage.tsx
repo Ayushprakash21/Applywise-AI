@@ -14,7 +14,7 @@ import {
 import { BrandLogo } from './BrandLogo.tsx';
 import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
 import { SUBSCRIPTION_PLANS, COMPARISON_FEATURES, PlanId } from '../config/plans.ts';
-import { AuthUser, api } from '../services/api.ts';
+import { AuthUser, api, ApiError } from '../services/api.ts';
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 
 interface PricingPageProps {
@@ -22,6 +22,7 @@ interface PricingPageProps {
   currentPlanId?: PlanId;
   onOpenAuth: (mode: 'login' | 'signup') => void;
   onNavigateHome: () => void;
+  onNavigateNotFound?: (planId: PlanId, destination: string) => void;
   onSubscriptionUpdated?: () => void;
 }
 
@@ -30,6 +31,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
   currentPlanId = 'free',
   onOpenAuth,
   onNavigateHome,
+  onNavigateNotFound,
   onSubscriptionUpdated,
 }) => {
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'annual'>('monthly');
@@ -115,6 +117,12 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             return;
           }
         } catch (checkoutErr: unknown) {
+          if (checkoutErr instanceof ApiError && checkoutErr.status === 404) {
+            if (onNavigateNotFound) {
+              onNavigateNotFound(planId, '/api/subscription/razorpay/create-order');
+              return;
+            }
+          }
           const checkoutMsg = checkoutErr instanceof Error ? checkoutErr.message : String(checkoutErr);
           setErrorMessage(`Payment checkout error: ${checkoutMsg}. Please verify payment gateway configuration.`);
           return;
@@ -132,6 +140,12 @@ export const PricingPage: React.FC<PricingPageProps> = ({
         setSuccessMessage(res.message);
         if (onSubscriptionUpdated) onSubscriptionUpdated();
       } catch (err: unknown) {
+        if (err instanceof ApiError && err.status === 404) {
+          if (onNavigateNotFound) {
+            onNavigateNotFound('free', '/api/subscription/cancel');
+            return;
+          }
+        }
         const msg = err instanceof Error ? err.message : String(err);
         setErrorMessage(`Cancellation error: ${msg}`);
       } finally {

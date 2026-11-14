@@ -148,6 +148,18 @@ export interface AuthUser {
   avatarUrl?: string | null;
 }
 
+export class ApiError extends Error {
+  status: number;
+  data?: any;
+
+  constructor(message: string, status: number, data?: any) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
+  }
+}
+
 function getAuthHeader(): Record<string, string> {
   const token = localStorage.getItem('applyvise_token') || localStorage.getItem('applywise_token');
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -167,13 +179,14 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     let errMsg = `Request failed: ${res.status} ${res.statusText}`;
+    let errData: any = undefined;
     try {
-      const errData = await res.json() as any;
+      errData = await res.json() as any;
       if (errData?.error) errMsg = errData.error;
     } catch {
       // ignore
     }
-    throw new Error(errMsg);
+    throw new ApiError(errMsg, res.status, errData);
   }
   return res.json();
 }
