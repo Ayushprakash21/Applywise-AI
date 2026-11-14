@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { CompanyLogo } from './ui/CompanyLogo.tsx';
 import {
   X,
   ExternalLink,
@@ -345,10 +346,14 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
         <div className="p-6 sm:p-8 bg-gradient-to-b from-slate-50/70 to-white border-b border-slate-100">
           <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
             <div className="flex items-start space-x-4 min-w-0 flex-1">
-              {/* Company Logo or Stylized Initial Box */}
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-slate-900 text-[#C6A66A] font-extrabold text-xl sm:text-2xl flex items-center justify-center shadow-xs shrink-0 border border-slate-700">
-                {companyInitial}
-              </div>
+              {/* Verified Company Logo or Stylized Initial Container */}
+              <CompanyLogo
+                companyName={vacancy.company}
+                logoUrl={vacancy.companyLogo || vacancy.companyLogoUrl}
+                domain={vacancy.companyDomain}
+                size="xl"
+                className="shadow-md"
+              />
 
               <div className="space-y-1.5 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -694,9 +699,12 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                     </h4>
 
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 text-blue-700 font-bold flex items-center justify-center shrink-0">
-                        {companyInitial}
-                      </div>
+                      <CompanyLogo
+                        companyName={vacancy.company}
+                        logoUrl={vacancy.companyLogo || vacancy.companyLogoUrl}
+                        domain={vacancy.companyDomain}
+                        size="md"
+                      />
                       <div className="min-w-0">
                         <h5 className="font-bold text-sm text-slate-900 truncate">{vacancy.company}</h5>
                         <p className="text-xs text-slate-500 truncate">{vacancy.location || 'Global Headquarters'}</p>

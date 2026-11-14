@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { CompanyLogo } from './ui/CompanyLogo.tsx';
 import {
   FileText,
   Building,
@@ -387,8 +388,8 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                   <h3 className="font-bold text-base text-slate-900">{app.role}</h3>
 
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
-                    <span className="font-semibold text-blue-600 flex items-center space-x-1">
-                      <Building className="h-3.5 w-3.5" />
+                    <span className="font-semibold text-blue-600 flex items-center space-x-1.5">
+                      <CompanyLogo companyName={app.company} size="xs" />
                       <span>{app.company}</span>
                     </span>
                     <span className="flex items-center space-x-1 text-slate-400">

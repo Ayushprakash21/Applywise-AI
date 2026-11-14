@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { CompanyLogo } from './ui/CompanyLogo.tsx';
 import {
   Search,
   Filter,
@@ -233,7 +234,15 @@ export const JobDiscoveryTab: React.FC<JobDiscoveryTabProps> = ({
                           Remote
                         </span>
                       )}
-                      <span className="text-xs text-slate-400 font-medium">{vac.company}</span>
+                      <span className="flex items-center space-x-1.5 text-xs text-slate-400 font-medium">
+                        <CompanyLogo
+                          companyName={vac.company}
+                          logoUrl={vac.companyLogo || vac.companyLogoUrl}
+                          domain={vac.companyDomain}
+                          size="xs"
+                        />
+                        <span>{vac.company}</span>
+                      </span>
                       <span className="text-slate-600">·</span>
                       <span className="flex items-center text-xs text-slate-400">
                         <MapPin className="h-3.5 w-3.5 mr-1 text-slate-500" />

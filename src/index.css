@@ -1722,3 +1722,35 @@ input.border-0 {
     transform: none !important;
   }
 }
+
+/* ==========================================================================
+   OPPORTUNITY RADAR CAROUSEL TICKER
+   Continuous horizontal infinite marquee with pause-on-hover & reduced motion
+   ========================================================================== */
+@keyframes opportunityTicker {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.opportunity-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: opportunityTicker 38s linear infinite;
+  will-change: transform;
+}
+
+.opportunity-ticker-track:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opportunity-ticker-track {
+    animation: none !important;
+    overflow-x: auto;
+  }
+}
+

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { CompanyLogo } from './ui/CompanyLogo.tsx';
 import {
   Search,
   Filter,
@@ -698,7 +699,12 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
                     {job.title}
                   </h3>
                   <div className="flex items-center space-x-1.5 text-xs text-blue-600 font-semibold mt-1">
-                    <Building className="h-3.5 w-3.5 shrink-0" />
+                    <CompanyLogo
+                      companyName={job.company}
+                      logoUrl={job.companyLogo || job.companyLogoUrl}
+                      domain={job.companyDomain}
+                      size="xs"
+                    />
                     <span>{job.company}</span>
                   </div>
                 </div>
@@ -789,8 +795,13 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-                  <span className="font-semibold text-blue-600 flex items-center space-x-1">
-                    <Building className="h-3.5 w-3.5" />
+                  <span className="font-semibold text-blue-600 flex items-center space-x-1.5">
+                    <CompanyLogo
+                      companyName={job.company}
+                      logoUrl={job.companyLogo || job.companyLogoUrl}
+                      domain={job.companyDomain}
+                      size="xs"
+                    />
                     <span>{job.company}</span>
                   </span>
                   <span className="flex items-center space-x-1">

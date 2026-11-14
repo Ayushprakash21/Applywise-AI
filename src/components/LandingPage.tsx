@@ -257,6 +257,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         handleSearchSubmit={handleSearchSubmit}
+        vacancies={featuredVacancies}
+        onSelectVacancy={onSelectVacancy}
       />
 
       {/* Visual Graph Section Anchor - 3D Product Showcase */}

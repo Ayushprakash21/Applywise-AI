@@ -788,6 +788,10 @@ export interface JobVacancy {
   title: string;
   company: string;
   companyLogo?: string;
+  companyLogoUrl?: string;
+  companyDomain?: string;
+  companyLogoSource?: 'source_api' | 'company_domain' | 'clearbit_logo' | 'google_favicon' | 'initials';
+  companyLogoVerifiedAt?: string;
   location: string;
   country: string;
   remote: boolean;
@@ -1455,6 +1459,10 @@ export interface CanonicalLiveJob {
   title: string;
   company: string;
   companyLogo?: string;
+  companyLogoUrl?: string;
+  companyDomain?: string;
+  companyLogoSource?: 'source_api' | 'company_domain' | 'clearbit_logo' | 'google_favicon' | 'initials';
+  companyLogoVerifiedAt?: string;
   location: string;
   country: string;
   region: string;

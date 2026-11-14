@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { CompanyLogo } from './ui/CompanyLogo.tsx';
 import {
   Radio,
   Clock,
@@ -470,7 +471,7 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-1.5">
-                      <Building className="w-3.5 h-3.5 text-indigo-500" />
+                      <CompanyLogo companyName={sig.company} size="xs" />
                       <span>{sig.company}</span>
                     </span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase font-semibold">
@@ -588,8 +589,13 @@ export const OpportunityRadar: React.FC<OpportunityRadarProps> = ({
                         </div>
 
                         <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-[#C0BDB5]">
-                          <span className="flex items-center space-x-1 font-semibold text-slate-700 dark:text-[#F2F0EA]">
-                            <Building className="w-3.5 h-3.5 text-indigo-500 dark:text-[#C6A66A]" />
+                          <span className="flex items-center space-x-1.5 font-semibold text-slate-700 dark:text-[#F2F0EA]">
+                            <CompanyLogo
+                              companyName={vac.company}
+                              logoUrl={vac.companyLogo || vac.companyLogoUrl}
+                              domain={vac.companyDomain}
+                              size="xs"
+                            />
                             <span>{vac.company}</span>
                           </span>
                           <span>·</span>

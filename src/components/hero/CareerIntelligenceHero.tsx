@@ -17,6 +17,8 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { BRAND_CONFIG } from '../../config/brand.ts';
+import { OpportunityRadarCarousel } from './OpportunityRadarCarousel.tsx';
+import { JobVacancy } from '../../types/index.ts';
 
 export interface CareerIntelligenceHeroProps {
   onOpenAuth: (mode: 'login' | 'signup') => void;
@@ -25,6 +27,8 @@ export interface CareerIntelligenceHeroProps {
   setSearchQuery: (query: string) => void;
   handleSearchSubmit: (e: React.FormEvent) => void;
   popularTags?: string[];
+  vacancies?: JobVacancy[];
+  onSelectVacancy?: (vacancy: JobVacancy) => void;
 }
 
 export type OperatingDimensionKey = 'experience' | 'skills' | 'opportunities' | 'application';
@@ -135,6 +139,8 @@ export const CareerIntelligenceHero: React.FC<CareerIntelligenceHeroProps> = ({
     'DevOps',
     'Customer Success',
   ],
+  vacancies = [],
+  onSelectVacancy,
 }) => {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [activeDimension, setActiveDimension] = useState<OperatingDimensionKey>('experience');
@@ -469,6 +475,16 @@ export const CareerIntelligenceHero: React.FC<CareerIntelligenceHeroProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Protocol-Inspired Opportunity Radar Horizontal Ticker */}
+      {vacancies && vacancies.length > 0 && (
+        <div className="pt-8">
+          <OpportunityRadarCarousel
+            vacancies={vacancies}
+            onSelectVacancy={onSelectVacancy}
+          />
+        </div>
+      )}
     </section>
   );
 };
