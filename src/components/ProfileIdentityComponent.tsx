@@ -12,12 +12,14 @@ import {
   ShieldAlert,
   CreditCard,
   Check,
-  Camera
+  Camera,
+  Palette
 } from 'lucide-react';
 import { AuthUser } from '../services/api.ts';
 import { DashboardTab } from './DashboardShell.tsx';
 import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
 import { ProfilePhotoCropModal } from './ProfilePhotoCropModal.tsx';
+import { BlackEliteAppearanceControl } from './BlackEliteAppearanceControl.tsx';
 
 export interface ProfileIdentityComponentProps {
   user: AuthUser;
@@ -145,54 +147,65 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
   // Construct menu items strictly matching existing application actions
   interface MenuItemConfig {
     id: string;
+    section: 'account' | 'billing' | 'settings' | 'auth';
     label: string;
-    icon: React.ComponentType<{ className?: string }>;
+    icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
     action: () => void;
     isDestructive?: boolean;
     isAdminOnly?: boolean;
     badge?: string;
   }
 
-  const menuItems: MenuItemConfig[] = [
+  const allMenuItems: MenuItemConfig[] = [
+    // Section: Account & Profile
     {
       id: 'profile_overview',
+      section: 'account',
       label: 'Profile Overview',
       icon: User,
       action: () => onSelectTab('overview'),
     },
     {
       id: 'edit_profile',
+      section: 'account',
       label: 'Edit Profile',
       icon: Edit3,
       action: () => onSelectTab('profile'),
     },
     {
       id: 'resume_career',
+      section: 'account',
       label: 'Resume & Career Information',
       icon: FileText,
       action: () => onSelectTab('resume_intelligence'),
     },
-    {
-      id: 'account_settings',
-      label: 'Account Settings',
-      icon: Sliders,
-      action: () => onOpenSettingsModal(),
-    },
+    // Section: Membership & Billing
     {
       id: 'subscription_membership',
+      section: 'billing',
       label: 'Subscription & Membership',
       icon: isBlack ? Sparkles : CreditCard,
       badge: isBlack ? 'ELITE' : plan.toUpperCase(),
       action: () => onOpenPricing(),
     },
+    // Section: Settings & System
+    {
+      id: 'account_settings',
+      section: 'settings',
+      label: 'Account Settings',
+      icon: Sliders,
+      action: () => onOpenSettingsModal(),
+    },
     {
       id: 'security_privacy',
+      section: 'settings',
       label: 'Security & Privacy',
       icon: Shield,
       action: () => onOpenPrivacy(),
     },
     {
       id: 'help_support',
+      section: 'settings',
       label: 'Help & Support',
       icon: HelpCircle,
       action: () => onOpenAbout(),
@@ -200,8 +213,9 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
   ];
 
   if (isAdmin && onOpenAdmin) {
-    menuItems.push({
+    allMenuItems.push({
       id: 'admin_console',
+      section: 'settings',
       label: 'Administrator Console',
       icon: ShieldAlert,
       isAdminOnly: true,
@@ -209,8 +223,9 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
     });
   }
 
-  menuItems.push({
+  allMenuItems.push({
     id: 'sign_out',
+    section: 'auth',
     label: 'Sign Out',
     icon: LogOut,
     isDestructive: true,
@@ -236,6 +251,14 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
             ? 'bg-[#14171C] hover:bg-[#191D23] active:bg-[#111318] border border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.30)] shadow-xs focus:ring-[#C6A66A]/40'
             : 'bg-white/80 hover:bg-white active:bg-slate-50 border border-slate-200/90 hover:border-slate-300 shadow-2xs focus:ring-blue-500/40'
         }`}
+        style={
+          isBlack
+            ? {
+                backgroundColor: 'var(--be-bg-card, #14171C)',
+                borderColor: 'var(--be-border-subtle, rgba(255,255,255,0.09))',
+              }
+            : undefined
+        }
       >
         {/* Profile Avatar (Consistent Dimensions & Theme Border) */}
         <div
@@ -246,6 +269,15 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
               ? 'bg-gradient-to-tr from-blue-600 to-[#8065F5] text-white border border-blue-200 shadow-xs'
               : 'bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs'
           }`}
+          style={
+            isBlack
+              ? {
+                  backgroundColor: 'var(--be-bg-elevated, #111318)',
+                  borderColor: 'var(--be-border-focus, rgba(198,166,106,0.30))',
+                  color: 'var(--be-accent, #C6A66A)',
+                }
+              : undefined
+          }
         >
           {photoUrl ? (
             <img
@@ -268,6 +300,7 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
                 ? 'text-[#F2F0EA] group-hover:text-[#F2F0EA]'
                 : 'text-slate-900 group-hover:text-blue-600'
             }`}
+            style={isBlack ? { color: 'var(--be-text-primary, #F2F0EA)' } : undefined}
           >
             {user.fullName || 'User'}
           </span>
@@ -275,7 +308,15 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
           {/* Compact Membership Badge (Placed cleanly below name) */}
           <div className="mt-0.5">
             {isBlack ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono tracking-wider uppercase font-medium bg-[#111318] text-[#C6A66A] border border-[rgba(198,166,106,0.25)] select-none">
+              <span
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono tracking-wider uppercase font-medium select-none"
+                style={{
+                  backgroundColor: 'var(--be-bg-elevated, #111318)',
+                  color: 'var(--be-accent, #C6A66A)',
+                  borderColor: 'var(--be-border-subtle, rgba(198,166,106,0.25))',
+                  borderWidth: '1px',
+                }}
+              >
                 <RoyalCrownLogo size="xs" />
                 <span>BLACK ELITE</span>
               </span>
@@ -305,6 +346,7 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
               ? 'text-[#92949A] group-hover:text-[#F2F0EA]'
               : 'text-slate-400 group-hover:text-slate-600'
           }`}
+          style={isBlack ? { color: 'var(--be-text-muted, #92949A)' } : undefined}
         />
       </button>
 
@@ -314,19 +356,36 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="user-profile-menu-button"
-          className={`absolute right-0 mt-2.5 w-72 max-w-[calc(100vw-2rem)] rounded-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 focus:outline-none shadow-2xl ${
+          className={`absolute right-0 mt-2.5 w-80 sm:w-88 max-w-[calc(100vw-2rem)] max-h-[85vh] overflow-y-auto rounded-3xl p-3 z-50 animate-in fade-in slide-in-from-top-2 focus:outline-none shadow-2xl ${
             isBlack
               ? 'bg-[#14171C] border border-[rgba(255,255,255,0.12)] shadow-black/85 text-[#F2F0EA]'
               : 'bg-white/95 backdrop-blur-2xl border border-slate-200/90 text-slate-900 shadow-slate-900/10'
           }`}
+          style={
+            isBlack
+              ? {
+                  backgroundColor: 'var(--be-bg-card, #14171C)',
+                  borderColor: 'var(--be-border-subtle, rgba(255,255,255,0.12))',
+                  color: 'var(--be-text-primary, #F2F0EA)',
+                }
+              : undefined
+          }
         >
           {/* Dropdown Account Header */}
           <div
-            className={`p-3.5 rounded-xl border mb-1.5 flex items-center space-x-3 ${
+            className={`p-3.5 rounded-2xl border mb-2 flex items-center space-x-3 ${
               isBlack
                 ? 'bg-[#191D23] border-[rgba(255,255,255,0.06)]'
                 : 'bg-slate-50/80 border-slate-100'
             }`}
+            style={
+              isBlack
+                ? {
+                    backgroundColor: 'var(--be-bg-elevated, #191D23)',
+                    borderColor: 'var(--be-border-subtle, rgba(255,255,255,0.06))',
+                  }
+                : undefined
+            }
           >
             <div className="relative group/avatar shrink-0">
               <div
@@ -335,6 +394,15 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
                     ? 'bg-[#111318] text-[#C6A66A] border border-[rgba(198,166,106,0.30)]'
                     : 'bg-gradient-to-tr from-blue-600 to-[#8065F5] text-white border border-blue-200'
                 }`}
+                style={
+                  isBlack
+                    ? {
+                        backgroundColor: 'var(--be-bg-primary, #111318)',
+                        color: 'var(--be-accent, #C6A66A)',
+                        borderColor: 'var(--be-border-focus, rgba(198,166,106,0.30))',
+                      }
+                    : undefined
+                }
               >
                 {photoUrl ? (
                   <img
@@ -355,6 +423,15 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
                 title="Change profile photograph"
                 aria-label="Change profile photograph"
                 className="absolute -bottom-1 -right-1 p-1 rounded-full bg-[#14171C] border border-[rgba(198,166,106,0.35)] text-[#C6A66A] hover:bg-[#C6A66A] hover:text-[#17130C] shadow-xs transition cursor-pointer"
+                style={
+                  isBlack
+                    ? {
+                        backgroundColor: 'var(--be-bg-card, #14171C)',
+                        color: 'var(--be-accent, #C6A66A)',
+                        borderColor: 'var(--be-border-focus, rgba(198,166,106,0.35))',
+                      }
+                    : undefined
+                }
               >
                 <Camera className="h-2.5 w-2.5" />
               </button>
@@ -379,6 +456,7 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
                 className={`text-xs font-bold truncate ${
                   isBlack ? 'text-[#F2F0EA]' : 'text-slate-900'
                 }`}
+                style={isBlack ? { color: 'var(--be-text-primary, #F2F0EA)' } : undefined}
               >
                 {user.fullName || 'ApplyVise Candidate'}
               </p>
@@ -386,6 +464,7 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
                 className={`text-[11px] truncate mt-0.5 ${
                   isBlack ? 'text-[#92949A]' : 'text-slate-500'
                 }`}
+                style={isBlack ? { color: 'var(--be-text-secondary, #92949A)' } : undefined}
               >
                 {user.email}
               </p>
@@ -393,7 +472,15 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
               {/* Status pill inside dropdown */}
               <div className="mt-1.5 flex items-center gap-1.5">
                 {isBlack ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-mono tracking-wider uppercase font-medium bg-[#111318] text-[#C6A66A] border border-[rgba(198,166,106,0.25)]">
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-mono tracking-wider uppercase font-medium"
+                    style={{
+                      backgroundColor: 'var(--be-bg-primary, #111318)',
+                      color: 'var(--be-accent, #C6A66A)',
+                      borderColor: 'var(--be-border-subtle, rgba(198,166,106,0.25))',
+                      borderWidth: '1px',
+                    }}
+                  >
                     <RoyalCrownLogo size="xs" />
                     <span>BLACK ELITE</span>
                   </span>
@@ -416,9 +503,16 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
             </div>
           </div>
 
-          {/* Navigation Action Items */}
+          {/* Section: Appearance & Curated Palettes (BLACK ELITE exclusive) */}
+          {isBlack && (
+            <div className="mb-2">
+              <BlackEliteAppearanceControl />
+            </div>
+          )}
+
+          {/* Navigation Action Items partitioned into clean groups */}
           <div className="py-1 space-y-0.5 text-xs">
-            {menuItems.map((item, index) => {
+            {allMenuItems.map((item, index) => {
               const Icon = item.icon;
               const isDestructive = item.isDestructive;
               const isAdminOnly = item.isAdminOnly;
@@ -447,6 +541,15 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
                       ? 'text-[#C0BDB5] hover:text-[#F2F0EA] hover:bg-[#191D23]'
                       : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                   }`}
+                  style={
+                    !isDestructive && isBlack
+                      ? {
+                          color: isAdminOnly
+                            ? 'var(--be-accent, #C6A66A)'
+                            : 'var(--be-text-secondary, #C0BDB5)',
+                        }
+                      : undefined
+                  }
                 >
                   <div className="flex items-center space-x-2.5 truncate">
                     <Icon
@@ -457,6 +560,11 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
                           ? isBlack ? 'text-[#C6A66A]' : 'text-indigo-600'
                           : isBlack ? 'text-[#92949A] group-hover:text-[#C6A66A]' : 'text-slate-400 group-hover:text-blue-600'
                       }`}
+                      style={
+                        !isDestructive && isBlack
+                          ? { color: isAdminOnly ? 'var(--be-accent, #C6A66A)' : 'var(--be-text-muted, #92949A)' }
+                          : undefined
+                      }
                     />
                     <span className="truncate">{item.label}</span>
                   </div>
@@ -468,6 +576,15 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
                           ? 'bg-[#111318] text-[#C6A66A] border border-[rgba(198,166,106,0.25)]'
                           : 'bg-blue-50 text-blue-700 border border-blue-200'
                       }`}
+                      style={
+                        isBlack
+                          ? {
+                              backgroundColor: 'var(--be-bg-primary, #111318)',
+                              color: 'var(--be-accent, #C6A66A)',
+                              borderColor: 'var(--be-border-subtle, rgba(198,166,106,0.25))',
+                            }
+                          : undefined
+                      }
                     >
                       {item.badge}
                     </span>

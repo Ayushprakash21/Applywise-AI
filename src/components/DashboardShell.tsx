@@ -32,6 +32,8 @@ import {
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
 import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
+import { EliteCrownBadge } from './EliteCrownBadge.tsx';
+import { initBlackEliteTheme } from '../utils/blackEliteTheme.ts';
 import { AuthUser } from '../services/api.ts';
 import { NotificationItem, AutomationSettings, AccountUsageStats } from '../types/index.ts';
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
@@ -124,6 +126,11 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   const isFounderAccount = isPermanentFreeAccessAccount(user);
   const isAdmin = user.role === 'admin';
 
+  // Synchronize BLACK ELITE art-directed theme tokens and appearance on boot / plan change
+  useEffect(() => {
+    initBlackEliteTheme(plan);
+  }, [plan]);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
@@ -190,28 +197,72 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               {mobileMenuOpen ? <CloseIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
 
-            <BrandLogo
-              variant={plan === 'black' ? 'dark' : 'light'}
-              size="md"
-              badge={plan === 'black' ? 'ELITE' : undefined}
-              onClick={() => onSelectTab('overview')}
-              className="cursor-pointer"
-            />
+            <div className="flex items-center space-x-2">
+              <BrandLogo
+                variant={plan === 'black' ? 'dark' : 'light'}
+                size="md"
+                onClick={() => onSelectTab('overview')}
+                className="cursor-pointer"
+              />
+              {plan === 'black' && (
+                <EliteCrownBadge />
+              )}
+            </div>
           </div>
 
-          {/* Center: Command / Search Navigation */}
-          <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
+          {/* Center: Integrated Command / Global Search */}
+          <div className="hidden md:flex items-center flex-1 max-w-lg mx-6">
             <div
+              role="search"
               onClick={() => onSelectTab('jobs')}
-              className="w-full px-4 py-2 rounded-2xl bg-white/65 hover:bg-white/85 border border-white/90 text-xs text-slate-400 flex items-center justify-between shadow-2xs transition-all cursor-pointer"
+              className={`w-full px-4 py-2.5 rounded-full flex items-center justify-between transition-all duration-200 cursor-pointer ${
+                plan === 'black'
+                  ? 'bg-[#101318] hover:bg-[#151921] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(198,166,106,0.30)] text-[#92949A] hover:text-[#F2F0EA] shadow-inner shadow-black/40'
+                  : 'bg-white/75 hover:bg-white border border-slate-200/80 hover:border-slate-300 text-slate-400 hover:text-slate-600 shadow-2xs'
+              }`}
+              style={
+                plan === 'black'
+                  ? {
+                      backgroundColor: 'var(--be-bg-input, #101318)',
+                      borderColor: 'var(--be-border-subtle, rgba(255, 255, 255, 0.08))',
+                    }
+                  : undefined
+              }
             >
-              <div className="flex items-center space-x-2.5">
-                <Search className="w-4 h-4 text-slate-400" />
-                <span className="text-slate-500 font-medium">Search verified opportunities, skills, companies...</span>
+              <div className="flex items-center space-x-2.5 min-w-0">
+                <Search
+                  className={`w-4 h-4 shrink-0 transition-colors ${
+                    plan === 'black' ? 'text-[#92949A]' : 'text-slate-400'
+                  }`}
+                  style={plan === 'black' ? { color: 'var(--be-accent-muted, #92949A)' } : undefined}
+                />
+                <span
+                  className={`text-xs truncate ${
+                    plan === 'black' ? 'text-[#C0BDB5]' : 'text-slate-500'
+                  }`}
+                  style={plan === 'black' ? { color: 'var(--be-text-secondary, #C0BDB5)' } : undefined}
+                >
+                  Search verified opportunities, skills, companies...
+                </span>
               </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/60 text-slate-600 font-semibold border border-slate-300/50">
+              <kbd
+                className={`shrink-0 ml-3 text-[10px] font-mono px-2 py-0.5 rounded-md font-medium tracking-wider select-none border transition-colors ${
+                  plan === 'black'
+                    ? 'bg-[#14171C] text-[#92949A] border-[rgba(255,255,255,0.08)]'
+                    : 'bg-slate-100 text-slate-500 border-slate-200'
+                }`}
+                style={
+                  plan === 'black'
+                    ? {
+                        backgroundColor: 'var(--be-bg-elevated, #14171C)',
+                        borderColor: 'var(--be-border-subtle, rgba(255, 255, 255, 0.08))',
+                        color: 'var(--be-text-muted, #92949A)',
+                      }
+                    : undefined
+                }
+              >
                 ⌘K
-              </span>
+              </kbd>
             </div>
           </div>
 
@@ -221,9 +272,13 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             <button
               type="button"
               onClick={onToggleEmergencyStop}
-              className={`hidden sm:flex items-center space-x-2 px-3.5 py-1.5 rounded-full border text-xs font-semibold shadow-2xs transition cursor-pointer ${
+              className={`hidden sm:flex items-center space-x-2 px-3.5 py-1.5 rounded-full border text-xs font-semibold shadow-2xs transition-all duration-200 cursor-pointer ${
                 settings?.emergencyStop
-                  ? 'bg-rose-50/90 border-rose-200 text-rose-700'
+                  ? plan === 'black'
+                    ? 'bg-rose-950/40 border-rose-800/40 text-rose-300'
+                    : 'bg-rose-50/90 border-rose-200 text-rose-700'
+                  : plan === 'black'
+                  ? 'bg-[rgba(53,184,135,0.10)] border-[rgba(53,184,135,0.25)] text-[#35B887]'
                   : 'bg-emerald-50/90 border-emerald-200 text-emerald-700'
               }`}
             >
@@ -236,12 +291,32 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               <button
                 type="button"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative p-2.5 rounded-xl bg-white/70 hover:bg-white border border-white/85 text-slate-600 hover:text-slate-900 transition shadow-2xs cursor-pointer"
+                className={`relative p-2.5 rounded-xl border transition-all duration-200 cursor-pointer ${
+                  plan === 'black'
+                    ? 'bg-[#14171C] hover:bg-[#191D23] border-[rgba(255,255,255,0.08)] hover:border-[rgba(198,166,106,0.30)] text-[#C0BDB5] hover:text-[#F2F0EA] shadow-xs'
+                    : 'bg-white/70 hover:bg-white border-white/85 text-slate-600 hover:text-slate-900 shadow-2xs'
+                }`}
+                style={
+                  plan === 'black'
+                    ? {
+                        backgroundColor: 'var(--be-bg-card, #14171C)',
+                        borderColor: 'var(--be-border-subtle, rgba(255, 255, 255, 0.08))',
+                        color: 'var(--be-text-secondary, #C0BDB5)',
+                      }
+                    : undefined
+                }
                 aria-label="Notifications"
               >
                 <Bell className="h-4.5 w-4.5" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[#8065F5] ring-2 ring-white animate-pulse" />
+                  <span
+                    className={`absolute top-2 right-2 h-2 w-2 rounded-full animate-pulse ring-2 ${
+                      plan === 'black' ? 'ring-[#14171C]' : 'ring-white'
+                    }`}
+                    style={{
+                      backgroundColor: plan === 'black' ? 'var(--be-accent, #C6A66A)' : '#8065F5',
+                    }}
+                  />
                 )}
               </button>
 

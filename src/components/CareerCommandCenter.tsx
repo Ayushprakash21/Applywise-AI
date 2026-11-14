@@ -175,31 +175,31 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-[#F2F0EA] tracking-tight flex items-center space-x-2">
+              <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-[#F2F0EA] tracking-tight flex items-center space-x-2">
                 <span>Welcome back, {user.fullName ? user.fullName.split(' ')[0] : 'Job Seeker'}!</span>
                 <span className="text-3xl">👋</span>
               </h1>
 
-              <p className="text-sm sm:text-base text-slate-600 dark:text-[#C0BDB5] mt-2 leading-relaxed max-w-xl">
+              <p className="text-sm sm:text-base text-slate-600 dark:text-[#C0BDB5] mt-2 leading-relaxed max-w-xl font-normal">
                 {profile?.currentTitle
                   ? `${profile.currentTitle} ${profile.currentEmployer ? `at ${profile.currentEmployer}` : ''} · ${relevantMatchesCount} opportunities aligned with your background.`
                   : "Your career intelligence workspace is ready. Discover relevant opportunities, understand your fit and prepare stronger applications."}
               </p>
             </div>
 
-            {/* Quick Hero Search Capsule */}
+            {/* Quick Hero Search Capsule (Integrated Luxury Pill) */}
             <form onSubmit={handleSearchSubmit} className="relative flex items-center max-w-lg">
-              <Search className="absolute left-4 h-4 w-4 text-slate-400 dark:text-[#92949A]" />
+              <Search className="absolute left-4.5 h-4 w-4 text-slate-400 dark:text-[#92949A] pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search jobs, skills, or companies..."
-                className="w-full pl-11 pr-28 py-3.5 rounded-2xl bg-white/80 dark:bg-[#0D1014] border border-slate-200/80 dark:border-[rgba(255,255,255,0.12)] text-xs sm:text-sm text-slate-900 dark:text-[#F2F0EA] placeholder:text-slate-400 dark:placeholder:text-[#737780] focus:outline-hidden focus:ring-2 focus:ring-[#8065F5]/30 dark:focus:ring-[#C6A66A]/30 focus:border-[#8065F5] dark:focus:border-[#C6A66A] shadow-xs transition"
+                className="w-full pl-12 pr-24 py-3.5 rounded-2xl bg-white/80 dark:bg-[#0D1014] border border-slate-200/90 dark:border-[rgba(255,255,255,0.10)] text-xs sm:text-sm text-slate-900 dark:text-[#F2F0EA] placeholder:text-slate-400 dark:placeholder:text-[#737780] focus:outline-hidden focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-[var(--be-border-focus,rgba(198,166,106,0.30))] focus:border-blue-500 dark:focus:border-[var(--be-accent,#C6A66A)] shadow-2xs transition-all duration-200"
               />
               <button
                 type="submit"
-                className="be-btn-primary absolute right-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-[#8065F5] dark:bg-[#C6A66A] text-white dark:text-[#17130C] text-xs font-bold shadow-md shadow-violet-500/25 dark:shadow-none hover:shadow-lg dark:hover:bg-[#D9BB80] transition cursor-pointer"
+                className="absolute right-1.5 px-4 py-2 rounded-xl bg-slate-900 dark:bg-[var(--be-bg-elevated,#191D23)] hover:bg-slate-800 dark:hover:bg-[var(--be-bg-card,#20242B)] text-white dark:text-[var(--be-text-primary,#F2F0EA)] border border-transparent dark:border-[var(--be-border-focus,rgba(198,166,106,0.35))] text-xs font-semibold shadow-xs transition-all duration-150 cursor-pointer"
               >
                 Search
               </button>
