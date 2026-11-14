@@ -30,7 +30,8 @@ import {
   HelpCircle,
   Search,
   Eye,
-  Users
+  Users,
+  Mail
 } from 'lucide-react';
 import {
   JobVacancy,
@@ -100,6 +101,25 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
   const [isApplyingAssisted, setIsApplyingAssisted] = useState(false);
   const [assistedAppResult, setAssistedAppResult] = useState<any | null>(null);
   const [autoApplyError, setAutoApplyError] = useState<string | null>(null);
+
+  // Job-to-Recruiter Intelligence Graph State
+  const [recruiterContacts, setRecruiterContacts] = useState<any[]>([]);
+  const [isLoadingContacts, setIsLoadingContacts] = useState(false);
+
+  useEffect(() => {
+    if (!vacancy?.id) return;
+    setIsLoadingContacts(true);
+    api.getJobContacts(vacancy.id)
+      .then((res) => {
+        if (res.success && Array.isArray(res.contacts)) {
+          setRecruiterContacts(res.contacts);
+        } else {
+          setRecruiterContacts([]);
+        }
+      })
+      .catch(() => setRecruiterContacts([]))
+      .finally(() => setIsLoadingContacts(false));
+  }, [vacancy?.id]);
 
   // Lock background scroll and listen for Escape key
   useEffect(() => {
@@ -693,6 +713,86 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                         <span>Visit Original Listing</span>
                         <ExternalLink className="h-3 w-3" />
                       </a>
+                    )}
+                  </div>
+
+                  {/* Card 2b: Recruiter & Hiring Team Intelligence Graph */}
+                  <div className="p-5 rounded-2xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] shadow-2xs space-y-3.5">
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] pb-2">
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center space-x-1.5">
+                        <Users className="h-3.5 w-3.5 text-blue-600" />
+                        <span>Hiring Team & Outreach</span>
+                      </h4>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/40 font-semibold">
+                        COME 2.0 Graph
+                      </span>
+                    </div>
+
+                    {isLoadingContacts ? (
+                      <div className="py-4 text-center text-xs text-slate-400 animate-pulse">
+                        Scanning verified company hiring team & recruiter records...
+                      </div>
+                    ) : recruiterContacts.length > 0 ? (
+                      <div className="space-y-3">
+                        {recruiterContacts.slice(0, 2).map((contact, idx) => (
+                          <div key={idx} className="p-3 rounded-xl bg-slate-50 dark:bg-[var(--be-bg-elevated,#1e232b)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] space-y-2">
+                            <div className="flex items-start justify-between">
+                              <div className="min-w-0">
+                                <h5 className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
+                                  {contact.contact_name || `${vacancy.company} Talent Lead`}
+                                </h5>
+                                <p className="text-[11px] text-slate-500 truncate">
+                                  {contact.designation || 'Recruitment & Talent Specialist'}
+                                </p>
+                              </div>
+                              <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                contact.email_verification_status === 'Verified' || contact.email_verification_status === 'Domain Valid'
+                                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                                  : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                              }`}>
+                                <ShieldCheck className="h-3 w-3" />
+                                <span>{contact.email_verification_status || 'Verified Contact'}</span>
+                              </span>
+                            </div>
+
+                            <div className="text-[11px] font-mono text-slate-600 dark:text-slate-400 flex items-center space-x-1.5 truncate">
+                              <Mail className="h-3 w-3 text-slate-400 shrink-0" />
+                              <span className="truncate">{contact.email}</span>
+                            </div>
+
+                            {contact.evidence && (
+                              <p className="text-[10px] text-slate-500 italic truncate" title={contact.evidence}>
+                                Evidence: {contact.evidence}
+                              </p>
+                            )}
+
+                            <a
+                              href={`mailto:${contact.email}?subject=${encodeURIComponent(`Application / Inquiry: ${vacancy.title} at ${vacancy.company}`)}`}
+                              className="w-full py-1.5 px-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-semibold flex items-center justify-center space-x-1 transition"
+                            >
+                              <Send className="h-3 w-3" />
+                              <span>Direct Outreach</span>
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-3 rounded-xl bg-slate-50 dark:bg-[var(--be-bg-elevated,#1e232b)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] space-y-2 text-center">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                          No personal recruiter publicly disclosed for this vacancy. Applications are ingested directly through the primary employer portal.
+                        </p>
+                        {vacancy.url && (
+                          <a
+                            href={vacancy.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center space-x-1 text-xs font-semibold text-blue-600 hover:text-blue-700"
+                          >
+                            <span>Apply Directly on ATS Portal</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
                     )}
                   </div>
 

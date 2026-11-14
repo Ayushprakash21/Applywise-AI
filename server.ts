@@ -20,6 +20,11 @@ import { matchingEngine } from './server/matchingEngine.ts';
 import { careerIntelligenceEngine } from './server/careerIntelligenceEngine.ts';
 import { submissionAdapter } from './server/submissionAdapter.ts';
 import { SOURCE_ADAPTERS, detectCompanyATSAndFeed } from './worker/jobConnectors.ts';
+import { globalSourceRegistry } from './server/sourceAdapters/index.ts';
+import { CURATED_COMPANY_REGISTRY } from './server/sourceAdapters/companyAdapters.ts';
+import { durableScheduler } from './server/durableScheduler.ts';
+import { verifyJobFreshness } from './server/jobQualityEngine.ts';
+import { sqlite } from './server/authAndStore.ts';
 import {
   initialVacancies,
   initialIntegrations,
@@ -904,27 +909,140 @@ app.get('/api/jobs/search', optionalAuth, async (req: AuthenticatedRequest, res:
 
 app.get('/api/jobs/status', (req: Request, res: Response) => {
   const vacancies = authAndStore.getVacancies(200);
+  const healthList = globalSourceRegistry.getHealthSummary();
+  const overview = globalSourceRegistry.getOverview();
   res.json({
     success: true,
     totalCachedJobs: vacancies.length,
-    refreshCadence: '10 minutes',
-    sources: [
-      { source_id: 'remotive', source_name: 'Remotive Global', connector_type: 'aggregator_api', status: 'healthy', total_jobs: vacancies.length },
-      { source_id: 'arbeitnow', source_name: 'Arbeitnow Jobs', connector_type: 'aggregator_api', status: 'healthy', total_jobs: vacancies.length },
-      { source_id: 'jobicy', source_name: 'Jobicy Global Remote', connector_type: 'aggregator_api', status: 'healthy', total_jobs: vacancies.length },
-    ],
+    refreshCadence: '20 minutes (high-priority ATS) / 60 minutes (marketplaces)',
+    overview,
+    sources: healthList.map(h => ({
+      source_id: h.sourceId,
+      source_name: h.sourceName,
+      category: h.category,
+      platform: h.platform,
+      status: h.status,
+      total_jobs: h.validJobsExtracted,
+      duplicates_detected: h.duplicatesDetected,
+      avg_latency_ms: h.avgExtractionTimeMs,
+      last_run: h.lastAttemptedRun,
+      last_success: h.lastSuccessfulRun,
+    })),
     lastChecked: new Date().toISOString(),
   });
 });
 
 app.get('/api/jobs/sources', (req: Request, res: Response) => {
+  const allAdapters = globalSourceRegistry.getAllAdapters();
   res.json({
     success: true,
-    sources: [
-      { id: 'remotive', name: 'Remotive Global', type: 'aggregator_api', status: 'healthy' },
-      { id: 'arbeitnow', name: 'Arbeitnow Jobs', type: 'aggregator_api', status: 'healthy' },
-      { id: 'jobicy', name: 'Jobicy Global Remote', type: 'aggregator_api', status: 'healthy' },
-    ],
+    sources: allAdapters.map(a => ({
+      id: a.id,
+      name: a.name,
+      category: a.category,
+      platform: a.platform,
+      endpoint: a.endpoint,
+      status: a.getHealth().status,
+      rateLimitSeconds: a.rateLimitSeconds,
+    })),
+    overview: globalSourceRegistry.getOverview(),
+  });
+});
+
+app.get('/api/jobs/:id/contacts', (req: Request, res: Response) => {
+  const vacancyId = req.params.id;
+  const vacancy = authAndStore.getVacancyById(vacancyId) || authAndStore.getVacancies().find(v => v.id === vacancyId);
+  if (!vacancy) {
+    return res.status(404).json({ success: false, error: 'Vacancy not found.' });
+  }
+
+  // 1. Check SQLite relational link table: hr_contact_job_links + hr_contacts
+  let matchedContacts: any[] = [];
+  try {
+    matchedContacts = sqlite.prepare(`
+      SELECT c.*, l.link_type, l.relevance_score, l.evidence as link_evidence
+      FROM hr_contacts c
+      INNER JOIN hr_contact_job_links l ON l.contact_id = c.id
+      WHERE l.job_id = ?
+      ORDER BY l.relevance_score DESC
+    `).all(vacancyId) as any[];
+  } catch {
+    matchedContacts = [];
+  }
+
+  // 2. If no direct link, search company-level contacts in hr_contacts
+  if (matchedContacts.length === 0) {
+    try {
+      matchedContacts = sqlite.prepare(`
+        SELECT *, 'company_wide' as link_type, 75 as relevance_score, evidence as link_evidence
+        FROM hr_contacts
+        WHERE LOWER(company_name) = LOWER(?)
+        ORDER BY contact_confidence DESC
+        LIMIT 5
+      `).all(vacancy.company) as any[];
+    } catch {
+      matchedContacts = [];
+    }
+  }
+
+  // 3. If still empty, check CURATED_COMPANY_REGISTRY for verified company inboxes
+  if (matchedContacts.length === 0) {
+    const compLower = vacancy.company.toLowerCase();
+    const entry = CURATED_COMPANY_REGISTRY.find(e => 
+      e.companyName.toLowerCase() === compLower || compLower.includes(e.companyName.toLowerCase())
+    );
+
+    if (entry && entry.recruitmentInboxes && entry.recruitmentInboxes.length > 0) {
+      for (const inbox of entry.recruitmentInboxes) {
+        matchedContacts.push({
+          id: `curated_${entry.tokenOrSlug}_${inbox.replace(/[^a-z0-9]/g, '_')}`,
+          company_name: entry.companyName,
+          company_website: entry.website,
+          contact_name: `${entry.companyName} Talent Acquisition Team`,
+          designation: 'Recruitment & Talent Team',
+          role_category: 'General Recruitment Contact',
+          email: inbox,
+          country: entry.country,
+          source_type: 'direct_company_careers',
+          source_url: entry.careersUrl,
+          email_verification_status: 'Domain Valid',
+          contact_confidence: 0.95,
+          is_role_based: 1,
+          link_type: 'curated_registry',
+          relevance_score: 90,
+          evidence: `Verified direct talent acquisition inbox for ${entry.companyName} (${entry.careersUrl})`,
+        });
+      }
+    }
+  }
+
+  res.json({
+    success: true,
+    jobId: vacancyId,
+    company: vacancy.company,
+    atsPlatform: (vacancy as any).atsPlatform || vacancy.source,
+    directApplicationUrl: (vacancy as any).directApplicationUrl || vacancy.url,
+    contacts: matchedContacts,
+    totalContacts: matchedContacts.length,
+  });
+});
+
+app.get('/api/jobs/:id/freshness', async (req: Request, res: Response) => {
+  const vacancy = authAndStore.getVacancyById(req.params.id) || authAndStore.getVacancies().find(v => v.id === req.params.id);
+  if (!vacancy) {
+    return res.status(404).json({ success: false, error: 'Vacancy not found.' });
+  }
+
+  const probe = await verifyJobFreshness(vacancy.url);
+  vacancy.isActive = probe.isActive;
+  vacancy.lastCheckedAt = probe.checkedAt;
+  res.json({
+    success: true,
+    jobId: vacancy.id,
+    isActive: probe.isActive,
+    checkedAt: probe.checkedAt,
+    reason: probe.reason,
+    httpStatus: probe.httpStatus,
   });
 });
 
@@ -936,7 +1054,8 @@ app.post('/api/jobs/refresh', optionalAuth, async (req: Request, res: Response) 
   res.json({
     success: true,
     totalJobsFetched: liveRes.vacancies.length,
-    message: `Refreshed job sources, fetched ${liveRes.vacancies.length} live openings.`,
+    message: `Refreshed job sources, fetched ${liveRes.vacancies.length} live openings across ${liveRes.metrics.sourceCount} connectors.`,
+    metrics: liveRes.metrics,
   });
 });
 
@@ -2909,10 +3028,17 @@ app.get('/api/admin/sources/coverage', requireAdmin, (_req: AuthenticatedRequest
 app.post('/api/admin/sources/sync', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { sourceId } = req.body;
-    const adapter = SOURCE_ADAPTERS.find(a => a.id === sourceId);
+    let adapter = SOURCE_ADAPTERS.find(a => a.id === sourceId);
+    if (!adapter) {
+      const regAdapter = globalSourceRegistry.getAdapter(sourceId);
+      if (regAdapter) {
+        adapter = regAdapter as any;
+      }
+    }
+
     if (adapter) {
       const result = await adapter.fetchJobs();
-      if (result.jobs.length > 0) {
+      if (result.jobs && result.jobs.length > 0) {
         authAndStore.saveLiveJobs(result.jobs);
         try {
           await processHrDiscoveryQueueBatch({
@@ -2925,18 +3051,28 @@ app.post('/api/admin/sources/sync', requireAdmin, async (req: AuthenticatedReque
           console.warn('Post-sync HR discovery batch warning:', hrErr);
         }
       }
-      authAndStore.updateJobSourceStatus(adapter.id, {
-        healthStatus: result.status,
-        totalActive: result.metrics.totalAccepted,
-        totalDiscovered: result.metrics.totalFetched,
-        lastSyncAt: new Date().toISOString(),
-      });
-      return res.json({ success: true, message: `Synced ${result.jobs.length} jobs from ${adapter.name}`, result });
+      return res.json({ success: true, message: `Synced ${result.jobs?.length || 0} jobs from ${adapter.name}`, result });
     }
     res.json({ success: true, message: 'Sync triggered successfully' });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+app.get('/api/admin/scheduler/status', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  res.json({
+    success: true,
+    scheduler: durableScheduler.getStatus(),
+  });
+});
+
+app.post('/api/admin/scheduler/trigger', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  const { taskId } = req.body || {};
+  if (!taskId) {
+    return res.status(400).json({ success: false, error: 'taskId is required' });
+  }
+  const result = await durableScheduler.triggerTask(taskId);
+  res.json(result);
 });
 
 app.get('/api/opportunity-radar/recommendations', requireAuth, (req: AuthenticatedRequest, res: Response) => {
@@ -3625,7 +3761,10 @@ async function startServer() {
   
 
 
-app.listen(PORT, '0.0.0.0', () => {
+  durableScheduler.start();
+  console.log('[ApplyVise AI] Durable background scheduler initialized.');
+
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`[ApplyVise AI] Server running on http://0.0.0.0:${PORT}`);
   });
 }

@@ -464,6 +464,43 @@ export const api = {
       body: JSON.stringify(item),
     }),
 
+  getJobContacts: (jobId: string) =>
+    fetchJson<{
+      success: boolean;
+      jobId: string;
+      company: string;
+      contacts: any[];
+      atsPlatform?: string;
+      directApplicationUrl?: string;
+      totalContacts: number;
+    }>(`/api/jobs/${encodeURIComponent(jobId)}/contacts`),
+
+  getJobFreshness: (jobId: string) =>
+    fetchJson<{
+      success: boolean;
+      jobId: string;
+      isActive: boolean;
+      checkedAt: string;
+      reason: string;
+      httpStatus?: number;
+    }>(`/api/jobs/${encodeURIComponent(jobId)}/freshness`),
+
+  getAdminSchedulerStatus: () =>
+    fetchJson<{
+      success: boolean;
+      scheduler: any;
+    }>('/api/admin/scheduler/status'),
+
+  triggerAdminSchedulerTask: (taskId: string) =>
+    fetchJson<{
+      success: boolean;
+      message: string;
+      result?: any;
+    }>('/api/admin/scheduler/trigger', {
+      method: 'POST',
+      body: JSON.stringify({ taskId }),
+    }),
+
   getGeographicCoverage: () =>
     fetchJson<{ success: boolean; coverage: GeographicCoverageSummary }>('/api/admin/sources/coverage'),
 
