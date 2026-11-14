@@ -43,6 +43,7 @@ import { GlobalSourceIntelligence } from './GlobalSourceIntelligence.tsx';
 import { AdminHrDiscoveryDiagnostics } from './AdminHrDiscoveryDiagnostics.tsx';
 import { GrowthEngineDashboard } from './admin/growth-engine/GrowthEngineDashboard.tsx';
 import { TypographySettingsModal } from './TypographySettingsModal.tsx';
+import { GlobalSearchBar } from './GlobalSearchBar.tsx';
 import { getEffectivePlan } from '../config/freeAccess.ts';
 import { FilterSelect, SearchableSelect } from './ui/SelectSystem.tsx';
 
@@ -323,6 +324,22 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                 <span>Authorized</span>
               </span>
             </div>
+          </div>
+
+          {/* Center: Global Search Bar */}
+          <div className="hidden lg:flex items-center flex-1 max-w-sm mx-6" role="search">
+            <GlobalSearchBar
+              plan="black"
+              isAdmin={true}
+              onSelectAdminTab={tab => {
+                setActiveTab(tab as any);
+              }}
+              onSearch={q => {
+                setUserSearch(q);
+                setActiveTab('users');
+              }}
+              placeholder="Search admin modules, users, GCDE..."
+            />
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-3">

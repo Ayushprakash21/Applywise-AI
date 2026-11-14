@@ -33,6 +33,7 @@ import {
 import { BrandLogo } from './BrandLogo.tsx';
 import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
 import { EliteCrownBadge } from './EliteCrownBadge.tsx';
+import { GlobalSearchBar } from './GlobalSearchBar.tsx';
 import { initBlackEliteTheme } from '../utils/blackEliteTheme.ts';
 import { AuthUser } from '../services/api.ts';
 import { NotificationItem, AutomationSettings, AccountUsageStats } from '../types/index.ts';
@@ -116,6 +117,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
@@ -239,63 +241,32 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
           </div>
 
           {/* Center: Integrated Command / Global Search */}
-          <div className="hidden md:flex items-center flex-1 max-w-lg mx-6">
-            <div
-              role="search"
-              onClick={() => onSelectTab('jobs')}
-              className={`w-full px-4 py-2.5 rounded-full flex items-center justify-between transition-all duration-200 cursor-pointer ${
-                plan === 'black'
-                  ? 'bg-[#101318] hover:bg-[#151921] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(198,166,106,0.30)] text-[#92949A] hover:text-[#F2F0EA] shadow-inner shadow-black/40'
-                  : 'bg-white/75 hover:bg-white border border-slate-200/80 hover:border-slate-300 text-slate-400 hover:text-slate-600 shadow-2xs'
-              }`}
-              style={
-                plan === 'black'
-                  ? {
-                      backgroundColor: 'var(--be-bg-input, #101318)',
-                      borderColor: 'var(--be-border-subtle, rgba(255, 255, 255, 0.08))',
-                    }
-                  : undefined
-              }
-            >
-              <div className="flex items-center space-x-2.5 min-w-0">
-                <Search
-                  className={`w-4 h-4 shrink-0 transition-colors ${
-                    plan === 'black' ? 'text-[#92949A]' : 'text-slate-400'
-                  }`}
-                  style={plan === 'black' ? { color: 'var(--be-accent-muted, #92949A)' } : undefined}
-                />
-                <span
-                  className={`text-xs truncate ${
-                    plan === 'black' ? 'text-[#C0BDB5]' : 'text-slate-500'
-                  }`}
-                  style={plan === 'black' ? { color: 'var(--be-text-secondary, #C0BDB5)' } : undefined}
-                >
-                  Search verified opportunities, skills, companies...
-                </span>
-              </div>
-              <kbd
-                className={`shrink-0 ml-3 text-[10px] font-mono px-2 py-0.5 rounded-md font-medium tracking-wider select-none border transition-colors ${
-                  plan === 'black'
-                    ? 'bg-[#14171C] text-[#92949A] border-[rgba(255,255,255,0.08)]'
-                    : 'bg-slate-100 text-slate-500 border-slate-200'
-                }`}
-                style={
-                  plan === 'black'
-                    ? {
-                        backgroundColor: 'var(--be-bg-elevated, #14171C)',
-                        borderColor: 'var(--be-border-subtle, rgba(255, 255, 255, 0.08))',
-                        color: 'var(--be-text-muted, #92949A)',
-                      }
-                    : undefined
-                }
-              >
-                ⌘K
-              </kbd>
-            </div>
+          <div className="hidden md:flex items-center flex-1 max-w-lg mx-6" role="search">
+            <GlobalSearchBar
+              plan={plan}
+              onSelectTab={onSelectTab}
+              onSearch={() => onSelectTab('jobs')}
+              placeholder="Search verified opportunities, skills, companies..."
+            />
+            {/* Integrated accessible shortcut tag fallback: <kbd className="sr-only">⌘K</kbd> */}
+            <kbd className="sr-only">⌘K</kbd>
           </div>
 
           {/* Right Toolbar */}
           <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Mobile Search Toggle Icon */}
+            <button
+              type="button"
+              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+              className={`md:hidden p-2 rounded-xl border transition-colors cursor-pointer ${
+                plan === 'black'
+                  ? 'bg-[#14171C] text-[#92949A] hover:text-[#F2F0EA] border-[rgba(255,255,255,0.08)]'
+                  : 'bg-white text-slate-500 hover:text-slate-900 border-slate-200'
+              }`}
+              aria-label="Toggle mobile search"
+            >
+              <Search className="h-4 w-4" />
+            </button>
             {/* Safe Mode Indicator */}
             <button
               type="button"
@@ -415,6 +386,30 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Mobile Search Overlay Bar */}
+        {mobileSearchOpen && (
+          <div
+            className={`md:hidden px-4 py-2.5 border-t transition-all duration-200 ${
+              plan === 'black'
+                ? 'bg-[#101318] border-[rgba(255,255,255,0.08)]'
+                : 'bg-white/95 border-slate-200 shadow-xs'
+            }`}
+          >
+            <GlobalSearchBar
+              plan={plan}
+              onSelectTab={tab => {
+                onSelectTab(tab);
+                setMobileSearchOpen(false);
+              }}
+              onSearch={() => {
+                onSelectTab('jobs');
+                setMobileSearchOpen(false);
+              }}
+              placeholder="Search opportunities, skills, companies..."
+            />
+          </div>
+        )}
       </header>
 
       {/* Main Workspace Body with Sidebar */}
