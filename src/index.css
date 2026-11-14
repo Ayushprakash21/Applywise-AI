@@ -465,13 +465,13 @@ body.theme-black {
   color: #C6A66A !important;
 }
 
-.theme-black header [class*="font-mono"][class*="uppercase"] {
-  background-color: #111318 !important;
-  color: #C6A66A !important;
-  border: 1px solid rgba(198, 166, 106, 0.30) !important;
+.theme-black header .be-header-badge[class*="font-mono"][class*="uppercase"] {
+  background-color: var(--be-bg-primary, #111318) !important;
+  color: var(--be-accent, #C6A66A) !important;
+  border: 1px solid var(--be-border-focus, rgba(198, 166, 106, 0.30)) !important;
 }
 
-/* 3. Cards, Containers, and Surfaces (Graphite Surfaces · 1px Crisp Borders) */
+/* 3. Cards, Containers, and Surfaces (Dynamic Curated Palette Surfaces · 1px Crisp Borders) */
 .theme-black .bg-white,
 .theme-black .bg-white\/50,
 .theme-black .bg-white\/55,
@@ -491,9 +491,9 @@ body.theme-black {
 .theme-black .neu-panel,
 .theme-black .neu-glass,
 .theme-black .be-card {
-  background-color: #14171C !important;
-  border-color: rgba(255, 255, 255, 0.09) !important;
-  color: #F2F0EA !important;
+  background-color: var(--be-bg-card, #14171C) !important;
+  border-color: var(--be-border-subtle, rgba(255, 255, 255, 0.09)) !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
 }
 
@@ -501,7 +501,7 @@ body.theme-black {
 .theme-black .glass-card-hover:hover,
 .theme-black .neu-raised-hover:hover,
 .theme-black .be-card:hover {
-  border-color: rgba(198, 166, 106, 0.30) !important;
+  border-color: var(--be-border-focus, rgba(198, 166, 106, 0.30)) !important;
   box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.7) !important;
   transform: translateY(-1px) !important;
 }
@@ -520,16 +520,16 @@ body.theme-black {
 .theme-black .bg-blue-50,
 .theme-black .bg-violet-50,
 .theme-black .be-card-elevated {
-  background-color: #191D23 !important;
-  border-color: rgba(255, 255, 255, 0.09) !important;
-  color: #F2F0EA !important;
+  background-color: var(--be-bg-elevated, #191D23) !important;
+  border-color: var(--be-border-subtle, rgba(255, 255, 255, 0.09)) !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
 }
 
 /* Inset containers */
 .theme-black .neu-inset,
 .theme-black [class*="bg-slate-50/50"] {
-  background-color: #0D1014 !important;
-  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  background-color: var(--be-bg-primary, #0D1014) !important;
+  border: 1px solid var(--be-border-subtle, rgba(255, 255, 255, 0.09)) !important;
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4) !important;
 }
 
@@ -555,7 +555,7 @@ body.theme-black {
 .theme-black .text-slate-700,
 .theme-black .text-gray-900,
 .theme-black .text-gray-800 {
-  color: #F2F0EA !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
   letter-spacing: -0.015em;
 }
 
@@ -564,26 +564,26 @@ body.theme-black {
 .theme-black .text-slate-500,
 .theme-black .text-gray-600,
 .theme-black .text-gray-500 {
-  color: #C0BDB5 !important;
+  color: var(--be-text-secondary, #C0BDB5) !important;
 }
 
 .theme-black .text-slate-400,
 .theme-black .text-gray-400 {
-  color: #92949A !important;
+  color: var(--be-text-muted, #92949A) !important;
 }
 
-/* Restrained Champagne Accent Text */
+/* Restrained Curated Accent Text */
 .theme-black .text-blue-600,
 .theme-black .text-blue-700,
 .theme-black .text-\[\#8065F5\],
 .theme-black .text-violet-600,
 .theme-black .text-violet-700,
 .theme-black .text-indigo-600 {
-  color: #C6A66A !important;
+  color: var(--be-accent, #C6A66A) !important;
 }
 
 /* 5. Buttons & Interactive Controls (Restrained Luxury Architecture) */
-/* Primary Button: Champagne Gold Background, Deep Dark #17130C Text, Clear Contrast */
+/* Primary Button: Palette Curated Accent Background, High Contrast Text */
 .theme-black .be-btn-primary,
 .theme-black .neu-button-primary,
 .theme-black button:not(aside button):not(nav button)[class*="bg-blue-600"],
@@ -591,15 +591,15 @@ body.theme-black {
 .theme-black button:not(aside button):not(nav button)[class*="bg-[#8065F5]"],
 .theme-black button:not(aside button):not(nav button)[class*="from-blue-600"],
 .theme-black button:not(aside button):not(nav button)[class*="from-violet-600"] {
-  background: #C6A66A !important;
-  color: #17130C !important;
+  background: var(--be-accent, #C6A66A) !important;
+  color: var(--be-accent-contrast, #17130C) !important;
   font-weight: 700 !important;
-  border: 1px solid rgba(198, 166, 106, 0.30) !important;
+  border: 1px solid var(--be-border-focus, rgba(198, 166, 106, 0.30)) !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Ensure ALL child elements inside primary buttons inherit or strictly display #17130C */
+/* Ensure ALL child elements inside primary buttons inherit or strictly display accent contrast */
 .theme-black .be-btn-primary *,
 .theme-black .neu-button-primary *,
 .theme-black button:not(aside button):not(nav button)[class*="bg-blue-600"] *,
@@ -607,8 +607,8 @@ body.theme-black {
 .theme-black button:not(aside button):not(nav button)[class*="bg-[#8065F5]"] *,
 .theme-black button:not(aside button):not(nav button)[class*="from-blue-600"] *,
 .theme-black button:not(aside button):not(nav button)[class*="from-violet-600"] * {
-  color: #17130C !important;
-  fill: #17130C;
+  color: var(--be-accent-contrast, #17130C) !important;
+  fill: var(--be-accent-contrast, #17130C);
 }
 
 .theme-black .be-btn-primary:hover:not(:disabled),
@@ -618,20 +618,20 @@ body.theme-black {
 .theme-black button:not(aside button):not(nav button)[class*="bg-[#8065F5]"]:hover:not(:disabled),
 .theme-black button:not(aside button):not(nav button)[class*="from-blue-600"]:hover:not(:disabled),
 .theme-black button:not(aside button):not(nav button)[class*="from-violet-600"]:hover:not(:disabled) {
-  background: #D9BB80 !important;
-  color: #17130C !important;
+  background: var(--be-accent-light, #D9BB80) !important;
+  color: var(--be-accent-contrast, #17130C) !important;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55) !important;
   transform: translateY(-1px) !important;
 }
 
-/* Secondary Button: Graphite Surface, Neutral Border, Off-White Text */
+/* Secondary Button: Elevated Surface, Neutral Border, Off-White Text */
 .theme-black .be-btn-secondary,
 .theme-black .neu-button,
 .theme-black button[class*="border-slate-200"]:not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-[#8065F5]"]),
 .theme-black button[class*="border-slate-300"]:not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-[#8065F5]"]) {
-  background-color: #191D23 !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #F2F0EA !important;
+  background-color: var(--be-bg-elevated, #191D23) !important;
+  border: 1px solid var(--be-border-subtle, rgba(255, 255, 255, 0.12)) !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
   transition: all 0.18s ease-in-out !important;
 }
@@ -640,16 +640,16 @@ body.theme-black {
 .theme-black .neu-button *,
 .theme-black button[class*="border-slate-200"]:not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-[#8065F5]"]) *,
 .theme-black button[class*="border-slate-300"]:not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-[#8065F5]"]) * {
-  color: #F2F0EA !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
 }
 
 .theme-black .be-btn-secondary:hover:not(:disabled),
 .theme-black .neu-button:hover:not(:disabled),
 .theme-black button[class*="border-slate-200"]:not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-[#8065F5]"]):hover:not(:disabled),
 .theme-black button[class*="border-slate-300"]:not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-[#8065F5]"]):hover:not(:disabled) {
-  background-color: #20252D !important;
-  border-color: rgba(198, 166, 106, 0.30) !important;
-  color: #F2F0EA !important;
+  background-color: var(--be-hover-bg, #20252D) !important;
+  border-color: var(--be-border-focus, rgba(198, 166, 106, 0.30)) !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
 }
 
 /* Tertiary / Plain Text Buttons */
@@ -657,13 +657,13 @@ body.theme-black {
 .theme-black button[class*="text-slate-600"]:not([class*="bg-"]):not([class*="border-"]),
 .theme-black button[class*="text-slate-500"]:not([class*="bg-"]):not([class*="border-"]) {
   background-color: transparent !important;
-  color: #C0BDB5 !important;
+  color: var(--be-text-secondary, #C0BDB5) !important;
 }
 
 .theme-black .be-btn-tertiary:hover:not(:disabled),
 .theme-black button[class*="text-slate-600"]:not([class*="bg-"]):not([class*="border-"]):hover:not(:disabled),
 .theme-black button[class*="text-slate-500"]:not([class*="bg-"]):not([class*="border-"]):hover:not(:disabled) {
-  color: #F2F0EA !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
   background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
@@ -676,16 +676,16 @@ body.theme-black {
   filter: grayscale(40%) !important;
 }
 
-/* 6. Inputs, Selects & Forms (Fine Neutral Borders · Champagne ONLY on Focus) */
+/* 6. Inputs, Selects & Forms (Fine Neutral Borders · Accent ONLY on Focus) */
 .theme-black input,
 .theme-black textarea,
 .theme-black select,
 .theme-black .neu-input,
 .theme-black .glass-input,
 .theme-black .be-input {
-  background-color: #0D1014 !important;
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
-  color: #F2F0EA !important;
+  background-color: var(--be-bg-input, #0D1014) !important;
+  border: 1px solid var(--be-border-subtle, rgba(255, 255, 255, 0.10)) !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45) !important;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
@@ -695,16 +695,16 @@ body.theme-black {
 .theme-black .neu-input:focus,
 .theme-black .glass-input:focus,
 .theme-black .be-input:focus {
-  border-color: #C6A66A !important;
-  box-shadow: 0 0 0 2px rgba(198, 166, 106, 0.20), inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  border-color: var(--be-accent, #C6A66A) !important;
+  box-shadow: 0 0 0 2px var(--be-border-focus, rgba(198, 166, 106, 0.20)), inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
   outline: none !important;
 }
 .theme-black input::placeholder,
 .theme-black textarea::placeholder {
-  color: #737780 !important;
+  color: var(--be-text-disabled, #737780) !important;
 }
 
-/* 7. Modals, Drawers & Dropdowns (Deep Graphite Modal Surfaces) */
+/* 7. Modals, Drawers & Dropdowns (Dynamic Modal Surfaces) */
 .theme-black .fixed.inset-0.bg-slate-900\/40,
 .theme-black .fixed.inset-0.bg-black\/50,
 .theme-black [class*="backdrop-blur-sm"] {
@@ -715,37 +715,37 @@ body.theme-black {
 .theme-black [class*="rounded-3xl bg-white"],
 .theme-black [class*="rounded-2xl bg-white"],
 .theme-black [class*="rounded-xl bg-white"] {
-  background-color: #15181E !important;
-  border: 1px solid rgba(198, 166, 106, 0.30) !important;
-  color: #F2F0EA !important;
+  background-color: var(--be-bg-modal, #15181E) !important;
+  border: 1px solid var(--be-border-focus, rgba(198, 166, 106, 0.30)) !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
   box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.85) !important;
 }
 
 /* Modal header separators */
 .theme-black [role="dialog"] [class*="border-b"],
 .theme-black [role="dialog"] [class*="border-t"] {
-  border-color: rgba(255, 255, 255, 0.09) !important;
+  border-color: var(--be-border-subtle, rgba(255, 255, 255, 0.09)) !important;
 }
 
 /* Resume Intelligence Onboarding Modal specifics */
 .theme-black [data-testid="onboarding-progress-container"] {
-  background-color: #0D1014 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
+  background-color: var(--be-bg-primary, #0D1014) !important;
+  border-bottom: 1px solid var(--be-border-subtle, rgba(255, 255, 255, 0.09)) !important;
 }
 
 .theme-black [data-testid="onboarding-progress-container"] [class*="bg-slate-200"] {
-  background-color: #191D23 !important;
+  background-color: var(--be-bg-elevated, #191D23) !important;
 }
 
 .theme-black [data-testid="progress-fill-mobile"],
 .theme-black [data-testid="progress-fill-desktop"] {
-  background: #C6A66A !important;
+  background: var(--be-accent, #C6A66A) !important;
   box-shadow: none !important;
 }
 
 .theme-black [class*="border-dashed"] {
-  background-color: #0D1014 !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  background-color: var(--be-bg-primary, #0D1014) !important;
+  border-color: var(--be-border-subtle, rgba(255, 255, 255, 0.12)) !important;
 }
 
 .theme-black [class*="border-dashed"]:hover {
@@ -765,86 +765,86 @@ body.theme-black {
 /* Dropdown menus (user menu, notifications dropdown) */
 .theme-black div[ref="userMenuRef"] div,
 .theme-black div[ref="notifRef"] div {
-  background-color: #14171C !important;
-  border: 1px solid rgba(255, 255, 255, 0.09) !important;
-  color: #F2F0EA !important;
+  background-color: var(--be-bg-card, #14171C) !important;
+  border: 1px solid var(--be-border-subtle, rgba(255, 255, 255, 0.09)) !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
   box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.85) !important;
 }
 
 /* Admin Console — Security Architecture Guide Box */
 .theme-black [class*="bg-indigo-50/70"],
 .theme-black .admin-security-card {
-  background-color: #14171C !important;
-  border: 1px solid rgba(198, 166, 106, 0.30) !important;
-  color: #F2F0EA !important;
+  background-color: var(--be-bg-card, #14171C) !important;
+  border: 1px solid var(--be-border-focus, rgba(198, 166, 106, 0.30)) !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
 }
 
 .theme-black [class*="bg-indigo-50/70"] p,
 .theme-black .admin-security-card p {
-  color: #C0BDB5 !important;
+  color: var(--be-text-secondary, #C0BDB5) !important;
 }
 
 .theme-black [class*="bg-indigo-50/70"] code,
 .theme-black .admin-security-card code,
 .theme-black [class*="bg-indigo-100/90"],
 .theme-black [class*="bg-indigo-100"] {
-  background-color: #0D1014 !important;
-  color: #C6A66A !important;
-  border: 1px solid rgba(198, 166, 106, 0.30) !important;
+  background-color: var(--be-bg-primary, #0D1014) !important;
+  color: var(--be-accent, #C6A66A) !important;
+  border: 1px solid var(--be-border-focus, rgba(198, 166, 106, 0.30)) !important;
 }
 
 .theme-black [class*="bg-indigo-50/70"] svg,
 .theme-black .admin-security-card svg {
-  color: #C6A66A !important;
+  color: var(--be-accent, #C6A66A) !important;
 }
 
 /* Notifications Page — Left Indicator & Item Contrast */
 .theme-black .border-l-blue-600 {
-  border-left-color: #C6A66A !important;
+  border-left-color: var(--be-accent, #C6A66A) !important;
 }
 
 /* 8. Tables, Borders, Dividers & Tooltips */
 .theme-black table {
-  border-color: rgba(255, 255, 255, 0.09) !important;
+  border-color: var(--be-border-subtle, rgba(255, 255, 255, 0.09)) !important;
 }
 .theme-black th {
-  background-color: #111318 !important;
-  color: #C0BDB5 !important;
+  background-color: var(--be-bg-secondary, #111318) !important;
+  color: var(--be-text-secondary, #C0BDB5) !important;
   font-weight: 600 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
+  border-bottom: 1px solid var(--be-border-subtle, rgba(255, 255, 255, 0.09)) !important;
 }
 .theme-black td {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
-  color: #F2F0EA !important;
+  border-bottom: 1px solid var(--be-border-subtle, rgba(255, 255, 255, 0.09)) !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
 }
 .theme-black tr:hover td {
-  background-color: #191D23 !important;
+  background-color: var(--be-hover-bg, #191D23) !important;
 }
 .theme-black .border-slate-100,
 .theme-black .border-slate-200,
 .theme-black .border-slate-300,
 .theme-black .divide-slate-100,
 .theme-black .divide-slate-200 {
-  border-color: rgba(255, 255, 255, 0.09) !important;
+  border-color: var(--be-border-subtle, rgba(255, 255, 255, 0.09)) !important;
 }
 
 /* 9. Badges, Chips & Progress Bars (Preserve Semantic Status Colors!) */
 .theme-black .neu-chip {
-  background: #191D23 !important;
-  color: #C0BDB5 !important;
-  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  background: var(--be-bg-elevated, #191D23) !important;
+  color: var(--be-text-secondary, #C0BDB5) !important;
+  border: 1px solid var(--be-border-subtle, rgba(255, 255, 255, 0.09)) !important;
   box-shadow: none !important;
 }
 .theme-black .neu-chip:hover {
-  background: #20252D !important;
-  color: #F2F0EA !important;
-  border-color: rgba(198, 166, 106, 0.30) !important;
+  background: var(--be-hover-bg, #20252D) !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
+  border-color: var(--be-border-focus, rgba(198, 166, 106, 0.30)) !important;
   box-shadow: none !important;
 }
 .theme-black .neu-chip.active {
-  background: rgba(198, 166, 106, 0.12) !important;
-  border-color: #C6A66A !important;
-  color: #F2F0EA !important;
+  background: var(--be-accent-muted, rgba(198, 166, 106, 0.12)) !important;
+  border-color: var(--be-accent, #C6A66A) !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
   box-shadow: none !important;
 }
 
@@ -907,10 +907,10 @@ body.theme-black {
 /* Progress bar tracks & fills */
 .theme-black [class*="bg-slate-200"],
 .theme-black [class*="bg-slate-100"] {
-  background-color: #191D23 !important;
+  background-color: var(--be-bg-elevated, #191D23) !important;
 }
 .theme-black [class*="bg-blue-600"][style*="width"] {
-  background: #C6A66A !important;
+  background: var(--be-accent, #C6A66A) !important;
   box-shadow: none !important;
 }
 .theme-black [class*="bg-emerald-500"][style*="width"] {
@@ -926,21 +926,70 @@ body.theme-black {
 
 /* AI Copilot Floating Launcher & Drawer in BLACK ELITE */
 .theme-black button[aria-label="Open ApplyVise Copilot"] {
-  background-color: #14171C !important;
-  border: 1px solid rgba(198, 166, 106, 0.30) !important;
-  color: #F2F0EA !important;
+  background-color: var(--be-bg-card, #14171C) !important;
+  border: 1px solid var(--be-border-focus, rgba(198, 166, 106, 0.30)) !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
   box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.8) !important;
 }
 .theme-black button[aria-label="Open ApplyVise Copilot"]:hover {
-  background-color: #191D23 !important;
-  border-color: rgba(198, 166, 106, 0.50) !important;
+  background-color: var(--be-bg-elevated, #191D23) !important;
+  border-color: var(--be-border-focus, rgba(198, 166, 106, 0.50)) !important;
   transform: translateY(-1px) scale(1.02) !important;
 }
 .theme-black button[aria-label="Open ApplyVise Copilot"] span {
-  color: #F2F0EA !important;
+  color: var(--be-text-primary, #F2F0EA) !important;
 }
 .theme-black button[aria-label="Open ApplyVise Copilot"] span[class*="text-[#9483E8]"] {
   color: #9483E8 !important;
+}
+
+/* ==========================================================================
+   APPLYVISE BLACK ELITE — LIGHT APPEARANCE OVERRIDES
+   When data-be-appearance="light" / .theme-black-light is active
+   ========================================================================== */
+.theme-black-light,
+[data-be-appearance="light"] {
+  color-scheme: light;
+}
+
+.theme-black-light .bg-white,
+.theme-black-light .bg-white\/50,
+.theme-black-light .bg-white\/70,
+.theme-black-light .bg-white\/80,
+.theme-black-light .bg-white\/90,
+.theme-black-light .bg-white\/95,
+.theme-black-light .be-card,
+.theme-black-light .glass-card,
+.theme-black-light .neu-card,
+[data-be-appearance="light"] .bg-white,
+[data-be-appearance="light"] .be-card {
+  box-shadow: 0 2px 12px -2px rgba(15, 23, 42, 0.08) !important;
+}
+
+.theme-black-light .neu-inset,
+[data-be-appearance="light"] .neu-inset {
+  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.05) !important;
+}
+
+.theme-black-light input,
+.theme-black-light textarea,
+.theme-black-light select,
+[data-be-appearance="light"] input,
+[data-be-appearance="light"] textarea,
+[data-be-appearance="light"] select {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+.theme-black-light .fixed.inset-0.bg-slate-900\/40,
+.theme-black-light .fixed.inset-0.bg-black\/50,
+[data-be-appearance="light"] .fixed.inset-0.bg-slate-900\/40,
+[data-be-appearance="light"] .fixed.inset-0.bg-black\/50 {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+}
+
+.theme-black-light [role="dialog"],
+[data-be-appearance="light"] [role="dialog"] {
+  box-shadow: 0 24px 60px -12px rgba(15, 23, 42, 0.18) !important;
 }
 
 /* ==========================================================================

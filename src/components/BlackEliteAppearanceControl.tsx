@@ -66,7 +66,7 @@ export const BlackEliteAppearanceControl: React.FC<BlackEliteAppearanceControlPr
       {/* 1. Appearance Mode: 2-Position Segmented Slider */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-[11px] font-semibold">
-          <span style={{ color: 'var(--be-text-muted, #92949A)' }} className="uppercase tracking-wider font-mono text-[10px]">
+          <span style={{ color: 'var(--be-text-muted, #92949A)' }} className="uppercase tracking-widest text-[10px] font-semibold select-none">
             Appearance
           </span>
           <span style={{ color: 'var(--be-accent, #C6A66A)' }} className="text-[10px] font-mono capitalize">
@@ -130,7 +130,7 @@ export const BlackEliteAppearanceControl: React.FC<BlackEliteAppearanceControlPr
       {/* 2. Curated Palettes List (Directly inspired by Screenshot 3) */}
       <div className="space-y-1.5 pt-1">
         <div className="flex items-center justify-between text-[11px]">
-          <span style={{ color: 'var(--be-text-muted, #92949A)' }} className="uppercase tracking-wider font-mono text-[10px]">
+          <span style={{ color: 'var(--be-text-muted, #92949A)' }} className="uppercase tracking-widest text-[10px] font-semibold select-none">
             Curated Palettes
           </span>
           <span style={{ color: 'var(--be-text-muted, #92949A)' }} className="text-[10px] font-mono">

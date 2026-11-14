@@ -505,7 +505,11 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
 
           {/* Section: Appearance & Curated Palettes (BLACK ELITE exclusive) */}
           {isBlack && (
-            <div className="mb-2">
+            <div
+              className="mb-2"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
               <BlackEliteAppearanceControl />
             </div>
           )}

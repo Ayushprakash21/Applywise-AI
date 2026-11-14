@@ -177,7 +177,21 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-[#E9EEF6] text-slate-800 flex flex-col font-sans selection:bg-violet-200 selection:text-violet-900 relative">
+    <div
+      className={`min-h-screen flex flex-col font-sans relative ${
+        plan === 'black'
+          ? 'bg-[var(--be-bg-primary,#090A0C)] text-[var(--be-text-primary,#F2F0EA)]'
+          : 'bg-[#E9EEF6] text-slate-800 selection:bg-violet-200 selection:text-violet-900'
+      }`}
+      style={
+        plan === 'black'
+          ? {
+              backgroundColor: 'var(--be-bg-primary, #090A0C)',
+              color: 'var(--be-text-primary, #F2F0EA)',
+            }
+          : undefined
+      }
+    >
       {/* Ambient Flowing Background (matching authentication experience) */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden select-none z-0">
         <div className="absolute -top-[10%] right-[15%] w-[680px] h-[680px] rounded-full bg-gradient-to-br from-indigo-300/15 via-purple-300/10 to-transparent blur-[140px]" />
@@ -185,7 +199,21 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       </div>
 
       {/* Top Fixed Header - Frosted Translucent Glass */}
-      <header className="sticky top-0 z-40 bg-white/60 backdrop-blur-xl border-b border-white/80 transition-colors shadow-2xs">
+      <header
+        className={`sticky top-0 z-40 backdrop-blur-xl border-b transition-colors shadow-2xs ${
+          plan === 'black'
+            ? 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
+            : 'bg-white/60 border-white/80'
+        }`}
+        style={
+          plan === 'black'
+            ? {
+                backgroundColor: 'var(--be-bg-sidebar, rgba(17, 19, 24, 0.94))',
+                borderColor: 'var(--be-border-subtle, rgba(255, 255, 255, 0.09))',
+              }
+            : undefined
+        }
+      >
         <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-4">
           {/* Left: Brand Logo & Mobile Toggle */}
           <div className="flex items-center space-x-3">
@@ -393,9 +421,21 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       <div className="flex-1 flex w-full max-w-[1720px] mx-auto relative z-10">
         {/* Left Desktop Sidebar - Frosted Glass Navigation */}
         <aside
-          className={`hidden lg:flex flex-col border-r border-white/80 bg-white/55 backdrop-blur-2xl transition-all duration-300 relative select-none ${
+          className={`hidden lg:flex flex-col border-r transition-all duration-300 relative select-none ${
             sidebarCollapsed ? 'w-20' : 'w-68'
+          } ${
+            plan === 'black'
+              ? 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
+              : 'border-white/80 bg-white/55 backdrop-blur-2xl'
           }`}
+          style={
+            plan === 'black'
+              ? {
+                  backgroundColor: 'var(--be-bg-sidebar, #111318)',
+                  borderColor: 'var(--be-border-subtle, rgba(255, 255, 255, 0.09))',
+                }
+              : undefined
+          }
         >
           {/* Collapse/Expand Toggle Button */}
           <button
