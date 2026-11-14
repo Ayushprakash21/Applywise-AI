@@ -21,11 +21,15 @@ CREATE INDEX IF NOT EXISTS idx_auto_apply_entitlements_user ON auto_apply_entitl
 
 CREATE TABLE IF NOT EXISTS auto_apply_agent_settings (
   user_id TEXT PRIMARY KEY,
-  operating_mode TEXT NOT NULL DEFAULT 'MODE_A_ASSISTED', -- MODE_A_ASSISTED, MODE_B_SUPERVISED, MODE_C_AUTONOMOUS
+  operating_mode TEXT NOT NULL DEFAULT 'SUPERVISED_AUTOPILOT', -- SUPERVISED_AUTOPILOT
   automation_active INTEGER NOT NULL DEFAULT 0,
   consent_given INTEGER NOT NULL DEFAULT 0,
   consent_timestamp TEXT,
-  daily_limit INTEGER NOT NULL DEFAULT 5,
+  consent_version TEXT NOT NULL DEFAULT 'v1.0',
+  candidate_timezone TEXT NOT NULL DEFAULT 'UTC',
+  daily_limit INTEGER NOT NULL DEFAULT 3,
+  daily_usage_count INTEGER NOT NULL DEFAULT 0,
+  daily_usage_date TEXT NOT NULL DEFAULT '',
   min_match_score INTEGER NOT NULL DEFAULT 75,
   target_job_titles TEXT NOT NULL DEFAULT '[]', -- JSON string array
   target_locations TEXT NOT NULL DEFAULT '[]', -- JSON string array
@@ -33,9 +37,11 @@ CREATE TABLE IF NOT EXISTS auto_apply_agent_settings (
   excluded_employers TEXT NOT NULL DEFAULT '[]', -- JSON string array
   preferred_work_arrangement TEXT NOT NULL DEFAULT 'all', -- all, remote, hybrid, onsite
   min_salary INTEGER NOT NULL DEFAULT 0,
-  auto_submit_eligible INTEGER NOT NULL DEFAULT 0,
+  auto_submit_eligible INTEGER NOT NULL DEFAULT 1,
   pause_on_screening INTEGER NOT NULL DEFAULT 1,
   default_resume_id TEXT,
+  approved_screening_answers TEXT NOT NULL DEFAULT '{}', -- JSON object
+  configuration_version INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

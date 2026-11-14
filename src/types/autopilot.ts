@@ -2,6 +2,7 @@
 // Domain Types for ApplyVise Autopilot — Autonomous AI Job Application Agent
 
 export type AutopilotOperatingMode =
+  | 'SUPERVISED_AUTOPILOT'
   | 'MODE_A_ASSISTED'
   | 'MODE_B_SUPERVISED'
   | 'MODE_C_AUTONOMOUS';
@@ -49,7 +50,11 @@ export interface AutopilotAgentSettings {
   automationActive: boolean;
   consentGiven: boolean;
   consentTimestamp: string | null;
+  consentVersion: string;
+  candidateTimezone: string;
   dailyLimit: number;
+  dailyUsageCount: number;
+  dailyUsageDate: string;
   minMatchScore: number;
   targetJobTitles: string[];
   targetLocations: string[];
@@ -60,6 +65,8 @@ export interface AutopilotAgentSettings {
   autoSubmitEligible: boolean;
   pauseOnScreening: boolean;
   defaultResumeId?: string | null;
+  approvedScreeningAnswers: Record<string, string>;
+  configurationVersion: number;
 }
 
 export interface AutopilotJobItem {

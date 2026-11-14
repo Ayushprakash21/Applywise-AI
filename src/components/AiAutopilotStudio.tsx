@@ -246,17 +246,32 @@ export const AiAutopilotStudio: React.FC<AiAutopilotStudioProps> = ({
           </p>
         </div>
 
-        {/* In-Flight Applications */}
-        <div className="p-5 rounded-xl bg-[#13161B] border border-[#292D34] space-y-2">
+        {/* Daily Safety Quota (Max 3 / local calendar day) */}
+        <div className="p-5 rounded-xl bg-[#13161B] border border-[#292D34] space-y-3">
           <div className="flex items-center justify-between text-xs text-[#B7B4AD]">
-            <span>Active Queue & In-Progress</span>
-            <Clock className="h-3.5 w-3.5 text-indigo-400" />
+            <span>Daily Safety Limit</span>
+            <span className="font-mono text-[10px] text-amber-400 font-bold uppercase">
+              LOCAL DAY
+            </span>
           </div>
-          <div className="text-2xl font-black text-[#F0EEE9]">
-            {stats?.inProgress || 0}
+          <div className="flex items-baseline space-x-2">
+            <span className="text-2xl font-black text-[#F0EEE9]">
+              {summary?.settings.dailyUsageCount || 0} / 3
+            </span>
+            <span className="text-xs text-[#8E8B83]">
+              ({Math.max(0, 3 - (summary?.settings.dailyUsageCount || 0))} remaining today)
+            </span>
+          </div>
+          <div className="w-full h-1.5 rounded-full bg-[#08090B] overflow-hidden">
+            <div
+              className="h-full bg-amber-400 transition-all duration-300"
+              style={{
+                width: `${Math.min(100, (((summary?.settings.dailyUsageCount || 0) / 3) * 100))}%`,
+              }}
+            />
           </div>
           <p className="text-[10px] text-[#8E8B83]">
-            {stats?.awaitingApproval || 0} awaiting review, {stats?.needsAttention || 0} needs screening input.
+            Timezone: <span className="font-mono text-[#B7B4AD]">{summary?.settings.candidateTimezone || 'UTC'}</span> · Resets at midnight
           </p>
         </div>
 

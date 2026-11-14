@@ -4774,14 +4774,21 @@ export class D1Store {
 
   async getAutopilotSettings(userId: string): Promise<any> {
     const row = await this.db.prepare('SELECT * FROM auto_apply_agent_settings WHERE user_id = ?').bind(userId).first<any>();
+    const { AutopilotEngine } = await import('./autopilotEngine.ts');
+
     if (!row) {
+      const today = AutopilotEngine.getLocalCalendarDate('UTC');
       const defaultSettings = {
         userId,
-        operatingMode: 'MODE_A_ASSISTED',
+        operatingMode: 'SUPERVISED_AUTOPILOT',
         automationActive: false,
         consentGiven: false,
         consentTimestamp: null,
-        dailyLimit: 5,
+        consentVersion: 'v1.0',
+        candidateTimezone: 'UTC',
+        dailyLimit: 3,
+        dailyUsageCount: 0,
+        dailyUsageDate: today,
         minMatchScore: 75,
         targetJobTitles: [],
         targetLocations: [],
@@ -4789,20 +4796,38 @@ export class D1Store {
         excludedEmployers: [],
         preferredWorkArrangement: 'all',
         minSalary: 0,
-        autoSubmitEligible: false,
+        autoSubmitEligible: true,
         pauseOnScreening: true,
         defaultResumeId: null,
+        approvedScreeningAnswers: {},
+        configurationVersion: 1,
       };
       return defaultSettings;
     }
 
+    const timezone = row.candidate_timezone || 'UTC';
+    const localToday = AutopilotEngine.getLocalCalendarDate(timezone);
+    let dailyUsage = Number(row.daily_usage_count || 0);
+
+    // Automatic local calendar day reset
+    if (row.daily_usage_date !== localToday) {
+      dailyUsage = 0;
+      await this.db.prepare(`
+        UPDATE auto_apply_agent_settings SET daily_usage_count = 0, daily_usage_date = ?, updated_at = ? WHERE user_id = ?
+      `).bind(localToday, new Date().toISOString(), userId).run();
+    }
+
     return {
       userId: row.user_id,
-      operatingMode: row.operating_mode,
+      operatingMode: row.operating_mode || 'SUPERVISED_AUTOPILOT',
       automationActive: Boolean(row.automation_active),
       consentGiven: Boolean(row.consent_given),
       consentTimestamp: row.consent_timestamp,
-      dailyLimit: Number(row.daily_limit || 5),
+      consentVersion: row.consent_version || 'v1.0',
+      candidateTimezone: timezone,
+      dailyLimit: 3, // Overridden to exact maximum 3
+      dailyUsageCount: dailyUsage,
+      dailyUsageDate: localToday,
       minMatchScore: Number(row.min_match_score || 75),
       targetJobTitles: JSON.parse(row.target_job_titles || '[]'),
       targetLocations: JSON.parse(row.target_locations || '[]'),
@@ -4810,30 +4835,37 @@ export class D1Store {
       excludedEmployers: JSON.parse(row.excluded_employers || '[]'),
       preferredWorkArrangement: row.preferred_work_arrangement || 'all',
       minSalary: Number(row.min_salary || 0),
-      autoSubmitEligible: Boolean(row.auto_submit_eligible),
-      pauseOnScreening: Boolean(row.pause_on_screening),
+      autoSubmitEligible: Boolean(row.auto_submit_eligible !== 0),
+      pauseOnScreening: Boolean(row.pause_on_screening !== 0),
       defaultResumeId: row.default_resume_id,
+      approvedScreeningAnswers: JSON.parse(row.approved_screening_answers || '{}'),
+      configurationVersion: Number(row.configuration_version || 1),
     };
   }
 
   async updateAutopilotSettings(userId: string, updates: any): Promise<any> {
     const existing = await this.getAutopilotSettings(userId);
-    const merged = { ...existing, ...updates };
+    const merged = { ...existing, ...updates, dailyLimit: 3 };
 
     const now = new Date().toISOString();
     await this.db.prepare(`
       INSERT INTO auto_apply_agent_settings (
         user_id, operating_mode, automation_active, consent_given, consent_timestamp,
-        daily_limit, min_match_score, target_job_titles, target_locations, target_industries,
+        consent_version, candidate_timezone, daily_limit, daily_usage_count, daily_usage_date,
+        min_match_score, target_job_titles, target_locations, target_industries,
         excluded_employers, preferred_work_arrangement, min_salary, auto_submit_eligible,
-        pause_on_screening, default_resume_id, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        pause_on_screening, default_resume_id, approved_screening_answers, configuration_version, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(user_id) DO UPDATE SET
         operating_mode = excluded.operating_mode,
         automation_active = excluded.automation_active,
         consent_given = excluded.consent_given,
         consent_timestamp = excluded.consent_timestamp,
-        daily_limit = excluded.daily_limit,
+        consent_version = excluded.consent_version,
+        candidate_timezone = excluded.candidate_timezone,
+        daily_limit = 3,
+        daily_usage_count = excluded.daily_usage_count,
+        daily_usage_date = excluded.daily_usage_date,
         min_match_score = excluded.min_match_score,
         target_job_titles = excluded.target_job_titles,
         target_locations = excluded.target_locations,
@@ -4844,15 +4876,21 @@ export class D1Store {
         auto_submit_eligible = excluded.auto_submit_eligible,
         pause_on_screening = excluded.pause_on_screening,
         default_resume_id = excluded.default_resume_id,
+        approved_screening_answers = excluded.approved_screening_answers,
+        configuration_version = excluded.configuration_version,
         updated_at = excluded.updated_at
     `).bind(
       userId,
-      merged.operatingMode,
+      merged.operatingMode || 'SUPERVISED_AUTOPILOT',
       merged.automationActive ? 1 : 0,
       merged.consentGiven ? 1 : 0,
       merged.consentTimestamp || (merged.consentGiven ? now : null),
-      merged.dailyLimit,
-      merged.minMatchScore,
+      merged.consentVersion || 'v1.0',
+      merged.candidateTimezone || 'UTC',
+      3,
+      merged.dailyUsageCount || 0,
+      merged.dailyUsageDate || '',
+      merged.minMatchScore || 75,
       JSON.stringify(merged.targetJobTitles || []),
       JSON.stringify(merged.targetLocations || []),
       JSON.stringify(merged.targetIndustries || []),
@@ -4862,6 +4900,8 @@ export class D1Store {
       merged.autoSubmitEligible ? 1 : 0,
       merged.pauseOnScreening ? 1 : 0,
       merged.defaultResumeId || null,
+      JSON.stringify(merged.approvedScreeningAnswers || {}),
+      merged.configurationVersion || 1,
       now
     ).run();
 
@@ -4947,6 +4987,20 @@ export class D1Store {
   }
 
   async reserveAutopilotQuota(userId: string, jobId: string, vacancyId: string): Promise<{ success: boolean; reservationId?: string; error?: string }> {
+    const settings = await this.getAutopilotSettings(userId);
+    if (!settings.consentGiven) {
+      return { success: false, error: 'Automation consent agreement not approved. Please review and activate Supervised Autopilot once.' };
+    }
+    if (!settings.automationActive) {
+      return { success: false, error: 'Autopilot agent is currently paused by candidate.' };
+    }
+
+    // Daily Limit Check (Strict max 3 per local calendar day)
+    if (settings.dailyUsageCount >= 3) {
+      return { success: false, error: 'Daily safety limit reached (maximum 3 successful submissions per local calendar day).' };
+    }
+
+    // Monthly Subscription Entitlement Check
     const entitlement = await this.getAutopilotEntitlement(userId);
     if (!entitlement.unlimited && entitlement.remainingCount <= 0) {
       return { success: false, error: 'Monthly auto-apply submission quota exhausted. Please upgrade your plan or wait for the next billing cycle.' };
@@ -4993,6 +5047,14 @@ export class D1Store {
     await this.db.prepare(`
       UPDATE auto_apply_reservations SET status = 'COMMITTED', committed_at = ? WHERE id = ? AND user_id = ?
     `).bind(now, reservationId, userId).run();
+
+    // Increment daily usage count
+    await this.db.prepare(`
+      UPDATE auto_apply_agent_settings SET
+        daily_usage_count = daily_usage_count + 1,
+        updated_at = ?
+      WHERE user_id = ?
+    `).bind(now, userId).run();
 
     const entitlement = await this.getAutopilotEntitlement(userId);
     if (!entitlement.unlimited) {

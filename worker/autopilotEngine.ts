@@ -20,7 +20,30 @@ export const AUTOPILOT_MONTHLY_LIMITS: Record<string, number> = {
   founder: 999999,
 };
 
+export const AUTOPILOT_DAILY_LIMIT = 3;
+
 export class AutopilotEngine {
+  /**
+   * Calculates local calendar day date string (YYYY-MM-DD) for candidate timezone.
+   */
+  static getLocalCalendarDate(timezone = 'UTC', date = new Date()): string {
+    try {
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: timezone || 'UTC',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(date);
+    } catch {
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'UTC',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).format(date);
+    }
+  }
+
   /**
    * Calculates monthly billing period start and end for a user.
    */
