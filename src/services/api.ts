@@ -1864,4 +1864,40 @@ export const api = {
 
   getPublicResourceBySlug: (slug: string) =>
     fetchJson<{ success: boolean; article: import('../types/growthEngine.ts').MarketingContentItem }>(`/api/resources/${encodeURIComponent(slug)}`),
+
+  // --- UNIVERSAL LANGUAGE ENGINE & TRANSLATION ---
+  getTranslationLanguages: () =>
+    fetchJson<{ success: boolean; languages: import('../types/localization.ts').LanguageCatalogEntry[] }>('/api/translation/languages'),
+
+  translateText: (req: import('../types/localization.ts').TranslationRequest) =>
+    fetchJson<import('../types/localization.ts').TranslationResult>('/api/translation/translate', {
+      method: 'POST',
+      body: JSON.stringify(req),
+    }),
+
+  detectLanguage: (text: string) =>
+    fetchJson<import('../types/localization.ts').LanguageDetectionResult>('/api/translation/detect', {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    }),
+
+  getTranslationHealth: () =>
+    fetchJson<import('../types/localization.ts').LibreTranslateHealth>('/api/translation/health'),
+
+  getTranslationUsage: () =>
+    fetchJson<import('../types/localization.ts').TranslationUsageStats>('/api/translation/usage'),
+
+  purgeTranslationCache: () =>
+    fetchJson<{ success: boolean; purgedEntries: number }>('/api/translation/cache', {
+      method: 'DELETE',
+    }),
+
+  getUserLanguagePreferences: () =>
+    fetchJson<{ success: boolean; preferences: import('../types/localization.ts').UserLanguagePreferences }>('/api/user/language-preferences'),
+
+  updateUserLanguagePreferences: (prefs: Partial<import('../types/localization.ts').UserLanguagePreferences>) =>
+    fetchJson<{ success: boolean; preferences: import('../types/localization.ts').UserLanguagePreferences }>('/api/user/language-preferences', {
+      method: 'PUT',
+      body: JSON.stringify(prefs),
+    }),
 };

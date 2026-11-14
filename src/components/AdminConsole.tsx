@@ -42,6 +42,7 @@ import { AdminUserProvisioning } from './AdminUserProvisioning.tsx';
 import { GlobalSourceIntelligence } from './GlobalSourceIntelligence.tsx';
 import { AdminHrDiscoveryDiagnostics } from './AdminHrDiscoveryDiagnostics.tsx';
 import { GrowthEngineDashboard } from './admin/growth-engine/GrowthEngineDashboard.tsx';
+import { AdminLanguageManagement } from './admin/AdminLanguageManagement.tsx';
 import { TypographySettingsModal } from './TypographySettingsModal.tsx';
 import { GlobalSearchBar } from './GlobalSearchBar.tsx';
 import { getEffectivePlan } from '../config/freeAccess.ts';
@@ -57,7 +58,7 @@ interface AdminConsoleProps {
 }
 
 type AdminTab = 'overview' | 'users' | 'resumes' | 'sources' | 'audit' | 'system' | 'founder';
-type ExtendedAdminTab = AdminTab | 'provisioning' | 'hr_discovery' | 'growth_engine';
+type ExtendedAdminTab = AdminTab | 'provisioning' | 'hr_discovery' | 'growth_engine' | 'languages';
 
 export const AdminConsole: React.FC<AdminConsoleProps> = ({
   currentUser,
@@ -723,6 +724,30 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     {!sidebarCollapsed && <span className="truncate">System Health & Edge</span>}
                   </div>
                   {activeTab === 'system' && (
+                    <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[#C6A66A]" />
+                  )}
+                </button>
+                              {/* 11. Language & Localization */}
+                <button
+                  id="admin-tab-languages"
+                  role="tab"
+                  type="button"
+                  tabIndex={0}
+                  aria-selected={activeTab === 'languages'}
+                  aria-controls="admin-panel-languages"
+                  onClick={() => setActiveTab('languages')}
+                  className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                    activeTab === 'languages'
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)] ring-1 ring-[rgba(198,166,106,0.20)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                  } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
+                  title={sidebarCollapsed ? 'Language & Localization' : undefined}
+                >
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <Globe className={`h-4 w-4 shrink-0 transition-colors ${activeTab === 'languages' ? 'text-[#C6A66A]' : 'text-emerald-400'}`} />
+                    {!sidebarCollapsed && <span className="truncate">Language & Localization</span>}
+                  </div>
+                  {activeTab === 'languages' && (
                     <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[#C6A66A]" />
                   )}
                 </button>
@@ -1485,6 +1510,13 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
         {/* TAB 7: APPLYVISE GROWTH ENGINE & AI MARKETING DEPARTMENT */}
         {activeTab === 'growth_engine' && (
           <GrowthEngineDashboard onNavigateRoute={onNavigateRoute} />
+        )}
+
+        {/* TAB 8: UNIVERSAL LANGUAGE ENGINE & LOCALIZATION */}
+        {activeTab === 'languages' && (
+          <div id="admin-panel-languages" role="tabpanel">
+            <AdminLanguageManagement isBlack={isBlack} />
+          </div>
         )}
       </main>
       </div>

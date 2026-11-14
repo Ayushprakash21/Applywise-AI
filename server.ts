@@ -53,6 +53,8 @@ import { hrDiscoveryQueueStore } from './server/hrDiscoveryQueueStore.ts';
 import { processHrDiscoveryQueueBatch, revalidateStaleContacts } from './server/hrDiscoveryEngine.ts';
 import { createHrOutreachRouter } from './server/hrOutreachRoutes.ts';
 import { growthStore } from './server/growthStore.ts';
+import { translationService } from './server/translationService.ts';
+import { LANGUAGE_CATALOGUE } from './src/utils/languageCatalogue.ts';
 import { GrowthEngineService } from './server/growthEngine.ts';
 import { MarketingContentItem, SocialPost } from './src/types/growthEngine.ts';
 import {
@@ -3461,6 +3463,103 @@ app.get('/api/resources/:slug', (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: 'Article not found or not published' });
     }
     return res.json({ success: true, article });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+// ============================================================================
+// UNIVERSAL LANGUAGE ENGINE & LIBRETRANSLATE GATEWAY ENDPOINTS
+// ============================================================================
+
+app.get('/api/translation/languages', (_req: Request, res: Response) => {
+  return res.json({
+    success: true,
+    languages: Object.values(LANGUAGE_CATALOGUE),
+  });
+});
+
+app.post('/api/translation/translate', async (req: Request, res: Response) => {
+  try {
+    const { text, sourceLang, targetLang, format, context } = req.body || {};
+    const result = await translationService.translate({
+      text,
+      sourceLang,
+      targetLang,
+      format,
+      context,
+    });
+    return res.json(result);
+  } catch (err: any) {
+    return res.status(500).json({
+      translatedText: req.body?.text,
+      sourceLang: req.body?.sourceLang || 'en',
+      targetLang: req.body?.targetLang || 'en',
+      fromCache: false,
+      isMachineTranslated: false,
+      serviceUnavailable: true,
+      error: err.message,
+    });
+  }
+});
+
+app.post('/api/translation/detect', async (req: Request, res: Response) => {
+  try {
+    const result = await translationService.detect(req.body?.text || '');
+    return res.json(result);
+  } catch {
+    return res.json({ detectedLanguage: 'en', confidence: 0.5, reliable: false });
+  }
+});
+
+app.get('/api/translation/health', async (_req: Request, res: Response) => {
+  const health = await translationService.getHealth();
+  return res.json(health);
+});
+
+app.get('/api/translation/usage', (_req: Request, res: Response) => {
+  const usage = translationService.getUsage();
+  return res.json(usage);
+});
+
+app.delete('/api/translation/cache', requireAdmin, (_req: AuthenticatedRequest, res: Response) => {
+  const result = translationService.purgeCache();
+  return res.json({ success: true, ...result });
+});
+
+app.get('/api/user/language-preferences', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const settings = authAndStore.getSettings(req.user!.id);
+    const prefs = (settings as any)?.languagePreferences || {
+      preferred_locale: 'en-US',
+      fallback_locale: 'en-US',
+      auto_detect_language: true,
+      content_translation_enabled: true,
+      translation_target_language: 'en-US',
+      rtl_preference: 'auto',
+      updated_at: new Date().toISOString(),
+    };
+    return res.json({ success: true, preferences: prefs });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/user/language-preferences', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const settings = authAndStore.getSettings(req.user!.id);
+    const existing = (settings as any)?.languagePreferences || {};
+    const updated = {
+      ...existing,
+      ...req.body,
+      updated_at: new Date().toISOString(),
+    };
+    authAndStore.saveSettings(req.user!.id, {
+      ...settings,
+      languagePreferences: updated,
+    } as any);
+    return res.json({ success: true, preferences: updated });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message });
   }

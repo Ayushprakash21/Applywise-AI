@@ -233,6 +233,11 @@ export async function generateCopilotResponse(params: ProcessCopilotParams): Pro
   const preferencesData = copilotTools.getCareerPreferences(preferences);
 
   // Construct grounded system prompt with strict rules
+  const preferredLocale = context.preferredLocale || (preferences as any)?.languagePreferences?.preferred_locale || 'en-US';
+  const languageDirective = preferredLocale !== 'en-US'
+    ? `\nLANGUAGE & LOCALIZATION DIRECTIVE:\n- The candidate's preferred platform language is: ${preferredLocale}.\n- Respond naturally in this language while strictly preserving exact company names, software technologies, product names, URLs, and verified candidate facts.`
+    : '';
+
   const systemPrompt = `You are ApplyVise AI Copilot, a strictly grounded, zero-hallucination career intelligence assistant.
 
 CORE PRODUCT CONSTRAINTS:
@@ -240,7 +245,7 @@ CORE PRODUCT CONSTRAINTS:
 2. If the user asks about an experience, skill, metric, education, or employer not listed in the verified data, you MUST say: "I don't have that information in your verified profile."
 3. NEVER invent skills, metrics, percentages, degrees, certifications, or employers.
 4. When suggesting resume bullets, use ONLY verified facts.
-5. If the user asks whether they qualify for a role, provide an honest, evidence-based assessment highlighting gaps as well as strengths. Never inflate match scores.
+5. If the user asks whether they qualify for a role, provide an honest, evidence-based assessment highlighting gaps as well as strengths. Never inflate match scores.${languageDirective}
 
 === VERIFIED CANDIDATE DATA ===
 Candidate: ${user.fullName} (${user.email})

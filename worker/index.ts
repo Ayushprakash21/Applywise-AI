@@ -54,6 +54,8 @@ import { createWorkerHrOutreachApp } from './hrOutreachRoutes.ts';
 import { WorkerHrOutreachStore } from './hrOutreachStore.ts';
 import { WorkerHrDiscoveryQueueStore } from './hrDiscoveryQueueStore.ts';
 import { WorkerGrowthStore } from './growthStore.ts';
+import { WorkerTranslationService } from './translationService.ts';
+import { LANGUAGE_CATALOGUE } from '../src/utils/languageCatalogue.ts';
 import { WorkerGrowthEngineService } from './growthEngine.ts';
 import { MarketingContentItem, SocialPost } from '../src/types/growthEngine.ts';
 import {
@@ -5259,3 +5261,103 @@ app.get('/api/resources/:slug', async (c) => {
   }
 });
 
+// ============================================================================
+// UNIVERSAL LANGUAGE ENGINE & LIBRETRANSLATE GATEWAY (Cloudflare Workers)
+// ============================================================================
+
+app.get('/api/translation/languages', async (c) => {
+  return c.json({
+    success: true,
+    languages: Object.values(LANGUAGE_CATALOGUE),
+  });
+});
+
+app.post('/api/translation/translate', async (c) => {
+  try {
+    const service = new WorkerTranslationService(c.env);
+    const body = await c.req.json().catch(() => ({}));
+    const result = await service.translate(body);
+    return c.json(result);
+  } catch (err: any) {
+    return c.json({
+      translatedText: '',
+      sourceLang: 'en',
+      targetLang: 'en',
+      fromCache: false,
+      isMachineTranslated: false,
+      serviceUnavailable: true,
+      error: err.message,
+    }, 500);
+  }
+});
+
+app.post('/api/translation/detect', async (c) => {
+  try {
+    const service = new WorkerTranslationService(c.env);
+    const body = await c.req.json().catch(() => ({}));
+    const result = await service.detect(body?.text || '');
+    return c.json(result);
+  } catch {
+    return c.json({ detectedLanguage: 'en', confidence: 0.5, reliable: false });
+  }
+});
+
+app.get('/api/translation/health', async (c) => {
+  const service = new WorkerTranslationService(c.env);
+  const health = await service.getHealth();
+  return c.json(health);
+});
+
+app.get('/api/translation/usage', async (c) => {
+  const service = new WorkerTranslationService(c.env);
+  const usage = service.getUsage();
+  return c.json(usage);
+});
+
+app.delete('/api/translation/cache', requireAdmin, async (c) => {
+  const service = new WorkerTranslationService(c.env);
+  const result = service.purgeCache();
+  return c.json({ success: true, ...result });
+});
+
+app.get('/api/user/language-preferences', requireAuth, async (c) => {
+  try {
+    const user = c.get('user');
+    const store: D1Store = c.get('store');
+    const settings = await store.getSettings(user.id);
+    const prefs = (settings as any)?.languagePreferences || {
+      preferred_locale: 'en-US',
+      fallback_locale: 'en-US',
+      auto_detect_language: true,
+      content_translation_enabled: true,
+      translation_target_language: 'en-US',
+      rtl_preference: 'auto',
+      updated_at: new Date().toISOString(),
+    };
+    return c.json({ success: true, preferences: prefs });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+app.put('/api/user/language-preferences', requireAuth, async (c) => {
+  try {
+    const user = c.get('user');
+    const store: D1Store = c.get('store');
+    const body = await c.req.json().catch(() => ({}));
+    const settings = await store.getSettings(user.id);
+    const existing = (settings as any)?.languagePreferences || {};
+    const updated = {
+      ...existing,
+      ...body,
+      updated_at: new Date().toISOString(),
+    };
+    await store.saveSettings(user.id, {
+      ...settings,
+      languagePreferences: updated,
+    } as any);
+    return c.json({ success: true, preferences: updated });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});

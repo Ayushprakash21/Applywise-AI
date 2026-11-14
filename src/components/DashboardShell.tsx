@@ -39,6 +39,7 @@ import { AuthUser } from '../services/api.ts';
 import { NotificationItem, AutomationSettings, AccountUsageStats } from '../types/index.ts';
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 import { ProfileIdentityComponent } from './ProfileIdentityComponent.tsx';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 export type DashboardTab =
   | 'desk'
@@ -146,34 +147,36 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const { t } = useLanguage();
+
   const navGroups: Array<{ group: string; items: NavItem[] }> = [
     {
       group: 'CAREER INTELLIGENCE & WORKSPACE',
       items: [
-        { id: 'desk' as const, label: 'Career Desk', icon: LayoutDashboard },
-        { id: 'autopilot' as const, label: 'AI Autopilot', icon: Bot },
-        { id: 'radar' as const, label: 'Opportunity Radar', icon: Radio },
-        { id: 'control' as const, label: 'Application Control', icon: Briefcase },
-        { id: 'interview_studio' as const, label: 'Interview Studio', icon: Calendar },
-        { id: 'recruiter_review' as const, label: 'Recruiter Review', icon: ShieldCheck },
-        { id: 'atlas' as const, label: 'Career Atlas', icon: Map },
-        { id: 'hr_outreach' as const, label: 'AI HR Outreach', icon: Send },
+        { id: 'desk' as const, label: t('nav.desk'), icon: LayoutDashboard },
+        { id: 'autopilot' as const, label: t('nav.autopilot'), icon: Bot },
+        { id: 'radar' as const, label: t('nav.radar'), icon: Radio },
+        { id: 'control' as const, label: t('nav.control'), icon: Briefcase },
+        { id: 'interview_studio' as const, label: t('nav.interview_studio'), icon: Calendar },
+        { id: 'recruiter_review' as const, label: t('nav.recruiter_review'), icon: ShieldCheck },
+        { id: 'atlas' as const, label: t('nav.atlas'), icon: Map },
+        { id: 'hr_outreach' as const, label: t('nav.hr_outreach') || 'AI HR Outreach', icon: Send },
       ],
     },
     {
       group: 'CAREER OPERATIONS & PROFILE',
       items: [
-        { id: 'profile' as const, label: 'Career Profile & Facts', icon: User },
-        { id: 'resume_studio' as const, label: 'Resume Studio', icon: FileCheck },
-        { id: 'career_report' as const, label: 'Skills & Gap Report', icon: BarChart3 },
+        { id: 'profile' as const, label: t('nav.profile'), icon: User },
+        { id: 'resume_studio' as const, label: t('nav.resume_studio'), icon: FileCheck },
+        { id: 'career_report' as const, label: t('nav.career_report'), icon: BarChart3 },
       ],
     },
     {
       group: 'ACCOUNT',
       items: [
-        { id: 'notifications' as const, label: 'Notifications', icon: Bell, badge: unreadCount },
-        { id: 'settings' as const, label: 'Settings', icon: Sliders },
-        { id: 'subscription' as const, label: 'Membership & Billing', icon: Award },
+        { id: 'notifications' as const, label: t('nav.notifications'), icon: Bell, badge: unreadCount },
+        { id: 'settings' as const, label: t('nav.settings'), icon: Sliders },
+        { id: 'subscription' as const, label: t('nav.subscription'), icon: Award },
       ],
     },
   ];

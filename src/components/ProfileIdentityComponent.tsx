@@ -20,6 +20,7 @@ import { DashboardTab } from './DashboardShell.tsx';
 import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
 import { ProfilePhotoCropModal } from './ProfilePhotoCropModal.tsx';
 import { BlackEliteAppearanceControl } from './BlackEliteAppearanceControl.tsx';
+import { LanguageSelector } from './LanguageSelector.tsx';
 
 export interface ProfileIdentityComponentProps {
   user: AuthUser;
@@ -69,6 +70,7 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
   const [selectedFileForCrop, setSelectedFileForCrop] = useState<File | null>(null);
   const [cropModalOpen, setCropModalOpen] = useState<boolean>(false);
+  const [languageModalOpen, setLanguageModalOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -512,6 +514,18 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
             </div>
           )}
 
+          {/* Section: Universal Language & Regional Locale Selector */}
+          <div
+            className="mb-2"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <LanguageSelector
+              isBlack={isBlack}
+              onClose={() => setLanguageModalOpen(true)}
+            />
+          </div>
+
           {/* Navigation Action Items partitioned into clean groups */}
           <div className="py-1 space-y-0.5 text-xs">
             {allMenuItems.map((item, index) => {
@@ -615,6 +629,13 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
           setCropModalOpen(false);
           setSelectedFileForCrop(null);
         }}
+      />
+
+      <LanguageSelector
+        variant="modal"
+        isOpen={languageModalOpen}
+        onClose={() => setLanguageModalOpen(false)}
+        isBlack={isBlack}
       />
     </div>
   );

@@ -15,6 +15,7 @@ import {
 import { api, AuthUser } from '../services/api.ts';
 import { BrandLogo } from './BrandLogo.tsx';
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
+import { useLanguage } from '../context/LanguageContext.tsx';
 
 interface Message {
   id: string;
@@ -50,6 +51,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
     setInternalOpen(val);
     if (onToggleOpen) onToggleOpen(val);
   };
+  const { currentLocale } = useLanguage();
   const [isMinimized, setIsMinimized] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([
@@ -119,6 +121,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
       const res = await api.askCopilot(text, {
         page: currentPageContext,
         details: contextDetails,
+        preferredLocale: currentLocale,
       });
 
       const assistantMsg: Message = {

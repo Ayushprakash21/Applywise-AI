@@ -1,0 +1,40 @@
+# ApplyVise AI — Self-Hosted LibreTranslate Service
+# Containerized Translation Gateway with Argos Translate Language Packages
+
+version: '3.8'
+
+services:
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: applyvise-libretranslate
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      # Preload top languages for instant offline inference without on-demand downloading
+      LT_LOAD_ONLY: "en,hi,bn,mr,ta,te,kn,ml,gu,pa,ur,or,ne,ar,fr,de,es,pt,it,nl,ja,ko,zh,id,ms,th,vi,ru,tr"
+      LT_DISABLE_WEB_UI: "false"
+      LT_UPDATE_MODELS: "true"
+      LT_METRICS: "true"
+      LT_SSL: "false"
+      # Threading & worker tuning
+      LT_THREADS: "4"
+      LT_BATCH_LIMIT: "32"
+      LT_CHAR_LIMIT: "10000"
+      LT_REQ_LIMIT: "120"
+      LT_DAILY_REQ_LIMIT: "50000"
+    volumes:
+      - libretranslate-models:/home/libretranslate/.local/share/argos-translate/packages
+      - libretranslate-cache:/home/libretranslate/.local/cache
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/languages || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  libretranslate-models:
+    name: applyvise-libretranslate-models
+  libretranslate-cache:
+    name: applyvise-libretranslate-cache
