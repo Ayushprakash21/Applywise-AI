@@ -38,6 +38,7 @@ import { NotificationsPage } from './components/NotificationsPage.tsx';
 import { CareerDesk } from './components/CareerDesk.tsx';
 import { OpportunityRadar } from './components/OpportunityRadar.tsx';
 import { ApplicationControl } from './components/ApplicationControl.tsx';
+import { GlobalFooter } from './components/GlobalFooter.tsx';
 import { InterviewStudio } from './components/InterviewStudio.tsx';
 import { RecruiterReview } from './components/RecruiterReview.tsx';
 import { CareerAtlas } from './components/CareerAtlas.tsx';
@@ -959,23 +960,16 @@ export default function App() {
             />
           )}
 
-          {/* Minimal Clean Footer */}
-          <footer className="border-t border-slate-200/80 dark:border-white/10 bg-transparent py-6 text-xs text-slate-500 mt-12">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="flex items-center space-x-2">
-                <BrandLogo size="xs" showWordmark={false} />
-                <span>ApplyVise AI — Unified AI Career Operating System</span>
-              </div>
-              <div className="flex flex-wrap items-center gap-4">
-                <button onClick={() => navigateTo('/about')} className="hover:text-cyan-500 transition">About Us</button>
-                <button onClick={() => navigateTo('/pricing')} className="hover:text-cyan-500 transition">Pricing & Plans</button>
-                <button onClick={() => navigateTo('/admin')} className="hover:text-cyan-500 transition">Admin Portal</button>
-                <button onClick={() => setPrivacyModalOpen(true)} className="hover:text-cyan-500 transition">Privacy Policy</button>
-                <button onClick={() => setTermsModalOpen(true)} className="hover:text-cyan-500 transition">Terms of Use</button>
-                <span className="text-slate-400">Zero Hallucination Standard</span>
-              </div>
-            </div>
-          </footer>
+          {/* Premium Enterprise Footer */}
+          <GlobalFooter
+            variant="dashboard"
+            plan={isBlackSubscriber ? 'black' : ((subscription?.planId as 'free' | 'pro' | 'black') || subscription?.plan || 'free')}
+            onNavigateAbout={() => navigateTo('/about')}
+            onNavigatePricing={() => navigateTo('/pricing')}
+            onNavigateAdmin={() => navigateTo('/admin')}
+            onOpenPrivacy={() => setPrivacyModalOpen(true)}
+            onOpenTerms={() => setTermsModalOpen(true)}
+          />
         </DashboardShell>
       </div>
       ) : (

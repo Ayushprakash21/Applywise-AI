@@ -27,6 +27,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
+import { GlobalFooter } from './GlobalFooter.tsx';
 import { JobVacancy } from '../types/index.ts';
 import { FounderSection } from './FounderSection.tsx';
 import { CareerNetworkVisual } from './CareerNetworkVisual.tsx';
@@ -676,44 +677,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* Footer */}
-      <footer className="mt-auto bg-slate-900 text-slate-400 py-12 text-xs border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <BrandLogo
-            variant="dark"
-            size="sm"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          />
-
-          <div className="flex flex-wrap items-center justify-center gap-6 font-medium text-[11px] text-slate-400">
-            {onOpenAbout && (
-              <button onClick={onOpenAbout} className="hover:text-white transition-colors">
-                About Us
-              </button>
-            )}
-            {onOpenPricing && (
-              <button onClick={onOpenPricing} className="hover:text-white transition-colors">
-                Pricing & Plans
-              </button>
-            )}
-            {onOpenAdmin && (
-              <button onClick={onOpenAdmin} className="hover:text-white transition-colors">
-                Admin Portal
-              </button>
-            )}
-            <button onClick={onOpenPrivacy} className="hover:text-white transition-colors">
-              Privacy Policy
-            </button>
-            <button onClick={onOpenTerms} className="hover:text-white transition-colors">
-              Terms of Use
-            </button>
-            <span className="text-slate-500">Zero Hallucination Standard</span>
-          </div>
-
-          <p className="text-slate-500 font-mono text-[11px]">
-            © {new Date().getFullYear()} ApplyVise AI. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <GlobalFooter
+        variant="landing"
+        onOpenAbout={onOpenAbout}
+        onOpenPricing={onOpenPricing}
+        onOpenAdmin={onOpenAdmin}
+        onOpenPrivacy={onOpenPrivacy}
+        onOpenTerms={onOpenTerms}
+      />
     </div>
   );
 };

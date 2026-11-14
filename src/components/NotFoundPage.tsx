@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrandLogo } from './BrandLogo.tsx';
+import { GlobalFooter } from './GlobalFooter.tsx';
 import { Home, Compass, ArrowLeft } from 'lucide-react';
 
 interface NotFoundPageProps {
@@ -130,9 +131,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-[#292D34]/50 py-4 px-4 text-center text-[11px] text-[#737780] z-10">
-        ApplyVise AI — Truthful AI Career Intelligence
-      </footer>
+      <GlobalFooter variant="minimal" onNavigateHome={onNavigateHome} className="z-10" />
     </div>
   );
 };

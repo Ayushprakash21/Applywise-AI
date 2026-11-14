@@ -12,6 +12,7 @@ import {
   Shield
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
+import { GlobalFooter } from './GlobalFooter.tsx';
 import { RoyalCrownLogo } from './RoyalCrownLogo.tsx';
 import { SUBSCRIPTION_PLANS, COMPARISON_FEATURES, PlanId } from '../config/plans.ts';
 import { AuthUser, api, ApiError } from '../services/api.ts';
@@ -963,23 +964,11 @@ export const PricingPage: React.FC<PricingPageProps> = ({
       </section>
 
       {/* Footer */}
-      <footer className={`mt-auto py-10 text-xs border-t ${
-        isBlack
-          ? 'bg-[#101216] border-[rgba(255,255,255,0.09)] text-[#858781]'
-          : 'bg-slate-900 border-transparent text-slate-400'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <BrandLogo variant="dark" size="sm" onClick={onNavigateHome} />
-          <div className="flex items-center space-x-6">
-            <button onClick={onNavigateHome} className="hover:text-white transition cursor-pointer">Home</button>
-            <span>Free Public Service</span>
-            <span>Zero Hallucination Guarantee</span>
-          </div>
-          <p className="text-slate-500 text-[11px]">
-            © {new Date().getFullYear()} ApplyVise AI. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <GlobalFooter
+        variant="landing"
+        plan={isBlack ? 'black' : 'free'}
+        onNavigateHome={onNavigateHome}
+      />
     </div>
   );
 };

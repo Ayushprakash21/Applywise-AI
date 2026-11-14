@@ -16,6 +16,7 @@ import {
   Target
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
+import { GlobalFooter } from './GlobalFooter.tsx';
 import { FounderSection } from './FounderSection.tsx';
 
 interface AboutPageProps {
@@ -317,20 +318,11 @@ export const AboutPage: React.FC<AboutPageProps> = ({
       </section>
 
       {/* Footer */}
-      <footer className="mt-auto bg-slate-900 text-slate-400 py-10 text-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <BrandLogo variant="dark" size="sm" onClick={onNavigateHome} />
-          <div className="flex items-center space-x-6">
-            <button onClick={onNavigateHome} className="hover:text-white transition">Home</button>
-            <button onClick={onExplorePro} className="hover:text-white transition">Pricing & Pro</button>
-            <span>Free Public Service</span>
-            <span>Zero Hallucination Guarantee</span>
-          </div>
-          <p className="text-slate-500 text-[11px]">
-            © {new Date().getFullYear()} ApplyVise AI. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <GlobalFooter
+        variant="landing"
+        onNavigateHome={onNavigateHome}
+        onNavigatePricing={onExplorePro}
+      />
     </div>
   );
 };

@@ -992,7 +992,7 @@ export const JobImportModal: React.FC<JobImportModalProps> = ({
           ) : (
             <>
               <div className="text-[11px] text-slate-500 font-mono">
-                ApplyVise AI · Career Operating System
+                ApplyVise AI · Your Career. Intelligently Orchestrated.
               </div>
               <button
                 type="button"
