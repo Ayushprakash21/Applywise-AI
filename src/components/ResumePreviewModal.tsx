@@ -56,7 +56,7 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
       activeTab === 'resume'
         ? `${profile.fullName}\n${profile.email} | ${profile.phone} | ${profile.location}\n\n${resume.headline}\n\n${resume.professionalSummary}\n\nSKILLS:\n${(resume.targetedSkills || []).join(', ')}\n\nEXPERIENCE:\n` +
           (resume.tailoredExperiences || [])
-            .map(e => `${e.role} at ${e.company} (${e.period})\n` + (e.bulletPoints || []).map(b => `• ${b}`).join('\n'))
+            .map(e => `${e.role} at ${e.company}${e.period ? ` (${e.period})` : ''}\n` + (e.bulletPoints || []).filter(b => b && b.trim().length > 0).map(b => `• ${b.trim()}`).join('\n'))
             .join('\n\n')
         : application.coverLetter || '';
 
@@ -204,14 +204,18 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
                     <div key={i} className="space-y-1">
                       <div className="flex justify-between items-baseline">
                         <span className="font-bold text-slate-900 text-xs">{exp.role}</span>
-                        <span className="text-slate-500 font-mono text-[11px]">{exp.period}</span>
+                        {exp.period ? <span className="text-slate-500 font-mono text-[11px]">{exp.period}</span> : null}
                       </div>
                       <div className="font-medium text-blue-700 text-xs">{exp.company}</div>
-                      <ul className="list-disc list-inside space-y-1 text-slate-700 text-xs pl-1">
-                        {exp.bulletPoints.map((b, j) => (
-                          <li key={j} className="leading-relaxed">{b}</li>
-                        ))}
-                      </ul>
+                      {(exp.bulletPoints || []).filter(b => b && b.trim().length > 0).length > 0 && (
+                        <ul className="list-disc list-inside space-y-1 text-slate-700 text-xs pl-1">
+                          {(exp.bulletPoints || [])
+                            .filter(b => b && b.trim().length > 0)
+                            .map((b, j) => (
+                              <li key={j} className="leading-relaxed">{b.trim()}</li>
+                            ))}
+                        </ul>
+                      )}
                     </div>
                   ))}
                 </div>

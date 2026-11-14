@@ -45,7 +45,7 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
       activeView === 'resume'
         ? `${selectedApp.tailoredResume.headline}\n\n${selectedApp.tailoredResume.professionalSummary}\n\nSKILLS:\n${(selectedApp.tailoredResume.targetedSkills || []).join(', ')}\n\nEXPERIENCE:\n` +
           (selectedApp.tailoredResume.tailoredExperiences || [])
-            .map(e => `${e.role} at ${e.company} (${e.period})\n` + (e.bulletPoints || []).map(b => `• ${b}`).join('\n'))
+            .map(e => `${e.role} at ${e.company}${e.period ? ` (${e.period})` : ''}\n` + (e.bulletPoints || []).filter(b => b && b.trim().length > 0).map(b => `• ${b.trim()}`).join('\n'))
             .join('\n\n')
         : selectedApp.coverLetter || '';
 
@@ -261,17 +261,23 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
                           <span className="font-bold text-slate-900 print:text-black text-sm">
                             {exp.role} <span className="text-blue-600 print:text-slate-700 font-normal">| {exp.company}</span>
                           </span>
-                          <span className="text-slate-500 print:text-slate-600 text-[11px]">
-                            {exp.period}
-                          </span>
+                          {exp.period ? (
+                            <span className="text-slate-500 print:text-slate-600 text-[11px]">
+                              {exp.period}
+                            </span>
+                          ) : null}
                         </div>
-                        <ul className="space-y-1 text-xs text-slate-700 print:text-slate-800 pl-4 list-disc">
-                          {exp.bulletPoints.map((bp, bIdx) => (
-                            <li key={bIdx} className="leading-relaxed">
-                              {bp}
-                            </li>
-                          ))}
-                        </ul>
+                        {(exp.bulletPoints || []).filter(bp => bp && bp.trim().length > 0).length > 0 && (
+                          <ul className="space-y-1 text-xs text-slate-700 print:text-slate-800 pl-4 list-disc">
+                            {(exp.bulletPoints || [])
+                              .filter(bp => bp && bp.trim().length > 0)
+                              .map((bp, bIdx) => (
+                                <li key={bIdx} className="leading-relaxed">
+                                  {bp.trim()}
+                                </li>
+                              ))}
+                          </ul>
+                        )}
                       </div>
                     ))}
                   </div>

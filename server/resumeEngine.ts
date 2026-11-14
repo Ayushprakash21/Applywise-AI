@@ -48,6 +48,7 @@ import {
   buildStructuredResumePromptContext,
   normalizeAndValidateAiExperiences,
   toExperienceItem,
+  formatExperiencePeriod,
   type RawEmploymentRecord
 } from '../src/utils/structuralEmploymentParser.ts';
 
@@ -55,7 +56,8 @@ export type { ParsedEmploymentDates, RawEmploymentRecord };
 export {
   parseEmploymentDates,
   parseStructuralEmploymentHistory,
-  isInvalidToken
+  isInvalidToken,
+  formatExperiencePeriod
 };
 
 export const resumeEngine = {
@@ -511,9 +513,17 @@ CRITICAL RULES:
       name: profile.fullName,
       title: profile.currentTitle,
       skills: (profile.skills || []).map(s => (typeof s === 'string' ? s : (s as any)?.name || '')),
-      companies: profile.experiences.map(e => e.company),
-      roles: profile.experiences.map(e => e.role),
-      experiencePoints: profile.experiences.flatMap(e => e.achievements || [e.description]),
+      experiences: profile.experiences.map(e => ({
+        company: e.company,
+        role: e.role,
+        startDate: e.startDate || '',
+        endDate: e.endDate || '',
+        current: Boolean(e.current),
+        period: formatExperiencePeriod(e.startDate, e.endDate, e.current),
+        achievements: (e.achievements && e.achievements.length > 0)
+          ? e.achievements.filter(b => b && b.trim())
+          : (e.description ? [e.description] : []),
+      })),
     };
 
     const eduStrings = profile.education.map(e => `${e.degree} from ${e.institution}`);
@@ -534,7 +544,7 @@ CANDIDATE VERIFIED FACTS (Source of Truth):
 ${JSON.stringify(profileFacts, null, 2)}
 
 STRICT RULES:
-1. ONLY use employers, job titles, and skills listed in the candidate's verified facts.
+1. ONLY use employers, job titles, and dates listed in the candidate's verified facts.
 2. Adapt document wording to the ${jobFamily} career domain. DO NOT insert software engineering jargon if this is a business, supply chain, or operations role.
 3. Reword bullet points to emphasize relevant skills from the facts, but DO NOT invent metrics, dates, or employers.
 4. Output strict JSON matching:
@@ -543,7 +553,7 @@ STRICT RULES:
   "professionalSummary": string,
   "targetedSkills": string[],
   "tailoredExperiences": [
-    { "company": string, "role": string, "period": string, "bulletPoints": string[] }
+    { "company": string, "role": string, "bulletPoints": string[] }
   ],
   "coverLetter": string
 }`;
@@ -556,16 +566,37 @@ STRICT RULES:
 
         const parsed = JSON.parse(response.text || '{}');
         if (parsed.headline && parsed.professionalSummary) {
+          // Deterministic fact protection: map tailored bullets back to immutable verified profile experiences
+          const mappedExperiences = profile.experiences.map((exp, idx) => {
+            const matchingAi = (Array.isArray(parsed.tailoredExperiences) ? parsed.tailoredExperiences : []).find(
+              (aiExp: any) =>
+                aiExp &&
+                typeof aiExp.company === 'string' &&
+                (exp.company.toLowerCase().includes(aiExp.company.toLowerCase().trim()) ||
+                  aiExp.company.toLowerCase().trim().includes(exp.company.toLowerCase()))
+            ) || (Array.isArray(parsed.tailoredExperiences) ? parsed.tailoredExperiences[idx] : null);
+
+            const aiBullets = matchingAi && Array.isArray(matchingAi.bulletPoints) ? matchingAi.bulletPoints : [];
+            const fallbackBullets = exp.achievements && exp.achievements.length > 0 ? exp.achievements : (exp.description ? [exp.description] : []);
+            const chosenBullets = aiBullets.length > 0 ? aiBullets : fallbackBullets;
+
+            const cleanBullets = chosenBullets
+              .map((b: any) => (typeof b === 'string' ? b.trim() : ''))
+              .filter((b: string) => b.length > 0 && !isInvalidToken(b));
+
+            return {
+              company: exp.company,
+              role: exp.role,
+              period: formatExperiencePeriod(exp.startDate, exp.endDate, exp.current),
+              bulletPoints: cleanBullets.length > 0 ? cleanBullets : fallbackBullets.filter(b => typeof b === 'string' && b.trim().length > 0),
+            };
+          });
+
           const rawResume: TailoredResumeContent = {
             headline: parsed.headline,
             professionalSummary: parsed.professionalSummary,
             targetedSkills: Array.isArray(parsed.targetedSkills) ? parsed.targetedSkills : (profile.skills || []).map(s => (typeof s === 'string' ? s : (s as any)?.name || '')),
-            tailoredExperiences: Array.isArray(parsed.tailoredExperiences) ? parsed.tailoredExperiences : profile.experiences.map(e => ({
-              company: e.company,
-              role: e.role,
-              period: `${e.startDate} - ${e.endDate || 'Present'}`,
-              bulletPoints: e.achievements && e.achievements.length > 0 ? e.achievements : [e.description],
-            })),
+            tailoredExperiences: mappedExperiences,
             education: eduStrings,
             certifications: certStrings,
             truthfulnessScore: 0, // Computed by audit
@@ -600,12 +631,18 @@ STRICT RULES:
       headline: domainHeadline,
       professionalSummary: `Dedicated ${profile.currentTitle || 'professional'} with ${profile.totalExperienceYears}+ years of experience, bringing proven competencies in ${matchedSkills.slice(0, 4).join(', ')}. Eager to contribute directly to ${jobCompany} in the ${jobTitle} role.`,
       targetedSkills: matchedSkills,
-      tailoredExperiences: profile.experiences.map(e => ({
-        company: e.company,
-        role: e.role,
-        period: `${e.startDate || ''} - ${e.endDate || 'Present'}`,
-        bulletPoints: (e.achievements && e.achievements.length > 0) ? e.achievements.filter((b): b is string => typeof b === 'string') : (e.description ? [e.description] : []),
-      })),
+      tailoredExperiences: profile.experiences.map(e => {
+        const cleanBullets = ((e.achievements && e.achievements.length > 0) ? e.achievements : (e.description ? [e.description] : []))
+          .map((b: any) => (typeof b === 'string' ? b.trim() : ''))
+          .filter((b: string) => b.length > 0 && !isInvalidToken(b));
+
+        return {
+          company: e.company,
+          role: e.role,
+          period: formatExperiencePeriod(e.startDate, e.endDate, e.current),
+          bulletPoints: cleanBullets,
+        };
+      }),
       education: eduStrings,
       certifications: certStrings,
       truthfulnessScore: 0,
@@ -672,16 +709,19 @@ STRICT RULES:
               new Paragraph({
                 children: [
                   new TextRun({ text: `${exp.role} — ${exp.company}`, bold: true, size: 22 }),
-                  new TextRun({ text: `   (${exp.period})`, italics: true, size: 20 }),
+                  ...(exp.period ? [new TextRun({ text: `   (${exp.period})`, italics: true, size: 20 })] : []),
                 ],
               }),
-              ...(exp.bulletPoints || []).map(
-                b =>
-                  new Paragraph({
-                    bullet: { level: 0 },
-                    children: [new TextRun({ text: b || '', size: 21 })],
-                  })
-              ),
+              ...(exp.bulletPoints || [])
+                .map((b: any) => (typeof b === 'string' ? b.trim() : ''))
+                .filter((b: string) => b.length > 0)
+                .map(
+                  b =>
+                    new Paragraph({
+                      bullet: { level: 0 },
+                      children: [new TextRun({ text: b, size: 21 })],
+                    })
+                ),
               new Paragraph({ text: '' }),
             ]),
             new Paragraph({

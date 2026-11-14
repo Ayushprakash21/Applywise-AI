@@ -12,6 +12,7 @@ import {
   EducationItem,
   CertificationItem,
 } from '../types/index.ts';
+import { formatExperiencePeriod } from './structuralEmploymentParser.ts';
 
 /**
  * Builds deterministic, categorized candidate facts from a candidate's profile.
@@ -113,7 +114,7 @@ export function buildFactsFromProfile(profile: UserProfile | null | undefined, s
     const expId = exp.id || `emp_${idx}`;
     const company = exp.company || exp.employer;
     const role = exp.role || exp.title;
-    const duration = exp.duration || (exp.startDate ? `${exp.startDate} – ${exp.endDate || 'Present'}` : '');
+    const duration = exp.duration || formatExperiencePeriod(exp.startDate, exp.endDate, exp.current);
 
     // Company Fact
     if (company && company.trim()) {
@@ -397,8 +398,9 @@ export function auditTailoredResume(
     .map(f => f.value.toLowerCase().trim());
 
   // Check 1: Summary check
-  if (tailored.summary) {
-    const summaryLower = tailored.summary.toLowerCase();
+  const summaryText = tailored.summary || tailored.professionalSummary;
+  if (summaryText) {
+    const summaryLower = summaryText.toLowerCase();
     const disallowedCompanies = ['cloudflare', 'stripe', 'google', 'meta', 'amazon', 'microsoft', 'apple'];
     for (const comp of disallowedCompanies) {
       if (summaryLower.includes(comp) && !Array.from(verifiedCompanies).some(vc => vc.includes(comp))) {
@@ -410,7 +412,7 @@ export function auditTailoredResume(
       }
     }
 
-    const percentMatches = tailored.summary.match(/\b(\d{1,3})%/g);
+    const percentMatches = summaryText.match(/\b(\d{1,3})%/g);
     if (percentMatches) {
       for (const p of percentMatches) {
         if (!verifiedAchievements.some(ach => ach.includes(p.toLowerCase()))) {
@@ -420,6 +422,20 @@ export function auditTailoredResume(
             message: `Summary claims percentage metric "${p}" not found in verified achievements.`,
           });
         }
+      }
+    }
+  }
+
+  // Check 2: Tailored experiences check
+  if (tailored.tailoredExperiences && Array.isArray(tailored.tailoredExperiences)) {
+    for (const exp of tailored.tailoredExperiences) {
+      const cLower = (exp.company || '').toLowerCase().trim();
+      if (cLower && !Array.from(verifiedCompanies).some(vc => vc.includes(cLower) || cLower.includes(vc))) {
+        unsupportedClaims.push({
+          type: 'UNVERIFIED_EMPLOYER',
+          claim: exp.company,
+          message: `Tailored experience references unverified employer "${exp.company}".`,
+        });
       }
     }
   }

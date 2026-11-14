@@ -47,6 +47,7 @@ import {
   buildStructuredResumePromptContext,
   normalizeAndValidateAiExperiences,
   toExperienceItem,
+  formatExperiencePeriod,
   type RawEmploymentRecord
 } from '../src/utils/structuralEmploymentParser.ts';
 
@@ -54,7 +55,8 @@ export type { ParsedEmploymentDates, RawEmploymentRecord };
 export {
   parseEmploymentDates,
   parseStructuralEmploymentHistory,
-  isInvalidToken
+  isInvalidToken,
+  formatExperiencePeriod
 };
 
 export const workerResumeEngine = {
@@ -494,12 +496,18 @@ Return ONLY a valid JSON object matching this structure:
       headline: `${profile.currentTitle || jobTitle} | Focus on ${jobCompany}`,
       professionalSummary: `${profile.fullName} is a dedicated professional with proven experience in ${jobFamily.replace('_', ' ')}. Demonstrated background includes ${skillNames.slice(0, 4).join(', ')}.`,
       targetedSkills: skillNames.slice(0, 10),
-      tailoredExperiences: profile.experiences.map(e => ({
-        company: e.company,
-        role: e.role,
-        period: `${e.startDate || ''} - ${e.current ? 'Present' : (e.endDate || '')}`,
-        bulletPoints: (e.achievements && e.achievements.length > 0) ? e.achievements.filter((b): b is string => typeof b === 'string') : (e.description ? [e.description] : []),
-      })),
+      tailoredExperiences: profile.experiences.map(e => {
+        const cleanBullets = ((e.achievements && e.achievements.length > 0) ? e.achievements : (e.description ? [e.description] : []))
+          .map((b: any) => (typeof b === 'string' ? b.trim() : ''))
+          .filter((b: string) => b.length > 0 && !isInvalidToken(b));
+
+        return {
+          company: e.company,
+          role: e.role,
+          period: formatExperiencePeriod(e.startDate, e.endDate, e.current),
+          bulletPoints: cleanBullets,
+        };
+      }),
       education: profile.education.map(e => `${e.degree} — ${e.institution} (${e.graduationYear})`),
       certifications: profile.certifications.map(c => `${c.name} (${c.issuingOrg})`),
       truthfulnessScore: 100,
@@ -563,16 +571,19 @@ Return ONLY a valid JSON object matching this structure:
               new Paragraph({
                 children: [
                   new TextRun({ text: `${exp.role} — ${exp.company}`, bold: true, size: 22 }),
-                  new TextRun({ text: `   (${exp.period})`, italics: true, size: 20 }),
+                  ...(exp.period ? [new TextRun({ text: `   (${exp.period})`, italics: true, size: 20 })] : []),
                 ],
               }),
-              ...(exp.bulletPoints || []).map(
-                b =>
-                  new Paragraph({
-                    bullet: { level: 0 },
-                    children: [new TextRun({ text: b || '', size: 21 })],
-                  })
-              ),
+              ...(exp.bulletPoints || [])
+                .map((b: any) => (typeof b === 'string' ? b.trim() : ''))
+                .filter((b: string) => b.length > 0)
+                .map(
+                  b =>
+                    new Paragraph({
+                      bullet: { level: 0 },
+                      children: [new TextRun({ text: b, size: 21 })],
+                    })
+                ),
               new Paragraph({ text: '' }),
             ]),
             new Paragraph({
