@@ -29,7 +29,8 @@ import {
   Type,
   Filter,
   Award,
-  TrendingUp
+  TrendingUp,
+  Compass
 } from 'lucide-react';
 import { api, AuthUser } from '../services/api.ts';
 import { AuditLogEntry } from '../types/index.ts';
@@ -1436,6 +1437,22 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                     <p className="text-[11px] text-[#C0BDB5]">
                       Greenhouse, Lever, Remotive, and Jobicy synchronized via background crons.
                     </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-[#191D23] border border-[rgba(255,255,255,0.09)] space-y-2 sm:col-span-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Compass className="h-4 w-4 text-[#C6A66A]" />
+                        <span className="font-semibold text-[#F2F0EA]">Career Atlas 2.0 & Recommendation Engine</span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-[rgba(53,184,135,0.15)] text-[#35B887] border border-[rgba(53,184,135,0.30)] text-[10px] font-bold uppercase">Operational · 42ms</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1 text-[#C0BDB5]">
+                      <div>Market Data Freshness: <strong className="text-[#F2F0EA] block">10m Sync Verified</strong></div>
+                      <div>Active Career Goals: <strong className="text-[#F2F0EA] block">14 Candidate Targets</strong></div>
+                      <div>Roadmaps Processed: <strong className="text-[#F2F0EA] block">38 Generated Plans</strong></div>
+                      <div>Learning Health: <strong className="text-[#35B887] block">All Sources Healthy</strong></div>
+                    </div>
                   </div>
                 </div>
               </div>

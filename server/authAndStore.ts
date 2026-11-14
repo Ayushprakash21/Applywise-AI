@@ -251,6 +251,60 @@ sqlite.exec(`
     updated_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS career_goals (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    target_role TEXT NOT NULL,
+    target_date TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active',
+    initial_readiness_score INTEGER NOT NULL DEFAULT 0,
+    current_readiness_score INTEGER NOT NULL DEFAULT 0,
+    milestones_completed INTEGER NOT NULL DEFAULT 0,
+    total_milestones INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS career_milestones (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    roadmap_id TEXT NOT NULL,
+    horizon TEXT NOT NULL,
+    title TEXT NOT NULL,
+    objective TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    competency TEXT NOT NULL,
+    required_activity TEXT NOT NULL,
+    learning_resources_json TEXT NOT NULL DEFAULT '[]',
+    estimated_hours INTEGER NOT NULL DEFAULT 0,
+    priority TEXT NOT NULL DEFAULT 'medium',
+    target_completion_date TEXT NOT NULL,
+    dependencies_json TEXT NOT NULL DEFAULT '[]',
+    completion_criteria TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'not_started',
+    progress_percent INTEGER NOT NULL DEFAULT 0,
+    candidate_notes TEXT,
+    evidence_attachment_json TEXT,
+    completed_at TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS career_progress_events (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    event_type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    evidence_url TEXT,
+    impact_score_bonus INTEGER DEFAULT 0,
+    timestamp TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_career_goals_user ON career_goals(user_id, status);
+  CREATE INDEX IF NOT EXISTS idx_career_milestones_user ON career_milestones(user_id, roadmap_id);
+  CREATE INDEX IF NOT EXISTS idx_career_progress_events_user ON career_progress_events(user_id, timestamp);
+
   CREATE INDEX IF NOT EXISTS idx_mock_sessions_user ON interview_mock_sessions(user_id, created_at);
   CREATE INDEX IF NOT EXISTS idx_recruiter_audits_user ON recruiter_review_audits(user_id, application_id);
   CREATE INDEX IF NOT EXISTS idx_career_trajectories_user ON career_trajectories(user_id, is_active);
@@ -3146,6 +3200,224 @@ export const authAndStore = {
       ...traj,
       updatedAt: now,
     };
+  },
+
+  // --- CAREER ATLAS 2.0 DOMAIN PERSISTENCE ---
+  getCareerGoals(userId: string): any[] {
+    try {
+      const rows = sqlite.prepare(
+        'SELECT * FROM career_goals WHERE user_id = ? ORDER BY created_at DESC'
+      ).all(userId) as any[];
+      return rows.map(r => ({
+        id: r.id,
+        userId: r.user_id,
+        targetRole: r.target_role,
+        targetDate: r.target_date,
+        status: r.status,
+        initialReadinessScore: r.initial_readiness_score,
+        currentReadinessScore: r.current_readiness_score,
+        milestonesCompleted: r.milestones_completed,
+        totalMilestones: r.total_milestones,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+      }));
+    } catch {
+      return [];
+    }
+  },
+
+  saveCareerGoal(goal: any, userId: string): any {
+    const now = new Date().toISOString();
+    const id = goal.id || `goal_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    try {
+      const stmt = sqlite.prepare(`
+        INSERT INTO career_goals (
+          id, user_id, target_role, target_date, status,
+          initial_readiness_score, current_readiness_score, milestones_completed,
+          total_milestones, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          target_role = excluded.target_role,
+          target_date = excluded.target_date,
+          status = excluded.status,
+          current_readiness_score = excluded.current_readiness_score,
+          milestones_completed = excluded.milestones_completed,
+          total_milestones = excluded.total_milestones,
+          updated_at = excluded.updated_at
+      `);
+      stmt.run(
+        id,
+        userId,
+        goal.targetRole || 'Target Role',
+        goal.targetDate || new Date(Date.now() + 180 * 24 * 3600 * 1000).toISOString().split('T')[0],
+        goal.status || 'active',
+        goal.initialReadinessScore || 60,
+        goal.currentReadinessScore || 60,
+        goal.milestonesCompleted || 0,
+        goal.totalMilestones || 6,
+        goal.createdAt || now,
+        now
+      );
+    } catch (e) {
+      console.warn('[SQLite saveCareerGoal Warning]:', e);
+    }
+    return { id, userId, ...goal, updatedAt: now };
+  },
+
+  getCareerMilestones(userId: string, roadmapId?: string): any[] {
+    try {
+      const query = roadmapId
+        ? 'SELECT * FROM career_milestones WHERE user_id = ? AND roadmap_id = ? ORDER BY horizon ASC, priority ASC'
+        : 'SELECT * FROM career_milestones WHERE user_id = ? ORDER BY horizon ASC, priority ASC';
+      const rows = roadmapId
+        ? (sqlite.prepare(query).all(userId, roadmapId) as any[])
+        : (sqlite.prepare(query).all(userId) as any[]);
+
+      return rows.map(r => ({
+        id: r.id,
+        roadmapId: r.roadmap_id,
+        horizon: r.horizon,
+        title: r.title,
+        objective: r.objective,
+        reason: r.reason,
+        competency: r.competency,
+        requiredActivity: r.required_activity,
+        learningResources: JSON.parse(r.learning_resources_json || '[]'),
+        estimatedHours: r.estimated_hours,
+        priority: r.priority,
+        targetCompletionDate: r.target_completion_date,
+        dependencies: JSON.parse(r.dependencies_json || '[]'),
+        completionCriteria: r.completion_criteria,
+        status: r.status,
+        progressPercent: r.progress_percent,
+        candidateNotes: r.candidate_notes,
+        evidenceAttachment: r.evidence_attachment_json ? JSON.parse(r.evidence_attachment_json) : undefined,
+        completedAt: r.completed_at,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+      }));
+    } catch {
+      return [];
+    }
+  },
+
+  updateCareerMilestone(milestoneId: string, updates: any, userId: string): any {
+    const now = new Date().toISOString();
+    try {
+      const existing = sqlite.prepare(
+        'SELECT * FROM career_milestones WHERE id = ? AND user_id = ?'
+      ).get(milestoneId, userId) as any;
+
+      if (!existing) {
+        // Upsert if not yet in DB
+        const stmt = sqlite.prepare(`
+          INSERT INTO career_milestones (
+            id, user_id, roadmap_id, horizon, title, objective, reason,
+            competency, required_activity, learning_resources_json, estimated_hours,
+            priority, target_completion_date, dependencies_json, completion_criteria,
+            status, progress_percent, candidate_notes, evidence_attachment_json,
+            completed_at, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        stmt.run(
+          milestoneId,
+          userId,
+          updates.roadmapId || 'roadmap_primary',
+          updates.horizon || '30_day',
+          updates.title || 'Milestone',
+          updates.objective || '',
+          updates.reason || '',
+          updates.competency || '',
+          updates.requiredActivity || '',
+          JSON.stringify(updates.learningResources || []),
+          updates.estimatedHours || 10,
+          updates.priority || 'medium',
+          updates.targetCompletionDate || new Date().toISOString().split('T')[0],
+          JSON.stringify(updates.dependencies || []),
+          updates.completionCriteria || '',
+          updates.status || 'not_started',
+          updates.progressPercent || 0,
+          updates.candidateNotes || null,
+          updates.evidenceAttachment ? JSON.stringify(updates.evidenceAttachment) : null,
+          updates.status === 'completed' ? now : null,
+          now,
+          now
+        );
+        return { id: milestoneId, ...updates, updatedAt: now };
+      }
+
+      const newStatus = updates.status !== undefined ? updates.status : existing.status;
+      const newProgress = updates.progressPercent !== undefined ? updates.progressPercent : existing.progress_percent;
+      const newNotes = updates.candidateNotes !== undefined ? updates.candidateNotes : existing.candidate_notes;
+      const newAttachment = updates.evidenceAttachment !== undefined ? JSON.stringify(updates.evidenceAttachment) : existing.evidence_attachment_json;
+      const completedAt = newStatus === 'completed' ? (existing.completed_at || now) : null;
+
+      sqlite.prepare(`
+        UPDATE career_milestones SET
+          status = ?,
+          progress_percent = ?,
+          candidate_notes = ?,
+          evidence_attachment_json = ?,
+          completed_at = ?,
+          updated_at = ?
+        WHERE id = ? AND user_id = ?
+      `).run(newStatus, newProgress, newNotes, newAttachment, completedAt, now, milestoneId, userId);
+
+      return {
+        id: milestoneId,
+        ...existing,
+        ...updates,
+        completedAt,
+        updatedAt: now,
+      };
+    } catch (e) {
+      console.warn('[SQLite updateCareerMilestone Warning]:', e);
+      return { id: milestoneId, ...updates, updatedAt: now };
+    }
+  },
+
+  getCareerProgressEvents(userId: string): any[] {
+    try {
+      const rows = sqlite.prepare(
+        'SELECT * FROM career_progress_events WHERE user_id = ? ORDER BY timestamp DESC LIMIT 50'
+      ).all(userId) as any[];
+      return rows.map(r => ({
+        id: r.id,
+        userId: r.user_id,
+        type: r.event_type,
+        title: r.title,
+        description: r.description,
+        evidenceUrl: r.evidence_url,
+        impactScoreBonus: r.impact_score_bonus,
+        timestamp: r.timestamp,
+      }));
+    } catch {
+      return [];
+    }
+  },
+
+  addCareerProgressEvent(event: any, userId: string): any {
+    const id = event.id || `evt_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const now = event.timestamp || new Date().toISOString();
+    try {
+      sqlite.prepare(`
+        INSERT INTO career_progress_events (
+          id, user_id, event_type, title, description, evidence_url, impact_score_bonus, timestamp
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        userId,
+        event.type || 'milestone_completed',
+        event.title || 'Career Milestone Logged',
+        event.description || '',
+        event.evidenceUrl || null,
+        event.impactScoreBonus || 2,
+        now
+      );
+    } catch (e) {
+      console.warn('[SQLite addCareerProgressEvent Warning]:', e);
+    }
+    return { id, userId, ...event, timestamp: now };
   },
 
   // --- UNIVERSAL JOB IMPORT & OPPORTUNITY MANAGEMENT ---

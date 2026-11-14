@@ -40,6 +40,22 @@ import {
   InterviewEvaluationOutput,
   RecruiterReviewAudit,
   CareerTrajectory,
+} from '../types/index.ts';
+import {
+  CareerAtlasOverviewData,
+  CareerPathRecommendation,
+  CareerTransitionAssessment,
+  CareerRoadmapPlan,
+  CareerMilestone,
+  CareerMarketSnapshot,
+  CareerLearningResource,
+  CareerScenarioConfig,
+  CareerScenarioResult,
+  CareerGoal,
+  CareerProgressEvent,
+  CareerAtlasAdminDiagnostics,
+} from '../types/careerAtlas.ts';
+import {
   ResumeDocument,
   ResumeExtractionRun,
   ResumeExtractionVersion,
@@ -1303,6 +1319,64 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(trajectory),
     }),
+
+  // --- CAREER ATLAS 2.0 METHODS ---
+  getCareerAtlasOverview: () =>
+    fetchJson<{ success: boolean; overview: CareerAtlasOverviewData }>('/api/career-atlas/overview'),
+
+  getCareerPaths: () =>
+    fetchJson<{ success: boolean; paths: CareerPathRecommendation[] }>('/api/career-atlas/paths'),
+
+  saveCareerPath: (pathId: string, isSaved: boolean) =>
+    fetchJson<{ success: boolean; pathId: string; isSaved: boolean }>(`/api/career-atlas/paths/${pathId}/save`, {
+      method: 'POST',
+      body: JSON.stringify({ isSaved }),
+    }),
+
+  getCareerTransitionAssessment: (targetRole: string) =>
+    fetchJson<{ success: boolean; assessment: CareerTransitionAssessment }>(`/api/career-atlas/assessment?role=${encodeURIComponent(targetRole)}`),
+
+  getCareerRoadmap: (targetRole: string, weeklyHours?: number) =>
+    fetchJson<{ success: boolean; roadmap: CareerRoadmapPlan }>(`/api/career-atlas/roadmap?role=${encodeURIComponent(targetRole)}${weeklyHours ? `&hours=${weeklyHours}` : ''}`),
+
+  updateCareerMilestone: (milestoneId: string, updates: Partial<CareerMilestone>) =>
+    fetchJson<{ success: boolean; milestone: CareerMilestone }>(`/api/career-atlas/milestones/${milestoneId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    }),
+
+  getCareerMarketSnapshot: (targetRole: string) =>
+    fetchJson<{ success: boolean; market: CareerMarketSnapshot }>(`/api/career-atlas/market?role=${encodeURIComponent(targetRole)}`),
+
+  getCareerLearningResources: (targetRole: string) =>
+    fetchJson<{ success: boolean; resources: CareerLearningResource[] }>(`/api/career-atlas/learning?role=${encodeURIComponent(targetRole)}`),
+
+  simulateCareerScenario: (config: CareerScenarioConfig) =>
+    fetchJson<{ success: boolean; result: CareerScenarioResult }>('/api/career-atlas/scenarios/simulate', {
+      method: 'POST',
+      body: JSON.stringify(config),
+    }),
+
+  getCareerGoals: () =>
+    fetchJson<{ success: boolean; goals: CareerGoal[] }>('/api/career-atlas/goals'),
+
+  saveCareerGoal: (goal: Partial<CareerGoal>) =>
+    fetchJson<{ success: boolean; goal: CareerGoal }>('/api/career-atlas/goals', {
+      method: 'POST',
+      body: JSON.stringify(goal),
+    }),
+
+  getCareerProgressEvents: () =>
+    fetchJson<{ success: boolean; events: CareerProgressEvent[] }>('/api/career-atlas/progress'),
+
+  addCareerProgressEvent: (event: Partial<CareerProgressEvent>) =>
+    fetchJson<{ success: boolean; event: CareerProgressEvent }>('/api/career-atlas/progress', {
+      method: 'POST',
+      body: JSON.stringify(event),
+    }),
+
+  getCareerAtlasAdminDiagnostics: () =>
+    fetchJson<{ success: boolean; diagnostics: CareerAtlasAdminDiagnostics }>('/api/admin/career-atlas/health'),
 
   // --- AI HR OUTREACH & DIRECT APPLICATION AUTOMATION ---
   getHrOutreachOverview: () =>

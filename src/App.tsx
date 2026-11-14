@@ -812,7 +812,9 @@ export default function App() {
             <CareerAtlas
               profile={profile}
               preferences={preferences}
+              vacancies={vacancies}
               onNavigateToJobs={() => setActiveTab('jobs')}
+              onNavigateToApplications={() => setActiveTab('control')}
               onAskCopilot={(prompt: string) => {
                 setCopilotPrompt(prompt);
                 setCopilotOpen(true);
