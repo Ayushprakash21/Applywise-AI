@@ -220,23 +220,31 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     );
   }
 
+  const isDark = typeof document !== 'undefined'
+    ? (document.documentElement.classList.contains('dark') ||
+       document.documentElement.classList.contains('theme-black-dark') ||
+       document.documentElement.getAttribute('data-theme-mode') === 'dark') &&
+      !document.documentElement.classList.contains('theme-black-light') &&
+      document.documentElement.getAttribute('data-theme-mode') !== 'light'
+    : false;
+
   // Dropdown / Account Menu Section Variant
   return (
     <div
       className={`p-3 rounded-2xl border space-y-2.5 ${
-        isBlack
+        isDark
           ? 'bg-[#111318] border-[rgba(255,255,255,0.08)]'
-          : 'bg-slate-50 border-slate-200/90'
+          : 'bg-slate-50 border-slate-200/90 text-slate-800'
       } ${className}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Globe className="h-3.5 w-3.5 text-[#C6A66A]" />
-          <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-[#C6A66A]">
+          <Globe className={`h-3.5 w-3.5 ${isDark ? 'text-[#C6A66A]' : 'text-blue-600'}`} />
+          <span className={`text-[10px] font-mono font-bold tracking-wider uppercase ${isDark ? 'text-[#C6A66A]' : 'text-blue-700'}`}>
             Language & Locale
           </span>
         </div>
-        <span className="text-[10px] font-medium text-[#92949A]">
+        <span className={`text-[10px] font-medium ${isDark ? 'text-[#92949A]' : 'text-slate-500'}`}>
           {metadata.nativeName}
         </span>
       </div>
@@ -259,12 +267,12 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
               onClick={() => handleSelect(item.code)}
               className={`h-7 px-2 rounded-lg text-[11px] font-medium flex items-center justify-center transition border cursor-pointer ${
                 isSelected
-                  ? isBlack
+                  ? isDark
                     ? 'bg-[#C6A66A]/20 text-[#C6A66A] border-[rgba(198,166,106,0.40)] font-semibold'
                     : 'bg-blue-100 text-blue-800 border-blue-300 font-semibold'
-                  : isBlack
+                  : isDark
                   ? 'bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] border-transparent'
-                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200 shadow-2xs'
               }`}
             >
               {item.label}
@@ -278,13 +286,13 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         type="button"
         onClick={onClose}
         className={`w-full py-1.5 px-2.5 rounded-xl text-[11px] font-medium flex items-center justify-between transition border cursor-pointer ${
-          isBlack
+          isDark
             ? 'bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] border-[rgba(255,255,255,0.06)]'
-            : 'bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 border-slate-200'
+            : 'bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border-slate-200 shadow-2xs'
         }`}
       >
         <span>All 30 World Languages...</span>
-        <ChevronRight className="h-3 w-3 text-[#92949A]" />
+        <ChevronRight className={`h-3 w-3 ${isDark ? 'text-[#92949A]' : 'text-slate-500'}`} />
       </button>
     </div>
   );

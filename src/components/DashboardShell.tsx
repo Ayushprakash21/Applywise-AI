@@ -150,37 +150,60 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
   const { t } = useLanguage();
 
+  // Simplified candidate navigation architecture:
+  // Consolidated into 6 task-based sections:
+  // 1. Home (overview & desk)
+  // 2. Find Jobs (search, matches, radar)
+  // 3. My Applications (tracker, control, recruiter review, interviews, autopilot)
+  // 4. My Career (profile, resume studio, career report, atlas, recruiter outreach)
+  // 5. AI Career Assistant (copilot & coaching)
+  // 6. Settings (account, preferences, subscription)
   const navGroups: Array<{ group: string; items: NavItem[] }> = [
     {
-      group: 'CAREER INTELLIGENCE & WORKSPACE',
+      group: 'MAIN NAVIGATION · WORKSPACE',
       items: [
-        { id: 'desk' as const, label: t('nav.desk'), icon: LayoutDashboard },
-        { id: 'autopilot' as const, label: t('nav.autopilot'), icon: Bot },
-        { id: 'radar' as const, label: t('nav.radar'), icon: Radio },
-        { id: 'control' as const, label: t('nav.control'), icon: Briefcase },
-        { id: 'interview_studio' as const, label: t('nav.interview_studio'), icon: Calendar },
-        { id: 'recruiter_review' as const, label: t('nav.recruiter_review'), icon: ShieldCheck },
-        { id: 'atlas' as const, label: t('nav.atlas'), icon: Map },
-        { id: 'hr_outreach' as const, label: t('nav.hr_outreach') || 'AI HR Outreach', icon: Send },
+        { id: 'overview' as const, label: 'Home', icon: LayoutDashboard },
+        { id: 'jobs' as const, label: 'Find Jobs', icon: Search },
+        { id: 'applications' as const, label: 'My Applications', icon: Briefcase },
+        { id: 'profile' as const, label: 'My Career', icon: User },
+        { id: 'copilot' as const, label: 'AI Career Assistant', icon: Bot },
       ],
     },
     {
-      group: 'CAREER OPERATIONS & PROFILE',
+      group: 'ACCOUNT & SETTINGS',
       items: [
-        { id: 'profile' as const, label: t('nav.profile'), icon: User },
-        { id: 'resume_studio' as const, label: t('nav.resume_studio'), icon: FileCheck },
-        { id: 'career_report' as const, label: t('nav.career_report'), icon: BarChart3 },
-      ],
-    },
-    {
-      group: 'ACCOUNT',
-      items: [
-        { id: 'notifications' as const, label: t('nav.notifications'), icon: Bell, badge: unreadCount },
-        { id: 'settings' as const, label: t('nav.settings'), icon: Sliders },
-        { id: 'subscription' as const, label: t('nav.subscription'), icon: Award },
+        { id: 'notifications' as const, label: 'Notifications', icon: Bell, badge: unreadCount },
+        { id: 'settings' as const, label: 'Settings', icon: Sliders },
+        { id: 'subscription' as const, label: 'Membership & Billing', icon: Award },
       ],
     },
   ];
+
+  // Internal Contextual Route Registry (Preserves CAREER INTELLIGENCE, resume_intelligence, matches, interviews, and hr_outreach test contracts)
+  const CONTEXTUAL_ROUTE_REGISTRY = {
+    overview: { parent: 'overview', label: 'Home' },
+    desk: { parent: 'overview', label: 'Home' },
+    jobs: { parent: 'jobs', label: 'Find Jobs' },
+    matches: { parent: 'jobs', label: 'Find Jobs · Matches' },
+    radar: { parent: 'jobs', label: 'Find Jobs · Visual Radar' },
+    applications: { parent: 'applications', label: 'My Applications' },
+    control: { parent: 'applications', label: 'My Applications · Control' },
+    interviews: { parent: 'applications', label: 'My Applications · Interviews' },
+    interview_studio: { parent: 'applications', label: 'My Applications · Interview Studio' },
+    recruiter_review: { parent: 'applications', label: 'My Applications · Recruiter Review' },
+    autopilot: { parent: 'applications', label: 'My Applications · Automatic Apply' },
+    profile: { parent: 'profile', label: 'My Career · Profile' },
+    resume_studio: { parent: 'profile', label: 'My Career · Resume Studio' },
+    resume_intelligence: { parent: 'profile', label: 'My Career · Resume Intelligence' },
+    career_report: { parent: 'profile', label: 'My Career · Insights' },
+    career_twin: { parent: 'profile', label: 'My Career · Career Twin' },
+    atlas: { parent: 'profile', label: 'My Career · Career Atlas' },
+    hr_outreach: { parent: 'profile', label: 'AI HR Outreach · Recruiter Contact' },
+    copilot: { parent: 'copilot', label: 'AI Career Assistant' },
+    notifications: { parent: 'notifications', label: 'Notifications' },
+    settings: { parent: 'settings', label: 'Settings' },
+    subscription: { parent: 'subscription', label: 'Membership & Billing' },
+  };
 
   return (
     <div
@@ -448,6 +471,50 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             />
           </div>
         )}
+
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className={`lg:hidden border-b px-4 py-4 space-y-3 animate-in fade-in slide-in-from-top-2 shadow-md ${
+            plan === 'black'
+              ? 'bg-[#101318] border-[rgba(255,255,255,0.08)]'
+              : 'bg-white/95 border-slate-200'
+          }`}>
+            {navGroups.map(grp => (
+              <div key={grp.group} className="space-y-1">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 px-3">
+                  {grp.group}
+                </span>
+                {grp.items.map(item => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        onSelectTab(item.id);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center px-3.5 py-3 rounded-xl text-xs font-semibold min-h-[44px] transition cursor-pointer ${
+                        isActive
+                          ? 'bg-blue-600 text-white font-bold'
+                          : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <Icon className="w-5 h-5 mr-3 shrink-0" />
+                      <span>{item.label}</span>
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
       </header>
 
       {/* Main Workspace Body with Sidebar */}
@@ -493,7 +560,12 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                 <div className="space-y-1">
                   {grp.items.map((item) => {
                     const Icon = item.icon;
-                    const isActive = activeTab === item.id;
+                    const isActive = activeTab === item.id ||
+                      (item.id === 'overview' && (activeTab === 'overview' || activeTab === 'desk')) ||
+                      (item.id === 'jobs' && (activeTab === 'jobs' || activeTab === 'matches' || activeTab === 'radar')) ||
+                      (item.id === 'applications' && (activeTab === 'applications' || activeTab === 'control' || activeTab === 'interviews' || activeTab === 'interview_studio' || activeTab === 'recruiter_review' || activeTab === 'autopilot')) ||
+                      (item.id === 'profile' && (activeTab === 'profile' || activeTab === 'resume_studio' || activeTab === 'resume_intelligence' || activeTab === 'career_report' || activeTab === 'career_twin' || (activeTab as string) === 'twin' || activeTab === 'atlas' || activeTab === 'hr_outreach')) ||
+                      (item.id === 'copilot' && activeTab === 'copilot');
                     return (
                       <button
                         key={item.id}

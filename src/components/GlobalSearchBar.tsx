@@ -179,25 +179,24 @@ export const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({
           }}
           className={`w-full h-10 px-3.5 rounded-full flex items-center justify-between transition-all duration-200 cursor-text group ${
             isBlack
-              ? 'bg-[var(--be-bg-input,#101318)] hover:bg-[var(--be-hover-bg,#141820)] focus-within:bg-[var(--be-bg-elevated,#12161E)] border border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:border-[var(--be-border-focus,rgba(198,166,106,0.30))] focus-within:border-[var(--be-accent-primary,#C6A66A)] focus-within:ring-2 focus-within:ring-[var(--be-accent-primary,#C6A66A)]/25 shadow-xs'
-              : 'bg-white/80 hover:bg-white focus-within:bg-white border border-slate-200/90 hover:border-slate-300 focus-within:border-[var(--be-accent-primary,#0284C7)] focus-within:ring-2 focus-within:ring-[var(--be-accent-primary,#0284C7)]/20 shadow-xs'
+              ? 'bg-[var(--be-bg-input,#101318)] hover:bg-[var(--be-hover-bg,#141820)] focus-within:bg-[var(--be-bg-elevated,#12161E)] border border-[var(--be-border-subtle,rgba(255,255,255,0.12))] hover:border-[var(--be-border-focus,rgba(198,166,106,0.35))] focus-within:border-[var(--be-accent-primary,#C6A66A)] focus-within:ring-2 focus-within:ring-[var(--be-accent-primary,#C6A66A)]/25 shadow-xs'
+              : 'bg-white hover:bg-white focus-within:bg-white border border-slate-300 hover:border-slate-400 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-500/20 shadow-xs'
           }`}
           style={{
             backgroundColor: 'var(--be-bg-input, var(--surface-input))',
             borderColor: isOpen
               ? 'var(--be-accent-primary, #C6A66A)'
-              : 'var(--be-border-subtle, var(--border-subtle))',
+              : undefined,
           }}
         >
           {/* Left: Elegant Search Icon & Text Input */}
           <div className="flex items-center space-x-2.5 min-w-0 flex-1">
             <Search
-              className="w-4 h-4 shrink-0 transition-colors"
-              style={{
-                color: isOpen
-                  ? 'var(--be-accent-primary, #C6A66A)'
-                  : 'var(--be-text-secondary, #555C66)',
-              }}
+              className={`w-4 h-4 shrink-0 transition-colors ${
+                isOpen
+                  ? 'text-blue-600 dark:text-[var(--be-accent-primary,#C6A66A)]'
+                  : 'text-slate-500 dark:text-[var(--be-text-secondary,#92949A)]'
+              }`}
             />
             <input
               ref={inputRef}
@@ -212,13 +211,12 @@ export const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({
               onKeyDown={handleInputKeyDown}
               placeholder={placeholder}
               aria-label="Global search"
-              className="w-full bg-transparent border-0 outline-none text-xs leading-none p-0 tracking-normal placeholder:opacity-75 focus:outline-none"
+              className="w-full bg-transparent border-0 outline-none text-xs leading-none p-0 tracking-normal text-slate-900 dark:text-[var(--be-text-primary,#F2F0EA)] placeholder:text-slate-500 dark:placeholder:text-[#737780] focus:outline-none"
               style={{
                 backgroundColor: 'transparent',
                 border: 'none',
                 boxShadow: 'none',
                 outline: 'none',
-                color: 'var(--be-text-primary, currentColor)',
               }}
             />
           </div>
@@ -234,8 +232,7 @@ export const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({
                   setSelectedIndex(-1);
                   inputRef.current?.focus();
                 }}
-                className="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                style={{ color: 'var(--be-text-muted, #707782)' }}
+                className="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer text-slate-500 dark:text-[var(--be-text-muted,#707782)]"
                 aria-label="Clear search input"
               >
                 <X className="w-3.5 h-3.5" />

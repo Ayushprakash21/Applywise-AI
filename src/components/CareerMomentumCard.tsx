@@ -88,7 +88,7 @@ export const CareerMomentumCard: React.FC<CareerMomentumCardProps> = ({
 
   return (
     <div
-      className={`p-6 sm:p-7 rounded-3xl border transition-colors ${className}`}
+      className={`p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#14171C] border border-slate-200 dark:border-[rgba(255,255,255,0.09)] text-slate-900 dark:text-[#F2F0EA] transition-colors ${className}`}
       style={{
         backgroundColor: 'var(--be-bg-card, #FFFFFF)',
         borderColor: 'var(--be-border-subtle, rgba(0,0,0,0.08))',
@@ -97,12 +97,12 @@ export const CareerMomentumCard: React.FC<CareerMomentumCardProps> = ({
     >
       {/* Header */}
       <div
-        className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b gap-3"
+        className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-200 dark:border-[rgba(255,255,255,0.08)] gap-3"
         style={{ borderColor: 'var(--be-border-subtle, rgba(0,0,0,0.08))' }}
       >
         <div className="flex items-center space-x-3">
           <div
-            className="w-10 h-10 rounded-2xl border flex items-center justify-center shadow-xs"
+            className="w-10 h-10 rounded-2xl border flex items-center justify-center shadow-xs bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-400"
             style={{
               backgroundColor: 'var(--be-hover-bg, rgba(53,184,135,0.12))',
               borderColor: 'var(--be-border-subtle, rgba(53,184,135,0.25))',
@@ -114,7 +114,7 @@ export const CareerMomentumCard: React.FC<CareerMomentumCardProps> = ({
           <div>
             <div className="flex items-center space-x-2">
               <span
-                className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded-full border"
+                className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded-full border bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-400"
                 style={{
                   backgroundColor: 'var(--be-hover-bg, rgba(20,122,88,0.10))',
                   borderColor: 'var(--be-border-subtle, rgba(20,122,88,0.20))',
@@ -124,20 +124,20 @@ export const CareerMomentumCard: React.FC<CareerMomentumCardProps> = ({
                 Active Ground Truth
               </span>
               <span
-                className="text-xs font-mono"
+                className="text-xs font-mono text-slate-500 dark:text-slate-400"
                 style={{ color: 'var(--be-text-muted, #707782)' }}
               >
                 Real Activity Only
               </span>
             </div>
             <h3
-              className="text-base sm:text-lg font-bold tracking-tight mt-0.5"
+              className="text-base sm:text-lg font-bold tracking-tight mt-0.5 text-slate-900 dark:text-[#F2F0EA]"
               style={{ color: 'var(--be-text-primary, #20242B)' }}
             >
               Career Momentum
             </h3>
             <p
-              className="text-xs"
+              className="text-xs text-slate-600 dark:text-[#C0BDB5]"
               style={{ color: 'var(--be-text-secondary, #555C66)' }}
             >
               Measurable Progress Across Active Search
@@ -149,20 +149,20 @@ export const CareerMomentumCard: React.FC<CareerMomentumCardProps> = ({
         <div className="flex items-center space-x-3 self-start sm:self-auto shrink-0">
           <div className="text-right">
             <span
-              className="text-[10px] font-mono block"
+              className="text-[10px] font-mono block text-slate-500 dark:text-slate-400"
               style={{ color: 'var(--be-text-muted, #707782)' }}
             >
               Profile Depth
             </span>
             <span
-              className="text-xs font-bold font-mono"
+              className="text-xs font-bold font-mono text-slate-900 dark:text-[#F2F0EA]"
               style={{ color: 'var(--be-text-primary, #20242B)' }}
             >
               {profileCompleteness}% Complete
             </span>
           </div>
           <div
-            className="w-11 h-11 rounded-xl border flex items-center justify-center font-mono text-xs font-bold shadow-xs"
+            className="w-11 h-11 rounded-xl border flex items-center justify-center font-mono text-xs font-bold shadow-xs bg-slate-100 dark:bg-[#191D23] border-slate-200 dark:border-[rgba(255,255,255,0.08)] text-slate-900 dark:text-[#F2F0EA]"
             style={{
               backgroundColor: 'var(--be-bg-elevated, #FAF8F5)',
               borderColor: 'var(--be-border-subtle, rgba(0,0,0,0.08))',
@@ -182,7 +182,7 @@ export const CareerMomentumCard: React.FC<CareerMomentumCardProps> = ({
             <div
               key={idx}
               onClick={() => onNavigateTab && onNavigateTab(m.tab)}
-              className="group p-4 rounded-2xl border transition duration-200 cursor-pointer flex flex-col justify-between"
+              className="group p-4 rounded-2xl bg-slate-50 dark:bg-[#191D23] border border-slate-200 dark:border-[rgba(255,255,255,0.08)] hover:border-slate-300 dark:hover:border-[var(--be-border-focus,rgba(198,166,106,0.40))] transition duration-200 cursor-pointer flex flex-col justify-between"
               style={{
                 backgroundColor: 'var(--be-bg-elevated, #FAF8F5)',
                 borderColor: 'var(--be-border-subtle, rgba(0,0,0,0.08))',
@@ -199,7 +199,7 @@ export const CareerMomentumCard: React.FC<CareerMomentumCardProps> = ({
                   <Icon className="h-5 w-5" />
                 </span>
                 <span
-                  className="text-2xl font-extrabold font-mono transition-colors"
+                  className="text-2xl font-extrabold font-mono transition-colors text-slate-900 dark:text-[#F2F0EA]"
                   style={{ color: 'var(--be-text-primary, #20242B)' }}
                 >
                   {m.value}
@@ -207,13 +207,13 @@ export const CareerMomentumCard: React.FC<CareerMomentumCardProps> = ({
               </div>
               <div>
                 <p
-                  className="text-xs font-bold leading-snug"
+                  className="text-xs font-bold leading-snug text-slate-800 dark:text-[#F2F0EA]"
                   style={{ color: 'var(--be-text-primary, #20242B)' }}
                 >
                   {m.label}
                 </p>
                 <p
-                  className="text-[11px] mt-0.5 truncate"
+                  className="text-[11px] mt-0.5 truncate text-slate-500 dark:text-[#92949A]"
                   style={{ color: 'var(--be-text-muted, #707782)' }}
                 >
                   {m.subtext}

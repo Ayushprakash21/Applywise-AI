@@ -90,20 +90,28 @@ export function detectResolvedTheme(theme: SelectTheme = 'auto'): 'light' | 'dar
       document.body.getAttribute('data-be-appearance') ||
       document.documentElement.getAttribute('data-theme-mode') ||
       (document.documentElement.classList.contains('theme-black-light') ? 'light' : null);
+
     if (appearance === 'light') {
       return 'light';
     }
-    const htmlTheme = document.documentElement.getAttribute('data-theme');
-    if (
-      htmlTheme === 'black' ||
+
+    const isExplicitDark =
+      document.documentElement.classList.contains('dark') ||
+      document.body.classList.contains('dark') ||
       document.documentElement.classList.contains('theme-black-dark') ||
       document.body.classList.contains('theme-black-dark') ||
-      document.documentElement.classList.contains('theme-black') ||
-      document.body.classList.contains('theme-black')
-    ) {
-      return 'black-elite';
-    }
-    if (document.documentElement.classList.contains('dark') || document.body.classList.contains('dark')) {
+      document.documentElement.getAttribute('data-theme-mode') === 'dark' ||
+      document.documentElement.getAttribute('data-be-appearance') === 'dark';
+
+    if (isExplicitDark) {
+      const htmlTheme = document.documentElement.getAttribute('data-theme');
+      if (
+        htmlTheme === 'black' ||
+        document.documentElement.classList.contains('theme-black') ||
+        document.body.classList.contains('theme-black')
+      ) {
+        return 'black-elite';
+      }
       return 'dark';
     }
   }
@@ -151,19 +159,19 @@ function getThemeClasses(resolved: 'light' | 'dark' | 'black-elite') {
   }
   return {
     trigger:
-      'bg-[var(--be-bg-input,#FFFFFF)] border border-[var(--be-border-subtle,#CBD5E1)] text-[var(--be-text-primary,#0F172A)] hover:border-[var(--be-border-focus,#94A3B8)] focus-visible:border-[var(--be-accent,#0284C7)] focus-visible:ring-2 focus-visible:ring-[var(--be-accent,#0284C7)]/20 placeholder-[var(--be-text-muted,#64748B)] shadow-xs',
-    triggerOpen: 'border-[var(--be-accent,#0284C7)] ring-2 ring-[var(--be-accent,#0284C7)]/20',
-    menu: 'bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#E2E8F0)] text-[var(--be-text-primary,#0F172A)] shadow-xl shadow-slate-900/10',
-    searchBox: 'bg-[var(--be-bg-elevated,#F8FAFC)] border-b border-[var(--be-border-subtle,#E2E8F0)] text-[var(--be-text-primary,#0F172A)] placeholder-[var(--be-text-muted,#94A3B8)]',
+      'bg-white border border-slate-300 text-slate-900 hover:border-slate-400 focus-visible:border-indigo-600 focus-visible:ring-2 focus-visible:ring-indigo-500/20 placeholder-slate-400 shadow-xs',
+    triggerOpen: 'border-indigo-600 ring-2 ring-indigo-500/20',
+    menu: 'bg-white border border-slate-200 text-slate-900 shadow-xl shadow-slate-900/10',
+    searchBox: 'bg-slate-50 border-b border-slate-200 text-slate-900 placeholder-slate-400',
     searchInput:
-      'bg-[var(--be-bg-input,#FFFFFF)] border border-[var(--be-border-subtle,#CBD5E1)] text-[var(--be-text-primary,#0F172A)] placeholder-[var(--be-text-muted,#94A3B8)] focus:border-[var(--be-accent,#0284C7)]',
-    optionDefault: 'text-[var(--be-text-primary,#0F172A)] hover:bg-[var(--be-hover-bg,#F1F5F9)]',
-    optionHighlighted: 'bg-[var(--be-hover-bg,#EFF6FF)] text-[var(--be-text-primary,#0F172A)]',
-    optionSelected: 'bg-[var(--be-nav-active-bg,#E0F2FE)] text-[var(--be-accent,#0284C7)] font-semibold',
-    subtext: 'text-[var(--be-text-secondary,#475569)]',
-    badge: 'bg-[var(--be-bg-elevated,#F1F5F9)] text-[var(--be-text-secondary,#475569)] border border-[var(--be-border-subtle,#CBD5E1)]',
-    mutedIcon: 'text-[var(--be-text-muted,#64748B)]',
-    divider: 'border-[var(--be-border-subtle,#E2E8F0)]',
+      'bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:border-indigo-600',
+    optionDefault: 'text-slate-800 hover:bg-slate-100',
+    optionHighlighted: 'bg-slate-100 text-slate-900',
+    optionSelected: 'bg-amber-500/15 text-amber-900 font-semibold border-l-2 border-amber-600',
+    subtext: 'text-slate-600 font-medium',
+    badge: 'bg-slate-100 text-slate-700 border border-slate-200',
+    mutedIcon: 'text-slate-500',
+    divider: 'border-slate-200',
   };
 }
 
