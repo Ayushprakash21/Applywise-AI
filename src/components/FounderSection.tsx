@@ -114,14 +114,18 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
                     </div>
                   ) : (
-                    <div className="w-full h-full rounded-[14px] bg-slate-950 flex flex-col items-center justify-center text-white relative overflow-hidden">
-                      <span className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#C6A66A]">
+                    <div className={`w-full h-full rounded-[14px] flex flex-col items-center justify-center relative overflow-hidden transition-colors ${
+                      isDark
+                        ? 'bg-slate-950 text-white'
+                        : 'bg-slate-50 border border-slate-200 text-slate-900 shadow-2xs'
+                    }`}>
+                      <span className={`text-4xl sm:text-5xl font-extrabold tracking-tight ${isDark ? 'text-[#C6A66A]' : 'text-slate-900'}`}>
                         AP
                       </span>
-                      <span className="text-[10px] uppercase font-mono tracking-widest text-[#C6A66A] mt-2 font-semibold">
+                      <span className={`text-[10px] uppercase font-mono tracking-widest mt-2 font-semibold ${isDark ? 'text-[#C6A66A]' : 'text-blue-700'}`}>
                         Founder & Architect
                       </span>
-                      <div className="absolute inset-0 border border-white/10 rounded-[14px] pointer-events-none" />
+                      <div className={`absolute inset-0 border rounded-[14px] pointer-events-none ${isDark ? 'border-white/10' : 'border-slate-200/60'}`} />
                     </div>
                   )}
                 </div>
