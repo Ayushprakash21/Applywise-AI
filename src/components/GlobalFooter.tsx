@@ -8,10 +8,8 @@ export interface GlobalFooterProps {
   onNavigateHome?: () => void;
   onNavigateAbout?: () => void;
   onNavigatePricing?: () => void;
-  onNavigateAdmin?: () => void;
   onOpenAbout?: () => void;
   onOpenPricing?: () => void;
-  onOpenAdmin?: () => void;
   onOpenPrivacy?: () => void;
   onOpenTerms?: () => void;
   className?: string;
@@ -23,10 +21,8 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({
   onNavigateHome,
   onNavigateAbout,
   onNavigatePricing,
-  onNavigateAdmin,
   onOpenAbout,
   onOpenPricing,
-  onOpenAdmin,
   onOpenPrivacy,
   onOpenTerms,
   className = '',
@@ -36,7 +32,6 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({
 
   const handleAbout = onNavigateAbout || onOpenAbout;
   const handlePricing = onNavigatePricing || onOpenPricing;
-  const handleAdmin = onNavigateAdmin || onOpenAdmin;
   const handleHome = onNavigateHome || (() => {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -134,15 +129,6 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({
                   Features & Pricing
                 </button>
               )}
-              {handleAdmin && (
-                <button
-                  type="button"
-                  onClick={handleAdmin}
-                  className="hover:text-slate-900 dark:hover:text-[#C6A66A] hover:underline transition-colors cursor-pointer"
-                >
-                  Admin Portal
-                </button>
-              )}
               {onOpenPrivacy && (
                 <button
                   type="button"
@@ -227,15 +213,6 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({
                 className="hover:text-white transition-colors cursor-pointer"
               >
                 Features & Pricing
-              </button>
-            )}
-            {handleAdmin && (
-              <button
-                type="button"
-                onClick={handleAdmin}
-                className="hover:text-white transition-colors cursor-pointer"
-              >
-                Admin Portal
               </button>
             )}
             {onOpenPrivacy && (

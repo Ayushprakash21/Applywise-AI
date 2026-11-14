@@ -968,7 +968,6 @@ export default function App() {
             plan={isBlackSubscriber ? 'black' : ((subscription?.planId as 'free' | 'pro' | 'black') || subscription?.plan || 'free')}
             onNavigateAbout={() => navigateTo('/about')}
             onNavigatePricing={() => navigateTo('/pricing')}
-            onNavigateAdmin={() => navigateTo('/admin')}
             onOpenPrivacy={() => setPrivacyModalOpen(true)}
             onOpenTerms={() => setTermsModalOpen(true)}
           />
@@ -987,7 +986,6 @@ export default function App() {
           onOpenTerms={() => setTermsModalOpen(true)}
           onOpenAbout={() => navigateTo('/about')}
           onOpenPricing={() => navigateTo('/pricing')}
-          onOpenAdmin={() => navigateTo('/admin')}
           featuredVacancies={vacancies}
           onSelectVacancy={v => { setSelectedVacancy(v); }}
           onSearch={q => {

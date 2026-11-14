@@ -52,7 +52,7 @@ test('ApplyVise AI — Brand Positioning & Unified Global Footer Integrity Suite
     // Links
     assert.match(footerSource, /About Us/, 'Footer provides About Us');
     assert.match(footerSource, /Features & Pricing/, 'Footer provides Features & Pricing');
-    assert.match(footerSource, /Admin Portal/, 'Footer provides Admin Portal trigger');
+    assert.doesNotMatch(footerSource, /Admin Portal/, 'Footer must not contain Admin Portal link');
     assert.match(footerSource, /Privacy Policy/, 'Footer provides Privacy Policy');
     assert.match(footerSource, /Terms of Use/, 'Footer provides Terms of Use');
     assert.match(footerSource, /Zero Hallucination Standard/, 'Footer reflects truthfulness / integrity standard');
@@ -78,7 +78,7 @@ test('ApplyVise AI — Brand Positioning & Unified Global Footer Integrity Suite
     assert.match(appSource, /<GlobalFooter\s+variant="dashboard"/, 'App.tsx renders dashboard GlobalFooter');
     assert.match(appSource, /onNavigateAbout=/, 'App.tsx connects About route');
     assert.match(appSource, /onNavigatePricing=/, 'App.tsx connects Pricing route');
-    assert.match(appSource, /onNavigateAdmin=/, 'App.tsx connects Admin route');
+    assert.match(appSource, /['"]\/admin['"]/, 'App.tsx preserves Admin route');
 
     // LandingPage.tsx uses GlobalFooter
     assert.match(landingSource, /<GlobalFooter\s+variant="landing"/, 'LandingPage renders landing GlobalFooter');

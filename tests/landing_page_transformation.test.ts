@@ -87,7 +87,7 @@ test('Landing Page Light-Theme Restoration & Architectural Integrity', async (t)
   await t.test('Footer Navigation & Callback Safety', () => {
     assert.match(landingSource, /onOpenAbout/, 'Footer contains onOpenAbout trigger');
     assert.match(landingSource, /onOpenPricing/, 'Footer contains onOpenPricing trigger');
-    assert.match(landingSource, /onOpenAdmin/, 'Footer contains onOpenAdmin trigger');
+    assert.doesNotMatch(landingSource, /<GlobalFooter[^>]*onOpenAdmin/, 'Footer does not expose onOpenAdmin');
     assert.match(landingSource, /onOpenPrivacy/, 'Footer contains onOpenPrivacy trigger');
     assert.match(landingSource, /onOpenTerms/, 'Footer contains onOpenTerms trigger');
     assert.match(landingSource, /onOpenAuth\('signup'\)/, 'Navigation & CTA contains signup trigger');
