@@ -688,7 +688,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                         href={vacancy.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full py-2 rounded-xl neu-button text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center justify-center space-x-1.5 transition"
+                        className="w-full py-2 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center justify-center space-x-1.5 transition"
                       >
                         <span>Visit Original Listing</span>
                         <ExternalLink className="h-3 w-3" />
@@ -711,7 +711,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       <button
                         onClick={handleAnalyzeJob}
-                        className="py-2 px-3 rounded-xl neu-button text-xs font-semibold text-slate-700 hover:text-blue-600 flex items-center justify-center space-x-1 transition"
+                        className="py-2 px-3 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-semibold text-slate-700 hover:text-blue-600 flex items-center justify-center space-x-1 transition"
                       >
                         <BrainCircuit className="h-3.5 w-3.5" />
                         <span>Analyze Job</span>
@@ -719,7 +719,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
 
                       <button
                         onClick={handleMatchResume}
-                        className="py-2 px-3 rounded-xl neu-button text-xs font-semibold text-slate-700 hover:text-blue-600 flex items-center justify-center space-x-1 transition"
+                        className="py-2 px-3 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-semibold text-slate-700 hover:text-blue-600 flex items-center justify-center space-x-1 transition"
                       >
                         <Compass className="h-3.5 w-3.5" />
                         <span>Match Skills</span>
@@ -956,7 +956,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                   <button
                     onClick={handleAuditIntegrity}
                     disabled={isAuditingIntegrity}
-                    className="py-2 px-4 rounded-xl neu-button text-xs font-semibold text-slate-700 hover:text-emerald-700 flex items-center space-x-1.5 transition"
+                    className="py-2 px-4 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-semibold text-slate-700 hover:text-emerald-700 flex items-center space-x-1.5 transition"
                   >
                     {isAuditingIntegrity ? (
                       <>

@@ -122,7 +122,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Header Card */}
-      <div className="neu-panel p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] shadow-xs p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2">
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">My Applications</h1>
@@ -137,11 +137,11 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
 
         <div className="flex flex-wrap items-center gap-2">
           {/* View Switcher */}
-          <div className="neu-inset p-1 rounded-xl flex items-center space-x-1 max-w-full overflow-x-auto">
+          <div className="bg-slate-50 dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] p-1 rounded-xl flex items-center space-x-1 max-w-full overflow-x-auto">
             <button
               onClick={() => setActiveView('pipeline')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap min-h-[36px] ${
-                activeView === 'pipeline' ? 'neu-raised text-blue-600' : 'text-slate-600 hover:text-slate-900'
+                activeView === 'pipeline' ? 'bg-white dark:bg-[var(--be-bg-card,#14171C)] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Pipeline ({applications.length})
@@ -149,7 +149,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
             <button
               onClick={() => setActiveView('receipts')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5 whitespace-nowrap min-h-[36px] ${
-                activeView === 'receipts' ? 'neu-raised text-blue-600' : 'text-slate-600 hover:text-slate-900'
+                activeView === 'receipts' ? 'bg-white dark:bg-[var(--be-bg-card,#14171C)] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Receipt className="h-3.5 w-3.5" />
@@ -159,7 +159,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
 
           <button
             onClick={onNavigateToJobs}
-            className="px-4 py-2 min-h-[40px] neu-button-primary rounded-xl text-xs font-semibold transition flex items-center space-x-1.5 shrink-0"
+            className="px-4 py-2 min-h-[40px] bg-slate-900 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] hover:bg-slate-800 transition shadow-xs rounded-xl text-xs font-semibold transition flex items-center space-x-1.5 shrink-0"
           >
             <span>Find Jobs</span>
             <ArrowRight className="h-3.5 w-3.5" />
@@ -186,7 +186,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
               Loading verifiable receipts...
             </div>
           ) : receipts.length === 0 ? (
-            <div className="neu-panel p-12 text-center text-slate-400 space-y-3">
+            <div className="rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] shadow-xs p-12 text-center text-slate-400 space-y-3">
               <Receipt className="h-10 w-10 mx-auto text-slate-300" />
               <h3 className="text-sm font-bold text-slate-700">No application receipts generated yet</h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -340,8 +340,8 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
             onClick={() => setFilter(tab.id as any)}
             className={`px-3 py-1.5 rounded-xl font-semibold transition ${
               filter === tab.id
-                ? 'neu-button-primary'
-                : 'neu-chip'
+                ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] hover:bg-slate-800 transition shadow-xs'
+                : 'rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-700 dark:text-slate-300 shadow-2xs'
             }`}
           >
             {tab.label}
@@ -351,7 +351,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
 
       {/* Applications List */}
       {filteredApps.length === 0 ? (
-        <div className="neu-panel p-12 text-center text-slate-400 space-y-3">
+        <div className="rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] shadow-xs p-12 text-center text-slate-400 space-y-3">
           <FileText className="h-10 w-10 mx-auto text-slate-400" />
           <h3 className="text-sm font-bold text-slate-700">No applications in this category</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -359,7 +359,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
           </p>
           <button
             onClick={onNavigateToJobs}
-            className="px-4 py-2 neu-button-primary rounded-xl text-xs font-semibold"
+            className="px-4 py-2 bg-slate-900 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] hover:bg-slate-800 transition shadow-xs rounded-xl text-xs font-semibold"
           >
             Explore Jobs Now
           </button>
@@ -372,7 +372,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
             return (
               <div
                 key={app.id}
-                className="neu-card neu-raised-hover p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                className="rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:shadow-xs transition duration-200 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
               >
                 {/* Left: Job Info */}
                 <div className="space-y-1.5 flex-1">
@@ -405,7 +405,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                 <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
                   <button
                     onClick={() => onViewResume(app)}
-                    className="flex-1 sm:flex-initial justify-center px-3.5 py-2 min-h-[40px] rounded-xl neu-button text-xs font-semibold text-slate-700 flex items-center space-x-1.5 touch-target"
+                    className="flex-1 sm:flex-initial justify-center px-3.5 py-2 min-h-[40px] rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-semibold text-slate-700 flex items-center space-x-1.5 touch-target"
                   >
                     <FileText className="h-3.5 w-3.5 text-slate-500" />
                     <span>View ATS Resume</span>
@@ -413,7 +413,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
 
                   <button
                     onClick={() => api.downloadDocxResume(app.id, app.company)}
-                    className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl neu-button text-slate-700"
+                    className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-slate-700"
                     title="Download DOCX"
                   >
                     <Download className="h-4 w-4 text-slate-500" />
@@ -423,7 +423,7 @@ export const ApplicationsPage: React.FC<ApplicationsPageProps> = ({
                   {(app.status === 'PREPARED' || app.status === 'AWAITING_APPROVAL' || app.status === 'AUTHORIZED_TO_SUBMIT') && (
                     <button
                       onClick={() => handleLaunchSubmit(app)}
-                      className="flex-1 sm:flex-initial justify-center px-4 py-2 min-h-[40px] neu-button-primary rounded-xl text-xs font-semibold flex items-center space-x-1.5 touch-target"
+                      className="flex-1 sm:flex-initial justify-center px-4 py-2 min-h-[40px] bg-slate-900 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] hover:bg-slate-800 transition shadow-xs rounded-xl text-xs font-semibold flex items-center space-x-1.5 touch-target"
                     >
                       <span>Proceed to Apply</span>
                       <ArrowRight className="h-3.5 w-3.5" />

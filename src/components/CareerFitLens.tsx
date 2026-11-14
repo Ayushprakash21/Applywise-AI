@@ -85,7 +85,7 @@ export const CareerFitLens: React.FC<CareerFitLensProps> = ({
       : '#64748B'; // Slate
 
   return (
-    <div className={`p-5 rounded-2xl neu-surface border border-white/80 shadow-md ${className}`}>
+    <div className={`p-5 rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] border border-white/80 shadow-md ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-700/60">
         <div className="flex items-center space-x-2">
@@ -101,7 +101,7 @@ export const CareerFitLens: React.FC<CareerFitLensProps> = ({
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center p-1 rounded-xl neu-inset text-xs font-medium">
+        <div className="flex items-center p-1 rounded-xl bg-slate-50 dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-xs font-medium">
           <button
             onClick={() => setViewMode('snapshot')}
             className={`px-3 py-1 rounded-lg transition-all ${
@@ -129,7 +129,7 @@ export const CareerFitLens: React.FC<CareerFitLensProps> = ({
       {viewMode === 'snapshot' ? (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5 pt-4 items-center">
           {/* Gauge Column */}
-          <div className="md:col-span-4 flex flex-col items-center justify-center p-4 rounded-xl neu-inset text-center">
+          <div className="md:col-span-4 flex flex-col items-center justify-center p-4 rounded-xl bg-slate-50 dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-center">
             <div className="relative w-28 h-28 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                 <circle
@@ -283,7 +283,7 @@ export const CareerFitLens: React.FC<CareerFitLensProps> = ({
             {onExploreEvidence && (
               <button
                 onClick={onExploreEvidence}
-                className="px-3.5 py-1.5 rounded-xl neu-button text-xs font-semibold text-blue-600 flex items-center space-x-1.5"
+                className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-semibold text-blue-600 flex items-center space-x-1.5"
               >
                 <Layers className="h-3.5 w-3.5" />
                 <span>Open Fit Evidence Map</span>
@@ -292,7 +292,7 @@ export const CareerFitLens: React.FC<CareerFitLensProps> = ({
             {onOpenReadiness && (
               <button
                 onClick={onOpenReadiness}
-                className="px-3.5 py-1.5 rounded-xl neu-button-primary text-xs font-semibold flex items-center space-x-1.5"
+                className="px-3.5 py-1.5 rounded-xl bg-slate-900 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] hover:bg-slate-800 transition shadow-xs text-xs font-semibold flex items-center space-x-1.5"
               >
                 <span>Pre-Flight Readiness</span>
                 <ChevronRight className="h-3.5 w-3.5" />

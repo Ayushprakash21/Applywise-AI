@@ -652,7 +652,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
                     : 'border-slate-300 hover:border-blue-500 bg-slate-50/50 hover:bg-blue-50/20'
                 }`}
               >
-                <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-200/80 group-hover:scale-105 transition neu-button">
+                <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-200/80 group-hover:scale-105 transition bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition">
                   <Upload className={`h-7 w-7 ${isDragging ? 'text-blue-700' : 'text-blue-600'}`} />
                 </div>
                 <div>

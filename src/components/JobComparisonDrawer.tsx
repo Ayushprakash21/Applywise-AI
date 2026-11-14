@@ -54,7 +54,7 @@ export const JobComparisonDrawer: React.FC<JobComparisonDrawerProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl neu-button text-slate-400 hover:text-slate-700 transition-colors"
+            className="p-2 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-slate-400 hover:text-slate-700 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -78,7 +78,7 @@ export const JobComparisonDrawer: React.FC<JobComparisonDrawerProps> = ({
           {/* Side-by-Side Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Job A */}
-            <div className="p-5 rounded-2xl neu-surface border border-white/80 space-y-4">
+            <div className="p-5 rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] border border-white/80 space-y-4">
               <div className="border-b border-slate-200 pb-3">
                 <span className="text-[10px] font-mono uppercase font-bold text-blue-600 block">
                   Option A
@@ -90,7 +90,7 @@ export const JobComparisonDrawer: React.FC<JobComparisonDrawerProps> = ({
               </div>
 
               {/* Match Score */}
-              <div className="flex items-center justify-between p-3 rounded-xl neu-inset">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))]">
                 <span className="text-xs font-bold text-slate-700">Fit Alignment</span>
                 <span className="text-lg font-black font-mono text-blue-600">
                   {scoreA}%
@@ -141,14 +141,14 @@ export const JobComparisonDrawer: React.FC<JobComparisonDrawerProps> = ({
 
               <button
                 onClick={() => onSelectJob(jobA)}
-                className="w-full py-2 rounded-xl neu-button text-xs font-bold text-blue-600 hover:text-blue-700"
+                className="w-full py-2 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-bold text-blue-600 hover:text-blue-700"
               >
                 Inspect Opportunity A
               </button>
             </div>
 
             {/* Job B */}
-            <div className="p-5 rounded-2xl neu-surface border border-white/80 space-y-4">
+            <div className="p-5 rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] border border-white/80 space-y-4">
               <div className="border-b border-slate-200 pb-3">
                 <span className="text-[10px] font-mono uppercase font-bold text-indigo-600 block">
                   Option B
@@ -160,7 +160,7 @@ export const JobComparisonDrawer: React.FC<JobComparisonDrawerProps> = ({
               </div>
 
               {/* Match Score */}
-              <div className="flex items-center justify-between p-3 rounded-xl neu-inset">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))]">
                 <span className="text-xs font-bold text-slate-700">Fit Alignment</span>
                 <span className="text-lg font-black font-mono text-indigo-600">
                   {scoreB}%
@@ -211,7 +211,7 @@ export const JobComparisonDrawer: React.FC<JobComparisonDrawerProps> = ({
 
               <button
                 onClick={() => onSelectJob(jobB)}
-                className="w-full py-2 rounded-xl neu-button text-xs font-bold text-indigo-600 hover:text-indigo-700"
+                className="w-full py-2 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-bold text-indigo-600 hover:text-indigo-700"
               >
                 Inspect Opportunity B
               </button>
@@ -224,7 +224,7 @@ export const JobComparisonDrawer: React.FC<JobComparisonDrawerProps> = ({
           <span>Side-by-side comparison generated from live criteria models.</span>
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl neu-button text-xs font-bold"
+            className="px-4 py-2 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-bold"
           >
             Close Comparison
           </button>

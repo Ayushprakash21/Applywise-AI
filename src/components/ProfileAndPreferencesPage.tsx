@@ -187,7 +187,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="neu-panel p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] shadow-xs p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2">
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">Profile & Career Preferences</h1>
@@ -203,7 +203,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
 
         <button
           onClick={onOpenOnboarding}
-          className="px-4 py-2 neu-button rounded-xl text-xs font-semibold transition flex items-center space-x-1.5 shrink-0"
+          className="px-4 py-2 bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition rounded-xl text-xs font-semibold transition flex items-center space-x-1.5 shrink-0"
         >
           <Upload className="h-3.5 w-3.5" />
           <span>Upload / Replace Resume</span>
@@ -216,8 +216,8 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
           onClick={() => setActiveSubTab('profile')}
           className={`px-4 py-2.5 rounded-xl font-semibold transition min-h-[40px] touch-target ${
             activeSubTab === 'profile'
-              ? 'neu-button-primary'
-              : 'neu-chip'
+              ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] hover:bg-slate-800 transition shadow-xs'
+              : 'rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-700 dark:text-slate-300 shadow-2xs'
           }`}
         >
           Verified Career Profile
@@ -226,8 +226,8 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
           onClick={() => setActiveSubTab('preferences')}
           className={`px-4 py-2.5 rounded-xl font-semibold transition min-h-[40px] touch-target ${
             activeSubTab === 'preferences'
-              ? 'neu-button-primary'
-              : 'neu-chip'
+              ? 'bg-slate-900 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] hover:bg-slate-800 transition shadow-xs'
+              : 'rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-700 dark:text-slate-300 shadow-2xs'
           }`}
         >
           Career Preferences & Targets
@@ -238,7 +238,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
       {activeSubTab === 'profile' && (
         <div className="space-y-6">
           {/* Identity & Contact Card */}
-          <div className="neu-panel p-6 space-y-4">
+          <div className="rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] shadow-xs p-6 space-y-4">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Personal & Contact Info</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div>
@@ -247,7 +247,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   type="text"
                   value={profileData.fullName}
                   onChange={e => setProfileData({ ...profileData, fullName: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl neu-input text-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-900"
                 />
               </div>
 
@@ -257,7 +257,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   type="text"
                   value={profileData.currentTitle}
                   onChange={e => setProfileData({ ...profileData, currentTitle: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl neu-input text-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-900"
                 />
               </div>
 
@@ -267,7 +267,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   type="email"
                   value={profileData.email}
                   onChange={e => setProfileData({ ...profileData, email: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl neu-input text-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-900"
                 />
               </div>
 
@@ -277,7 +277,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   type="text"
                   value={profileData.phone}
                   onChange={e => setProfileData({ ...profileData, phone: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl neu-input text-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-900"
                 />
               </div>
 
@@ -312,7 +312,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                   type="number"
                   value={profileData.totalExperienceYears}
                   onChange={e => setProfileData({ ...profileData, totalExperienceYears: Number(e.target.value) || 0 })}
-                  className="w-full px-3.5 py-2.5 rounded-xl neu-input text-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-900"
                 />
               </div>
             </div>
@@ -410,13 +410,13 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                 rows={3}
                 value={profileData.professionalSummary}
                 onChange={e => setProfileData({ ...profileData, professionalSummary: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl neu-input text-xs text-slate-900 leading-relaxed"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-xs text-slate-900 leading-relaxed"
               />
             </div>
           </div>
 
           {/* Verified Skills */}
-          <div className="neu-panel p-6 space-y-4">
+          <div className="rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] shadow-xs p-6 space-y-4">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
               Verified Technical & Core Skills ({profileData.skills.length})
             </h2>
@@ -440,7 +440,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
               <button
                 type="button"
                 onClick={() => addSkill()}
-                className="shrink-0 px-4 py-2 min-h-[44px] be-btn-primary neu-button rounded-xl font-bold transition touch-target flex items-center space-x-1 cursor-pointer"
+                className="shrink-0 px-4 py-2 min-h-[44px] be-btn-primary bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition rounded-xl font-bold transition touch-target flex items-center space-x-1 cursor-pointer"
               >
                 <span>Add Skill</span>
                 <span>+</span>
@@ -451,7 +451,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
               {profileData.skills.map((s, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 neu-chip text-slate-800 rounded-xl text-xs font-medium"
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-700 dark:text-slate-300 shadow-2xs text-slate-800 rounded-xl text-xs font-medium"
                 >
                   <span>{s.name}</span>
                   <button
@@ -477,7 +477,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
             <button
               onClick={handleSaveProfile}
               disabled={isSaving}
-              className="px-6 py-3 min-h-[44px] neu-button-primary rounded-xl text-xs font-semibold disabled:opacity-50 transition flex items-center justify-center space-x-1.5 touch-target"
+              className="px-6 py-3 min-h-[44px] bg-slate-900 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] hover:bg-slate-800 transition shadow-xs rounded-xl text-xs font-semibold disabled:opacity-50 transition flex items-center justify-center space-x-1.5 touch-target"
             >
               <Save className="h-4 w-4" />
               <span>{isSaving ? 'Saving...' : 'Save Profile Changes'}</span>
@@ -490,7 +490,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
       {activeSubTab === 'preferences' && (
         <div className="space-y-6">
           {/* Target Roles & Countries */}
-          <div className="neu-panel p-6 space-y-5">
+          <div className="rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] shadow-xs p-6 space-y-5">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Career Targeting</h2>
 
             {/* Target Roles */}
@@ -515,7 +515,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                 <button
                   type="button"
                   onClick={() => addTargetRole()}
-                  className="shrink-0 px-4 py-2 min-h-[44px] neu-button rounded-xl font-semibold transition touch-target"
+                  className="shrink-0 px-4 py-2 min-h-[44px] bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition rounded-xl font-semibold transition touch-target"
                 >
                   Add Role
                 </button>
@@ -525,7 +525,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                 {(prefData.targetRoles || prefData.preferredTitles || []).map(r => (
                   <span
                     key={r}
-                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 neu-chip text-blue-700 rounded-xl text-xs font-medium"
+                    className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-700 dark:text-slate-300 shadow-2xs text-blue-700 rounded-xl text-xs font-medium"
                   >
                     <span>{r}</span>
                     <button
@@ -588,7 +588,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                 {prefData.targetCountries.map((country) => (
                   <span
                     key={country}
-                    className="inline-flex items-center space-x-1.5 px-2.5 py-1 neu-chip text-slate-800 rounded-lg text-[11px] font-medium"
+                    className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-700 dark:text-slate-300 shadow-2xs text-slate-800 rounded-lg text-[11px] font-medium"
                   >
                     <span>{country}</span>
                     <button
@@ -618,7 +618,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                     type="number"
                     value={prefData.minSalaryUSD || 80000}
                     onChange={e => setPrefData({ ...prefData, minSalaryUSD: Number(e.target.value) || 0 })}
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl neu-input text-slate-900"
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-900"
                   />
                 </div>
               </div>
@@ -626,7 +626,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
               <div>
                 <label className="font-semibold text-slate-700 mb-1 block">Visa Sponsorship Requirement</label>
                 <div className="flex items-center space-x-3 pt-2">
-                  <label className="flex items-center space-x-2 cursor-pointer neu-chip px-3 py-2 rounded-xl">
+                  <label className="flex items-center space-x-2 cursor-pointer rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-700 dark:text-slate-300 shadow-2xs px-3 py-2 rounded-xl">
                     <input
                       type="checkbox"
                       checked={!!prefData.requiresVisaSponsorship || !!prefData.visaSponsorshipRequired}
@@ -654,19 +654,19 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                     onChange={e => setNewExcludedCompany(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addExcludedCompany())}
                     placeholder="e.g. Unwanted Employer..."
-                    className="flex-1 px-3.5 py-2 rounded-xl neu-input text-slate-900"
+                    className="flex-1 px-3.5 py-2 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-900"
                   />
                   <button
                     type="button"
                     onClick={addExcludedCompany}
-                    className="px-3.5 py-2 neu-button rounded-xl text-xs font-semibold"
+                    className="px-3.5 py-2 bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition rounded-xl text-xs font-semibold"
                   >
                     Add
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {prefData.excludedCompanies.map(c => (
-                    <span key={c} className="px-2.5 py-1 neu-chip text-red-700 rounded-lg text-[11px] inline-flex items-center space-x-1">
+                    <span key={c} className="px-2.5 py-1 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-700 dark:text-slate-300 shadow-2xs text-red-700 rounded-lg text-[11px] inline-flex items-center space-x-1">
                       <span>{c}</span>
                       <button onClick={() => removeExcludedCompany(c)}>✕</button>
                     </span>
@@ -683,19 +683,19 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
                     onChange={e => setNewExcludedKeyword(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addExcludedKeyword())}
                     placeholder="e.g. internship, unpaid..."
-                    className="flex-1 px-3.5 py-2 rounded-xl neu-input text-slate-900"
+                    className="flex-1 px-3.5 py-2 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-900"
                   />
                   <button
                     type="button"
                     onClick={addExcludedKeyword}
-                    className="px-3.5 py-2 neu-button rounded-xl text-xs font-semibold"
+                    className="px-3.5 py-2 bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition rounded-xl text-xs font-semibold"
                   >
                     Add
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {prefData.excludedKeywords.map(k => (
-                    <span key={k} className="px-2.5 py-1 neu-chip text-red-700 rounded-lg text-[11px] inline-flex items-center space-x-1">
+                    <span key={k} className="px-2.5 py-1 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-700 dark:text-slate-300 shadow-2xs text-red-700 rounded-lg text-[11px] inline-flex items-center space-x-1">
                       <span>{k}</span>
                       <button onClick={() => removeExcludedKeyword(k)}>✕</button>
                     </span>
@@ -716,7 +716,7 @@ export const ProfileAndPreferencesPage: React.FC<ProfileAndPreferencesPageProps>
             <button
               onClick={handleSavePreferences}
               disabled={isSaving}
-              className="px-6 py-3 min-h-[44px] neu-button-primary rounded-xl text-xs font-semibold disabled:opacity-50 transition flex items-center justify-center space-x-1.5 touch-target"
+              className="px-6 py-3 min-h-[44px] bg-slate-900 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] hover:bg-slate-800 transition shadow-xs rounded-xl text-xs font-semibold disabled:opacity-50 transition flex items-center justify-center space-x-1.5 touch-target"
             >
               <Save className="h-4 w-4" />
               <span>{isSaving ? 'Saving...' : 'Save Preferences'}</span>

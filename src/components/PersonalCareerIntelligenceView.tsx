@@ -57,7 +57,7 @@ export const PersonalCareerIntelligenceView: React.FC<PersonalCareerIntelligence
   const experiences = profile?.experiences || [];
 
   return (
-    <div className={`p-5 rounded-2xl neu-surface border border-white/80 shadow-md ${className}`}>
+    <div className={`p-5 rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] border border-white/80 shadow-md ${className}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-700/60 gap-3">
         <div className="flex items-center space-x-2">
@@ -73,7 +73,7 @@ export const PersonalCareerIntelligenceView: React.FC<PersonalCareerIntelligence
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center p-1 rounded-xl neu-inset text-xs font-medium overflow-x-auto">
+        <div className="flex items-center p-1 rounded-xl bg-slate-50 dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-xs font-medium overflow-x-auto">
           <button
             onClick={() => setActiveTab('strengths')}
             className={`px-3 py-1 rounded-lg transition-all whitespace-nowrap ${
@@ -260,7 +260,7 @@ export const PersonalCareerIntelligenceView: React.FC<PersonalCareerIntelligence
       {/* Tab 4: Strategic Advice */}
       {activeTab === 'advice' && (
         <div className="pt-4 space-y-3">
-          <div className="p-4 rounded-xl neu-inset space-y-2 text-xs text-slate-700 dark:text-slate-300">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] space-y-2 text-xs text-slate-700 dark:text-slate-300">
             <h4 className="font-bold text-slate-900 dark:text-white flex items-center space-x-1.5 font-mono text-xs uppercase text-purple-600">
               <Sparkles className="h-4 w-4" />
               <span>Grounded Application Strategy</span>

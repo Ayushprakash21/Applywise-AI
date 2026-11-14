@@ -65,7 +65,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#E9EDF3] neu-bg text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F5F3EE] text-slate-900 flex flex-col font-sans">
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 bg-[#F5F3EE] border-b border-[#DEDAD0] transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
@@ -77,25 +77,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center space-x-7 text-xs font-semibold text-slate-600">
-            <a href="#network" className="hover:text-blue-600 transition-colors">
+            <a href="#network" className="hover:text-[var(--be-accent,#A78343)] transition-colors">
               Skill Alignment
             </a>
-            <a href="#journey" className="hover:text-blue-600 transition-colors">
+            <a href="#journey" className="hover:text-[var(--be-accent,#A78343)] transition-colors">
               How It Works
             </a>
-            <a href="#cockpit" className="hover:text-blue-600 transition-colors">
+            <a href="#cockpit" className="hover:text-[var(--be-accent,#A78343)] transition-colors">
               Job Match Preview
             </a>
-            <a href="#integrity" className="hover:text-blue-600 transition-colors">
+            <a href="#integrity" className="hover:text-[var(--be-accent,#A78343)] transition-colors">
               Integrity Standard
             </a>
-            <a href="#jobs" className="hover:text-blue-600 transition-colors">
+            <a href="#jobs" className="hover:text-[var(--be-accent,#A78343)] transition-colors">
               Live Vacancies
             </a>
             {onOpenPricing && (
               <button
                 onClick={onOpenPricing}
-                className="hover:text-blue-600 transition-colors font-semibold"
+                className="hover:text-[var(--be-accent,#A78343)] transition-colors font-semibold"
               >
                 Pricing
               </button>
@@ -103,7 +103,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {onOpenAbout && (
               <button
                 onClick={onOpenAbout}
-                className="hover:text-blue-600 transition-colors font-semibold"
+                className="hover:text-[var(--be-accent,#A78343)] transition-colors font-semibold"
               >
                 About Us
               </button>
@@ -116,7 +116,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => onOpenAuth('login')}
               aria-label="Sign In"
               data-testid="sign-in-button"
-              className="px-4 py-2 text-xs font-semibold text-slate-700 hover:text-blue-600 transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-slate-700 hover:text-[var(--be-accent,#A78343)] transition-colors"
             >
               Sign In
             </button>
@@ -124,7 +124,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => onOpenAuth('signup')}
               aria-label="Getting Started"
               data-testid="getting-started-button"
-              className="group px-5 py-2.5 rounded-xl text-xs font-semibold text-white neu-button-primary transition-all flex items-center space-x-1.5"
+              className="group px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-colors flex items-center space-x-1.5 shadow-xs"
             >
               <span>Get Started Free</span>
               <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -143,39 +143,39 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         {/* Mobile dropdown drawer */}
         {mobileMenuOpen && (
-          <div className="lg:hidden neu-panel border-b border-slate-300 px-6 py-6 space-y-4 text-xs font-semibold text-slate-700 animate-in fade-in slide-in-from-top-2">
+          <div className="lg:hidden bg-white border-b border-slate-200 px-6 py-6 space-y-4 text-xs font-semibold text-slate-700 animate-in fade-in slide-in-from-top-2 shadow-xs">
             <a
               href="#network"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-blue-600"
+              className="block py-2 hover:text-[var(--be-accent,#A78343)]"
             >
               Skill Alignment
             </a>
             <a
               href="#journey"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-blue-600"
+              className="block py-2 hover:text-[var(--be-accent,#A78343)]"
             >
               How It Works
             </a>
             <a
               href="#cockpit"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-blue-600"
+              className="block py-2 hover:text-[var(--be-accent,#A78343)]"
             >
               Job Match Preview
             </a>
             <a
               href="#integrity"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-blue-600"
+              className="block py-2 hover:text-[var(--be-accent,#A78343)]"
             >
               Integrity Standard
             </a>
             <a
               href="#jobs"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-blue-600"
+              className="block py-2 hover:text-[var(--be-accent,#A78343)]"
             >
               Live Vacancies
             </a>
@@ -185,7 +185,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenPricing();
                 }}
-                className="block w-full text-left py-2 hover:text-blue-600"
+                className="block w-full text-left py-2 hover:text-[var(--be-accent,#A78343)]"
               >
                 Pricing
               </button>
@@ -196,7 +196,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenAbout();
                 }}
-                className="block w-full text-left py-2 hover:text-blue-600"
+                className="block w-full text-left py-2 hover:text-[var(--be-accent,#A78343)]"
               >
                 About Us
               </button>
@@ -207,7 +207,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenAuth('login');
                 }}
-                className="w-full py-2.5 rounded-xl neu-button flex items-center justify-center font-semibold text-slate-700"
+                className="w-full py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center font-semibold text-slate-700 transition-colors"
               >
                 Sign In
               </button>
@@ -216,7 +216,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenAuth('signup');
                 }}
-                className="w-full py-2.5 rounded-xl neu-button-primary text-white font-semibold flex items-center justify-center"
+                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold flex items-center justify-center transition-colors shadow-xs"
               >
                 Get Started Free
               </button>
@@ -282,9 +282,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="max-w-2xl mx-auto pt-4 px-2 sm:px-0">
             <form
               onSubmit={handleSearchSubmit}
-              className="relative flex flex-col sm:flex-row items-stretch sm:items-center p-2 rounded-2xl neu-panel gap-2"
+              className="relative flex flex-col sm:flex-row items-stretch sm:items-center p-2 rounded-2xl bg-white border border-slate-200 gap-2 shadow-xs"
             >
-              <div className="flex items-center min-w-0 flex-1 neu-inset rounded-xl px-3 py-1.5">
+              <div className="flex items-center min-w-0 flex-1 bg-[#F5F3EE] border border-slate-200 rounded-xl px-3 py-1.5">
                 <Search className="h-5 w-5 text-slate-400 shrink-0" />
                 <input
                   type="text"
@@ -296,7 +296,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
               <button
                 type="submit"
-                className="w-full sm:w-auto px-6 py-2.5 neu-button-primary rounded-xl text-xs sm:text-sm font-semibold shrink-0 transition"
+                className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs sm:text-sm font-semibold shrink-0 transition-colors shadow-xs"
               >
                 Find Jobs
               </button>
@@ -320,7 +320,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     setSearchQuery(tag);
                     onSearch(tag);
                   }}
-                  className="px-3 py-1.5 neu-chip rounded-xl text-slate-700 text-xs font-medium"
+                  className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-medium transition-colors shadow-2xs"
                 >
                   {tag}
                 </button>
@@ -358,9 +358,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {/* Pillar 1 */}
-            <div className="p-6 sm:p-7 neu-card neu-raised-hover flex flex-col justify-between space-y-4">
+            <div className="p-6 sm:p-7 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-xs transition-all duration-200 flex flex-col justify-between space-y-4">
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl neu-inset flex items-center justify-center text-blue-600">
+                <div className="w-12 h-12 rounded-xl bg-[#F5F3EE] border border-slate-200 flex items-center justify-center text-slate-900">
                   <FileText className="h-5 w-5" />
                 </div>
                 <div>
@@ -377,9 +377,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             {/* Pillar 2 */}
-            <div className="p-6 sm:p-7 neu-card neu-raised-hover flex flex-col justify-between space-y-4">
+            <div className="p-6 sm:p-7 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-xs transition-all duration-200 flex flex-col justify-between space-y-4">
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl neu-inset flex items-center justify-center text-emerald-600">
+                <div className="w-12 h-12 rounded-xl bg-[#F5F3EE] border border-slate-200 flex items-center justify-center text-emerald-700">
                   <Globe className="h-5 w-5" />
                 </div>
                 <div>
@@ -396,9 +396,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
 
             {/* Pillar 3 */}
-            <div className="p-6 sm:p-7 neu-card neu-raised-hover flex flex-col justify-between space-y-4">
+            <div className="p-6 sm:p-7 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-xs transition-all duration-200 flex flex-col justify-between space-y-4">
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl neu-inset flex items-center justify-center text-indigo-600">
+                <div className="w-12 h-12 rounded-xl bg-[#F5F3EE] border border-slate-200 flex items-center justify-center text-slate-900">
                   <Briefcase className="h-5 w-5" />
                 </div>
                 <div>
@@ -479,19 +479,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             ].map(stage => (
               <div
                 key={stage.num}
-                className="p-6 neu-card neu-raised-hover flex flex-col justify-between"
+                className="p-6 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-xs transition-all duration-200 flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80">
-                    <span className="font-mono text-2xl font-black text-blue-600">
+                    <span className="font-mono text-2xl font-black text-slate-900">
                       {stage.num}
                     </span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg neu-inset text-blue-700">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-[#F5F3EE] border border-slate-200 text-slate-700">
                       {stage.badge}
                     </span>
                   </div>
                   <h3 className="text-base font-bold text-slate-900 mb-1">{stage.title}</h3>
-                  <div className="text-xs font-semibold text-blue-600 mb-2">{stage.subtitle}</div>
+                  <div className="text-xs font-semibold text-[var(--be-accent,#A78343)] mb-2">{stage.subtitle}</div>
                   <p className="text-slate-600 text-xs leading-relaxed">{stage.desc}</p>
                 </div>
               </div>
@@ -603,7 +603,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <button
               onClick={() => onOpenAuth('signup')}
-              className="px-4 py-2 rounded-xl neu-button text-blue-700 text-xs font-semibold flex items-center space-x-1.5 w-fit transition-colors"
+              className="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-semibold flex items-center space-x-1.5 w-fit transition-colors shadow-2xs"
             >
               <span>Explore All Live Listings</span>
               <ChevronRight className="h-4 w-4" />
@@ -615,11 +615,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div
                 key={v.id}
                 onClick={() => onSelectVacancy(v)}
-                className="group p-5 sm:p-6 neu-card neu-raised-hover cursor-pointer flex flex-col justify-between space-y-4"
+                className="group p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-xs transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-4"
               >
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 rounded-lg neu-inset text-slate-600 text-[10px] uppercase font-semibold">
+                    <span className="px-2 py-0.5 rounded-lg bg-[#F5F3EE] border border-slate-200 text-slate-600 text-[10px] uppercase font-semibold">
                       {v.source}
                     </span>
                     {v.remote && (
@@ -629,7 +629,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     )}
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                    <h3 className="font-bold text-sm text-slate-900 group-hover:text-[var(--be-accent,#A78343)] transition-colors line-clamp-1">
                       {v.title}
                     </h3>
                     <div className="flex items-center space-x-1.5 text-xs text-slate-500 mt-1">

@@ -63,7 +63,7 @@ export const ApplicationJourneyView: React.FC<ApplicationJourneyViewProps> = ({
   const currentIndex = JOURNEY_STEPS.findIndex(s => s.id === currentStage);
 
   return (
-    <div className={`p-5 rounded-2xl neu-surface border border-white/80 shadow-md ${className}`}>
+    <div className={`p-5 rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] shadow-xs ${className}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-700/60 gap-2">
         <div>
@@ -112,7 +112,7 @@ export const ApplicationJourneyView: React.FC<ApplicationJourneyViewProps> = ({
                         ? 'bg-emerald-600 text-white shadow-xs'
                         : isCurrent
                         ? 'bg-blue-600 text-white shadow-md ring-4 ring-blue-100 dark:ring-blue-900/40'
-                        : 'neu-inset text-slate-400 group-hover:text-slate-600'
+                        : 'bg-slate-100 dark:bg-[var(--be-bg-surface,#181C22)] text-slate-400 group-hover:text-slate-600'
                     }`}
                   >
                     {isCompleted ? <CheckCircle2 className="h-5 w-5" /> : <StepIcon className="h-5 w-5" />}
@@ -149,7 +149,7 @@ export const ApplicationJourneyView: React.FC<ApplicationJourneyViewProps> = ({
       </div>
 
       {/* Current Step Guidance & Action Card */}
-      <div className="p-4 rounded-xl neu-inset flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-4 rounded-xl bg-slate-50 dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <p className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center space-x-1.5">
             <ShieldCheck className="h-4 w-4 text-blue-600 shrink-0" />
@@ -174,7 +174,7 @@ export const ApplicationJourneyView: React.FC<ApplicationJourneyViewProps> = ({
         {onTriggerNextAction && (
           <button
             onClick={onTriggerNextAction}
-            className="px-4 py-2 rounded-xl neu-button-primary text-xs font-semibold flex items-center justify-center space-x-1.5 shrink-0"
+            className="px-4 py-2 rounded-xl bg-slate-900 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] text-xs font-semibold flex items-center justify-center space-x-1.5 shrink-0 shadow-xs"
           >
             <span>Proceed to Next Step</span>
             <ChevronRight className="h-4 w-4" />

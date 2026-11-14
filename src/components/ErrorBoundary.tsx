@@ -38,8 +38,8 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen bg-[#E9EDF3] neu-bg text-slate-800 flex flex-col items-center justify-center p-4 font-sans">
-          <div className="w-full max-w-md p-6 sm:p-8 neu-panel rounded-3xl text-center space-y-5 animate-in fade-in duration-200">
+        <div className="min-h-screen bg-[#E9EDF3] bg-[var(--be-bg-canvas,#F5F3EE)] text-slate-800 flex flex-col items-center justify-center p-4 font-sans">
+          <div className="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-white dark:bg-[var(--be-bg-card,#14171C)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] shadow-xs rounded-3xl text-center space-y-5 animate-in fade-in duration-200">
             <div className="flex justify-center">
               <div className="h-14 w-14 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 shadow-sm">
                 <AlertTriangle className="h-7 w-7" />
@@ -58,14 +58,14 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
               <button
                 onClick={this.handleReset}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl neu-button-primary text-xs font-semibold text-white flex items-center justify-center space-x-1.5"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] hover:bg-slate-800 transition shadow-xs text-xs font-semibold text-white flex items-center justify-center space-x-1.5"
               >
                 <Home className="h-3.5 w-3.5" />
                 <span>Return to Home</span>
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl neu-button text-xs font-semibold text-slate-700 flex items-center justify-center space-x-1.5"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-semibold text-slate-700 flex items-center justify-center space-x-1.5"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>Try Again</span>

@@ -554,7 +554,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#E9EDF3] neu-bg text-slate-800 antialiased flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
+    <div className="min-h-screen bg-[#E9EDF3] bg-[var(--be-bg-canvas,#F5F3EE)] text-slate-800 antialiased flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold shadow-xl border border-slate-700 animate-in fade-in slide-in-from-bottom duration-200">
