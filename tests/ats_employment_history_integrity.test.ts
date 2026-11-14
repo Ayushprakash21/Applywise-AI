@@ -293,7 +293,7 @@ test('Scenario 7: Zero Empty Bullets in Tailoring Engine & DOCX', async () => {
     'Oversee international logistics and ERP inventory reconciliation.'
   );
 
-  const experiences = tailoring.tailoredResume.tailoredExperiences;
+  const experiences = tailoring.tailoredResume.tailoredExperiences || [];
   assert.equal(experiences.length, 2);
 
   // TCS record
@@ -318,8 +318,9 @@ test('Scenario 7: Zero Empty Bullets in Tailoring Engine & DOCX', async () => {
     'Yepoda',
     'Oversee international logistics.'
   );
-  assert.equal(workerTailoring.tailoredResume.tailoredExperiences[0].period, 'Sep 2024 – Present');
-  assert.equal(workerTailoring.tailoredResume.tailoredExperiences[1].period, 'Sep 2023 – Aug 2024');
+  const workerExps = workerTailoring.tailoredResume.tailoredExperiences || [];
+  assert.equal(workerExps[0].period, 'Sep 2024 – Present');
+  assert.equal(workerExps[1].period, 'Sep 2023 – Aug 2024');
 
   const workerDocBuffer = await workerResumeEngine.generateDocx(sampleProfile, workerTailoring.tailoredResume);
   assert.ok(workerDocBuffer instanceof Buffer);
@@ -346,7 +347,7 @@ test('Scenario 8: Candidate Fact Registry Duration Integrity', () => {
         company: 'Tata Consultancy Services',
         role: 'Senior Process Associate',
         startDate: '2024-09',
-        endDate: null,
+        endDate: undefined,
         current: true,
       },
       {
@@ -362,7 +363,7 @@ test('Scenario 8: Candidate Fact Registry Duration Integrity', () => {
         company: 'Toppr Technologies',
         role: 'Business Development Associate',
         startDate: '2021-07',
-        endDate: null,
+        endDate: undefined,
         current: false,
       },
     ],
@@ -387,6 +388,7 @@ test('Scenario 9: Truthfulness Audit Rejection of Fabricated Dates or Employers'
     phone: '',
     location: 'Indore',
     currentTitle: 'Senior Process Associate',
+    currentEmployer: 'Tata Consultancy Services',
     totalExperienceYears: 3,
     professionalSummary: '',
     education: [],
@@ -398,7 +400,7 @@ test('Scenario 9: Truthfulness Audit Rejection of Fabricated Dates or Employers'
         company: 'Tata Consultancy Services',
         role: 'Senior Process Associate',
         startDate: '2024-09',
-        endDate: null,
+        endDate: undefined,
         current: true,
       },
     ],

@@ -11,6 +11,7 @@ import { workerResumeEngine } from './resumeEngine.ts';
 import { MAX_RESUME_UPLOAD_BYTES, ResumeExtractionError } from '../src/utils/docxExtractor.ts';
 import { calculateExtractionDiff, mergeProfileSafely } from '../src/utils/resumeReprocessing.ts';
 import { buildFactsFromProfile, auditTailoredResume } from '../src/utils/candidateFactRegistry.ts';
+import { validateTailoredResumePackage } from '../src/utils/resumeValidationEngine.ts';
 import { buildInterviewEvaluationPrompt, validateInterviewEvaluationOutput } from '../src/utils/interviewEvaluator.ts';
 import { generateCopilotResponse } from '../src/utils/copilotEngine.ts';
 import { workerJobDiscovery } from './jobDiscovery.ts';
@@ -1148,6 +1149,16 @@ app.get('/api/resumes/:appId/export/docx', requireAuth, async (c) => {
         success: false,
         error: 'Resume export blocked by AI Integrity Engine. Unsupported candidate claims detected.',
         unsupportedClaims: audit.unsupportedClaims
+      }, 422);
+    }
+
+    const validation = validateTailoredResumePackage(application.tailoredResume, profile, profileFacts);
+    if (validation.status === 'BLOCKED') {
+      return c.json({
+        success: false,
+        error: 'Resume export blocked by Pre-Download Integrity Engine: Critical document flaws or unverified claims detected.',
+        blockers: validation.blockers,
+        validationScore: validation.score
       }, 422);
     }
 

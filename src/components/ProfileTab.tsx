@@ -16,11 +16,14 @@ import {
   CheckCircle2,
   Plus,
   Trash2,
-  Save
+  Save,
+  AlertTriangle,
+  X
 } from 'lucide-react';
 import { UserProfile, VerifiedSkill, ExperienceItem } from '../types/index.ts';
 import { getUserInitials } from './ProfileIdentityComponent.tsx';
 import { ProfilePhotoCropModal } from './ProfilePhotoCropModal.tsx';
+import { formatExperiencePeriod } from '../utils/structuralEmploymentParser.ts';
 
 interface ProfileTabProps {
   profile: UserProfile | null;
@@ -42,6 +45,62 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   const [selectedFileForCrop, setSelectedFileForCrop] = useState<File | null>(null);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Inline Experience Editing State
+  const [editingExpId, setEditingExpId] = useState<string | null>(null);
+  const [expEditForm, setExpEditForm] = useState<{
+    role: string;
+    company: string;
+    startDate: string;
+    endDate: string;
+    current: boolean;
+    location: string;
+  }>({
+    role: '',
+    company: '',
+    startDate: '',
+    endDate: '',
+    current: false,
+    location: '',
+  });
+
+  const handleStartEditExp = (exp: ExperienceItem) => {
+    setEditingExpId(exp.id || null);
+    setExpEditForm({
+      role: exp.role || '',
+      company: exp.company || '',
+      startDate: exp.startDate || '',
+      endDate: exp.endDate || '',
+      current: Boolean(exp.current),
+      location: exp.location || '',
+    });
+  };
+
+  const handleCancelEditExp = () => {
+    setEditingExpId(null);
+  };
+
+  const handleSaveExp = async (expId: string) => {
+    if (!profile) return;
+    const updatedExperiences = (profile.experiences || []).map((e) => {
+      if (e.id === expId) {
+        return {
+          ...e,
+          role: expEditForm.role.trim(),
+          company: expEditForm.company.trim(),
+          startDate: expEditForm.startDate.trim(),
+          endDate: expEditForm.current ? undefined : expEditForm.endDate.trim() || undefined,
+          current: expEditForm.current,
+          location: expEditForm.location.trim(),
+          needsVerification: false,
+          isDateUncertain: false,
+        };
+      }
+      return e;
+    });
+    await onUpdateProfile({ experiences: updatedExperiences });
+    setEditingExpId(null);
+  };
 
   // Sync state if profile changes
   React.useEffect(() => {
@@ -309,45 +368,184 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             </div>
 
             <div className="space-y-4">
-              {profile.experiences.map(exp => (
-                <div key={exp.id} className="rounded-xl border border-slate-800/80 bg-slate-950/40 p-4 space-y-2.5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                    <div>
-                      <h4 className="text-sm font-bold text-white">{exp.role}</h4>
-                      <div className="text-xs text-indigo-300 font-medium">
-                        {exp.company} <span className="text-slate-500">·</span> {exp.location}
+              {profile.experiences.map((exp) => {
+                const isEditingThisExp = editingExpId === exp.id;
+                const formattedPeriod = formatExperiencePeriod(exp.startDate, exp.endDate, exp.current);
+
+                if (isEditingThisExp) {
+                  return (
+                    <div
+                      key={exp.id}
+                      className="rounded-xl border border-indigo-500/50 bg-slate-900/90 p-4 space-y-3.5 shadow-lg"
+                    >
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
+                          Edit Employment History & Verified Dates
+                        </span>
+                        <button
+                          onClick={handleCancelEditExp}
+                          className="text-slate-400 hover:text-white text-xs p-1"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-300 mb-1">Job Title</label>
+                          <input
+                            type="text"
+                            value={expEditForm.role}
+                            onChange={(e) => setExpEditForm({ ...expEditForm, role: e.target.value })}
+                            className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-1.5 text-xs text-white focus:border-indigo-500 focus:outline-hidden"
+                            placeholder="e.g. Senior Process Associate"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-300 mb-1">Company Name</label>
+                          <input
+                            type="text"
+                            value={expEditForm.company}
+                            onChange={(e) => setExpEditForm({ ...expEditForm, company: e.target.value })}
+                            className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-1.5 text-xs text-white focus:border-indigo-500 focus:outline-hidden"
+                            placeholder="e.g. Tata Consultancy Services"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-300 mb-1">Start Date</label>
+                          <input
+                            type="text"
+                            value={expEditForm.startDate}
+                            onChange={(e) => setExpEditForm({ ...expEditForm, startDate: e.target.value })}
+                            className="w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-1.5 text-xs text-white focus:border-indigo-500 focus:outline-hidden"
+                            placeholder="e.g. Sep 2024 or 2024-09"
+                          />
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-[11px] font-semibold text-slate-300">End Date</label>
+                            <label className="inline-flex items-center space-x-1.5 text-[11px] text-indigo-300 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={expEditForm.current}
+                                onChange={(e) =>
+                                  setExpEditForm({ ...expEditForm, current: e.target.checked, endDate: e.target.checked ? '' : expEditForm.endDate })
+                                }
+                                className="rounded border-slate-700 text-indigo-600 focus:ring-0"
+                              />
+                              <span>Currently working here</span>
+                            </label>
+                          </div>
+                          <input
+                            type="text"
+                            disabled={expEditForm.current}
+                            value={expEditForm.current ? 'Present' : expEditForm.endDate}
+                            onChange={(e) => setExpEditForm({ ...expEditForm, endDate: e.target.value })}
+                            className={`w-full rounded-lg bg-slate-950 border border-slate-700 px-3 py-1.5 text-xs text-white focus:border-indigo-500 focus:outline-hidden ${
+                              expEditForm.current ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                            placeholder="e.g. Aug 2024 or 2024-08"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-800">
+                        <button
+                          onClick={handleCancelEditExp}
+                          className="px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-800 transition"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => handleSaveExp(exp.id!)}
+                          className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold text-white shadow-xs flex items-center space-x-1 transition"
+                        >
+                          <Save className="h-3.5 w-3.5" />
+                          <span>Save & Confirm</span>
+                        </button>
                       </div>
                     </div>
-                    <span className="text-xs font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 self-start sm:self-auto">
-                      {exp.startDate} - {exp.endDate}
-                    </span>
-                  </div>
+                  );
+                }
 
-                  <p className="text-xs text-slate-400 leading-relaxed">{exp.description}</p>
-
-                  <div className="space-y-1.5 pt-1">
-                    <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
-                      Verified Achievements
+                return (
+                  <div
+                    key={exp.id}
+                    className="rounded-xl border border-slate-800/80 bg-slate-950/40 p-4 space-y-2.5 transition hover:border-slate-700"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h4 className="text-sm font-bold text-white">{exp.role}</h4>
+                          <button
+                            onClick={() => handleStartEditExp(exp)}
+                            className="p-1 text-slate-400 hover:text-indigo-300 rounded transition"
+                            title="Edit Role & Dates"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                        <div className="text-xs text-indigo-300 font-medium">
+                          {exp.company} {exp.location ? <><span className="text-slate-500">·</span> {exp.location}</> : null}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2 self-start sm:self-auto">
+                        <span className="text-xs font-mono text-slate-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                          {formattedPeriod || 'Dates not specified'}
+                        </span>
+                      </div>
                     </div>
-                    <ul className="space-y-1 text-xs text-slate-300">
-                      {(exp.achievements || []).map((ach, i) => (
-                        <li key={i} className="flex items-start space-x-2">
-                          <span className="text-indigo-400 font-bold">›</span>
-                          <span className="leading-relaxed">{ach}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
 
-                  <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-800/60">
-                    {(exp.verifiedSkillsUsed || []).map((sk, i) => (
-                      <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800">
-                        {sk}
-                      </span>
-                    ))}
+                    {(exp.needsVerification || exp.isDateUncertain) && (
+                      <div className="flex items-center justify-between bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-1.5 text-xs text-amber-300">
+                        <div className="flex items-center space-x-1.5">
+                          <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                          <span>Employment dates need verification to prevent ATS filtering.</span>
+                        </div>
+                        <button
+                          onClick={() => handleStartEditExp(exp)}
+                          className="text-[11px] font-semibold text-amber-200 underline hover:text-white shrink-0 ml-2"
+                        >
+                          Confirm Dates
+                        </button>
+                      </div>
+                    )}
+
+                    {exp.description && (
+                      <p className="text-xs text-slate-400 leading-relaxed">{exp.description}</p>
+                    )}
+
+                    {(exp.achievements || []).length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
+                          Verified Achievements
+                        </div>
+                        <ul className="space-y-1 text-xs text-slate-300">
+                          {exp.achievements!.map((ach, i) => (
+                            <li key={i} className="flex items-start space-x-2">
+                              <span className="text-indigo-400 font-bold">›</span>
+                              <span className="leading-relaxed">{ach}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {(exp.verifiedSkillsUsed || []).length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-800/60">
+                        {exp.verifiedSkillsUsed!.map((sk, i) => (
+                          <span
+                            key={i}
+                            className="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800"
+                          >
+                            {sk}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

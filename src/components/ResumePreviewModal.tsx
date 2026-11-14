@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   FileText,
   Download,
@@ -8,11 +8,14 @@ import {
   Copy,
   ExternalLink,
   X,
-  Sparkles
+  Sparkles,
+  AlertTriangle,
+  AlertOctagon
 } from 'lucide-react';
 import { ApplicationRecord, UserProfile } from '../types/index.ts';
 import { api } from '../services/api.ts';
 import { BrandLogo } from './BrandLogo.tsx';
+import { validateTailoredResumePackage } from '../utils/resumeValidationEngine.ts';
 
 interface ResumePreviewModalProps {
   application: ApplicationRecord | null;
@@ -51,6 +54,10 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
 
   const resume = application.tailoredResume;
 
+  const validation = useMemo(() => {
+    return validateTailoredResumePackage(resume, profile);
+  }, [resume, profile]);
+
   const handleCopy = () => {
     const textToCopy =
       activeTab === 'resume'
@@ -66,6 +73,7 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
   };
 
   const handleDownloadDocx = async () => {
+    if (!validation.isDownloadable) return;
     try {
       setDownloading(true);
       await api.downloadDocxResume(application.id, application.company);
@@ -89,10 +97,27 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-base font-bold text-slate-900 truncate">Tailored ATS Document Studio</h2>
-                <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold shrink-0">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  <span>Truthfulness: {resume.truthfulnessScore}/100</span>
-                </span>
+                {validation.status === 'VALID' ? (
+                  <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold shrink-0">
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                    <span>Verified ATS Document · 100/100</span>
+                  </span>
+                ) : validation.status === 'VALID_WITH_WARNINGS' ? (
+                  <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold shrink-0">
+                    <ShieldCheck className="h-3.5 w-3.5 text-blue-600" />
+                    <span>ATS Ready · {validation.score}/100</span>
+                  </span>
+                ) : validation.status === 'NEEDS_CANDIDATE_REVIEW' ? (
+                  <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 text-xs font-semibold shrink-0">
+                    <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                    <span>Review Dates/Roles · {validation.score}/100</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-300 text-xs font-semibold shrink-0">
+                    <AlertOctagon className="h-3.5 w-3.5 text-rose-600" />
+                    <span>Integrity Blocker</span>
+                  </span>
+                )}
               </div>
               <p className="text-xs text-slate-500 mt-0.5 truncate">
                 Custom-tailored for <span className="font-semibold text-slate-700">{application.role}</span> at <span className="font-semibold text-slate-700">{application.company}</span>
@@ -117,8 +142,13 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
             </button>
             <button
               onClick={handleDownloadDocx}
-              disabled={downloading}
-              className="px-3.5 py-1.5 min-h-[38px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center space-x-1.5 transition touch-target"
+              disabled={downloading || !validation.isDownloadable}
+              className={`px-3.5 py-1.5 min-h-[38px] rounded-xl text-xs font-semibold shadow-xs flex items-center space-x-1.5 transition touch-target ${
+                validation.isDownloadable
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              }`}
+              title={!validation.isDownloadable ? validation.blockers[0] : 'Download DOCX'}
             >
               <Download className="h-3.5 w-3.5" />
               <span>{downloading ? 'Downloading...' : 'Download DOCX'}</span>
@@ -131,6 +161,21 @@ export const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Blocker Alert Banner */}
+        {validation.blockers.length > 0 && (
+          <div className="bg-rose-50 border-b border-rose-200 px-4 py-2.5 text-xs text-rose-800 flex items-start space-x-2">
+            <AlertOctagon className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <span className="font-semibold">Document Export Locked:</span>
+              <ul className="list-disc list-inside space-y-0.5 text-rose-700">
+                {validation.blockers.map((b, i) => (
+                  <li key={i}>{b}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
 
         {/* Tab Switcher */}
         <div className="px-4 sm:px-6 py-2 bg-slate-50/50 border-b border-slate-100 flex items-center space-x-2 text-xs shrink-0 overflow-x-auto">

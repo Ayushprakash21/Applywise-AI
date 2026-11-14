@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   FileText,
   Sparkles,
@@ -13,10 +13,14 @@ import {
   Briefcase,
   CheckCircle2,
   Printer,
-  Eye
+  Eye,
+  AlertTriangle,
+  AlertOctagon
 } from 'lucide-react';
 import { ApplicationRecord, UserProfile } from '../types/index.ts';
 import { SearchableSelect } from './ui/SelectSystem.tsx';
+import { api } from '../services/api.ts';
+import { validateTailoredResumePackage } from '../utils/resumeValidationEngine.ts';
 
 interface ResumeStudioTabProps {
   applications: ApplicationRecord[];
@@ -36,8 +40,14 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
   );
   const [activeView, setActiveView] = useState<'resume' | 'cover_letter'>('resume');
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const selectedApp = applications.find(a => a.id === selectedAppId) || applications[0];
+
+  const validation = useMemo(() => {
+    if (!selectedApp || !profile) return null;
+    return validateTailoredResumePackage(selectedApp.tailoredResume, profile);
+  }, [selectedApp, profile]);
 
   const handleCopyText = () => {
     if (!selectedApp) return;
@@ -52,6 +62,18 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownloadDocx = async () => {
+    if (!selectedApp || (validation && !validation.isDownloadable)) return;
+    try {
+      setDownloading(true);
+      await api.downloadDocxResume(selectedApp.id, selectedApp.company);
+    } catch (err) {
+      console.error('Download error:', err);
+    } finally {
+      setDownloading(false);
+    }
   };
 
   const handlePrint = () => {
@@ -79,10 +101,32 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
         <div>
           <div className="flex items-center space-x-2">
             <h1 className="text-xl font-bold text-slate-900 tracking-tight">Resume & Cover Letter Studio</h1>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium flex items-center space-x-1">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              <span>Verified Facts: {resume.truthfulnessScore}/100</span>
-            </span>
+            {validation && validation.status === 'VALID' ? (
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium flex items-center space-x-1">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                <span>Verified ATS Document · 100/100</span>
+              </span>
+            ) : validation && validation.status === 'VALID_WITH_WARNINGS' ? (
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-medium flex items-center space-x-1">
+                <ShieldCheck className="h-3.5 w-3.5 text-blue-600" />
+                <span>ATS Ready · {validation.score}/100</span>
+              </span>
+            ) : validation && validation.status === 'NEEDS_CANDIDATE_REVIEW' ? (
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 font-medium flex items-center space-x-1">
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+                <span>Review Dates/Roles · {validation.score}/100</span>
+              </span>
+            ) : validation ? (
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-300 font-medium flex items-center space-x-1">
+                <AlertOctagon className="h-3.5 w-3.5 text-rose-600" />
+                <span>Integrity Blocker</span>
+              </span>
+            ) : (
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium flex items-center space-x-1">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                <span>Verified Facts: {resume.truthfulnessScore}/100</span>
+              </span>
+            )}
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
             ATS-optimized layout formatted for clarity, truthful experience, and readability.
@@ -122,6 +166,16 @@ export const ResumeStudioTab: React.FC<ResumeStudioTabProps> = ({
           >
             {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 text-slate-500" />}
             <span>{copied ? 'Copied!' : 'Copy Text'}</span>
+          </button>
+
+          <button
+            onClick={handleDownloadDocx}
+            disabled={downloading || (validation ? !validation.isDownloadable : false)}
+            className="flex items-center space-x-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 shadow-xs transition disabled:opacity-50"
+            title={validation && !validation.isDownloadable ? validation.blockers[0] : 'Download DOCX'}
+          >
+            <Download className="h-4 w-4 text-slate-500" />
+            <span>{downloading ? 'Downloading...' : 'Download DOCX'}</span>
           </button>
 
           <button
