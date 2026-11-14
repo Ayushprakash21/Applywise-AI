@@ -35,6 +35,7 @@ import { GlobalThemeSwitch } from './ui/GlobalThemeSwitch.tsx';
 import { useTheme } from '../context/ThemeContext.tsx';
 import { JobMatchExperience } from './JobMatchExperience.tsx';
 import { CareerIntelligenceHero } from './hero/CareerIntelligenceHero.tsx';
+import OpportunityEngineHero from './hero/OpportunityEngineHero.tsx';
 import {
   getStoredAppearance,
   setBlackEliteAppearance,
@@ -249,6 +250,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         )}
       </header>
 
+      {/* ApplyWise Opportunity Engine Hero — Career Progression Staircase & Portals */}
+      <OpportunityEngineHero
+        onExploreJobs={() => {
+          const el = document.getElementById('jobs') || document.getElementById('network');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+          else onSearch('');
+        }}
+        onBuildProfile={() => onOpenAuth('signup')}
+        vacancies={featuredVacancies}
+        onSelectVacancy={onSelectVacancy}
+      />
+
       {/* Signature Cinematic Homepage Hero Component */}
       {/* Official Positioning: India's First AI-Powered Job Discovery & Application Automation Platform */}
       <CareerIntelligenceHero
@@ -267,11 +280,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <h3>Career Opportunity Universe</h3>
           <p>Explore where your verified experience connects with real career opportunities.</p>
         </div>
-        <CareerNetworkVisual
-          theme={isDark ? 'dark' : 'light'}
-          vacancies={featuredVacancies}
-          onSelectVacancy={onSelectVacancy}
-        />
+        <CareerNetworkVisual theme="light" />
       </section>
 
       {/* Section A: 3 Core Product Pillars */}
