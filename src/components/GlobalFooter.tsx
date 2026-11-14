@@ -175,15 +175,12 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
         {/* Left: Brand Identity, Positioning & Supporting Description */}
         <div className="space-y-2 max-w-lg">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center">
             <BrandLogo
               variant="dark"
               size="sm"
               onClick={handleHome}
             />
-            <span className="font-bold text-sm tracking-tight text-white">
-              ApplyVise AI
-            </span>
           </div>
           <div>
             <h4 className="font-semibold text-sm tracking-tight text-[#F2F0EA]">

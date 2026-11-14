@@ -50,9 +50,15 @@ test('ApplyVise AI — Brand Positioning & Unified Global Footer Integrity Suite
       'GlobalFooter must not contain deprecated slogan'
     );
 
-    // Brand Name & Logo
+    // Brand Name & Logo: Ensure exactly one brand name and no duplicate adjacent text span in landing footer
     assert.match(footerSource, /ApplyVise AI/, 'GlobalFooter must contain brand name ApplyVise AI');
     assert.match(footerSource, /<BrandLogo/, 'GlobalFooter must render BrandLogo component');
+    const landingSection = footerSource.split("// Landing / Marketing / Public Page Footer")[1] || '';
+    assert.doesNotMatch(
+      landingSection,
+      /<span[^>]*>\s*ApplyVise AI\s*<\/span>/,
+      'GlobalFooter landing variant must not render redundant duplicate brand name span next to BrandLogo'
+    );
   });
 
   await t.test('2. Navigation Actions & Legal Requirements', () => {
