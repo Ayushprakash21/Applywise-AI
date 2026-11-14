@@ -246,34 +246,35 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
           setIsOpen(!isOpen);
           setFocusedIndex(-1);
         }}
-        className={`group flex items-center space-x-2.5 p-1.5 pr-2.5 sm:pr-3 rounded-2xl transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 ${
+        className={`group h-10 px-2 sm:px-2.5 rounded-xl border flex items-center gap-2 sm:gap-2.5 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-1 ${
           isBlack
-            ? 'bg-[#14171C] hover:bg-[#191D23] active:bg-[#111318] border border-[rgba(255,255,255,0.09)] hover:border-[rgba(198,166,106,0.30)] shadow-xs focus:ring-[#C6A66A]/40'
-            : 'bg-white/80 hover:bg-white active:bg-slate-50 border border-slate-200/90 hover:border-slate-300 shadow-2xs focus:ring-blue-500/40'
+            ? 'bg-[#101318] hover:bg-[#141820] active:bg-[#0D1014] border-[rgba(255,255,255,0.08)] hover:border-[rgba(198,166,106,0.30)] shadow-xs focus:ring-[#C6A66A]/30'
+            : 'bg-white/80 hover:bg-white active:bg-slate-50 border-slate-200/90 hover:border-slate-300 shadow-2xs focus:ring-blue-500/30'
         }`}
         style={
           isBlack
             ? {
-                backgroundColor: 'var(--be-bg-card, #14171C)',
-                borderColor: 'var(--be-border-subtle, rgba(255,255,255,0.09))',
+                backgroundColor: 'var(--be-bg-input, #101318)',
+                borderColor: isOpen
+                  ? 'var(--be-accent-primary, #C6A66A)'
+                  : 'var(--be-border-subtle, rgba(255,255,255,0.08))',
               }
             : undefined
         }
       >
-        {/* Profile Avatar (Consistent Dimensions & Theme Border) */}
+        {/* Profile Avatar (Consistent 30px Dimensions) */}
         <div
-          className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full shrink-0 flex items-center justify-center font-bold text-xs sm:text-sm overflow-hidden transition-all duration-200 ${
+          className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-full shrink-0 flex items-center justify-center font-bold text-[11px] sm:text-xs overflow-hidden transition-all duration-200 select-none ${
             isBlack
-              ? 'bg-[#111318] text-[#C6A66A] border border-[rgba(198,166,106,0.30)] shadow-xs group-hover:border-[#C6A66A]'
+              ? 'bg-[#171B22] text-[#C6A66A] ring-1 ring-white/10 group-hover:ring-[#C6A66A]/40'
               : plan === 'pro'
-              ? 'bg-gradient-to-tr from-blue-600 to-[#8065F5] text-white border border-blue-200 shadow-xs'
+              ? 'bg-gradient-to-tr from-blue-600 to-[#8065F5] text-white shadow-xs'
               : 'bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs'
           }`}
           style={
             isBlack
               ? {
-                  backgroundColor: 'var(--be-bg-elevated, #111318)',
-                  borderColor: 'var(--be-border-focus, rgba(198,166,106,0.30))',
+                  backgroundColor: 'var(--be-bg-elevated, #171B22)',
                   color: 'var(--be-accent, #C6A66A)',
                 }
               : undefined
@@ -292,10 +293,10 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
         </div>
 
         {/* Identity & Membership Block */}
-        <div className="flex flex-col text-left min-w-0 pr-1">
+        <div className="flex flex-col text-left min-w-0 pr-0.5">
           {/* User Full Name (Clean medium-to-semibold typography, NO crown directly beside name) */}
           <span
-            className={`font-semibold text-xs sm:text-sm truncate max-w-[110px] sm:max-w-[150px] md:max-w-[180px] leading-tight transition-colors ${
+            className={`font-semibold text-xs sm:text-sm truncate max-w-[100px] sm:max-w-[140px] md:max-w-[170px] leading-tight transition-colors ${
               isBlack
                 ? 'text-[#F2F0EA] group-hover:text-[#F2F0EA]'
                 : 'text-slate-900 group-hover:text-blue-600'
@@ -305,32 +306,29 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
             {user.fullName || 'User'}
           </span>
 
-          {/* Compact Membership Badge (Placed cleanly below name) */}
-          <div className="mt-0.5">
+          {/* Compact Membership Label (Unified, no nested button appearance) */}
+          <div className="mt-0.5 leading-none">
             {isBlack ? (
               <span
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono tracking-wider uppercase font-medium select-none"
+                className="inline-flex items-center gap-1 text-[9px] font-mono tracking-wider uppercase font-medium leading-none select-none text-[#C6A66A]"
                 style={{
-                  backgroundColor: 'var(--be-bg-elevated, #111318)',
                   color: 'var(--be-accent, #C6A66A)',
-                  borderColor: 'var(--be-border-subtle, rgba(198,166,106,0.25))',
-                  borderWidth: '1px',
                 }}
               >
                 <RoyalCrownLogo size="xs" />
                 <span>BLACK ELITE</span>
               </span>
             ) : isFounderAccount ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase bg-violet-50 text-violet-700 border border-violet-200 select-none">
+              <span className="inline-flex items-center gap-1 text-[9px] font-mono font-bold tracking-wider uppercase text-violet-700 leading-none select-none">
                 <Sparkles className="h-2.5 w-2.5" />
                 <span>FOUNDER ACCESS</span>
               </span>
             ) : plan === 'pro' ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase bg-blue-50 text-blue-700 border border-blue-200 select-none">
+              <span className="inline-flex items-center gap-1 text-[9px] font-mono font-semibold tracking-wider uppercase text-blue-600 leading-none select-none">
                 <span>PRO MEMBER</span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wider uppercase bg-slate-100 text-slate-600 border border-slate-200 select-none">
+              <span className="inline-flex items-center gap-1 text-[9px] font-mono font-medium tracking-wider uppercase text-slate-500 leading-none select-none">
                 <span>FREE MEMBER</span>
               </span>
             )}
@@ -339,7 +337,7 @@ export const ProfileIdentityComponent: React.FC<ProfileIdentityComponentProps> =
 
         {/* Dropdown Chevron (Far right, vertically centered) */}
         <ChevronDown
-          className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
+          className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           } ${
             isBlack

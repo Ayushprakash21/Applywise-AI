@@ -252,88 +252,115 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
             <kbd className="sr-only">⌘K</kbd>
           </div>
 
-          {/* Right Toolbar */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Right Toolbar: Unified Enterprise Header Group */}
+          <div className="flex items-center gap-3 shrink-0">
             {/* Mobile Search Toggle Icon */}
             <button
               type="button"
               onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-              className={`md:hidden p-2 rounded-xl border transition-colors cursor-pointer ${
+              className={`md:hidden h-10 w-10 flex items-center justify-center rounded-xl border transition-colors cursor-pointer ${
                 plan === 'black'
-                  ? 'bg-[#14171C] text-[#92949A] hover:text-[#F2F0EA] border-[rgba(255,255,255,0.08)]'
-                  : 'bg-white text-slate-500 hover:text-slate-900 border-slate-200'
+                  ? 'bg-[#101318] text-[#92949A] hover:text-[#F2F0EA] border-[rgba(255,255,255,0.08)] hover:border-[rgba(198,166,106,0.30)]'
+                  : 'bg-white text-slate-500 hover:text-slate-900 border-slate-200 shadow-2xs'
               }`}
               aria-label="Toggle mobile search"
             >
               <Search className="h-4 w-4" />
             </button>
-            {/* Safe Mode Indicator */}
+
+            {/* A. System Status Indicator (Active Safe Pill) */}
             <button
               type="button"
               onClick={onToggleEmergencyStop}
-              className={`hidden sm:flex items-center space-x-2 px-3.5 py-1.5 rounded-full border text-xs font-semibold shadow-2xs transition-all duration-200 cursor-pointer ${
+              aria-label={settings?.emergencyStop ? 'System status: Paused. Click to resume Active Safe.' : 'System status: Active Safe. Click to halt.'}
+              title={settings?.emergencyStop ? 'Automation paused. Click to resume Active Safe.' : 'Autonomous Safety: Active Safe (Click to pause)'}
+              className={`h-10 px-3.5 rounded-full border text-xs font-medium flex items-center space-x-2 shadow-2xs transition-all duration-200 cursor-pointer ${
                 settings?.emergencyStop
                   ? plan === 'black'
-                    ? 'bg-rose-950/40 border-rose-800/40 text-rose-300'
-                    : 'bg-rose-50/90 border-rose-200 text-rose-700'
+                    ? 'bg-rose-950/40 border-rose-800/40 text-rose-300 hover:bg-rose-900/50'
+                    : 'bg-rose-50/90 border-rose-200 text-rose-700 hover:bg-rose-100'
                   : plan === 'black'
-                  ? 'bg-[rgba(53,184,135,0.10)] border-[rgba(53,184,135,0.25)] text-[#35B887]'
-                  : 'bg-emerald-50/90 border-emerald-200 text-emerald-700'
+                  ? 'bg-[rgba(53,184,135,0.08)] border-[rgba(53,184,135,0.22)] text-[#35B887] hover:bg-[rgba(53,184,135,0.14)] hover:border-[rgba(53,184,135,0.35)]'
+                  : 'bg-emerald-50/90 border-emerald-200/90 text-emerald-700 hover:bg-emerald-100/70'
               }`}
             >
-              <span className={`h-2 w-2 rounded-full ${settings?.emergencyStop ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`} />
-              <span>{settings?.emergencyStop ? 'Paused' : 'Active Safe'}</span>
+              <span className="relative flex h-2 w-2">
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${settings?.emergencyStop ? 'bg-rose-400' : 'bg-emerald-400'}`} />
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${settings?.emergencyStop ? 'bg-rose-500' : 'bg-[#35B887]'}`} />
+              </span>
+              <span className="hidden sm:inline font-mono tracking-tight text-[11px] font-semibold">
+                {settings?.emergencyStop ? 'Paused' : 'Active Safe'}
+              </span>
             </button>
 
-            {/* Notifications Button & Dropdown */}
+            {/* B. Notification Button & Dropdown */}
             <div className="relative" ref={notifRef}>
               <button
                 type="button"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className={`relative p-2.5 rounded-xl border transition-all duration-200 cursor-pointer ${
+                className={`relative h-10 w-10 flex items-center justify-center rounded-xl border transition-all duration-200 cursor-pointer ${
                   plan === 'black'
-                    ? 'bg-[#14171C] hover:bg-[#191D23] border-[rgba(255,255,255,0.08)] hover:border-[rgba(198,166,106,0.30)] text-[#C0BDB5] hover:text-[#F2F0EA] shadow-xs'
-                    : 'bg-white/70 hover:bg-white border-white/85 text-slate-600 hover:text-slate-900 shadow-2xs'
+                    ? 'bg-[#101318] hover:bg-[#141820] border-[rgba(255,255,255,0.08)] hover:border-[rgba(198,166,106,0.30)] text-[#C0BDB5] hover:text-[#F2F0EA] shadow-xs'
+                    : 'bg-white/80 hover:bg-white border-slate-200/90 text-slate-600 hover:text-slate-900 shadow-2xs'
                 }`}
                 style={
                   plan === 'black'
                     ? {
-                        backgroundColor: 'var(--be-bg-card, #14171C)',
+                        backgroundColor: 'var(--be-bg-input, #101318)',
                         borderColor: 'var(--be-border-subtle, rgba(255, 255, 255, 0.08))',
                         color: 'var(--be-text-secondary, #C0BDB5)',
                       }
                     : undefined
                 }
                 aria-label="Notifications"
+                aria-expanded={notificationsOpen}
               >
-                <Bell className="h-4.5 w-4.5" />
+                <Bell className="h-4 w-4" />
                 {unreadCount > 0 && (
                   <span
-                    className={`absolute top-2 right-2 h-2 w-2 rounded-full animate-pulse ring-2 ${
-                      plan === 'black' ? 'ring-[#14171C]' : 'ring-white'
+                    className={`absolute -top-1 -right-1 h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center text-[9px] font-mono font-bold leading-none ring-2 ${
+                      plan === 'black'
+                        ? 'bg-[#C6A66A] text-[#101318] ring-[#101318]'
+                        : 'bg-blue-600 text-white ring-white'
                     }`}
                     style={{
                       backgroundColor: plan === 'black' ? 'var(--be-accent, #C6A66A)' : '#8065F5',
                     }}
-                  />
+                  >
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
                 )}
               </button>
 
               {notificationsOpen && (
-                <div className="absolute right-0 mt-2.5 w-[calc(100vw-2rem)] sm:w-96 max-w-sm rounded-3xl bg-white/85 backdrop-blur-2xl border border-white/90 shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <span className="font-bold text-xs uppercase tracking-wider text-slate-800 font-mono">Notifications</span>
+                <div
+                  className={`absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-88 max-w-sm rounded-2xl border shadow-2xl p-3.5 z-50 animate-in fade-in slide-in-from-top-1 backdrop-blur-xl ${
+                    plan === 'black'
+                      ? 'bg-[#101318]/95 border-[rgba(255,255,255,0.10)] text-[#F2F0EA] shadow-black/80'
+                      : 'bg-white/95 border-slate-200 text-slate-900 shadow-slate-900/10'
+                  }`}
+                  style={
+                    plan === 'black'
+                      ? {
+                          backgroundColor: 'var(--be-bg-surface, rgba(16, 19, 24, 0.95))',
+                          borderColor: 'var(--be-border-subtle, rgba(255, 255, 255, 0.10))',
+                        }
+                      : undefined
+                  }
+                >
+                  <div className={`flex items-center justify-between pb-2.5 border-b ${plan === 'black' ? 'border-[rgba(255,255,255,0.08)]' : 'border-slate-100'}`}>
+                    <span className={`font-bold text-[11px] uppercase tracking-wider font-mono ${plan === 'black' ? 'text-[#92949A]' : 'text-slate-500'}`}>Notifications</span>
                     {unreadCount > 0 && (
                       <button
                         type="button"
                         onClick={onMarkAllNotificationsRead}
-                        className="text-[11px] font-semibold text-[#8065F5] hover:underline cursor-pointer"
+                        className={`text-[11px] font-semibold hover:underline cursor-pointer ${plan === 'black' ? 'text-[#C6A66A]' : 'text-blue-600'}`}
                       >
                         Mark all as read
                       </button>
                     )}
                   </div>
-                  <div className="py-2 max-h-72 overflow-y-auto divide-y divide-slate-100">
+                  <div className={`py-2 max-h-72 overflow-y-auto divide-y ${plan === 'black' ? 'divide-[rgba(255,255,255,0.06)]' : 'divide-slate-100'}`}>
                     {notifications.length === 0 ? (
                       <div className="py-8 text-center text-xs text-slate-400">
                         No notifications right now.
@@ -343,22 +370,28 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                         <div
                           key={n.id}
                           onClick={() => onMarkNotificationRead(n.id)}
-                          className={`py-2.5 px-2.5 rounded-xl cursor-pointer transition ${n.read ? 'opacity-60' : 'bg-blue-50/60 hover:bg-blue-50'}`}
+                          className={`py-2.5 px-2.5 rounded-xl cursor-pointer transition ${
+                            n.read
+                              ? 'opacity-60'
+                              : plan === 'black'
+                              ? 'bg-white/[0.04] hover:bg-white/[0.07]'
+                              : 'bg-blue-50/60 hover:bg-blue-50'
+                          }`}
                         >
-                          <div className="text-xs font-semibold text-slate-900">{n.title}</div>
-                          <div className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">{n.message}</div>
+                          <div className={`text-xs font-semibold ${plan === 'black' ? 'text-[#F2F0EA]' : 'text-slate-900'}`}>{n.title}</div>
+                          <div className={`text-[11px] mt-0.5 line-clamp-2 ${plan === 'black' ? 'text-[#92949A]' : 'text-slate-500'}`}>{n.message}</div>
                         </div>
                       ))
                     )}
                   </div>
-                  <div className="pt-2 text-center border-t border-slate-100">
+                  <div className={`pt-2 text-center border-t ${plan === 'black' ? 'border-[rgba(255,255,255,0.08)]' : 'border-slate-100'}`}>
                     <button
                       type="button"
                       onClick={() => {
                         setNotificationsOpen(false);
                         onSelectTab('notifications');
                       }}
-                      className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
+                      className={`text-[11px] font-semibold hover:underline cursor-pointer ${plan === 'black' ? 'text-[#C6A66A]' : 'text-blue-600'}`}
                     >
                       View all in Notifications →
                     </button>
@@ -367,8 +400,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               )}
             </div>
 
-            {/* User Profile Identity & Account Menu */}
-            <div className="relative max-w-[calc(100vw-2rem)]" ref={userMenuRef}>
+            {/* C. User Profile Identity & Account Menu */}
+            <div className="relative max-w-[calc(100vw-2rem)] flex items-center" ref={userMenuRef}>
               <ProfileIdentityComponent
                 user={user}
                 plan={plan}
