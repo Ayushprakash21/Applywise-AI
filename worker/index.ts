@@ -93,18 +93,43 @@ type Variables = {
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
-// Security headers & CORS
-app.use('*', cors({
-  origin: (origin) => origin || '*',
-  credentials: true,
-  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
-}));
+// Trusted Origin Allowlist for Cloudflare Workers CORS
+const ALLOWED_ORIGIN_PATTERNS = [
+  /^https?:\/\/localhost(:\d+)?$/,
+  /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
+  /^https:\/\/(.*\.)?applyvise\.ai$/,
+  /^https:\/\/applyvise-ai\.pages\.dev$/,
+];
 
+function isOriginAllowed(origin: string | undefined): boolean {
+  if (!origin) return false;
+  return ALLOWED_ORIGIN_PATTERNS.some(p => p.test(origin));
+}
+
+// Security headers & Origin-validated CORS
 app.use('*', async (c, next) => {
+  const reqOrigin = c.req.header('Origin');
+  if (reqOrigin && isOriginAllowed(reqOrigin)) {
+    c.header('Access-Control-Allow-Origin', reqOrigin);
+    c.header('Access-Control-Allow-Credentials', 'true');
+    c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    c.header('Vary', 'Origin');
+  }
+
+  // Pre-flight handling
+  if (c.req.method === 'OPTIONS') {
+    return c.text('', 204);
+  }
+
+  // Robust Defensive Headers
   c.header('X-Content-Type-Options', 'nosniff');
   c.header('X-Frame-Options', 'DENY');
   c.header('X-XSS-Protection', '1; mode=block');
+  c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+  c.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  c.header('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://accounts.google.com https://api.razorpay.com https://generativelanguage.googleapis.com https://oauth2.googleapis.com; frame-src https://accounts.google.com https://api.razorpay.com; object-src 'none'; base-uri 'self';");
+
   c.set('store', new D1Store(c.env.DB));
   await next();
 });
@@ -731,8 +756,19 @@ async function verifyRazorpaySignature(orderId: string, paymentId: string, signa
   const signatureBytes = await crypto.subtle.sign('HMAC', key, data);
   const expectedHex = Array.from(new Uint8Array(signatureBytes))
     .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-  return expectedHex.toLowerCase() === signature.trim().toLowerCase();
+    .join('')
+    .toLowerCase();
+  const givenHex = (signature || '').trim().toLowerCase();
+
+  const expBytes = enc.encode(expectedHex);
+  const givBytes = enc.encode(givenHex);
+  if (expBytes.byteLength !== givBytes.byteLength) return false;
+
+  let mismatch = 0;
+  for (let i = 0; i < expBytes.byteLength; i++) {
+    mismatch |= expBytes[i] ^ givBytes[i];
+  }
+  return mismatch === 0;
 }
 
 app.post('/api/subscription/upgrade', requireAuth, async (c) => {
@@ -4791,6 +4827,8 @@ app.post('/api/autopilot/jobs/:id/submit', requireAuth, async (c) => {
     const user: AuthUser = c.get('user')!;
     const store: D1Store = c.get('store');
     const jobId = c.req.param('id');
+    const reqBody = await c.req.json().catch(() => ({}));
+    const userEvidence = reqBody?.userEvidence;
 
     const jobs = await store.getAutopilotJobs(user.id);
     const job = jobs.find(j => j.id === jobId);
@@ -4817,8 +4855,8 @@ app.post('/api/autopilot/jobs/:id/submit', requireAuth, async (c) => {
     const { AutopilotEngine } = await import('./autopilotEngine.ts');
     const tailoring = AutopilotEngine.tailorApplicationPackage(profile, job.jobTitle, job.company);
 
-    // Step C: Execute Supported Submission
-    const execution = await AutopilotEngine.executeSubmission(job, profile);
+    // Step C: Execute Supported Submission (zero-fabrication enforced)
+    const execution = await AutopilotEngine.executeSubmission(job, profile, userEvidence);
 
     if (execution.success) {
       // Step D: Commit Quota & Mark Submitted
@@ -5276,6 +5314,13 @@ app.post('/api/translation/translate', async (c) => {
   try {
     const service = new WorkerTranslationService(c.env);
     const body = await c.req.json().catch(() => ({}));
+    const text = body?.text;
+    if (!text || typeof text !== 'string') {
+      return c.json({ error: 'Text string is required for translation.' }, 400);
+    }
+    if (text.length > 5000) {
+      return c.json({ error: 'Text exceeds maximum allowable translation payload size of 5000 characters.' }, 400);
+    }
     const result = await service.translate(body);
     return c.json(result);
   } catch (err: any) {
@@ -5295,7 +5340,14 @@ app.post('/api/translation/detect', async (c) => {
   try {
     const service = new WorkerTranslationService(c.env);
     const body = await c.req.json().catch(() => ({}));
-    const result = await service.detect(body?.text || '');
+    const text = body?.text;
+    if (!text || typeof text !== 'string') {
+      return c.json({ error: 'Text string is required for language detection.' }, 400);
+    }
+    if (text.length > 5000) {
+      return c.json({ error: 'Text exceeds maximum allowable payload size of 5000 characters.' }, 400);
+    }
+    const result = await service.detect(text);
     return c.json(result);
   } catch {
     return c.json({ detectedLanguage: 'en', confidence: 0.5, reliable: false });

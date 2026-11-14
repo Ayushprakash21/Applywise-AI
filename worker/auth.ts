@@ -58,7 +58,14 @@ export async function verifyPassword(password: string, storedHash: string): Prom
     );
 
     const calculatedHashHex = Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, '0')).join('');
-    return calculatedHashHex === expectedHashHex;
+    const expBytes = enc.encode(expectedHashHex);
+    const calcBytes = enc.encode(calculatedHashHex);
+    if (expBytes.byteLength !== calcBytes.byteLength) return false;
+    let mismatch = 0;
+    for (let i = 0; i < expBytes.byteLength; i++) {
+      mismatch |= expBytes[i] ^ calcBytes[i];
+    }
+    return mismatch === 0;
   }
 
   // Fallback to bcrypt for hashes created by bcryptjs

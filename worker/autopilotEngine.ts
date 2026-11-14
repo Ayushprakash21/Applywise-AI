@@ -220,10 +220,13 @@ export class AutopilotEngine {
   /**
    * Agent 6: Application Execution Agent
    * Executes official ATS submission or transitions to guided portal flow truthfully.
+   * Zero-hallucination policy: NEVER fabricates Greenhouse, Lever, or Workday submission references.
+   * No quota may be committed without verified provider or candidate confirmation.
    */
   static async executeSubmission(
     job: AutopilotJobItem,
-    profile: UserProfile
+    profile: UserProfile,
+    userEvidence?: { confirmationCode?: string; confirmationUrl?: string; verifiedByCandidate?: boolean }
   ): Promise<{
     success: boolean;
     submissionReference?: string;
@@ -233,31 +236,29 @@ export class AutopilotEngine {
     attentionReason?: string;
   }> {
     const url = job.url || '';
+    const provider = (url.includes('boards.greenhouse.io') || url.includes('job-boards.greenhouse.io'))
+      ? 'greenhouse'
+      : url.includes('jobs.lever.co')
+      ? 'lever'
+      : 'guided_portal';
 
-    // If application URL contains an identifiable ATS provider
-    if (url.includes('boards.greenhouse.io') || url.includes('job-boards.greenhouse.io')) {
+    // Case 1: Candidate completed application and provided genuine confirmation evidence
+    if (userEvidence?.confirmationCode || userEvidence?.confirmationUrl || userEvidence?.verifiedByCandidate) {
+      const ref = userEvidence.confirmationCode ? userEvidence.confirmationCode.trim() : `VERIFIED-MANUAL-${Date.now().toString(36).toUpperCase()}`;
       return {
         success: true,
-        submissionReference: `GH-SUB-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
-        provider: 'greenhouse',
-        message: 'Successfully submitted application via Greenhouse ATS endpoint.',
+        submissionReference: ref,
+        provider,
+        message: `Application submission verified with reference ${ref}.`,
       };
     }
 
-    if (url.includes('jobs.lever.co')) {
-      return {
-        success: true,
-        submissionReference: `LEV-SUB-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
-        provider: 'lever',
-        message: 'Successfully submitted application via Lever ATS endpoint.',
-      };
-    }
-
-    // For complex multi-step portals or custom careers sites requiring human interaction
+    // Case 2: Direct automated submission without provider API key is NOT fabricated.
+    // Transition truthfully to NEEDS_ATTENTION / GUIDED COMPLETION without committing quota.
     return {
       success: false,
       requiresAttention: true,
-      provider: 'guided_portal',
+      provider,
       attentionReason: 'Employer portal requires direct candidate screening questions or verification.',
       message: 'Moved to Needs My Attention for guided completion.',
     };

@@ -88,11 +88,18 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit
 });
 
-// Security headers
+// Security headers & Origin Validation
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://accounts.google.com https://api.razorpay.com https://generativelanguage.googleapis.com https://oauth2.googleapis.com; frame-src https://accounts.google.com https://api.razorpay.com; object-src 'none'; base-uri 'self';");
+
+  if (process.env.NODE_ENV === 'production') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  }
   next();
 });
 
@@ -1712,7 +1719,9 @@ app.post('/api/subscription/razorpay/verify', requireAuth, (req: AuthenticatedRe
   const hmac = crypto.createHmac('sha256', secret);
   hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
   const expectedSig = hmac.digest('hex');
-  if (expectedSig.toLowerCase() !== razorpay_signature.trim().toLowerCase()) {
+  const expectedBuf = Buffer.from(expectedSig.toLowerCase(), 'utf8');
+  const givenBuf = Buffer.from(String(razorpay_signature).trim().toLowerCase(), 'utf8');
+  if (expectedBuf.length !== givenBuf.length || !crypto.timingSafeEqual(expectedBuf, givenBuf)) {
     return res.status(400).json({ success: false, error: 'Invalid payment signature. Verification failed.' });
   }
 
@@ -1848,24 +1857,30 @@ app.delete('/api/alerts/:id', requireAuth, (_req: AuthenticatedRequest, res: Res
   res.json({ success: true, message: 'Alert rule deleted.' });
 });
 
-app.get('/api/applications/:id/timeline', requireAuth, (_req: AuthenticatedRequest, res: Response) => {
-  res.json({ success: true, timeline: [] });
+app.get('/api/applications/:id/timeline', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const appRecord = authAndStore.getApplicationById(req.user!.id, req.params.id);
+  if (!appRecord) {
+    return res.status(404).json({ success: false, error: 'Application not found or unauthorized.' });
+  }
+  res.json({ success: true, timeline: appRecord.timeline || [] });
 });
 
 app.post('/api/applications/:id/timeline', requireAuth, (req: AuthenticatedRequest, res: Response) => {
-  res.json({
-    success: true,
-    timeline: [
-      {
-        id: 'timeline-mock-1',
-        applicationId: req.params.id,
-        stage: req.body.stage || 'PREPARING',
-        note: req.body.note || '',
-        actor: req.body.actor || 'user',
-        timestamp: new Date().toISOString(),
-      },
-    ],
-  });
+  const appRecord = authAndStore.getApplicationById(req.user!.id, req.params.id);
+  if (!appRecord) {
+    return res.status(404).json({ success: false, error: 'Application not found or unauthorized.' });
+  }
+  const newEvent = {
+    id: `tl_${Date.now()}`,
+    applicationId: req.params.id,
+    stage: req.body.stage || appRecord.status,
+    note: req.body.note || '',
+    actor: req.body.actor || 'User manual',
+    timestamp: new Date().toISOString(),
+  };
+  appRecord.timeline.push(newEvent);
+  authAndStore.saveApplication(req.user!.id, appRecord);
+  res.json({ success: true, timeline: appRecord.timeline });
 });
 
 // --- SIX-PILLAR CAREER OPERATIONS ---
@@ -3134,6 +3149,15 @@ app.post('/api/admin/founder-profile/photo', requireAdmin, upload.single('photo'
       return res.status(400).json({ success: false, error: 'Invalid image format. Allowed: JPG, PNG, WebP' });
     }
 
+    // Defensive binary inspection: Verify true magic-byte headers to prevent MIME spoofing
+    const buf = file.buffer;
+    const isJpeg = buf.length >= 3 && buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF;
+    const isPng = buf.length >= 4 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47;
+    const isWebp = buf.length >= 12 && buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP';
+    if (!isJpeg && !isPng && !isWebp) {
+      return res.status(400).json({ success: false, error: 'Invalid image binary signature. Magic bytes do not match JPG, PNG, or WebP.' });
+    }
+
     if (file.size > 5 * 1024 * 1024) {
       return res.status(400).json({ success: false, error: 'File size exceeds 5 MB limit' });
     }
@@ -3480,9 +3504,15 @@ app.get('/api/translation/languages', (_req: Request, res: Response) => {
   });
 });
 
-app.post('/api/translation/translate', async (req: Request, res: Response) => {
+app.post('/api/translation/translate', rateLimit(60, 60000), async (req: Request, res: Response) => {
   try {
     const { text, sourceLang, targetLang, format, context } = req.body || {};
+    if (!text || typeof text !== 'string') {
+      return res.status(400).json({ error: 'Text string is required for translation.' });
+    }
+    if (text.length > 5000) {
+      return res.status(400).json({ error: 'Text exceeds maximum allowable translation payload size of 5000 characters.' });
+    }
     const result = await translationService.translate({
       text,
       sourceLang,
@@ -3504,9 +3534,16 @@ app.post('/api/translation/translate', async (req: Request, res: Response) => {
   }
 });
 
-app.post('/api/translation/detect', async (req: Request, res: Response) => {
+app.post('/api/translation/detect', rateLimit(60, 60000), async (req: Request, res: Response) => {
   try {
-    const result = await translationService.detect(req.body?.text || '');
+    const text = req.body?.text;
+    if (!text || typeof text !== 'string') {
+      return res.status(400).json({ error: 'Text string is required for language detection.' });
+    }
+    if (text.length > 5000) {
+      return res.status(400).json({ error: 'Text exceeds maximum allowable payload size of 5000 characters.' });
+    }
+    const result = await translationService.detect(text);
     return res.json(result);
   } catch {
     return res.json({ detectedLanguage: 'en', confidence: 0.5, reliable: false });
