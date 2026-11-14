@@ -40,6 +40,7 @@ import { ProfileIdentityComponent } from './ProfileIdentityComponent.tsx';
 export type DashboardTab =
   | 'desk'
   | 'radar'
+  | 'autopilot'
   | 'control'
   | 'interview_studio'
   | 'recruiter_review'
@@ -141,6 +142,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       group: 'CAREER INTELLIGENCE & WORKSPACE',
       items: [
         { id: 'desk' as const, label: 'Career Desk', icon: LayoutDashboard },
+        { id: 'autopilot' as const, label: 'AI Autopilot', icon: Bot },
         { id: 'radar' as const, label: 'Opportunity Radar', icon: Radio },
         { id: 'control' as const, label: 'Application Control', icon: Briefcase },
         { id: 'interview_studio' as const, label: 'Interview Studio', icon: Calendar },

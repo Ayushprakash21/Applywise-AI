@@ -4456,3 +4456,271 @@ app.delete('/api/admin/founder-profile/photo', requireAdmin, async (c) => {
     return c.json({ success: false, error: err.message }, 500);
   }
 });
+
+// ============================================================================
+// APPLYVISE AUTOPILOT — AUTONOMOUS AI JOB APPLICATION AGENT ENDPOINTS
+// ============================================================================
+
+// 1. Get Dashboard Summary (Entitlement, Settings, Stats, Activity)
+app.get('/api/autopilot/summary', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+
+    const [entitlement, settings, jobs, activity] = await Promise.all([
+      store.getAutopilotEntitlement(user.id),
+      store.getAutopilotSettings(user.id),
+      store.getAutopilotJobs(user.id),
+      store.getAutopilotActivity(user.id, 10),
+    ]);
+
+    const submittedCount = jobs.filter(j => j.status === 'SUBMITTED').length;
+    const failedCount = jobs.filter(j => j.status === 'FAILED').length;
+    const inProgress = jobs.filter(j => ['QUEUED', 'PREPARING', 'RESERVED', 'SUBMITTING'].includes(j.status)).length;
+    const eligibleJobs = jobs.filter(j => ['STRONG_MATCH', 'GOOD_MATCH'].includes(j.eligibilityStatus)).length;
+    const awaitingApproval = jobs.filter(j => j.status === 'READY_FOR_REVIEW').length;
+    const needsAttention = jobs.filter(j => j.status === 'NEEDS_ATTENTION').length;
+
+    const totalSubmissions = submittedCount + failedCount;
+    const successRate = totalSubmissions > 0 ? Math.round((submittedCount / totalSubmissions) * 100) : 100;
+
+    const summary = {
+      entitlement,
+      settings,
+      stats: {
+        monthlyLimit: entitlement.monthlyLimit,
+        usedThisMonth: entitlement.usageCount,
+        remainingQuota: entitlement.remainingCount,
+        inProgress,
+        jobsDiscovered: jobs.length,
+        eligibleJobs,
+        jobsRejected: jobs.filter(j => j.eligibilityStatus === 'NOT_ELIGIBLE').length,
+        awaitingApproval,
+        needsAttention,
+        submittedCount,
+        failedCount,
+        successRate,
+      },
+      recentActivity: activity,
+    };
+
+    return c.json({ success: true, summary });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 2. Update Autopilot Agent Settings
+app.put('/api/autopilot/settings', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const body = await c.req.json().catch(() => ({}));
+
+    const updated = await store.updateAutopilotSettings(user.id, body);
+    await store.addAutopilotActivity(user.id, 'Agent Orchestrator', 'Updated automation settings', {
+      result: 'INFO',
+      details: `Mode: ${updated.operatingMode}, Active: ${updated.automationActive}`,
+    });
+
+    return c.json({ success: true, settings: updated });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 3. Get Application Queue
+app.get('/api/autopilot/jobs', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const status = c.req.query('status');
+
+    const jobs = await store.getAutopilotJobs(user.id, status || undefined);
+    return c.json({ success: true, jobs });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 4. Discover & Ingest Vacancies into Autopilot
+app.post('/api/autopilot/discover', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+
+    const [rawProfile, settings, vacancies] = await Promise.all([
+      store.getProfile(user.id),
+      store.getAutopilotSettings(user.id),
+      store.getVacancies(50),
+    ]);
+
+    const profile = rawProfile || ({} as any);
+    const { AutopilotEngine } = await import('./autopilotEngine.ts');
+    let newlyDiscovered = 0;
+
+    for (const v of vacancies) {
+      const evaluation = AutopilotEngine.evaluateJobEligibility(profile, settings, v);
+      const jobId = `ajob_${crypto.randomUUID().slice(0, 12)}`;
+
+      try {
+        await (store as any).db.prepare(`
+          INSERT INTO auto_apply_jobs (
+            id, user_id, vacancy_id, job_title, company, location, country, url,
+            match_score, eligibility_status, match_explanation, missing_qualifications, status
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(user_id, vacancy_id) DO UPDATE SET
+            match_score = excluded.match_score,
+            eligibility_status = excluded.eligibility_status,
+            match_explanation = excluded.match_explanation,
+            missing_qualifications = excluded.missing_qualifications
+        `).bind(
+          jobId,
+          user.id,
+          v.id,
+          v.title || 'Untitled Role',
+          v.company || 'Employer',
+          v.location || 'Remote',
+          v.country || 'Global',
+          v.url || '#',
+          evaluation.score,
+          evaluation.eligibilityStatus,
+          evaluation.explanation,
+          JSON.stringify(evaluation.missingQualifications),
+          evaluation.eligibilityStatus === 'NOT_ELIGIBLE' ? 'SKIPPED' : 'QUEUED'
+        ).run();
+
+        newlyDiscovered++;
+      } catch (err) {
+        // Continue
+      }
+    }
+
+    await store.addAutopilotActivity(user.id, 'Job Discovery Agent', 'Discovered vacancies from GCDE', {
+      result: 'SUCCESS',
+      details: `Processed ${vacancies.length} vacancies, registered ${newlyDiscovered} candidates.`,
+    });
+
+    const jobs = await store.getAutopilotJobs(user.id);
+    return c.json({ success: true, count: newlyDiscovered, jobs });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 5. Execute Auto-Apply Submission (Transactionally Locks & Commits Quota)
+app.post('/api/autopilot/jobs/:id/submit', requireAuth, async (c) => {
+  try {
+    const user: AuthUser = c.get('user')!;
+    const store: D1Store = c.get('store');
+    const jobId = c.req.param('id');
+
+    const jobs = await store.getAutopilotJobs(user.id);
+    const job = jobs.find(j => j.id === jobId);
+    if (!job) return c.json({ success: false, error: 'Job not found in Autopilot queue' }, 404);
+
+    if (job.status === 'SUBMITTED') {
+      return c.json({ success: false, error: 'Application has already been submitted for this vacancy' }, 400);
+    }
+
+    // Step A: Reserve Quota Transactionally
+    const reservation = await store.reserveAutopilotQuota(user.id, job.id, job.vacancyId);
+    if (!reservation.success) {
+      await store.addAutopilotActivity(user.id, 'Quota Enforcement Agent', 'Submission stopped due to quota limit', {
+        relatedJobTitle: job.jobTitle,
+        relatedCompany: job.company,
+        result: 'WARNING',
+        details: reservation.error,
+      });
+      return c.json({ success: false, error: reservation.error }, 403);
+    }
+
+    // Step B: Tailor Application Materials
+    const profile = (await store.getProfile(user.id)) || ({} as any);
+    const { AutopilotEngine } = await import('./autopilotEngine.ts');
+    const tailoring = AutopilotEngine.tailorApplicationPackage(profile, job.jobTitle, job.company);
+
+    // Step C: Execute Supported Submission
+    const execution = await AutopilotEngine.executeSubmission(job, profile);
+
+    if (execution.success) {
+      // Step D: Commit Quota & Mark Submitted
+      await store.commitAutopilotQuota(user.id, reservation.reservationId!, {
+        jobId: job.id,
+        vacancyId: job.vacancyId,
+        provider: execution.provider,
+        submissionReference: execution.submissionReference,
+        resumeVersion: tailoring.tailoredHeadline,
+        coverLetterVersion: tailoring.coverLetterSnippet,
+      });
+
+      await (store as any).db.prepare(`
+        UPDATE auto_apply_jobs SET status = 'SUBMITTED', updated_at = ? WHERE id = ?
+      `).bind(new Date().toISOString(), job.id).run();
+
+      await store.addAutopilotActivity(user.id, 'Application Execution Agent', 'Application submitted successfully', {
+        relatedJobTitle: job.jobTitle,
+        relatedCompany: job.company,
+        result: 'SUCCESS',
+        details: `Reference: ${execution.submissionReference}`,
+      });
+
+      return c.json({
+        success: true,
+        status: 'SUBMITTED',
+        submissionReference: execution.submissionReference,
+        message: execution.message,
+      });
+    } else {
+      // Step E: Release Quota on Failure / Guided Action Required
+      await store.releaseAutopilotQuota(user.id, reservation.reservationId!, execution.attentionReason || 'Guided action required');
+
+      const targetStatus = execution.requiresAttention ? 'NEEDS_ATTENTION' : 'FAILED';
+      await (store as any).db.prepare(`
+        UPDATE auto_apply_jobs SET status = ?, attention_reason = ?, failure_reason = ?, updated_at = ? WHERE id = ?
+      `).bind(
+        targetStatus,
+        execution.attentionReason || null,
+        execution.requiresAttention ? null : execution.message,
+        new Date().toISOString(),
+        job.id
+      ).run();
+
+      await store.addAutopilotActivity(user.id, 'Application Execution Agent', execution.requiresAttention ? 'Moved to Needs Attention' : 'Submission failed', {
+        relatedJobTitle: job.jobTitle,
+        relatedCompany: job.company,
+        result: execution.requiresAttention ? 'INFO' : 'FAILED',
+        details: execution.message,
+      });
+
+      return c.json({
+        success: false,
+        status: targetStatus,
+        requiresAttention: execution.requiresAttention,
+        message: execution.message,
+      });
+    }
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 6. Admin Control: Autopilot Diagnostics & Queue Overview
+app.get('/api/admin/autopilot/overview', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const { results: entitlements } = await (store as any).db.prepare('SELECT * FROM auto_apply_entitlements').all();
+    const { results: activeJobs } = await (store as any).db.prepare('SELECT * FROM auto_apply_jobs ORDER BY created_at DESC LIMIT 50').all();
+    const { results: recentExecutions } = await (store as any).db.prepare('SELECT * FROM auto_apply_executions ORDER BY submission_timestamp DESC LIMIT 30').all();
+
+    return c.json({
+      success: true,
+      entitlements: entitlements || [],
+      activeJobs: activeJobs || [],
+      recentExecutions: recentExecutions || [],
+    });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+

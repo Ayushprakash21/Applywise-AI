@@ -49,6 +49,7 @@ const CareerTwinPage = React.lazy(() => import('./components/CareerTwinPage.tsx'
 const PricingPage = React.lazy(() => import('./components/PricingPage.tsx').then(m => ({ default: m.PricingPage })));
 const AboutPage = React.lazy(() => import('./components/AboutPage.tsx').then(m => ({ default: m.AboutPage })));
 const HrOutreachPage = React.lazy(() => import('./components/HrOutreachPage.tsx').then(m => ({ default: m.HrOutreachPage })));
+const AiAutopilotStudio = React.lazy(() => import('./components/AiAutopilotStudio.tsx').then(m => ({ default: m.AiAutopilotStudio })));
 
 const normalizePath = (rawPath: string): string => {
   const path = (rawPath || '/').split('?')[0].split('#')[0] || '/';
@@ -60,6 +61,7 @@ const normalizePath = (rawPath: string): string => {
 
 const PROTECTED_ROUTES = new Set([
   '/dashboard',
+  '/dashboard/ai-autopilot',
   '/dashboard/hr-outreach',
   '/overview',
   '/jobs',
@@ -89,6 +91,7 @@ const KNOWN_ROUTES = new Set([
   '/signup',
   '/register',
   '/dashboard',
+  '/dashboard/ai-autopilot',
   '/dashboard/hr-outreach',
   '/overview',
   '/jobs',
@@ -208,6 +211,8 @@ export default function App() {
       setActiveTab('notifications');
     } else if (currentUser && currentRoute === '/dashboard/hr-outreach' && activeTab !== 'hr_outreach') {
       setActiveTab('hr_outreach');
+    } else if (currentUser && currentRoute === '/dashboard/ai-autopilot' && activeTab !== 'autopilot') {
+      setActiveTab('autopilot');
     }
   }, [currentRoute, currentUser, activeTab]);
 
@@ -505,9 +510,16 @@ export default function App() {
         setCurrentRoute('/dashboard/hr-outreach');
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (tab === 'autopilot') {
+      setActiveTab('autopilot');
+      if (currentRoute !== '/dashboard/ai-autopilot') {
+        window.history.pushState({}, '', '/dashboard/ai-autopilot');
+        setCurrentRoute('/dashboard/ai-autopilot');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setActiveTab(tab);
-      if (currentRoute === '/dashboard/hr-outreach') {
+      if (currentRoute === '/dashboard/hr-outreach' || currentRoute === '/dashboard/ai-autopilot') {
         window.history.pushState({}, '', '/');
         setCurrentRoute('/');
       }
@@ -703,6 +715,14 @@ export default function App() {
                 await loadUserData();
               }}
               onPrepareApplication={async v => { await handlePrepareApplication(typeof v === 'string' ? v : (v as any).id); }}
+            />
+          )}
+
+          {activeTab === 'autopilot' && (
+            <AiAutopilotStudio
+              currentUser={currentUser}
+              onNavigateRadar={() => setActiveTab('radar')}
+              onNavigateHome={() => setActiveTab('desk')}
             />
           )}
 

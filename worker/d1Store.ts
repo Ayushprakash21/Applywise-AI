@@ -4724,4 +4724,327 @@ export class D1Store {
     results.sort((a, b) => b.matchBreakdown.overallScore - a.matchBreakdown.overallScore);
     return results;
   }
+
+  // ==========================================
+  // APPLYVISE AUTOPILOT — AUTONOMOUS AGENT STORE
+  // ==========================================
+
+  async getAutopilotEntitlement(userId: string): Promise<any> {
+    const userRow = await this.db.prepare('SELECT id, email, is_verified FROM users WHERE id = ?').bind(userId).first<any>();
+    if (!userRow) throw new Error('User not found');
+
+    const sub = await this.getUserSubscription(userId);
+    const existing = await this.db.prepare('SELECT * FROM auto_apply_entitlements WHERE user_id = ?').bind(userId).first<any>();
+
+    const { AutopilotEngine } = await import('./autopilotEngine.ts');
+    const computed = AutopilotEngine.getEffectiveEntitlement(userRow, sub.planId, existing);
+
+    await this.db.prepare(`
+      INSERT INTO auto_apply_entitlements (
+        user_id, plan_id, monthly_limit, unlimited, billing_period_start, billing_period_end,
+        usage_count, reserved_count, remaining_count, entitlement_source, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(user_id) DO UPDATE SET
+        plan_id = excluded.plan_id,
+        monthly_limit = excluded.monthly_limit,
+        unlimited = excluded.unlimited,
+        billing_period_start = excluded.billing_period_start,
+        billing_period_end = excluded.billing_period_end,
+        usage_count = excluded.usage_count,
+        reserved_count = excluded.reserved_count,
+        remaining_count = excluded.remaining_count,
+        entitlement_source = excluded.entitlement_source,
+        updated_at = excluded.updated_at
+    `).bind(
+      computed.userId,
+      computed.planId,
+      computed.monthlyLimit,
+      computed.unlimited ? 1 : 0,
+      computed.billingPeriodStart,
+      computed.billingPeriodEnd,
+      computed.usageCount,
+      computed.reservedCount,
+      computed.remainingCount,
+      computed.entitlementSource,
+      computed.updatedAt
+    ).run();
+
+    return computed;
+  }
+
+  async getAutopilotSettings(userId: string): Promise<any> {
+    const row = await this.db.prepare('SELECT * FROM auto_apply_agent_settings WHERE user_id = ?').bind(userId).first<any>();
+    if (!row) {
+      const defaultSettings = {
+        userId,
+        operatingMode: 'MODE_A_ASSISTED',
+        automationActive: false,
+        consentGiven: false,
+        consentTimestamp: null,
+        dailyLimit: 5,
+        minMatchScore: 75,
+        targetJobTitles: [],
+        targetLocations: [],
+        targetIndustries: [],
+        excludedEmployers: [],
+        preferredWorkArrangement: 'all',
+        minSalary: 0,
+        autoSubmitEligible: false,
+        pauseOnScreening: true,
+        defaultResumeId: null,
+      };
+      return defaultSettings;
+    }
+
+    return {
+      userId: row.user_id,
+      operatingMode: row.operating_mode,
+      automationActive: Boolean(row.automation_active),
+      consentGiven: Boolean(row.consent_given),
+      consentTimestamp: row.consent_timestamp,
+      dailyLimit: Number(row.daily_limit || 5),
+      minMatchScore: Number(row.min_match_score || 75),
+      targetJobTitles: JSON.parse(row.target_job_titles || '[]'),
+      targetLocations: JSON.parse(row.target_locations || '[]'),
+      targetIndustries: JSON.parse(row.target_industries || '[]'),
+      excludedEmployers: JSON.parse(row.excluded_employers || '[]'),
+      preferredWorkArrangement: row.preferred_work_arrangement || 'all',
+      minSalary: Number(row.min_salary || 0),
+      autoSubmitEligible: Boolean(row.auto_submit_eligible),
+      pauseOnScreening: Boolean(row.pause_on_screening),
+      defaultResumeId: row.default_resume_id,
+    };
+  }
+
+  async updateAutopilotSettings(userId: string, updates: any): Promise<any> {
+    const existing = await this.getAutopilotSettings(userId);
+    const merged = { ...existing, ...updates };
+
+    const now = new Date().toISOString();
+    await this.db.prepare(`
+      INSERT INTO auto_apply_agent_settings (
+        user_id, operating_mode, automation_active, consent_given, consent_timestamp,
+        daily_limit, min_match_score, target_job_titles, target_locations, target_industries,
+        excluded_employers, preferred_work_arrangement, min_salary, auto_submit_eligible,
+        pause_on_screening, default_resume_id, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(user_id) DO UPDATE SET
+        operating_mode = excluded.operating_mode,
+        automation_active = excluded.automation_active,
+        consent_given = excluded.consent_given,
+        consent_timestamp = excluded.consent_timestamp,
+        daily_limit = excluded.daily_limit,
+        min_match_score = excluded.min_match_score,
+        target_job_titles = excluded.target_job_titles,
+        target_locations = excluded.target_locations,
+        target_industries = excluded.target_industries,
+        excluded_employers = excluded.excluded_employers,
+        preferred_work_arrangement = excluded.preferred_work_arrangement,
+        min_salary = excluded.min_salary,
+        auto_submit_eligible = excluded.auto_submit_eligible,
+        pause_on_screening = excluded.pause_on_screening,
+        default_resume_id = excluded.default_resume_id,
+        updated_at = excluded.updated_at
+    `).bind(
+      userId,
+      merged.operatingMode,
+      merged.automationActive ? 1 : 0,
+      merged.consentGiven ? 1 : 0,
+      merged.consentTimestamp || (merged.consentGiven ? now : null),
+      merged.dailyLimit,
+      merged.minMatchScore,
+      JSON.stringify(merged.targetJobTitles || []),
+      JSON.stringify(merged.targetLocations || []),
+      JSON.stringify(merged.targetIndustries || []),
+      JSON.stringify(merged.excludedEmployers || []),
+      merged.preferredWorkArrangement || 'all',
+      merged.minSalary || 0,
+      merged.autoSubmitEligible ? 1 : 0,
+      merged.pauseOnScreening ? 1 : 0,
+      merged.defaultResumeId || null,
+      now
+    ).run();
+
+    return merged;
+  }
+
+  async getAutopilotJobs(userId: string, status?: string): Promise<any[]> {
+    let query = 'SELECT * FROM auto_apply_jobs WHERE user_id = ?';
+    const params: any[] = [userId];
+    if (status) {
+      query += ' AND status = ?';
+      params.push(status);
+    }
+    query += ' ORDER BY created_at DESC';
+
+    const { results } = await this.db.prepare(query).bind(...params).all<any>();
+    return (results || []).map(r => ({
+      id: r.id,
+      userId: r.user_id,
+      vacancyId: r.vacancy_id,
+      jobTitle: r.job_title,
+      company: r.company,
+      location: r.location,
+      country: r.country,
+      url: r.url,
+      matchScore: Number(r.match_score),
+      eligibilityStatus: r.eligibility_status,
+      matchExplanation: r.match_explanation,
+      missingQualifications: JSON.parse(r.missing_qualifications || '[]'),
+      tailoredResumeId: r.tailored_resume_id,
+      status: r.status,
+      submissionMethod: r.submission_method,
+      failureReason: r.failure_reason,
+      attentionReason: r.attention_reason,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    }));
+  }
+
+  async addAutopilotActivity(
+    userId: string,
+    agentName: string,
+    action: string,
+    details?: { relatedJobTitle?: string; relatedCompany?: string; result?: 'SUCCESS' | 'INFO' | 'WARNING' | 'FAILED'; durationMs?: number; details?: string }
+  ): Promise<void> {
+    const id = `act_${crypto.randomUUID().slice(0, 12)}`;
+    await this.db.prepare(`
+      INSERT INTO auto_apply_activity (
+        id, user_id, agent_name, action, related_job_title, related_company,
+        result, duration_ms, details, timestamp
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      id,
+      userId,
+      agentName,
+      action,
+      details?.relatedJobTitle || null,
+      details?.relatedCompany || null,
+      details?.result || 'SUCCESS',
+      details?.durationMs || 0,
+      details?.details || null,
+      new Date().toISOString()
+    ).run();
+  }
+
+  async getAutopilotActivity(userId: string, limit = 20): Promise<any[]> {
+    const { results } = await this.db.prepare(`
+      SELECT * FROM auto_apply_activity WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?
+    `).bind(userId, limit).all<any>();
+
+    return (results || []).map(r => ({
+      id: r.id,
+      userId: r.user_id,
+      agentName: r.agent_name,
+      action: r.action,
+      relatedJobTitle: r.related_job_title,
+      relatedCompany: r.related_company,
+      result: r.result,
+      durationMs: Number(r.duration_ms || 0),
+      details: r.details,
+      timestamp: r.timestamp,
+    }));
+  }
+
+  async reserveAutopilotQuota(userId: string, jobId: string, vacancyId: string): Promise<{ success: boolean; reservationId?: string; error?: string }> {
+    const entitlement = await this.getAutopilotEntitlement(userId);
+    if (!entitlement.unlimited && entitlement.remainingCount <= 0) {
+      return { success: false, error: 'Monthly auto-apply submission quota exhausted. Please upgrade your plan or wait for the next billing cycle.' };
+    }
+
+    const idempotencyKey = `${userId}:${vacancyId}`;
+    const reservationId = `res_${crypto.randomUUID().slice(0, 12)}`;
+
+    try {
+      await this.db.prepare(`
+        INSERT INTO auto_apply_reservations (
+          id, user_id, job_id, vacancy_id, status, reserved_at, idempotency_key
+        ) VALUES (?, ?, ?, ?, 'RESERVED', ?, ?)
+      `).bind(
+        reservationId,
+        userId,
+        jobId,
+        vacancyId,
+        new Date().toISOString(),
+        idempotencyKey
+      ).run();
+
+      if (!entitlement.unlimited) {
+        await this.db.prepare(`
+          UPDATE auto_apply_entitlements SET
+            reserved_count = reserved_count + 1,
+            remaining_count = MAX(0, monthly_limit - usage_count - (reserved_count + 1)),
+            updated_at = ?
+          WHERE user_id = ?
+        `).bind(new Date().toISOString(), userId).run();
+      }
+
+      return { success: true, reservationId };
+    } catch (err: any) {
+      if (String(err).includes('UNIQUE constraint failed')) {
+        return { success: false, error: 'An application for this vacancy has already been submitted or reserved.' };
+      }
+      return { success: false, error: err?.message || 'Quota reservation error' };
+    }
+  }
+
+  async commitAutopilotQuota(userId: string, reservationId: string, executionDetails: any): Promise<boolean> {
+    const now = new Date().toISOString();
+    await this.db.prepare(`
+      UPDATE auto_apply_reservations SET status = 'COMMITTED', committed_at = ? WHERE id = ? AND user_id = ?
+    `).bind(now, reservationId, userId).run();
+
+    const entitlement = await this.getAutopilotEntitlement(userId);
+    if (!entitlement.unlimited) {
+      await this.db.prepare(`
+        UPDATE auto_apply_entitlements SET
+          usage_count = usage_count + 1,
+          reserved_count = MAX(0, reserved_count - 1),
+          remaining_count = MAX(0, monthly_limit - (usage_count + 1) - MAX(0, reserved_count - 1)),
+          updated_at = ?
+        WHERE user_id = ?
+      `).bind(now, userId).run();
+    }
+
+    const execId = `exec_${crypto.randomUUID().slice(0, 12)}`;
+    await this.db.prepare(`
+      INSERT INTO auto_apply_executions (
+        id, user_id, job_id, vacancy_id, status, provider, submission_reference,
+        submission_timestamp, provider_response, resume_version, cover_letter_version
+      ) VALUES (?, ?, ?, ?, 'SUCCESS', ?, ?, ?, ?, ?, ?)
+    `).bind(
+      execId,
+      userId,
+      executionDetails.jobId,
+      executionDetails.vacancyId,
+      executionDetails.provider || 'official_ats',
+      executionDetails.submissionReference || `REF-${Date.now()}`,
+      now,
+      JSON.stringify(executionDetails.response || {}),
+      executionDetails.resumeVersion || null,
+      executionDetails.coverLetterVersion || null
+    ).run();
+
+    return true;
+  }
+
+  async releaseAutopilotQuota(userId: string, reservationId: string, reason: string): Promise<boolean> {
+    const now = new Date().toISOString();
+    await this.db.prepare(`
+      UPDATE auto_apply_reservations SET status = 'RELEASED', released_at = ?, release_reason = ? WHERE id = ? AND user_id = ?
+    `).bind(now, reason, reservationId, userId).run();
+
+    const entitlement = await this.getAutopilotEntitlement(userId);
+    if (!entitlement.unlimited) {
+      await this.db.prepare(`
+        UPDATE auto_apply_entitlements SET
+          reserved_count = MAX(0, reserved_count - 1),
+          remaining_count = MAX(0, monthly_limit - usage_count - MAX(0, reserved_count - 1)),
+          updated_at = ?
+        WHERE user_id = ?
+      `).bind(now, userId).run();
+    }
+
+    return true;
+  }
 }

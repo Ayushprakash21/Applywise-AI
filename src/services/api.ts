@@ -1644,4 +1644,40 @@ export const api = {
       body: JSON.stringify({ limit }),
     }),
 
+  // --- APPLYVISE AUTOPILOT — AUTONOMOUS AI JOB APPLICATION AGENT ---
+  getAutopilotSummary: () =>
+    fetchJson<{ success: boolean; summary: import('../types/autopilot.ts').AutopilotDashboardSummary }>('/api/autopilot/summary'),
+
+  updateAutopilotSettings: (settings: Partial<import('../types/autopilot.ts').AutopilotAgentSettings>) =>
+    fetchJson<{ success: boolean; settings: import('../types/autopilot.ts').AutopilotAgentSettings }>('/api/autopilot/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    }),
+
+  getAutopilotJobs: (status?: string) =>
+    fetchJson<{ success: boolean; jobs: import('../types/autopilot.ts').AutopilotJobItem[] }>(status ? `/api/autopilot/jobs?status=${encodeURIComponent(status)}` : '/api/autopilot/jobs'),
+
+  discoverAutopilotJobs: () =>
+    fetchJson<{ success: boolean; count: number; jobs: import('../types/autopilot.ts').AutopilotJobItem[] }>('/api/autopilot/discover', {
+      method: 'POST',
+    }),
+
+  submitAutopilotJob: (jobId: string) =>
+    fetchJson<{
+      success: boolean;
+      status: string;
+      submissionReference?: string;
+      requiresAttention?: boolean;
+      message: string;
+    }>(`/api/autopilot/jobs/${encodeURIComponent(jobId)}/submit`, {
+      method: 'POST',
+    }),
+
+  getAdminAutopilotOverview: () =>
+    fetchJson<{
+      success: boolean;
+      entitlements: any[];
+      activeJobs: any[];
+      recentExecutions: any[];
+    }>('/api/admin/autopilot/overview'),
 };
