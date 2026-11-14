@@ -85,9 +85,19 @@ export function computePopoverPlacement(
 export function detectResolvedTheme(theme: SelectTheme = 'auto'): 'light' | 'dark' | 'black-elite' {
   if (theme !== 'auto') return theme;
   if (typeof document !== 'undefined') {
+    const appearance =
+      document.documentElement.getAttribute('data-be-appearance') ||
+      document.body.getAttribute('data-be-appearance') ||
+      document.documentElement.getAttribute('data-theme-mode') ||
+      (document.documentElement.classList.contains('theme-black-light') ? 'light' : null);
+    if (appearance === 'light') {
+      return 'light';
+    }
     const htmlTheme = document.documentElement.getAttribute('data-theme');
     if (
       htmlTheme === 'black' ||
+      document.documentElement.classList.contains('theme-black-dark') ||
+      document.body.classList.contains('theme-black-dark') ||
       document.documentElement.classList.contains('theme-black') ||
       document.body.classList.contains('theme-black')
     ) {
@@ -104,21 +114,21 @@ function getThemeClasses(resolved: 'light' | 'dark' | 'black-elite') {
   if (resolved === 'black-elite') {
     return {
       trigger:
-        'bg-[#0D1014] border border-[rgba(198,166,106,0.28)] text-[#F2F0EA] hover:border-[rgba(198,166,106,0.55)] focus-visible:border-[#C6A66A] focus-visible:ring-2 focus-visible:ring-[#C6A66A]/25 placeholder-[#737780]',
-      triggerOpen: 'border-[#C6A66A] ring-2 ring-[#C6A66A]/25',
+        'bg-[var(--be-bg-input,#0D1014)] border border-[var(--be-border-subtle,rgba(198,166,106,0.28))] text-[var(--be-text-primary,#F2F0EA)] hover:border-[var(--be-border-focus,rgba(198,166,106,0.55))] focus-visible:border-[var(--be-accent,#C6A66A)] focus-visible:ring-2 focus-visible:ring-[var(--be-accent,#C6A66A)]/25 placeholder-[var(--be-text-muted,#737780)]',
+      triggerOpen: 'border-[var(--be-accent,#C6A66A)] ring-2 ring-[var(--be-accent,#C6A66A)]/25',
       menu:
-        'bg-[#14171C] border border-[rgba(198,166,106,0.34)] text-[#F2F0EA] shadow-[0_18px_48px_rgba(0,0,0,0.72)]',
+        'bg-[var(--be-bg-elevated,#14171C)] border border-[var(--be-border-focus,rgba(198,166,106,0.34))] text-[var(--be-text-primary,#F2F0EA)] shadow-[0_18px_48px_rgba(0,0,0,0.72)]',
       searchBox:
-        'bg-[#0D1014] border-b border-[rgba(255,255,255,0.08)] text-[#F2F0EA] placeholder-[#737780]',
+        'bg-[var(--be-bg-primary,#0D1014)] border-b border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-[var(--be-text-primary,#F2F0EA)] placeholder-[var(--be-text-muted,#737780)]',
       searchInput:
-        'bg-[#191D23] border border-[rgba(198,166,106,0.25)] text-[#F2F0EA] placeholder-[#737780] focus:border-[#C6A66A]',
-      optionDefault: 'text-[#E5E1D8] hover:bg-[rgba(198,166,106,0.10)]',
-      optionHighlighted: 'bg-[rgba(198,166,106,0.14)] text-[#F2F0EA]',
-      optionSelected: 'bg-[rgba(198,166,106,0.18)] text-[#E6C78B] font-semibold',
-      subtext: 'text-[#92949A]',
-      badge: 'bg-[#191D23] text-[#C6A66A] border border-[rgba(198,166,106,0.28)]',
-      mutedIcon: 'text-[#A98B57]',
-      divider: 'border-[rgba(255,255,255,0.08)]',
+        'bg-[var(--be-bg-input,#191D23)] border border-[var(--be-border-subtle,rgba(198,166,106,0.25))] text-[var(--be-text-primary,#F2F0EA)] placeholder-[var(--be-text-muted,#737780)] focus:border-[var(--be-accent,#C6A66A)]',
+      optionDefault: 'text-[var(--be-text-primary,#F2F0EA)] hover:bg-[var(--be-hover-bg,rgba(198,166,106,0.12))]',
+      optionHighlighted: 'bg-[var(--be-hover-bg,rgba(198,166,106,0.18))] text-[var(--be-text-primary,#F2F0EA)]',
+      optionSelected: 'bg-[var(--be-nav-active-bg,rgba(198,166,106,0.25))] text-[var(--be-accent,#E6C78B)] font-semibold',
+      subtext: 'text-[var(--be-text-secondary,#C0BDB5)]',
+      badge: 'bg-[var(--be-bg-secondary,#191D23)] text-[var(--be-accent,#C6A66A)] border border-[var(--be-border-subtle,rgba(198,166,106,0.28))]',
+      mutedIcon: 'text-[var(--be-accent,#C6A66A)]',
+      divider: 'border-[var(--be-border-subtle,rgba(255,255,255,0.08))]',
     };
   }
   if (resolved === 'dark') {
@@ -130,10 +140,10 @@ function getThemeClasses(resolved: 'light' | 'dark' | 'black-elite') {
       searchBox: 'bg-slate-950/70 border-b border-slate-800 text-slate-100 placeholder-slate-500',
       searchInput:
         'bg-slate-900 border border-slate-700 text-slate-100 placeholder-slate-400 focus:border-indigo-500',
-      optionDefault: 'text-slate-200 hover:bg-slate-800/80',
+      optionDefault: 'text-slate-100 hover:bg-slate-800/80',
       optionHighlighted: 'bg-slate-800 text-white',
       optionSelected: 'bg-indigo-600/25 text-indigo-300 font-semibold',
-      subtext: 'text-slate-400',
+      subtext: 'text-slate-300',
       badge: 'bg-slate-800 text-slate-300 border border-slate-700',
       mutedIcon: 'text-slate-400',
       divider: 'border-slate-800',
@@ -141,19 +151,19 @@ function getThemeClasses(resolved: 'light' | 'dark' | 'black-elite') {
   }
   return {
     trigger:
-      'bg-white border border-slate-200 text-slate-900 hover:border-slate-300 focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20 placeholder-slate-400 shadow-xs',
-    triggerOpen: 'border-blue-500 ring-2 ring-blue-500/20',
-    menu: 'bg-white border border-slate-200 text-slate-900 shadow-xl shadow-slate-900/10',
-    searchBox: 'bg-slate-50 border-b border-slate-100 text-slate-900 placeholder-slate-400',
+      'bg-[var(--be-bg-input,#FFFFFF)] border border-[var(--be-border-subtle,#CBD5E1)] text-[var(--be-text-primary,#0F172A)] hover:border-[var(--be-border-focus,#94A3B8)] focus-visible:border-[var(--be-accent,#0284C7)] focus-visible:ring-2 focus-visible:ring-[var(--be-accent,#0284C7)]/20 placeholder-[var(--be-text-muted,#64748B)] shadow-xs',
+    triggerOpen: 'border-[var(--be-accent,#0284C7)] ring-2 ring-[var(--be-accent,#0284C7)]/20',
+    menu: 'bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#E2E8F0)] text-[var(--be-text-primary,#0F172A)] shadow-xl shadow-slate-900/10',
+    searchBox: 'bg-[var(--be-bg-elevated,#F8FAFC)] border-b border-[var(--be-border-subtle,#E2E8F0)] text-[var(--be-text-primary,#0F172A)] placeholder-[var(--be-text-muted,#94A3B8)]',
     searchInput:
-      'bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:border-blue-500',
-    optionDefault: 'text-slate-700 hover:bg-slate-100',
-    optionHighlighted: 'bg-blue-50 text-slate-900',
-    optionSelected: 'bg-blue-50/90 text-blue-700 font-semibold',
-    subtext: 'text-slate-500',
-    badge: 'bg-slate-100 text-slate-600 border border-slate-200',
-    mutedIcon: 'text-slate-400',
-    divider: 'border-slate-100',
+      'bg-[var(--be-bg-input,#FFFFFF)] border border-[var(--be-border-subtle,#CBD5E1)] text-[var(--be-text-primary,#0F172A)] placeholder-[var(--be-text-muted,#94A3B8)] focus:border-[var(--be-accent,#0284C7)]',
+    optionDefault: 'text-[var(--be-text-primary,#0F172A)] hover:bg-[var(--be-hover-bg,#F1F5F9)]',
+    optionHighlighted: 'bg-[var(--be-hover-bg,#EFF6FF)] text-[var(--be-text-primary,#0F172A)]',
+    optionSelected: 'bg-[var(--be-nav-active-bg,#E0F2FE)] text-[var(--be-accent,#0284C7)] font-semibold',
+    subtext: 'text-[var(--be-text-secondary,#475569)]',
+    badge: 'bg-[var(--be-bg-elevated,#F1F5F9)] text-[var(--be-text-secondary,#475569)] border border-[var(--be-border-subtle,#CBD5E1)]',
+    mutedIcon: 'text-[var(--be-text-muted,#64748B)]',
+    divider: 'border-[var(--be-border-subtle,#E2E8F0)]',
   };
 }
 
@@ -486,9 +496,9 @@ export function SearchableSelect<T = any>({
                       }`}
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="text-xs leading-snug truncate">{opt.label}</div>
+                        <div className="text-xs leading-snug truncate" title={opt.label}>{opt.label}</div>
                         {opt.description && (
-                          <div className={`text-[10px] truncate mt-0.5 ${t.subtext}`}>
+                          <div className={`text-[10px] truncate mt-0.5 ${t.subtext}`} title={opt.description}>
                             {opt.description}
                           </div>
                         )}
@@ -532,7 +542,10 @@ export function SearchableSelect<T = any>({
       >
         <span className="flex items-center gap-2 min-w-0 flex-1">
           {leadingIcon && <span className={`shrink-0 ${t.mutedIcon}`}>{leadingIcon}</span>}
-          <span className={`truncate ${selectedOption ? '' : 'opacity-65'}`}>
+          <span
+            className={`truncate ${selectedOption ? '' : 'opacity-65'}`}
+            title={selectedOption ? selectedOption.label : placeholder}
+          >
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </span>

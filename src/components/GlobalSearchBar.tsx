@@ -177,37 +177,27 @@ export const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({
             inputRef.current?.focus();
             setIsOpen(true);
           }}
-          className={`w-full h-9 px-3.5 rounded-full flex items-center justify-between transition-all duration-200 cursor-text group ${
+          className={`w-full h-10 px-3.5 rounded-full flex items-center justify-between transition-all duration-200 cursor-text group ${
             isBlack
-              ? 'bg-[#101318] hover:bg-[#141820] focus-within:bg-[#12161E] border border-[rgba(255,255,255,0.08)] hover:border-[rgba(198,166,106,0.30)] focus-within:border-[rgba(198,166,106,0.50)] focus-within:ring-1 focus-within:ring-[rgba(198,166,106,0.25)] shadow-inner shadow-black/40'
-              : 'bg-white/80 hover:bg-white focus-within:bg-white border border-slate-200/90 hover:border-slate-300 focus-within:border-slate-400 focus-within:ring-1 focus-within:ring-slate-400/20 shadow-2xs'
+              ? 'bg-[var(--be-bg-input,#101318)] hover:bg-[var(--be-hover-bg,#141820)] focus-within:bg-[var(--be-bg-elevated,#12161E)] border border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:border-[var(--be-border-focus,rgba(198,166,106,0.30))] focus-within:border-[var(--be-accent-primary,#C6A66A)] focus-within:ring-2 focus-within:ring-[var(--be-accent-primary,#C6A66A)]/25 shadow-xs'
+              : 'bg-white/80 hover:bg-white focus-within:bg-white border border-slate-200/90 hover:border-slate-300 focus-within:border-[var(--be-accent-primary,#0284C7)] focus-within:ring-2 focus-within:ring-[var(--be-accent-primary,#0284C7)]/20 shadow-xs'
           }`}
-          style={
-            isBlack
-              ? {
-                  backgroundColor: 'var(--be-bg-input, #101318)',
-                  borderColor: isOpen
-                    ? 'var(--be-accent-primary, #C6A66A)'
-                    : 'var(--be-border-subtle, rgba(255, 255, 255, 0.08))',
-                }
-              : undefined
-          }
+          style={{
+            backgroundColor: 'var(--be-bg-input, var(--surface-input))',
+            borderColor: isOpen
+              ? 'var(--be-accent-primary, #C6A66A)'
+              : 'var(--be-border-subtle, var(--border-subtle))',
+          }}
         >
           {/* Left: Elegant Search Icon & Text Input */}
           <div className="flex items-center space-x-2.5 min-w-0 flex-1">
             <Search
-              className={`w-3.5 h-3.5 shrink-0 transition-colors ${
-                isBlack
-                  ? 'text-[#92949A] group-hover:text-[#C6A66A] group-focus-within:text-[#C6A66A]'
-                  : 'text-slate-400 group-hover:text-slate-600 group-focus-within:text-slate-800'
-              }`}
-              style={
-                isBlack
-                  ? {
-                      color: isOpen ? 'var(--be-accent-primary, #C6A66A)' : 'var(--be-accent-muted, #92949A)',
-                    }
-                  : undefined
-              }
+              className="w-4 h-4 shrink-0 transition-colors"
+              style={{
+                color: isOpen
+                  ? 'var(--be-accent-primary, #C6A66A)'
+                  : 'var(--be-text-secondary, #555C66)',
+              }}
             />
             <input
               ref={inputRef}
@@ -222,18 +212,14 @@ export const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({
               onKeyDown={handleInputKeyDown}
               placeholder={placeholder}
               aria-label="Global search"
-              className={`w-full bg-transparent border-0 outline-none text-xs leading-none p-0 tracking-normal ${
-                isBlack
-                  ? 'text-[#F2F0EA] placeholder:text-[#92949A]'
-                  : 'text-slate-900 placeholder:text-slate-400'
-              }`}
-              style={
-                isBlack
-                  ? {
-                      color: 'var(--be-text-primary, #F2F0EA)',
-                    }
-                  : undefined
-              }
+              className="w-full bg-transparent border-0 outline-none text-xs leading-none p-0 tracking-normal placeholder:opacity-75 focus:outline-none"
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+                outline: 'none',
+                color: 'var(--be-text-primary, currentColor)',
+              }}
             />
           </div>
 
@@ -248,12 +234,11 @@ export const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({
                   setSelectedIndex(-1);
                   inputRef.current?.focus();
                 }}
-                className={`p-0.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-slate-200 transition-colors ${
-                  isBlack ? 'text-[#92949A] hover:text-[#F2F0EA]' : 'text-slate-400 hover:text-slate-600'
-                }`}
+                className="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                style={{ color: 'var(--be-text-muted, #707782)' }}
                 aria-label="Clear search input"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
 
@@ -261,23 +246,15 @@ export const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({
               aria-keyshortcuts={isMac ? 'Meta+K' : 'Control+K'}
               aria-label={isMac ? 'Shortcut: Command K' : 'Shortcut: Control K'}
               title={isMac ? 'Command + K' : 'Control + K'}
-              className={`inline-flex items-center justify-center font-mono text-[10px] tracking-wider uppercase px-1.5 py-0.5 rounded-md transition-all duration-200 select-none border ${
-                isBlack
-                  ? 'bg-white/[0.04] border-[rgba(255,255,255,0.08)] group-hover:border-[rgba(198,166,106,0.30)] text-[#C6A66A]'
-                  : 'bg-slate-100 text-slate-500 border-slate-200/90 group-hover:border-slate-300'
-              }`}
-              style={
-                isBlack
-                  ? {
-                      backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                      borderColor: 'var(--be-border-subtle, rgba(255, 255, 255, 0.08))',
-                      color: 'var(--be-accent-primary, #C6A66A)',
-                    }
-                  : undefined
-              }
+              className="inline-flex items-center justify-center font-mono text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded-md transition-all duration-200 select-none border shadow-2xs bg-white/[0.04]"
+              style={{
+                backgroundColor: 'var(--be-bg-elevated, rgba(255, 255, 255, 0.04))',
+                borderColor: 'var(--be-border-subtle, rgba(255, 255, 255, 0.08))',
+                color: 'var(--be-accent-primary, #C6A66A)',
+              }}
             >
               <span className="sr-only">⌘K</span>
-              <span className="leading-none font-medium">{shortcutDisplay}</span>
+              <span className="leading-none">{shortcutDisplay}</span>
             </kbd>
           </div>
         </div>

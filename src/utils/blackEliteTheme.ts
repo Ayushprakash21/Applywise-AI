@@ -450,6 +450,7 @@ export function applyThemeToDOM(
     '--be-bg-card': tokens.bgCard,
     '--be-bg-elevated': tokens.bgElevated,
     '--be-bg-input': tokens.bgInput || (appearance === 'light' ? '#FFFFFF' : tokens.bgSecondary),
+    '--be-bg-modal': appearance === 'light' ? (tokens.bgCard || '#FFFFFF') : (tokens.bgElevated || '#15181E'),
     '--be-border-subtle': tokens.borderSubtle,
     '--be-border-focus': tokens.borderFocus,
     '--be-text-primary': tokens.textPrimary,

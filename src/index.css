@@ -664,9 +664,9 @@ body.theme-black {
 }
 
 /* 6. Inputs, Selects & Forms (Fine Neutral Borders · Accent ONLY on Focus) */
-.theme-black input,
-.theme-black textarea,
-.theme-black select,
+.theme-black input:not(.bg-transparent):not(.border-0),
+.theme-black textarea:not(.bg-transparent):not(.border-0),
+.theme-black select:not(.bg-transparent):not(.border-0),
 .theme-black .neu-input,
 .theme-black .glass-input,
 .theme-black .be-input {
@@ -676,9 +676,9 @@ body.theme-black {
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45) !important;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
-.theme-black input:focus,
-.theme-black textarea:focus,
-.theme-black select:focus,
+.theme-black input:not(.bg-transparent):not(.border-0):focus,
+.theme-black textarea:not(.bg-transparent):not(.border-0):focus,
+.theme-black select:not(.bg-transparent):not(.border-0):focus,
 .theme-black .neu-input:focus,
 .theme-black .glass-input:focus,
 .theme-black .be-input:focus {
@@ -691,6 +691,17 @@ body.theme-black {
   color: var(--be-text-disabled, #737780) !important;
 }
 
+/* Explicit Search & Transparent Input Boundary Protection */
+[role="search"] input,
+input.bg-transparent,
+input.border-0 {
+  background-color: transparent !important;
+  border: 0 !important;
+  border-width: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
 /* 7. Modals, Drawers & Dropdowns (Dynamic Modal Surfaces) */
 .theme-black .fixed.inset-0.bg-slate-900\/40,
 .theme-black .fixed.inset-0.bg-black\/50,
@@ -698,14 +709,23 @@ body.theme-black {
   background-color: rgba(9, 10, 12, 0.88) !important;
 }
 
-.theme-black [role="dialog"],
-.theme-black [class*="rounded-3xl bg-white"],
-.theme-black [class*="rounded-2xl bg-white"],
-.theme-black [class*="rounded-xl bg-white"] {
+.theme-black-dark [role="dialog"],
+.theme-black-dark .be-modal,
+.theme-black-dark [data-be-modal="true"] {
   background-color: var(--be-bg-modal, #15181E) !important;
   border: 1px solid var(--be-border-focus, rgba(198, 166, 106, 0.30)) !important;
   color: var(--be-text-primary, #F2F0EA) !important;
   box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.85) !important;
+}
+
+.theme-black-light [role="dialog"],
+[data-be-appearance="light"] [role="dialog"],
+.theme-black-light .be-modal,
+[data-be-appearance="light"] .be-modal {
+  background-color: var(--be-bg-modal, #FFFFFF) !important;
+  border: 1px solid var(--be-border-subtle, #DEDAD0) !important;
+  color: var(--be-text-primary, #20242B) !important;
+  box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.15) !important;
 }
 
 /* Modal header separators */
@@ -1195,15 +1215,15 @@ body.theme-black {
 }
 
 /* 5. Inputs and Forms in Light Mode */
-.theme-black-light input,
-.theme-black-light textarea,
-.theme-black-light select,
+.theme-black-light input:not(.bg-transparent):not(.border-0),
+.theme-black-light textarea:not(.bg-transparent):not(.border-0),
+.theme-black-light select:not(.bg-transparent):not(.border-0),
 .theme-black-light .neu-input,
 .theme-black-light .glass-input,
 .theme-black-light .be-input,
-[data-be-appearance="light"] input,
-[data-be-appearance="light"] textarea,
-[data-be-appearance="light"] select,
+[data-be-appearance="light"] input:not(.bg-transparent):not(.border-0),
+[data-be-appearance="light"] textarea:not(.bg-transparent):not(.border-0),
+[data-be-appearance="light"] select:not(.bg-transparent):not(.border-0),
 [data-be-appearance="light"] .neu-input,
 [data-be-appearance="light"] .glass-input,
 [data-be-appearance="light"] .be-input {

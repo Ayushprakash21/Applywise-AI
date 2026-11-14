@@ -26,7 +26,7 @@ import { UserProfile, ExperienceItem } from '../types/index.ts';
 import { LocationAutocomplete } from './ui/SelectSystem.tsx';
 import { BrandLogo } from './BrandLogo.tsx';
 import { Globe } from 'lucide-react';
-import { LanguageSelector } from './LanguageSelector.tsx';
+import { HeaderLanguageSelector } from './HeaderLanguageSelector.tsx';
 import { useLanguage } from '../context/LanguageContext.tsx';
 
 interface ResumeOnboardingModalProps {
@@ -53,7 +53,6 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
   const [replaceExisting, setReplaceExisting] = useState(false);
   const [showReplaceOption, setShowReplaceOption] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [languageModalOpen, setLanguageModalOpen] = useState(false);
   const { metadata, t } = useLanguage();
   const [editingExpIndex, setEditingExpIndex] = useState<number | null>(null);
   const [editExpForm, setEditExpForm] = useState<ExperienceItem | null>(null);
@@ -451,15 +450,7 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
             </div>
           </div>
           <div className="flex items-center space-x-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => setLanguageModalOpen(true)}
-              className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center space-x-1.5 transition cursor-pointer select-none"
-              title="Select language"
-            >
-              <Globe className="h-3.5 w-3.5 text-[#C6A66A]" />
-              <span className="hidden sm:inline">{metadata.nativeName}</span>
-            </button>
+            <HeaderLanguageSelector plan="free" />
             <button
               onClick={onClose}
               aria-label="Close"
@@ -1199,13 +1190,6 @@ export const ResumeOnboardingModal: React.FC<ResumeOnboardingModalProps> = ({
           )}
         </div>
       </div>
-
-      <LanguageSelector
-        variant="modal"
-        isOpen={languageModalOpen}
-        onClose={() => setLanguageModalOpen(false)}
-        isBlack={false}
-      />
     </div>
   );
 };

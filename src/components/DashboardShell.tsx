@@ -39,6 +39,7 @@ import { AuthUser } from '../services/api.ts';
 import { NotificationItem, AutomationSettings, AccountUsageStats } from '../types/index.ts';
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 import { ProfileIdentityComponent } from './ProfileIdentityComponent.tsx';
+import { HeaderLanguageSelector } from './HeaderLanguageSelector.tsx';
 import { useLanguage } from '../context/LanguageContext.tsx';
 
 export type DashboardTab =
@@ -293,7 +294,10 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               </span>
             </button>
 
-            {/* B. Notification Button & Dropdown */}
+            {/* B. Compact Header Language Selector */}
+            <HeaderLanguageSelector plan={plan} />
+
+            {/* C. Notification Button & Dropdown */}
             <div className="relative" ref={notifRef}>
               <button
                 type="button"

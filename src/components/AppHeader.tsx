@@ -21,6 +21,7 @@ import { AuthUser } from '../services/api.ts';
 import { NotificationItem, AutomationSettings, AccountUsageStats } from '../types/index.ts';
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 import { ProfileIdentityComponent } from './ProfileIdentityComponent.tsx';
+import { HeaderLanguageSelector } from './HeaderLanguageSelector.tsx';
 
 interface AppHeaderProps {
   user: AuthUser;
@@ -210,6 +211,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 <span>{settings.emergencyStop ? 'Halted' : 'Active Safe'}</span>
               </button>
             )}
+
+            {/* Header Language Selector */}
+            <HeaderLanguageSelector plan={plan} />
 
             {/* Notification Bell */}
             <div className="relative" ref={notifRef}>

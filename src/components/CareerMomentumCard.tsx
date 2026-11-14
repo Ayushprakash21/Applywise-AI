@@ -87,36 +87,88 @@ export const CareerMomentumCard: React.FC<CareerMomentumCardProps> = ({
   ];
 
   return (
-    <div className={`p-6 sm:p-7 rounded-3xl bg-white/65 backdrop-blur-2xl border border-white/85 shadow-[0_20px_50px_rgba(80,100,150,0.12),0_0_0_1px_rgba(255,255,255,0.4)_inset] ${className}`}>
+    <div
+      className={`p-6 sm:p-7 rounded-3xl border transition-colors ${className}`}
+      style={{
+        backgroundColor: 'var(--be-bg-card, #FFFFFF)',
+        borderColor: 'var(--be-border-subtle, rgba(0,0,0,0.08))',
+        boxShadow: 'var(--be-shadow-card, 0 4px 20px -2px rgba(0, 0, 0, 0.08))',
+      }}
+    >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-200/70 gap-3">
+      <div
+        className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b gap-3"
+        style={{ borderColor: 'var(--be-border-subtle, rgba(0,0,0,0.08))' }}
+      >
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/25 border border-emerald-300/40 text-emerald-600 flex items-center justify-center shadow-xs">
+          <div
+            className="w-10 h-10 rounded-2xl border flex items-center justify-center shadow-xs"
+            style={{
+              backgroundColor: 'var(--be-hover-bg, rgba(53,184,135,0.12))',
+              borderColor: 'var(--be-border-subtle, rgba(53,184,135,0.25))',
+              color: 'var(--be-status-success, #147A58)',
+            }}
+          >
             <TrendingUp className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-[10px] font-mono uppercase font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
+              <span
+                className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded-full border"
+                style={{
+                  backgroundColor: 'var(--be-hover-bg, rgba(20,122,88,0.10))',
+                  borderColor: 'var(--be-border-subtle, rgba(20,122,88,0.20))',
+                  color: 'var(--be-status-success, #147A58)',
+                }}
+              >
                 Active Ground Truth
               </span>
-              <span className="text-xs text-slate-400 font-mono">Real Activity Only</span>
+              <span
+                className="text-xs font-mono"
+                style={{ color: 'var(--be-text-muted, #707782)' }}
+              >
+                Real Activity Only
+              </span>
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight mt-0.5">
+            <h3
+              className="text-base sm:text-lg font-bold tracking-tight mt-0.5"
+              style={{ color: 'var(--be-text-primary, #20242B)' }}
+            >
               Career Momentum
             </h3>
-            <p className="text-xs text-slate-500">Measurable Progress Across Active Search</p>
+            <p
+              className="text-xs"
+              style={{ color: 'var(--be-text-secondary, #555C66)' }}
+            >
+              Measurable Progress Across Active Search
+            </p>
           </div>
         </div>
 
         {/* Profile Depth Badge */}
         <div className="flex items-center space-x-3 self-start sm:self-auto shrink-0">
           <div className="text-right">
-            <span className="text-[10px] text-slate-400 font-mono block">Profile Depth</span>
-            <span className="text-xs font-bold text-slate-900 font-mono">
+            <span
+              className="text-[10px] font-mono block"
+              style={{ color: 'var(--be-text-muted, #707782)' }}
+            >
+              Profile Depth
+            </span>
+            <span
+              className="text-xs font-bold font-mono"
+              style={{ color: 'var(--be-text-primary, #20242B)' }}
+            >
               {profileCompleteness}% Complete
             </span>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-mono text-xs font-bold text-slate-800 shadow-xs">
+          <div
+            className="w-11 h-11 rounded-xl border flex items-center justify-center font-mono text-xs font-bold shadow-xs"
+            style={{
+              backgroundColor: 'var(--be-bg-elevated, #FAF8F5)',
+              borderColor: 'var(--be-border-subtle, rgba(0,0,0,0.08))',
+              color: 'var(--be-text-primary, #20242B)',
+            }}
+          >
             {profileCompleteness}%
           </div>
         </div>
@@ -130,21 +182,40 @@ export const CareerMomentumCard: React.FC<CareerMomentumCardProps> = ({
             <div
               key={idx}
               onClick={() => onNavigateTab && onNavigateTab(m.tab)}
-              className="group p-4 rounded-2xl bg-white/70 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-xs transition duration-200 cursor-pointer flex flex-col justify-between"
+              className="group p-4 rounded-2xl border transition duration-200 cursor-pointer flex flex-col justify-between"
+              style={{
+                backgroundColor: 'var(--be-bg-elevated, #FAF8F5)',
+                borderColor: 'var(--be-border-subtle, rgba(0,0,0,0.08))',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--be-border-focus, rgba(198,166,106,0.40))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--be-border-subtle, rgba(0,0,0,0.08))';
+              }}
             >
               <div className="flex items-center justify-between mb-3">
                 <span className={`w-10 h-10 rounded-xl flex items-center justify-center border bg-gradient-to-br ${m.gradient} shadow-2xs group-hover:scale-105 transition-transform`}>
                   <Icon className="h-5 w-5" />
                 </span>
-                <span className="text-2xl font-extrabold font-mono text-slate-900 group-hover:text-blue-600 transition-colors">
+                <span
+                  className="text-2xl font-extrabold font-mono transition-colors"
+                  style={{ color: 'var(--be-text-primary, #20242B)' }}
+                >
                   {m.value}
                 </span>
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-800 leading-snug">
+                <p
+                  className="text-xs font-bold leading-snug"
+                  style={{ color: 'var(--be-text-primary, #20242B)' }}
+                >
                   {m.label}
                 </p>
-                <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                <p
+                  className="text-[11px] mt-0.5 truncate"
+                  style={{ color: 'var(--be-text-muted, #707782)' }}
+                >
                   {m.subtext}
                 </p>
               </div>
@@ -154,16 +225,26 @@ export const CareerMomentumCard: React.FC<CareerMomentumCardProps> = ({
       </div>
 
       {/* Progress Integrity Guarantee */}
-      <div className="mt-5 pt-3.5 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-slate-500 gap-2">
+      <div
+        className="mt-5 pt-3.5 border-t flex flex-col sm:flex-row sm:items-center justify-between text-[11px] gap-2"
+        style={{
+          borderColor: 'var(--be-border-subtle, rgba(0,0,0,0.08))',
+          color: 'var(--be-text-muted, #707782)',
+        }}
+      >
         <span className="flex items-center space-x-2">
-          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+          <CheckCircle2
+            className="h-4 w-4 shrink-0"
+            style={{ color: 'var(--be-status-success, #147A58)' }}
+          />
           <span>Zero fabricated activity. All metrics derived from verified user data.</span>
         </span>
         {onNavigateTab && (
           <button
             type="button"
             onClick={() => onNavigateTab('applications')}
-            className="text-blue-600 hover:text-indigo-600 font-semibold flex items-center space-x-1 cursor-pointer self-start sm:self-auto transition"
+            className="font-semibold flex items-center space-x-1 cursor-pointer self-start sm:self-auto transition"
+            style={{ color: 'var(--be-accent, #C6A66A)' }}
           >
             <span>View Pipeline</span>
             <ArrowRight className="h-3.5 w-3.5" />
