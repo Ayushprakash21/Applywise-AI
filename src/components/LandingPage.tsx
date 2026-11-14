@@ -639,7 +639,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Section F: Meet the Founder */}
       <section id="founder">
-        <FounderSection theme={currentAppearance} onReadStory={onOpenAbout} />
+        <FounderSection theme="light" onReadStory={onOpenAbout} />
       </section>
 
       {/* Section G: Call to Action */}
