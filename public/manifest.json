@@ -1,7 +1,7 @@
 {
-  "name": "ApplyVise AI",
+  "name": "ApplyVise AI — Job Discovery & Application Automation",
   "short_name": "ApplyVise",
-  "description": "Intelligent job discovery, truthful resume optimization, and guided application preparation.",
+  "description": "Find opportunities before the crowd. Let AI do the heavy lifting with automated job discovery, matching, and applications.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F8FAFC",

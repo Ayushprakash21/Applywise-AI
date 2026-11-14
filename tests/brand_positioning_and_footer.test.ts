@@ -29,18 +29,25 @@ test('ApplyVise AI — Brand Positioning & Unified Global Footer Integrity Suite
   const jobImportSource = fs.readFileSync(jobImportPath, 'utf8');
 
   await t.test('1. Core Brand Positioning Statements in GlobalFooter', () => {
-    // Primary Statement
+    // Supporting Tagline
     assert.match(
       footerSource,
-      /Your Career\.\s*Intelligently Orchestrated\./,
-      'GlobalFooter must include primary brand statement: "Your Career. Intelligently Orchestrated."'
+      /BRAND_CONFIG\.tagline|Find opportunities before the crowd/,
+      'GlobalFooter must include approved supporting tagline'
     );
 
-    // Supporting Statement
+    // Official Product Description
     assert.match(
       footerSource,
-      /Discover opportunities\.\s*Build your professional edge\.\s*Navigate every career move with AI-powered intelligence\./,
-      'GlobalFooter must include supporting statement'
+      /BRAND_CONFIG\.description|ApplyVise combines global job discovery/,
+      'GlobalFooter must include approved product description'
+    );
+
+    // No obsolete slogans
+    assert.doesNotMatch(
+      footerSource,
+      /Your Career\.\s*Intelligently Orchestrated\./,
+      'GlobalFooter must not contain deprecated slogan'
     );
 
     // Brand Name & Logo
@@ -103,6 +110,7 @@ test('ApplyVise AI — Brand Positioning & Unified Global Footer Integrity Suite
 
     // JobImportModal check
     assert.doesNotMatch(jobImportSource, /ApplyVise AI · Career Operating System/, 'JobImportModal has no old Operating System slogan');
-    assert.match(jobImportSource, /ApplyVise AI · Your Career\. Intelligently Orchestrated\./, 'JobImportModal has new positioning statement');
+    assert.doesNotMatch(jobImportSource, /Your Career\. Intelligently Orchestrated\./, 'JobImportModal has no deprecated Orchestrated slogan');
+    assert.match(jobImportSource, /ApplyVise AI · Find opportunities before the crowd|BRAND_CONFIG\.tagline/, 'JobImportModal has approved tagline');
   });
 });

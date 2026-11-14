@@ -33,6 +33,7 @@ import {
 import { LocationAutocomplete, SearchableSelect } from './ui/SelectSystem.tsx';
 import { CURRENCY_OPTIONS } from '../data/platformOptions.ts';
 import { api } from '../services/api.ts';
+import { BRAND_CONFIG } from '../config/brand.ts';
 
 export interface JobImportModalProps {
   isOpen: boolean;
@@ -992,7 +993,7 @@ export const JobImportModal: React.FC<JobImportModalProps> = ({
           ) : (
             <>
               <div className="text-[11px] text-slate-500 font-mono">
-                ApplyVise AI · Your Career. Intelligently Orchestrated.
+                ApplyVise AI · {BRAND_CONFIG.tagline}
               </div>
               <button
                 type="button"

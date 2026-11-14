@@ -60,11 +60,11 @@ test('ApplyVise AI — Universal Language Engine Comprehensive Test Suite', asyn
   await t.test('3. Deterministic UI Dictionaries & Key Resolution', () => {
     // English Master
     const enTagline = translateKey('en-US', 'brand.tagline');
-    assert.strictEqual(enTagline, 'Your Career. Intelligently Orchestrated.');
+    assert.strictEqual(enTagline, 'Find opportunities before the crowd. Let AI do the heavy lifting.');
 
     // Hindi Translation
     const hiTagline = translateKey('hi-IN', 'brand.tagline');
-    assert.strictEqual(hiTagline, 'आपका करियर। बुद्धिमानी से व्यवस्थित।');
+    assert.strictEqual(hiTagline, 'भीड़ से पहले अवसर खोजें। भारी काम AI को करने दें।');
 
     // Spanish Translation
     const esDesk = translateKey('es-ES', 'nav.desk');

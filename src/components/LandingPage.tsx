@@ -250,8 +250,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </header>
 
       {/* Signature Cinematic Homepage Hero Component */}
-      {/* Narrative Architecture: Your Career. Intelligently Orchestrated. · Your next career move */}
-      {/* Hero narrative copy: Discover opportunities. Bring your experience into one intelligent career workspace. */}
+      {/* Official Positioning: India's First AI-Powered Job Discovery & Application Automation Platform */}
       <CareerIntelligenceHero
         onOpenAuth={onOpenAuth}
         onSearch={onSearch}

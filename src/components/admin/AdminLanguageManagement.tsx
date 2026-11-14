@@ -28,6 +28,7 @@ import {
   LibreTranslateHealth,
   TranslationUsageStats,
 } from '../../types/localization.ts';
+import { BRAND_CONFIG } from '../../config/brand.ts';
 
 export interface AdminLanguageManagementProps {
   isBlack?: boolean;
@@ -41,7 +42,7 @@ export const AdminLanguageManagement: React.FC<AdminLanguageManagementProps> = (
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'beta'>('all');
-  const [testText, setTestText] = useState('Your Career. Intelligently Orchestrated.');
+  const [testText, setTestText] = useState(BRAND_CONFIG.tagline);
   const [testTarget, setTestTarget] = useState('hi');
   const [targetDropdownOpen, setTargetDropdownOpen] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);

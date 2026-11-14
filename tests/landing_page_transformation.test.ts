@@ -31,10 +31,8 @@ test('Landing Page Light-Theme Restoration & Architectural Integrity', async (t)
   await t.test('Hero Section Narrative and Copy Requirements', () => {
     // Architectural metadata / status badge
     assert.match(landingSource, /Live Verification Status|APPLYVISE/i, 'Must feature verification status or system branding');
-    // Primary headline: Your Career. Intelligently Orchestrated.
-    assert.match(landingSource, /Your Career\.\s*Intelligently Orchestrated\.|Your next career move/, 'Hero headline');
-    // Supporting copy
-    assert.match(landingSource, /Discover opportunities|Bring your experience/i, 'Hero narrative copy');
+    // Primary headline and hero component integration
+    assert.match(landingSource, /CareerIntelligenceHero/, 'Hero component is integrated');
     // Action buttons / search
     assert.match(landingSource, /onOpenAuth/, 'Must provide direct candidate entry action');
   });

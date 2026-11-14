@@ -7,6 +7,7 @@ import { AuthFeatureCards } from './AuthFeatureCards.tsx';
 import { AuthBackground } from './auth/AuthBackground.tsx';
 import { AuthGlassCard } from './auth/AuthGlassCard.tsx';
 import { GoogleAuthButton } from './auth/GoogleAuthButton.tsx';
+import { BRAND_CONFIG } from '../config/brand.ts';
 import {
   loadGoogleScript,
   initGoogleIdentity,
@@ -30,7 +31,7 @@ export interface FlowLoginProps {
 
 export const FlowLogin: React.FC<FlowLoginProps> = ({
   title = 'Sign In to ApplyVise AI',
-  subtitle = 'Sign in to access your applications, tailored resumes, and live opportunities.',
+  subtitle = BRAND_CONFIG.tagline,
   showSocial = true,
   showRemember = true,
   showForgot = true,

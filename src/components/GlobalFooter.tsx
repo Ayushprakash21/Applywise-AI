@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrandLogo } from './BrandLogo.tsx';
 import { ShieldCheck } from 'lucide-react';
+import { BRAND_CONFIG } from '../config/brand.ts';
 
 export interface GlobalFooterProps {
   variant?: 'dashboard' | 'landing' | 'minimal';
@@ -56,7 +57,7 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({
             </span>
             <span className="text-slate-400 dark:text-[#92949A]">·</span>
             <span className="font-medium text-slate-700 dark:text-[#C0BDB5]">
-              Your Career. Intelligently Orchestrated.
+              {BRAND_CONFIG.tagline}
             </span>
           </div>
           <p className="text-[11px] text-slate-500 dark:text-[#92949A] font-mono">
@@ -97,14 +98,14 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({
                 className="font-semibold text-xs tracking-tight text-slate-800 dark:text-[#F2F0EA]"
                 style={isBlack ? { color: 'var(--be-text-primary, #F2F0EA)' } : undefined}
               >
-                Your Career. Intelligently Orchestrated.
+                {BRAND_CONFIG.tagline}
               </span>
             </div>
             <p
               className="text-[11px] leading-relaxed text-slate-600 dark:text-[#92949A]"
               style={isBlack ? { color: 'var(--be-text-muted, #92949A)' } : undefined}
             >
-              Discover opportunities. Build your professional edge. Navigate every career move with AI-powered intelligence.
+              {BRAND_CONFIG.description}
             </p>
           </div>
 
@@ -186,10 +187,10 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({
           </div>
           <div>
             <h4 className="font-semibold text-sm tracking-tight text-[#F2F0EA]">
-              Your Career. Intelligently Orchestrated.
+              {BRAND_CONFIG.tagline}
             </h4>
             <p className="text-xs text-slate-400 dark:text-[#92949A] mt-1 leading-relaxed">
-              Discover opportunities. Build your professional edge. Navigate every career move with AI-powered intelligence.
+              {BRAND_CONFIG.description}
             </p>
           </div>
         </div>

@@ -16,6 +16,7 @@ import { GlobalFooter } from './GlobalFooter.tsx';
 import { FounderSection } from './FounderSection.tsx';
 import { useTheme } from '../context/ThemeContext.tsx';
 import { GlobalThemeSwitch } from './ui/GlobalThemeSwitch.tsx';
+import { BRAND_CONFIG } from '../config/brand.ts';
 
 interface AboutPageProps {
   onGetStarted: () => void;
@@ -66,15 +67,15 @@ export const AboutPage: React.FC<AboutPageProps> = ({
           <div className="lg:col-span-7 space-y-6">
             <div className="inline-flex items-center space-x-2 text-xs font-medium text-[var(--be-accent,#A78343)]">
               <span className="w-2 h-2 rounded-full bg-[var(--be-accent,#A78343)]" />
-              <span>Platform Architecture & Mission</span>
+              <span>{BRAND_CONFIG.tagline}</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl font-extrabold text-[var(--be-text-heading,#191D24)] tracking-tight leading-tight">
-              Truthful career intelligence built for realistic professional progression.
+              India&apos;s First AI-Powered Job Discovery &amp; Application Automation Platform.
             </h1>
 
             <p className="text-base text-[var(--be-text-secondary,#555C66)] leading-relaxed max-w-xl">
-              ApplyVise AI integrates vacancy aggregation, authentic ATS resume tailoring, application tracking, and candidate career roadmaps into one coherent operating system without fabricated credentials.
+              {BRAND_CONFIG.description}
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">

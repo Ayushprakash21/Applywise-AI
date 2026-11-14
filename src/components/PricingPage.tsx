@@ -19,6 +19,7 @@ import { AuthUser, api, ApiError } from '../services/api.ts';
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 import { GlobalThemeSwitch } from './ui/GlobalThemeSwitch.tsx';
 import { useTheme } from '../context/ThemeContext.tsx';
+import { BRAND_CONFIG } from '../config/brand.ts';
 
 interface PricingPageProps {
   currentUser: AuthUser | null;
@@ -226,7 +227,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             <p className={`max-w-xl text-xs sm:text-sm leading-relaxed ${
               isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'
             }`}>
-              Transparent subscriptions designed to maximize your application results with zero-hallucination resume intelligence.
+              {BRAND_CONFIG.tagline}
             </p>
           </div>
         </div>

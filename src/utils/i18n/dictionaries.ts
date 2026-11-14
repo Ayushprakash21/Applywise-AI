@@ -11,8 +11,10 @@ export const DICTIONARIES: Record<string, TranslationDictionary> = {
   'en-US': {
     // Brand & Common
     'brand.name': 'ApplyVise AI',
-    'brand.tagline': 'Your Career. Intelligently Orchestrated.',
-    'brand.subtagline': 'Discover opportunities. Build your professional edge. Navigate every career move with AI-powered intelligence.',
+    'brand.headline': "India's First AI-Powered Job Discovery & Application Automation Platform.",
+    'brand.tagline': 'Find opportunities before the crowd. Let AI do the heavy lifting.',
+    'brand.description': 'ApplyVise combines global job discovery, intelligent job matching, AI resume engineering, recruiter intelligence and automated applications to transform how people find and apply for jobs.',
+    'brand.subtagline': 'Find opportunities before the crowd. Let AI do the heavy lifting.',
     'common.save': 'Save Changes',
     'common.cancel': 'Cancel',
     'common.delete': 'Delete',
@@ -101,8 +103,10 @@ export const DICTIONARIES: Record<string, TranslationDictionary> = {
   'hi-IN': {
     // Brand & Common
     'brand.name': 'अप्लाईवाइज़ एआई (ApplyVise AI)',
-    'brand.tagline': 'आपका करियर। बुद्धिमानी से व्यवस्थित।',
-    'brand.subtagline': 'अवसरों की खोज करें। अपनी पेशेवर बढ़त बनाएं। एआई-संचालित बुद्धिमत्ता के साथ हर करियर कदम बढ़ाएं।',
+    'brand.headline': 'भारत का पहला AI-संचालित जॉब डिस्कवरी और एप्लिकेशन ऑटोमेशन प्लेटफॉर्म।',
+    'brand.tagline': 'भीड़ से पहले अवसर खोजें। भारी काम AI को करने दें।',
+    'brand.description': 'अप्लाईवाइज़ वैश्विक नौकरी खोज, इंटेलिजेंट जॉब मैचिंग, AI रिज्यूमे इंजीनियरिंग, रिक्रूटर इंटेलिजेंस और स्वचालित अनुप्रयोगों को एकीकृत करता है।',
+    'brand.subtagline': 'भीड़ से पहले अवसर खोजें। भारी काम AI को करने दें।',
     'common.save': 'परिवर्तन सहेजें',
     'common.cancel': 'रद्द करें',
     'common.delete': 'हटाएं',
@@ -190,8 +194,10 @@ export const DICTIONARIES: Record<string, TranslationDictionary> = {
 
   'es-ES': {
     'brand.name': 'ApplyVise AI',
-    'brand.tagline': 'Su Carrera. Inteligentemente Orquestada.',
-    'brand.subtagline': 'Descubra oportunidades. Desarrolle su ventaja profesional. Navegue cada paso profesional con inteligencia artificial.',
+    'brand.headline': "La primera plataforma de India de descubrimiento de empleo y automatización de postulaciones con IA.",
+    'brand.tagline': 'Encuentra oportunidades antes que la multitud. Deja el trabajo pesado a la IA.',
+    'brand.description': 'ApplyVise combina descubrimiento global de empleo, coincidencia inteligente, optimización de CV con IA, inteligencia de reclutadores y postulaciones automáticas.',
+    'brand.subtagline': 'Encuentra oportunidades antes que la multitud. Deja el trabajo pesado a la IA.',
     'common.save': 'Guardar Cambios',
     'common.cancel': 'Cancelar',
     'common.delete': 'Eliminar',
@@ -275,8 +281,10 @@ export const DICTIONARIES: Record<string, TranslationDictionary> = {
   'ar-SA': {
     // Arabic (RTL)
     'brand.name': 'أبلاي فايز للذكاء الاصطناعي (ApplyVise AI)',
-    'brand.tagline': 'مسيرتك المهنية. بتنظيم ذكي.',
-    'brand.subtagline': 'اكتشف الفرص. ابنِ ميزتك الاحترافية. تنقل في كل خطوة مهنية بذكاء اصطناعي دقيق.',
+    'brand.headline': 'أول منصة في الهند لاكتشاف الوظائف وأتمتة التقديم بالذكاء الاصطناعي.',
+    'brand.tagline': 'اعثر على الفرص قبل الآخرين. دع الذكاء الاصطناعي يقوم بالمهام الصعبة.',
+    'brand.description': 'تجمع أبلاي فايز بين اكتشاف الوظائف عالمياً، ومطابقة الوظائف الذكية، وهندسة السيرة الذاتية، ومراسلة مسؤولي التوظيف والتقديم المؤتمت.',
+    'brand.subtagline': 'اعثر على الفرص قبل الآخرين. دع الذكاء الاصطناعي يقوم بالمهام الصعبة.',
     'common.save': 'حفظ التغييرات',
     'common.cancel': 'إلغاء',
     'common.delete': 'حذف',
@@ -359,8 +367,10 @@ export const DICTIONARIES: Record<string, TranslationDictionary> = {
 
   'fr-FR': {
     'brand.name': 'ApplyVise AI',
-    'brand.tagline': 'Votre Carrière. Intelligemment Orchestrée.',
-    'brand.subtagline': 'Découvrez des opportunités. Développez votre avantage professionnel. Naviguez chaque étape avec une IA de confiance.',
+    'brand.headline': "Première plateforme indienne de découverte d’emploi et d’automatisation des candidatures par IA.",
+    'brand.tagline': 'Trouvez des opportunités avant la foule. Laissez l’IA faire le gros du travail.',
+    'brand.description': 'ApplyVise combine la découverte mondiale d’emplois, le matching intelligent, l’ingénierie de CV par IA, l’intelligence des recruteurs et les candidatures automatisées.',
+    'brand.subtagline': 'Trouvez des opportunités avant la foule. Laissez l’IA faire le gros du travail.',
     'common.save': 'Enregistrer',
     'common.cancel': 'Annuler',
     'common.delete': 'Supprimer',
@@ -443,8 +453,10 @@ export const DICTIONARIES: Record<string, TranslationDictionary> = {
 
   'de-DE': {
     'brand.name': 'ApplyVise AI',
-    'brand.tagline': 'Ihre Karriere. Intelligent Orchestriert.',
-    'brand.subtagline': 'Entdecken Sie Chancen. Bauen Sie Ihren beruflichen Vorsprung aus. Navigieren Sie mit verlässlicher KI.',
+    'brand.headline': "Indiens erste KI-gestützte Plattform für Jobsuche und Bewerbungsautomatisierung.",
+    'brand.tagline': 'Finden Sie Chancen vor der Masse. Überlassen Sie der KI die Schwerarbeit.',
+    'brand.description': 'ApplyVise vereint weltweite Jobsuche, intelligentes Job-Matching, KI-Lebenslauf-Optimierung, Recruiter-Intelligence und automatisierte Bewerbungen.',
+    'brand.subtagline': 'Finden Sie Chancen vor der Masse. Überlassen Sie der KI die Schwerarbeit.',
     'common.save': 'Änderungen speichern',
     'common.cancel': 'Abbrechen',
     'common.delete': 'Löschen',
@@ -527,8 +539,10 @@ export const DICTIONARIES: Record<string, TranslationDictionary> = {
 
   'ja-JP': {
     'brand.name': 'ApplyVise AI',
-    'brand.tagline': 'あなたのキャリア。知的に編成。',
-    'brand.subtagline': 'チャンスを発見し、プロフェッショナルとしての優位性を築き、確かなAI知能でキャリアの次の一歩を導きます。',
+    'brand.headline': 'インド初、AI搭載の求人探索＆応募自動化プラットフォーム。',
+    'brand.tagline': '周りより先んじて好機を発見。面倒な作業はAIにおまかせ。',
+    'brand.description': 'ApplyViseは、グローバル求人探索、知的所有マッチング、AI履歴書最適化、採用担当者インテリジェンス、自動応募を統合します。',
+    'brand.subtagline': '周りより先んじて好機を発見。面倒な作業はAIにおまかせ。',
     'common.save': '変更を保存',
     'common.cancel': 'キャンセル',
     'common.delete': '削除',

@@ -23,20 +23,25 @@ test('APPLYVISE AI — Signature Cinematic Homepage Hero Suite', async (t) => {
 
   await t.test('2. Signature Editorial Headline, Eyebrow & Brand Narrative', () => {
     // Official headline
-    assert.match(heroSrc, /Your Career\./, 'Must contain headline "Your Career."');
-    assert.match(heroSrc, /Intelligently Orchestrated\.|Beyond the Next Application\./, 'Must contain signature editorial headline');
+    assert.match(heroSrc, /India(?:'|&apos;)s First/, 'Must contain approved market positioning');
+    assert.match(heroSrc, /AI-Powered Job Discovery &amp; Application Automation Platform\./, 'Must contain approved official headline');
     
-    // Official subtitle
+    // Official supporting tagline & product description
     assert.match(
       heroSrc,
-      /Bring your professional experience, skills, opportunities and applications into one intelligent career workspace\./,
-      'Must contain exact editorial subtitle'
+      /BRAND_CONFIG\.description|ApplyVise combines global job discovery/,
+      'Must contain official product description'
+    );
+    assert.match(
+      heroSrc,
+      /BRAND_CONFIG\.tagline|Find opportunities before the crowd/,
+      'Must contain official supporting tagline'
     );
 
     // Official eyebrow
     assert.match(
       heroSrc,
-      /APPLYVISE AI · UNIFIED CAREER OPERATING SYSTEM/,
+      /APPLYVISE AI · JOB DISCOVERY &amp; APPLICATION AUTOMATION/,
       'Must contain official eyebrow label'
     );
 

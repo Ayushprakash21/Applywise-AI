@@ -16,6 +16,7 @@ import {
   Activity,
   CheckCircle2
 } from 'lucide-react';
+import { BRAND_CONFIG } from '../../config/brand.ts';
 
 export interface CareerIntelligenceHeroProps {
   onOpenAuth: (mode: 'login' | 'signup') => void;
@@ -185,8 +186,8 @@ export const CareerIntelligenceHero: React.FC<CareerIntelligenceHeroProps> = ({
               style={{ backgroundColor: 'var(--be-accent, #A78343)' }}
               aria-hidden="true"
             />
-            <span className="tracking-wide text-[var(--be-text-secondary,#555C66)] font-mono text-[11px]">
-              APPLYVISE AI · UNIFIED CAREER OPERATING SYSTEM
+            <span className="tracking-wide text-[var(--be-text-secondary,#555C66)] font-mono text-[11px] uppercase">
+              APPLYVISE AI · JOB DISCOVERY &amp; APPLICATION AUTOMATION
             </span>
           </div>
 
@@ -200,21 +201,21 @@ export const CareerIntelligenceHero: React.FC<CareerIntelligenceHeroProps> = ({
         <div className="max-w-4xl space-y-6">
           <div className="space-y-2">
             <div className="text-xs font-mono font-bold tracking-widest text-[var(--be-accent,#A78343)] uppercase">
-              The Next Chapter of Professional Opportunity
+              {BRAND_CONFIG.tagline}
             </div>
             <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-[var(--be-text-primary,#191D24)] tracking-tight leading-[1.08] font-heading">
-              Your Career.{' '}
+              India&apos;s First{' '}
               <span
                 className="block sm:inline"
                 style={{ color: 'var(--be-accent, #A78343)' }}
               >
-                Intelligently Orchestrated.
+                AI-Powered Job Discovery &amp; Application Automation Platform.
               </span>
             </h1>
           </div>
 
           <p className="max-w-3xl text-base sm:text-lg md:text-xl text-[var(--be-text-secondary,#555C66)] leading-relaxed font-sans font-normal">
-            Bring your professional experience, skills, opportunities and applications into one intelligent career workspace. An operating system designed to connect candidate reality with authentic market demand — grounded in mathematical truth.
+            {BRAND_CONFIG.description}
           </p>
 
           {/* Action Callouts */}
@@ -298,7 +299,7 @@ export const CareerIntelligenceHero: React.FC<CareerIntelligenceHeroProps> = ({
                 Verified Career Intelligence Framework
               </div>
               <h2 className="text-lg sm:text-xl font-extrabold text-[var(--be-text-primary,#191D24)] tracking-tight font-heading">
-                The Career Operating System Architecture
+                Job Discovery &amp; Application Intelligence Architecture
               </h2>
               <p className="text-xs sm:text-sm text-[var(--be-text-secondary,#555C66)] mt-0.5">
                 How authentic experience, verified skills, and real opportunities connect without fabrication.
