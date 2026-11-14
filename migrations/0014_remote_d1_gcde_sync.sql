@@ -62,18 +62,18 @@ CREATE INDEX IF NOT EXISTS idx_job_sources_category ON job_sources(category);
 CREATE INDEX IF NOT EXISTS idx_job_sources_health ON job_sources(health_status);
 CREATE INDEX IF NOT EXISTS idx_job_sources_enabled ON job_sources(is_enabled);
 
--- 3. Add GCDE columns to live_jobs_cache
-ALTER TABLE live_jobs_cache ADD COLUMN company_id TEXT;
-ALTER TABLE live_jobs_cache ADD COLUMN lifecycle_status TEXT DEFAULT 'ACTIVE';
-ALTER TABLE live_jobs_cache ADD COLUMN source_type TEXT DEFAULT 'official_employer';
-ALTER TABLE live_jobs_cache ADD COLUMN extraction_method TEXT DEFAULT 'api_adapter';
-ALTER TABLE live_jobs_cache ADD COLUMN extraction_confidence REAL DEFAULT 1.0;
-ALTER TABLE live_jobs_cache ADD COLUMN first_seen_at TEXT;
-ALTER TABLE live_jobs_cache ADD COLUMN last_verified_at TEXT;
-ALTER TABLE live_jobs_cache ADD COLUMN region TEXT DEFAULT 'north_america';
-ALTER TABLE live_jobs_cache ADD COLUMN canonical_url TEXT;
-ALTER TABLE live_jobs_cache ADD COLUMN responsibilities TEXT DEFAULT '[]';
-ALTER TABLE live_jobs_cache ADD COLUMN preferred_skills TEXT DEFAULT '[]';
+-- 3. Add GCDE columns to live_jobs_cache (Already created in 0013)
+-- ALTER TABLE live_jobs_cache ADD COLUMN company_id TEXT;
+-- ALTER TABLE live_jobs_cache ADD COLUMN lifecycle_status TEXT DEFAULT 'ACTIVE';
+-- ALTER TABLE live_jobs_cache ADD COLUMN source_type TEXT DEFAULT 'official_employer';
+-- ALTER TABLE live_jobs_cache ADD COLUMN extraction_method TEXT DEFAULT 'api_adapter';
+-- ALTER TABLE live_jobs_cache ADD COLUMN extraction_confidence REAL DEFAULT 1.0;
+-- ALTER TABLE live_jobs_cache ADD COLUMN first_seen_at TEXT;
+-- ALTER TABLE live_jobs_cache ADD COLUMN last_verified_at TEXT;
+-- ALTER TABLE live_jobs_cache ADD COLUMN region TEXT DEFAULT 'north_america';
+-- ALTER TABLE live_jobs_cache ADD COLUMN canonical_url TEXT;
+-- ALTER TABLE live_jobs_cache ADD COLUMN responsibilities TEXT DEFAULT '[]';
+-- ALTER TABLE live_jobs_cache ADD COLUMN preferred_skills TEXT DEFAULT '[]';
 
 -- 4. Candidate Career Profiles
 CREATE TABLE IF NOT EXISTS candidate_career_profiles (

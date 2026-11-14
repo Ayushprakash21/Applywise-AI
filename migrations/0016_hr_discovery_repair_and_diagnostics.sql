@@ -1,19 +1,19 @@
 -- migrations/0016_hr_discovery_repair_and_diagnostics.sql
 -- HR Email Discovery Repair: Multi-Level Verification, Contact-Job Linking, Incremental Queue & Admin Diagnostics
 
--- 1. Extend hr_contacts with Part 4/5/7 fields cleanly (additive)
-ALTER TABLE hr_contacts ADD COLUMN normalized_email TEXT;
-ALTER TABLE hr_contacts ADD COLUMN contact_type TEXT NOT NULL DEFAULT 'Unknown';
-ALTER TABLE hr_contacts ADD COLUMN source_evidence TEXT;
-ALTER TABLE hr_contacts ADD COLUMN associated_job_id TEXT;
-ALTER TABLE hr_contacts ADD COLUMN last_seen_at TEXT;
-ALTER TABLE hr_contacts ADD COLUMN level_syntax INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE hr_contacts ADD COLUMN level_domain INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE hr_contacts ADD COLUMN level_mx INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE hr_contacts ADD COLUMN level_source_confirmed INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE hr_contacts ADD COLUMN level_mailbox INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE hr_contacts ADD COLUMN is_user_submitted INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE hr_contacts ADD COLUMN submitted_by_user_id TEXT;
+-- 1. Extend hr_contacts with Part 4/5/7 fields cleanly (additive, already applied)
+-- ALTER TABLE hr_contacts ADD COLUMN normalized_email TEXT;
+-- ALTER TABLE hr_contacts ADD COLUMN contact_type TEXT NOT NULL DEFAULT 'Unknown';
+-- ALTER TABLE hr_contacts ADD COLUMN source_evidence TEXT;
+-- ALTER TABLE hr_contacts ADD COLUMN associated_job_id TEXT;
+-- ALTER TABLE hr_contacts ADD COLUMN last_seen_at TEXT;
+-- ALTER TABLE hr_contacts ADD COLUMN level_syntax INTEGER NOT NULL DEFAULT 0;
+-- ALTER TABLE hr_contacts ADD COLUMN level_domain INTEGER NOT NULL DEFAULT 0;
+-- ALTER TABLE hr_contacts ADD COLUMN level_mx INTEGER NOT NULL DEFAULT 0;
+-- ALTER TABLE hr_contacts ADD COLUMN level_source_confirmed INTEGER NOT NULL DEFAULT 0;
+-- ALTER TABLE hr_contacts ADD COLUMN level_mailbox INTEGER NOT NULL DEFAULT 0;
+-- ALTER TABLE hr_contacts ADD COLUMN is_user_submitted INTEGER NOT NULL DEFAULT 0;
+-- ALTER TABLE hr_contacts ADD COLUMN submitted_by_user_id TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_hr_contacts_normalized ON hr_contacts(normalized_email);
 CREATE INDEX IF NOT EXISTS idx_hr_contacts_type ON hr_contacts(contact_type);
