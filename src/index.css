@@ -1,13 +1,14 @@
 @import "tailwindcss";
 
 @layer base {
-  /* Premium Editorial & Enterprise Typography Pairing */
+  /* Dynamic Centralized Typography System */
   h1, h2, h3, h4, h5, h6, .font-heading {
-    font-family: 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    letter-spacing: -0.025em;
+    font-family: var(--font-family-display, 'Poppins', 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    letter-spacing: var(--letter-spacing-headings, -0.025em);
   }
   body, .font-sans, .font-body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-family-ui, 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    letter-spacing: var(--letter-spacing-body, 0em);
   }
 }
 

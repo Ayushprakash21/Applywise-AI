@@ -23,6 +23,10 @@ import {
   ExternalLink,
   Lock,
   ChevronRight,
+  ChevronLeft,
+  Menu,
+  X,
+  Type,
   Filter,
   Award,
   TrendingUp
@@ -37,6 +41,7 @@ import { AdminUserProvisioning } from './AdminUserProvisioning.tsx';
 import { GlobalSourceIntelligence } from './GlobalSourceIntelligence.tsx';
 import { AdminHrDiscoveryDiagnostics } from './AdminHrDiscoveryDiagnostics.tsx';
 import { GrowthEngineDashboard } from './admin/growth-engine/GrowthEngineDashboard.tsx';
+import { TypographySettingsModal } from './TypographySettingsModal.tsx';
 import { getEffectivePlan } from '../config/freeAccess.ts';
 import { FilterSelect, SearchableSelect } from './ui/SelectSystem.tsx';
 
@@ -85,6 +90,33 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
     }
   }, [initialTab, currentRoute]);
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        return window.localStorage.getItem('applyvise_admin_sidebar_collapsed') === 'true';
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [typographyModalOpen, setTypographyModalOpen] = useState(false);
+
+  const toggleSidebarCollapsed = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          window.localStorage.setItem('applyvise_admin_sidebar_collapsed', String(next));
+        } catch {
+          // Ignore storage failures
+        }
+      }
+      return next;
+    });
+  };
+
   const handleSelectTab = (tab: ExtendedAdminTab) => {
     setTabState(tab);
     if (tab === 'sources') {
@@ -92,6 +124,12 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
         onNavigateRoute('/admin/gcde');
       } else if (typeof window !== 'undefined') {
         window.history.pushState({}, '', '/admin/gcde');
+      }
+    } else if (tab === 'growth_engine') {
+      if (onNavigateRoute) {
+        onNavigateRoute('/admin/growth-engine');
+      } else if (typeof window !== 'undefined') {
+        window.history.pushState({}, '', '/admin/growth-engine');
       }
     } else {
       if (onNavigateRoute) {
@@ -112,7 +150,9 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
       const path = window.location.pathname;
       if (path.startsWith('/admin/gcde')) {
         setActiveTab('sources');
-      } else if (path.startsWith('/admin') && activeTab === 'sources') {
+      } else if (path.startsWith('/admin/growth-engine')) {
+        setActiveTab('growth_engine');
+      } else if (path.startsWith('/admin') && (activeTab === 'sources' || activeTab === 'growth_engine')) {
         setTabState('overview');
       }
     };
@@ -259,10 +299,19 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
     <div className="min-h-screen bg-[#090A0C] text-[#F2F0EA] flex flex-col font-sans theme-black" data-theme="black">
       {/* Top Fixed Admin Navigation Bar */}
       <header className="sticky top-0 z-50 w-full bg-[#111318] text-[#F2F0EA] border-b border-[rgba(255,255,255,0.09)] shadow-xl backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="max-w-[1720px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <button
+              type="button"
+              onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
+              className="lg:hidden p-2 rounded-xl text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#191D23] transition cursor-pointer"
+              aria-label="Toggle Navigation Drawer"
+            >
+              {mobileDrawerOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+
             <BrandLogo size="sm" variant="dark" onClick={onNavigateHome} />
-            <div className="h-5 w-px bg-[rgba(255,255,255,0.09)]" />
+            <div className="h-5 w-px bg-[rgba(255,255,255,0.09)] hidden sm:block" />
             <div className="flex items-center space-x-2">
               <Shield className="h-4 w-4 text-[#C6A66A]" />
               <span className="text-xs font-bold tracking-wide uppercase text-[#F2F0EA]">
@@ -275,13 +324,23 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <button
+              type="button"
+              onClick={() => setTypographyModalOpen(true)}
+              className="h-8 px-3 rounded-xl bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] text-xs font-semibold border border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
+              title="Configure global typography and font weights"
+            >
+              <Type className="h-3.5 w-3.5 text-[#C6A66A]" />
+              <span className="hidden sm:inline">Typography</span>
+            </button>
+
             <button
               onClick={onNavigateHome}
               className="h-8 px-3 rounded-xl bg-[#191D23] hover:bg-[#20252D] text-[#C0BDB5] hover:text-[#F2F0EA] text-xs font-semibold border border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              <span>Back to App</span>
+              <span className="hidden sm:inline">Back to App</span>
             </button>
 
             <button
@@ -310,281 +369,531 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
             </div>
           </div>
         </div>
+      </header>
 
-        {/* Console Subnavigation Tabs (Responsive Wrapping & Mobile Module Switcher) */}
-        <div className={`border-t px-4 sm:px-6 transition-colors ${
-          isBlack ? 'bg-[#090A0C] border-[rgba(255,255,255,0.08)]' : 'bg-slate-950/60 border-slate-800/70'
-        }`}>
-          <div className="max-w-7xl mx-auto py-2">
-            {/* Mobile Dropdown Selector (Active for narrow screens <= 640px) */}
-            <div className="block sm:hidden mb-2">
-              <label htmlFor="admin-mobile-nav-select" className="sr-only">Select Admin Console Module</label>
-              <SearchableSelect
-                id="admin-mobile-nav-select"
-                value={activeTab}
-                onChange={val => handleSelectTab(val as ExtendedAdminTab)}
-                searchable={false}
-                options={[
-                  { value: 'overview', label: 'Overview & KPIs' },
-                  { value: 'sources', label: 'Global Career Discovery Engine (GCDE)' },
-                  { value: 'users', label: `Users & Roles (${totalUsers})` },
-                  { value: 'provisioning', label: 'User Provisioning' },
-                  { value: 'resumes', label: `Resume Operations (${stats?.totalResumes ?? '...'})` },
-                  { value: 'audit', label: 'Security & Audit Trail' },
-                  { value: 'system', label: 'System Health & Edge' },
-                  { value: 'founder', label: 'Founder Profile' },
-                ]}
-                theme="black-elite"
-                size="sm"
-                ariaLabel="Select Admin Console Module"
-              />
+      {/* Typography Settings Modal */}
+      <TypographySettingsModal
+        isOpen={typographyModalOpen}
+        onClose={() => setTypographyModalOpen(false)}
+        isBlack={isBlack}
+      />
+
+      {/* Main Administrative Workspace with Vertical Sidebar */}
+      <div className="flex-1 flex w-full max-w-[1720px] mx-auto relative z-10 min-h-0">
+        {/* Left Desktop Sidebar — Frosted Glass Executive Vertical Navigation */}
+        <aside
+          className={`hidden lg:flex flex-col border-r border-[rgba(255,255,255,0.08)] bg-[#111318] transition-all duration-300 relative select-none shrink-0 ${
+            sidebarCollapsed ? 'w-20' : 'w-68'
+          }`}
+        >
+          {/* Collapse/Expand Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleSidebarCollapsed}
+            className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-[#191D23] border border-[rgba(255,255,255,0.14)] text-[#C0BDB5] hover:text-[#F2F0EA] hover:border-[rgba(198,166,106,0.40)] flex items-center justify-center transition shadow-md z-30 cursor-pointer"
+            aria-label={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {sidebarCollapsed ? <ChevronRight className="h-3.5 w-3.5 text-[#C6A66A]" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+          </button>
+
+          {/* Navigation Groups */}
+          <div className="flex-1 py-6 px-3.5 space-y-6 overflow-y-auto scrollbar-none" role="tablist" aria-label="Admin Console Navigation Modules">
+            {/* GROUP A: COMMAND CENTER */}
+            <div className="space-y-1.5">
+              {!sidebarCollapsed && (
+                <h4 className="px-3 text-[10px] font-mono font-bold uppercase tracking-wider text-[#92949A]">
+                  Command Center
+                </h4>
+              )}
+              <div className="space-y-1">
+                {/* 1. Overview */}
+                <button
+                  id="admin-tab-overview"
+                  role="tab"
+                  type="button"
+                  tabIndex={0}
+                  aria-selected={activeTab === 'overview'}
+                  aria-controls="admin-panel-overview"
+                  onClick={() => setActiveTab('overview')}
+                  className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                    activeTab === 'overview'
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)] ring-1 ring-[rgba(198,166,106,0.20)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                  } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
+                  title={sidebarCollapsed ? 'Overview & KPIs' : undefined}
+                >
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <Activity className={`h-4 w-4 shrink-0 transition-colors ${activeTab === 'overview' ? 'text-[#C6A66A]' : 'text-indigo-400'}`} />
+                    {!sidebarCollapsed && <span className="truncate">Overview & KPIs</span>}
+                  </div>
+                  {activeTab === 'overview' && (
+                    <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[#C6A66A]" />
+                  )}
+                </button>
+              </div>
             </div>
 
-            {/* Desktop & Tablet Wrapping Tab Navigation (Zero Clipping Across All Viewports) */}
+            {/* GROUP B: INTELLIGENCE & DISCOVERY */}
+            <div className="space-y-1.5">
+              {!sidebarCollapsed && (
+                <h4 className="px-3 text-[10px] font-mono font-bold uppercase tracking-wider text-[#92949A]">
+                  Intelligence & Discovery
+                </h4>
+              )}
+              <div className="space-y-1">
+                {/* 2. Global Career Discovery Engine */}
+                <button
+                  id="admin-tab-sources"
+                  role="tab"
+                  type="button"
+                  tabIndex={0}
+                  aria-selected={activeTab === 'sources'}
+                  aria-controls="admin-panel-sources"
+                  onClick={() => setActiveTab('sources')}
+                  className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                    activeTab === 'sources'
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.50)] ring-1 ring-[rgba(198,166,106,0.25)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                  } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
+                  title={sidebarCollapsed ? 'Global Career Discovery Engine' : undefined}
+                >
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <Globe className={`h-4 w-4 shrink-0 transition-colors ${activeTab === 'sources' ? 'text-[#C6A66A]' : 'text-[#76A9D8]'}`} />
+                    {!sidebarCollapsed && <span className="truncate font-bold">Global Career Discovery Engine</span>}
+                    <span className="sr-only">Job Ingestion & Sources</span>
+                  </div>
+                  {!sidebarCollapsed && (
+                    <span className={`shrink-0 ml-2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${
+                      activeTab === 'sources'
+                        ? 'bg-[rgba(198,166,106,0.25)] text-[#C6A66A] border border-[rgba(198,166,106,0.40)]'
+                        : 'bg-[#0D1014] text-[#92949A] border border-[rgba(255,255,255,0.08)]'
+                    }`}>
+                      GCDE
+                    </span>
+                  )}
+                  {activeTab === 'sources' && (
+                    <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[#C6A66A]" />
+                  )}
+                </button>
+
+                {/* 2b. HR Discovery Diagnostics */}
+                <button
+                  id="admin-tab-hr-discovery"
+                  role="tab"
+                  type="button"
+                  tabIndex={0}
+                  aria-selected={activeTab === 'hr_discovery'}
+                  aria-controls="admin-panel-hr-discovery"
+                  onClick={() => setActiveTab('hr_discovery')}
+                  className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                    activeTab === 'hr_discovery'
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                  } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
+                  title={sidebarCollapsed ? 'HR Discovery Diagnostics' : undefined}
+                >
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <Sparkles className={`h-4 w-4 shrink-0 transition-colors ${activeTab === 'hr_discovery' ? 'text-[#C6A66A]' : 'text-[#35B887]'}`} />
+                    {!sidebarCollapsed && <span className="truncate">HR Discovery Diagnostics</span>}
+                  </div>
+                  {activeTab === 'hr_discovery' && (
+                    <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[#C6A66A]" />
+                  )}
+                </button>
+
+                {/* 2c. ApplyVise Growth Engine */}
+                <button
+                  id="admin-tab-growth-engine"
+                  role="tab"
+                  type="button"
+                  tabIndex={0}
+                  aria-selected={activeTab === 'growth_engine'}
+                  aria-controls="admin-panel-growth-engine"
+                  onClick={() => {
+                    setActiveTab('growth_engine');
+                    if (onNavigateRoute) onNavigateRoute('/admin/growth-engine');
+                  }}
+                  className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                    activeTab === 'growth_engine'
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                  } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
+                  title={sidebarCollapsed ? 'Growth Engine' : undefined}
+                >
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <TrendingUp className={`h-4 w-4 shrink-0 transition-colors ${activeTab === 'growth_engine' ? 'text-[#C6A66A]' : 'text-amber-400'}`} />
+                    {!sidebarCollapsed && <span className="truncate">Growth Engine</span>}
+                  </div>
+                  {!sidebarCollapsed && (
+                    <span className={`shrink-0 ml-2 px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${
+                      activeTab === 'growth_engine'
+                        ? 'bg-[rgba(198,166,106,0.25)] text-[#C6A66A] border border-[rgba(198,166,106,0.40)]'
+                        : 'bg-[#0D1014] text-[#92949A] border border-[rgba(255,255,255,0.08)]'
+                    }`}>
+                      AI MKTG
+                    </span>
+                  )}
+                  {activeTab === 'growth_engine' && (
+                    <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[#C6A66A]" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* GROUP C: USER MANAGEMENT */}
+            <div className="space-y-1.5">
+              {!sidebarCollapsed && (
+                <h4 className="px-3 text-[10px] font-mono font-bold uppercase tracking-wider text-[#92949A]">
+                  User Management
+                </h4>
+              )}
+              <div className="space-y-1">
+                {/* 3. Users & Roles */}
+                <button
+                  id="admin-tab-users"
+                  role="tab"
+                  type="button"
+                  tabIndex={0}
+                  aria-selected={activeTab === 'users'}
+                  aria-controls="admin-panel-users"
+                  onClick={() => setActiveTab('users')}
+                  className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                    activeTab === 'users'
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                  } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
+                  title={sidebarCollapsed ? `Users & Roles (${totalUsers})` : undefined}
+                >
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <Users className={`h-4 w-4 shrink-0 transition-colors ${activeTab === 'users' ? 'text-[#C6A66A]' : 'text-[#76A9D8]'}`} />
+                    {!sidebarCollapsed && <span className="truncate">Users & Roles ({totalUsers})</span>}
+                  </div>
+                  {activeTab === 'users' && (
+                    <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[#C6A66A]" />
+                  )}
+                </button>
+
+                {/* 4. User Provisioning */}
+                <button
+                  id="admin-tab-provisioning"
+                  role="tab"
+                  type="button"
+                  tabIndex={0}
+                  aria-selected={activeTab === 'provisioning'}
+                  aria-controls="admin-panel-provisioning"
+                  onClick={() => setActiveTab('provisioning')}
+                  className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                    activeTab === 'provisioning'
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                  } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
+                  title={sidebarCollapsed ? 'User Provisioning' : undefined}
+                >
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <Award className={`h-4 w-4 shrink-0 transition-colors ${activeTab === 'provisioning' ? 'text-[#C6A66A]' : 'text-amber-400'}`} />
+                    {!sidebarCollapsed && <span className="truncate">User Provisioning</span>}
+                  </div>
+                  {activeTab === 'provisioning' && (
+                    <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[#C6A66A]" />
+                  )}
+                </button>
+
+                {/* 5. Founder Profile */}
+                <button
+                  id="admin-tab-founder"
+                  role="tab"
+                  type="button"
+                  tabIndex={0}
+                  aria-selected={activeTab === 'founder'}
+                  aria-controls="admin-panel-founder"
+                  onClick={() => setActiveTab('founder')}
+                  className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                    activeTab === 'founder'
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                  } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
+                  title={sidebarCollapsed ? 'Founder Profile' : undefined}
+                >
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <Sparkles className={`h-4 w-4 shrink-0 transition-colors ${activeTab === 'founder' ? 'text-[#C6A66A]' : 'text-pink-400'}`} />
+                    {!sidebarCollapsed && <span className="truncate">Founder Profile</span>}
+                  </div>
+                  {activeTab === 'founder' && (
+                    <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[#C6A66A]" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* GROUP D: OPERATIONS & SECURITY */}
+            <div className="space-y-1.5">
+              {!sidebarCollapsed && (
+                <h4 className="px-3 text-[10px] font-mono font-bold uppercase tracking-wider text-[#92949A]">
+                  Operations & Security
+                </h4>
+              )}
+              <div className="space-y-1">
+                {/* 6. Resume Operations */}
+                <button
+                  id="admin-tab-resumes"
+                  role="tab"
+                  type="button"
+                  tabIndex={0}
+                  aria-selected={activeTab === 'resumes'}
+                  aria-controls="admin-panel-resumes"
+                  onClick={() => setActiveTab('resumes')}
+                  className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                    activeTab === 'resumes'
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                  } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
+                  title={sidebarCollapsed ? `Resume Operations (${stats?.totalResumes ?? '...'})` : undefined}
+                >
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <FileText className={`h-4 w-4 shrink-0 transition-colors ${activeTab === 'resumes' ? 'text-[#C6A66A]' : 'text-[#9483E8]'}`} />
+                    {!sidebarCollapsed && <span className="truncate">Resume Operations ({stats?.totalResumes ?? '...'})</span>}
+                  </div>
+                  {activeTab === 'resumes' && (
+                    <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[#C6A66A]" />
+                  )}
+                </button>
+
+                {/* 7. Security & Audit Trail */}
+                <button
+                  id="admin-tab-audit"
+                  role="tab"
+                  type="button"
+                  tabIndex={0}
+                  aria-selected={activeTab === 'audit'}
+                  aria-controls="admin-panel-audit"
+                  onClick={() => setActiveTab('audit')}
+                  className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                    activeTab === 'audit'
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                  } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
+                  title={sidebarCollapsed ? 'Security & Audit Trail' : undefined}
+                >
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <Shield className={`h-4 w-4 shrink-0 transition-colors ${activeTab === 'audit' ? 'text-[#C6A66A]' : 'text-[#D9AA61]'}`} />
+                    {!sidebarCollapsed && <span className="truncate">Security & Audit Trail</span>}
+                  </div>
+                  {activeTab === 'audit' && (
+                    <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[#C6A66A]" />
+                  )}
+                </button>
+
+                {/* 8. System Health & Edge */}
+                <button
+                  id="admin-tab-system"
+                  role="tab"
+                  type="button"
+                  tabIndex={0}
+                  aria-selected={activeTab === 'system'}
+                  aria-controls="admin-panel-system"
+                  onClick={() => setActiveTab('system')}
+                  className={`w-full flex items-center min-h-[38px] px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer group relative select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                    activeTab === 'system'
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                  } ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
+                  title={sidebarCollapsed ? 'System Health & Edge' : undefined}
+                >
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <Database className={`h-4 w-4 shrink-0 transition-colors ${activeTab === 'system' ? 'text-[#C6A66A]' : 'text-[#35B887]'}`} />
+                    {!sidebarCollapsed && <span className="truncate">System Health & Edge</span>}
+                  </div>
+                  {activeTab === 'system' && (
+                    <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[#C6A66A]" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Mobile Slide-Over Navigation Drawer */}
+        {mobileDrawerOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden flex">
+            {/* Backdrop */}
             <div
-              role="tablist"
-              aria-label="Admin Console Navigation Modules"
-              className="flex flex-wrap items-center gap-1.5 text-xs"
-            >
-              {/* 1. Overview */}
-              <button
-                id="admin-tab-overview"
-                role="tab"
-                type="button"
-                tabIndex={0}
-                aria-selected={activeTab === 'overview'}
-                aria-controls="admin-panel-overview"
-                onClick={() => setActiveTab('overview')}
-                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
-                  activeTab === 'overview'
-                    ? isBlack
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                    : isBlack
-                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
-                }`}
-              >
-                <Activity className={`h-3.5 w-3.5 ${activeTab === 'overview' ? 'text-[#C6A66A]' : 'text-indigo-400'}`} />
-                <span>Overview & KPIs</span>
-              </button>
+              className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
+              onClick={() => setMobileDrawerOpen(false)}
+            />
 
-              {/* 2. Global Career Discovery Engine (Prominent First-Class Destination) */}
-              <button
-                id="admin-tab-sources"
-                role="tab"
-                type="button"
-                tabIndex={0}
-                aria-selected={activeTab === 'sources'}
-                aria-controls="admin-panel-sources"
-                onClick={() => setActiveTab('sources')}
-                className={`px-3.5 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
-                  activeTab === 'sources'
-                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.50)] ring-1 ring-[rgba(198,166,106,0.25)]'
-                    : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
-                }`}
-              >
-                <Globe className={`h-3.5 w-3.5 ${activeTab === 'sources' ? 'text-[#C6A66A]' : 'text-[#76A9D8]'}`} />
-                <span className="font-bold">Global Career Discovery Engine</span>
-                <span className="sr-only">Job Ingestion & Sources</span>
-                <span className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${
-                  activeTab === 'sources'
-                    ? 'bg-[rgba(198,166,106,0.25)] text-[#C6A66A] border border-[rgba(198,166,106,0.40)]'
-                    : 'bg-[#0D1014] text-[#92949A] border border-[rgba(255,255,255,0.08)]'
-                }`}>
-                  GCDE
-                </span>
-              </button>
+            {/* Drawer Content */}
+            <div className="relative w-72 max-w-[85vw] bg-[#111318] border-r border-[rgba(255,255,255,0.12)] p-4 flex flex-col space-y-5 overflow-y-auto z-10 shadow-2xl">
+              <div className="flex items-center justify-between pb-3 border-b border-[rgba(255,255,255,0.08)]">
+                <div className="flex items-center space-x-2">
+                  <Shield className="h-4 w-4 text-[#C6A66A]" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#F2F0EA]">Admin Navigation</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMobileDrawerOpen(false)}
+                  className="p-1.5 rounded-lg text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#191D23]"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
 
-              {/* 2b. HR Discovery Diagnostics */}
-              <button
-                id="admin-tab-hr-discovery"
-                role="tab"
-                type="button"
-                tabIndex={0}
-                aria-selected={activeTab === 'hr_discovery'}
-                aria-controls="admin-panel-hr-discovery"
-                onClick={() => setActiveTab('hr_discovery')}
-                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
-                  activeTab === 'hr_discovery'
-                    ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                    : 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
-                }`}
-              >
-                <Sparkles className={`h-3.5 w-3.5 ${activeTab === 'hr_discovery' ? 'text-[#C6A66A]' : 'text-[#35B887]'}`} />
-                <span>HR Discovery Diagnostics</span>
-              </button>
+              {/* Mobile Module Selector inside Drawer */}
+              <div>
+                <label htmlFor="admin-mobile-nav-select" className="sr-only">Select Admin Console Module</label>
+                <SearchableSelect
+                  id="admin-mobile-nav-select"
+                  value={activeTab}
+                  onChange={(val) => {
+                    handleSelectTab(val as ExtendedAdminTab);
+                    setMobileDrawerOpen(false);
+                  }}
+                  searchable={false}
+                  options={[
+                    { value: 'overview', label: 'Overview & KPIs' },
+                    { value: 'sources', label: 'Global Career Discovery Engine (GCDE)' },
+                    { value: 'hr_discovery', label: 'HR Discovery Diagnostics' },
+                    { value: 'growth_engine', label: 'Growth Engine' },
+                    { value: 'users', label: `Users & Roles (${totalUsers})` },
+                    { value: 'provisioning', label: 'User Provisioning' },
+                    { value: 'resumes', label: `Resume Operations (${stats?.totalResumes ?? '...'})` },
+                    { value: 'audit', label: 'Security & Audit Trail' },
+                    { value: 'system', label: 'System Health & Edge' },
+                    { value: 'founder', label: 'Founder Profile' },
+                  ]}
+                  theme="black-elite"
+                  size="sm"
+                  ariaLabel="Select Admin Console Module"
+                />
+              </div>
 
-              {/* 3. Users & Roles */}
-              <button
-                id="admin-tab-users"
-                role="tab"
-                type="button"
-                tabIndex={0}
-                aria-selected={activeTab === 'users'}
-                aria-controls="admin-panel-users"
-                onClick={() => setActiveTab('users')}
-                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
-                  activeTab === 'users'
-                    ? isBlack
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                    : isBlack
-                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
-                }`}
-              >
-                <Users className={`h-3.5 w-3.5 ${activeTab === 'users' ? 'text-[#C6A66A]' : 'text-[#76A9D8]'}`} />
-                <span>Users & Roles ({totalUsers})</span>
-              </button>
+              {/* Grouped Links in Drawer */}
+              <div className="space-y-4 text-xs">
+                <div>
+                  <h5 className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#92949A] mb-1.5 px-2">Command Center</h5>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab('overview'); setMobileDrawerOpen(false); }}
+                    className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'overview' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                  >
+                    <Activity className="h-4 w-4" />
+                    <span>Overview & KPIs</span>
+                  </button>
+                </div>
 
-              {/* 4. User Provisioning */}
-              <button
-                id="admin-tab-provisioning"
-                role="tab"
-                type="button"
-                tabIndex={0}
-                aria-selected={activeTab === 'provisioning'}
-                aria-controls="admin-panel-provisioning"
-                onClick={() => setActiveTab('provisioning')}
-                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
-                  activeTab === 'provisioning'
-                    ? isBlack
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                    : isBlack
-                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
-                }`}
-              >
-                <Award className={`h-3.5 w-3.5 ${activeTab === 'provisioning' ? 'text-[#C6A66A]' : 'text-amber-400'}`} />
-                <span>User Provisioning</span>
-              </button>
+                <div>
+                  <h5 className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#92949A] mb-1.5 px-2">Intelligence & Discovery</h5>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('sources'); setMobileDrawerOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center justify-between ${activeTab === 'sources' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <Globe className="h-4 w-4" />
+                        <span>GCDE</span>
+                      </div>
+                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[rgba(198,166,106,0.2)] text-[#C6A66A]">LIVE</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('hr_discovery'); setMobileDrawerOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'hr_discovery' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span>HR Diagnostics</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('growth_engine'); setMobileDrawerOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'growth_engine' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                    >
+                      <TrendingUp className="h-4 w-4" />
+                      <span>Growth Engine</span>
+                    </button>
+                  </div>
+                </div>
 
-              {/* 5. Resume Operations */}
-              <button
-                id="admin-tab-resumes"
-                role="tab"
-                type="button"
-                tabIndex={0}
-                aria-selected={activeTab === 'resumes'}
-                aria-controls="admin-panel-resumes"
-                onClick={() => setActiveTab('resumes')}
-                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
-                  activeTab === 'resumes'
-                    ? isBlack
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                    : isBlack
-                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
-                }`}
-              >
-                <FileText className={`h-3.5 w-3.5 ${activeTab === 'resumes' ? 'text-[#C6A66A]' : 'text-[#9483E8]'}`} />
-                <span>Resume Operations ({stats?.totalResumes ?? '...'})</span>
-              </button>
+                <div>
+                  <h5 className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#92949A] mb-1.5 px-2">User Management</h5>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('users'); setMobileDrawerOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'users' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                    >
+                      <Users className="h-4 w-4" />
+                      <span>Users & Roles ({totalUsers})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('provisioning'); setMobileDrawerOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'provisioning' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                    >
+                      <Award className="h-4 w-4" />
+                      <span>User Provisioning</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('founder'); setMobileDrawerOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'founder' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span>Founder Profile</span>
+                    </button>
+                  </div>
+                </div>
 
-              {/* 6. Security & Audit Trail */}
-              <button
-                id="admin-tab-audit"
-                role="tab"
-                type="button"
-                tabIndex={0}
-                aria-selected={activeTab === 'audit'}
-                aria-controls="admin-panel-audit"
-                onClick={() => setActiveTab('audit')}
-                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
-                  activeTab === 'audit'
-                    ? isBlack
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                    : isBlack
-                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
-                }`}
-              >
-                <Shield className={`h-3.5 w-3.5 ${activeTab === 'audit' ? 'text-[#C6A66A]' : 'text-[#D9AA61]'}`} />
-                <span>Security & Audit Trail</span>
-              </button>
+                <div>
+                  <h5 className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#92949A] mb-1.5 px-2">Operations & Security</h5>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('resumes'); setMobileDrawerOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'resumes' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span>Resume Operations</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('audit'); setMobileDrawerOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'audit' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                    >
+                      <Shield className="h-4 w-4" />
+                      <span>Security & Audit</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('system'); setMobileDrawerOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center space-x-2 ${activeTab === 'system' ? 'bg-[#191D23] text-[#C6A66A] font-bold' : 'text-[#92949A] hover:text-[#F2F0EA]'}`}
+                    >
+                      <Database className="h-4 w-4" />
+                      <span>System Health</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-              {/* 7. System Health & Edge */}
+        {/* Main Content Viewport */}
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 space-y-6 overflow-y-auto">
+          {/* Mobile Quick-Switcher Bar (Visible on mobile/tablet viewports) */}
+          <div className="lg:hidden block space-y-2 pb-2 border-b border-[rgba(255,255,255,0.08)]">
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="text-[10px] font-mono text-[#92949A] uppercase tracking-wider">Module:</span>
               <button
-                id="admin-tab-system"
-                role="tab"
                 type="button"
-                tabIndex={0}
-                aria-selected={activeTab === 'system'}
-                aria-controls="admin-panel-system"
-                onClick={() => setActiveTab('system')}
-                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
-                  activeTab === 'system'
-                    ? isBlack
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                    : isBlack
-                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
-                }`}
+                onClick={() => setMobileDrawerOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-[#191D23] text-[#C6A66A] border border-[rgba(198,166,106,0.30)] flex items-center space-x-1.5 text-xs font-semibold cursor-pointer"
               >
-                <Database className={`h-3.5 w-3.5 ${activeTab === 'system' ? 'text-[#C6A66A]' : 'text-[#35B887]'}`} />
-                <span>System Health & Edge</span>
-              </button>
-
-              {/* 8. Founder Profile */}
-              <button
-                id="admin-tab-founder"
-                role="tab"
-                type="button"
-                tabIndex={0}
-                aria-selected={activeTab === 'founder'}
-                aria-controls="admin-panel-founder"
-                onClick={() => setActiveTab('founder')}
-                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
-                  activeTab === 'founder'
-                    ? isBlack
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                    : isBlack
-                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
-                }`}
-              >
-                <Sparkles className={`h-3.5 w-3.5 ${activeTab === 'founder' ? 'text-[#C6A66A]' : 'text-pink-400'}`} />
-                <span>Founder Profile</span>
-              </button>
-
-              {/* 9. ApplyVise Growth Engine */}
-              <button
-                id="admin-tab-growth-engine"
-                role="tab"
-                type="button"
-                tabIndex={0}
-                aria-selected={activeTab === 'growth_engine'}
-                aria-controls="admin-panel-growth-engine"
-                onClick={() => {
-                  setActiveTab('growth_engine');
-                  if (onNavigateRoute) onNavigateRoute('/admin/growth-engine');
-                }}
-                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
-                  activeTab === 'growth_engine'
-                    ? isBlack
-                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
-                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
-                    : isBlack
-                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
-                }`}
-              >
-                <TrendingUp className={`h-3.5 w-3.5 ${activeTab === 'growth_engine' ? 'text-[#C6A66A]' : 'text-amber-400'}`} />
-                <span>Growth Engine</span>
+                <Menu className="h-3.5 w-3.5" />
+                <span>Switch Admin Section</span>
               </button>
             </div>
           </div>
-        </div>
-      </header>
-
-      {/* Main Content Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
         {/* Alerts */}
         {error && (
           <div className="flex items-start space-x-2.5 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs">
@@ -1144,6 +1453,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
           <GrowthEngineDashboard onNavigateRoute={onNavigateRoute} />
         )}
       </main>
+      </div>
     </div>
   );
 };
