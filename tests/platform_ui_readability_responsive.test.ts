@@ -279,4 +279,46 @@ describe('APPLYVISE AI — Platform-Wide UI Readability, Dropdown & Responsive S
       }
     });
   });
+
+  // ==========================================================================
+  // 7. Homepage Zero-Hallucination Comparison & Section Contrast Integrity
+  // ==========================================================================
+  describe('7. Homepage Zero-Hallucination Comparison & Section Contrast Integrity', () => {
+    const landingPath = path.resolve('src/components/LandingPage.tsx');
+
+    it('7.1. ApplyVise AI Engine column preserves premium dark navy surface with data-theme-surface', () => {
+      const src = fs.readFileSync(landingPath, 'utf8');
+      assert.ok(src.includes('data-theme-surface="dark"'), 'Must define data-theme-surface="dark" on ApplyVise column');
+      assert.ok(src.includes('bg-[#0B1528]'), 'Must use rich navy surface bg-[#0B1528] for ApplyVise column');
+      assert.ok(src.includes('bg-[#0D1B30]'), 'Must use dark navy header bg-[#0D1B30] for ApplyVise header');
+    });
+
+    it('7.2. ApplyVise column headings, check icon, and descriptions use bright accessible foreground colors', () => {
+      const src = fs.readFileSync(landingPath, 'utf8');
+      assert.ok(src.includes('text-sky-300'), 'Row titles must use luminous text-sky-300');
+      assert.ok(src.includes('text-slate-100'), 'Good descriptions must use high-contrast text-slate-100');
+      assert.ok(src.includes('text-emerald-400'), 'Check icon must use bright text-emerald-400');
+      assert.ok(!src.includes('text-slate-800 bg-blue-50/20'), 'Must eliminate low-contrast dark text on navy');
+    });
+
+    it('7.3. Generic Generative AI column is visually distinct with accessible rose error indicators', () => {
+      const src = fs.readFileSync(landingPath, 'utf8');
+      assert.ok(src.includes('Generic Generative AI'), 'Must render Generic AI comparison column');
+      assert.ok(src.includes('text-rose-700'), 'Must use visible rose accent in Generic AI column');
+    });
+
+    it('7.4. CSS architecture isolates dark surfaces from generic light mode paragraph color overrides', () => {
+      const css = fs.readFileSync(cssPath, 'utf8');
+      assert.ok(css.includes('[data-theme-surface="dark"]'), 'CSS must define isolated dark surface rule');
+      assert.ok(css.includes('not([data-theme-surface="dark"] *)'), 'Light mode overrides must exclude dark surfaces');
+      assert.ok(css.includes('--be-bg-canvas'), 'Theme tokens must define --be-bg-canvas');
+    });
+
+    it('7.5. Hero section and Call to Action banner adapt to theme canvas without unreadable text', () => {
+      const src = fs.readFileSync(landingPath, 'utf8');
+      assert.ok(src.includes('bg-[var(--be-bg-canvas,#F5F3EE)]'), 'Hero section must bind to --be-bg-canvas');
+      assert.ok(src.includes('bg-blue-600 text-white'), 'CTA banner must maintain white text on blue surface');
+      assert.ok(src.includes('data-theme-surface="dark"'), 'CTA banner must specify dark surface');
+    });
+  });
 });

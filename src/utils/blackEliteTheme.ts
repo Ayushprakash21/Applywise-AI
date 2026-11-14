@@ -451,6 +451,7 @@ export function applyThemeToDOM(
     '--be-bg-elevated': tokens.bgElevated,
     '--be-bg-input': tokens.bgInput || (appearance === 'light' ? '#FFFFFF' : tokens.bgSecondary),
     '--be-bg-modal': appearance === 'light' ? (tokens.bgCard || '#FFFFFF') : (tokens.bgElevated || '#15181E'),
+    '--be-bg-canvas': appearance === 'light' ? '#F5F3EE' : tokens.bgPrimary,
     '--be-border-subtle': tokens.borderSubtle,
     '--be-border-focus': tokens.borderFocus,
     '--be-text-primary': tokens.textPrimary,
@@ -523,11 +524,15 @@ export function applyThemeToDOM(
     body.classList.add('theme-black-light');
     root.classList.remove('theme-black-dark');
     body.classList.remove('theme-black-dark');
+    root.classList.remove('dark');
+    body.classList.remove('dark');
   } else {
     root.classList.add('theme-black-dark');
     body.classList.add('theme-black-dark');
     root.classList.remove('theme-black-light');
     body.classList.remove('theme-black-light');
+    root.classList.add('dark');
+    body.classList.add('dark');
   }
 }
 
@@ -561,5 +566,14 @@ export function initBlackEliteTheme(plan?: string): { palette: BlackElitePalette
   const palette = getStoredPalette();
   const appearance = getStoredAppearance();
   applyThemeToDOM(palette, appearance, true);
+  if (typeof window !== 'undefined') {
+    (window as any).__APPLYVISE_THEME__ = {
+      setPalette: setBlackElitePalette,
+      setAppearance: setBlackEliteAppearance,
+      init: initBlackEliteTheme,
+      getStoredPalette,
+      getStoredAppearance,
+    };
+  }
   return { palette, appearance };
 }

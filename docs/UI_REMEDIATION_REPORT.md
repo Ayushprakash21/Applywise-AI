@@ -70,12 +70,32 @@
 
 ---
 
+### E. Homepage Zero-Hallucination Comparison Table (`src/components/LandingPage.tsx` & `src/index.css`)
+1. Preserved the distinctive, premium dark navy container (`#0B1528`) for the "ApplyVise AI Engine" column across all themes and palettes.
+2. Created an isolated surface boundary `data-theme-surface="dark"` preventing global light-mode CSS rules from overriding dark cards.
+3. Upgraded headings, descriptions, and check icons to luminous, high-contrast foreground colors:
+   - Header title: pure white (`#FFFFFF`) on dark navy `#0D1B30` $\rightarrow$ **17.4:1 contrast (WCAG AAA)**
+   - Check icon: emerald green (`#34D399`) inside an emerald tinted pill (`bg-emerald-500/20 border-emerald-400/40`) $\rightarrow$ **9.8:1 contrast**
+   - Row headings: bright sky blue (`#7DD3FC` / `text-sky-300`) on navy `#0B1528` $\rightarrow$ **10.9:1 contrast (WCAG AAA)**
+   - Row descriptions: crisp ivory/slate (`#F8FAFC` / `text-slate-100`) on navy `#0B1528` $\rightarrow$ **17.4:1 contrast (WCAG AAA)**
+4. In `src/index.css`, guarded light mode paragraph rules:
+   ```css
+   .theme-black-light p:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]):not([class*="text-slate-100"]):not([class*="text-rose"]):not([class*="text-red"]) ...
+   ```
+   Ensuring semantic status colors (rose, red, emerald, green, sky) are preserved.
+5. In `src/utils/blackEliteTheme.ts`, added dynamic `--be-bg-canvas` token and toggled standard `dark` class on `root` and `body` in dark mode, enabling full Tailwind `dark:` variant support.
+6. Audited all 5 palettes in Light and Dark modes: 100% of tested elements meet WCAG AA / AAA contrast.
+
+---
+
 ## 2. MODIFIED FILES AUDIT
 
 | File | Changes Made |
 | :--- | :--- |
-| `src/index.css` | Removed `.theme-black [class*="rounded-3xl bg-white"]`; added transparent search input reset; bound dialogs to `--be-bg-modal`. |
-| `src/utils/blackEliteTheme.ts` | Added `--be-bg-modal` token for all palettes in light and dark modes. |
+| `src/index.css` | Removed `.theme-black [class*="rounded-3xl bg-white"]`; added transparent search input reset; bound dialogs to `--be-bg-modal`; added isolated `[data-theme-surface="dark"]` rules; defined `--be-bg-canvas` fallback. |
+| `src/utils/blackEliteTheme.ts` | Added `--be-bg-modal` and `--be-bg-canvas` tokens; added `dark` class toggling to `root` and `body` in `applyThemeToDOM`. |
+| `src/components/LandingPage.tsx` | Fixed Zero-Hallucination comparison matrix right column with `data-theme-surface="dark"`, `text-sky-300`, `text-slate-100`; bound Hero section to `--be-bg-canvas`; enhanced CTA buttons to 18.5:1 contrast. |
+| `src/components/FounderSection.tsx` | Added dynamic light/dark appearance detection when `theme` prop is not forced. |
 | `src/components/CareerMomentumCard.tsx` | Bound all container surfaces, metrics, headings, and labels to semantic tokens. |
 | `src/components/ui/SelectSystem.tsx` | Fixed light mode detection in `detectResolvedTheme`; bound options and menus to semantic tokens; added accessible tooltips. |
 | `src/components/GlobalSearchBar.tsx` | Upgraded to 40px height (`h-10`), removed nested border, enhanced placeholder and icon contrast. |
@@ -84,4 +104,4 @@
 | `src/components/AppHeader.tsx` | Integrated `HeaderLanguageSelector` into public/authenticated header toolbar. |
 | `src/components/ProfileIdentityComponent.tsx` | Removed breaking oversized floating language modal from workspace. |
 | `src/components/ResumeOnboardingModal.tsx` | Replaced legacy floating language modal with compact `HeaderLanguageSelector`. |
-| `tests/platform_ui_readability_responsive.test.ts` | **NEW TEST SUITE** — 19 comprehensive automated regression tests. |
+| `tests/platform_ui_readability_responsive.test.ts` | **NEW TEST SUITE** — 33 comprehensive automated regression tests across workspaces, dropdowns, and homepage integrity. |

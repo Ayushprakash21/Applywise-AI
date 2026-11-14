@@ -50,6 +50,7 @@
 
   /* Tactile UI Utilities (Standardized to Design System Tokens) */
   :root {
+    --be-bg-canvas: var(--be-bg-primary, #F5F3EE);
     --neu-bg: var(--be-bg-primary, #F5F3EE);
     --neu-surface: var(--be-bg-card, #FFFFFF);
     --neu-shadow-dark: rgba(0, 0, 0, 0.06);
@@ -868,17 +869,39 @@ input.border-0 {
   color: #35B887 !important;
 }
 
-.theme-black [class*="bg-rose-50"],
-.theme-black [class*="bg-rose-100"],
-.theme-black [class*="bg-red-50"] {
+.theme-black-dark [class*="bg-rose-50"],
+.theme-black-dark [class*="bg-rose-100"],
+.theme-black-dark [class*="bg-red-50"] {
   background-color: rgba(214, 117, 117, 0.12) !important;
   border-color: rgba(214, 117, 117, 0.28) !important;
-  color: #D67575 !important;
+  color: #FDA4AF !important;
 }
-.theme-black [class*="text-rose-600"],
-.theme-black [class*="text-rose-700"],
-.theme-black [class*="text-red-600"] {
-  color: #D67575 !important;
+.theme-black-dark [class*="text-rose-600"],
+.theme-black-dark [class*="text-rose-700"],
+.theme-black-dark [class*="text-red-600"] {
+  color: #FDA4AF !important;
+}
+
+.theme-black-light [class*="bg-rose-50"],
+[data-be-appearance="light"] [class*="bg-rose-50"],
+.theme-black-light [class*="bg-rose-100"],
+[data-be-appearance="light"] [class*="bg-rose-100"] {
+  background-color: #FFF1F2 !important;
+  border-color: #FECDD3 !important;
+  color: #9F1239 !important;
+}
+
+.theme-black-light [class*="text-rose-600"],
+.theme-black-light [class*="text-rose-700"],
+.theme-black-light [class*="text-rose-800"],
+.theme-black-light [class*="text-red-600"],
+.theme-black-light [class*="text-red-700"],
+[data-be-appearance="light"] [class*="text-rose-600"],
+[data-be-appearance="light"] [class*="text-rose-700"],
+[data-be-appearance="light"] [class*="text-rose-800"],
+[data-be-appearance="light"] [class*="text-red-600"],
+[data-be-appearance="light"] [class*="text-red-700"] {
+  color: #9F1239 !important;
 }
 
 .theme-black [class*="bg-amber-50"],
@@ -1037,34 +1060,60 @@ input.border-0 {
 /* 2. Light Mode Typography Overrides */
 .theme-black-light h1,
 .theme-black-light h2,
-.theme-black-light h3,
-.theme-black-light h4,
-.theme-black-light h5,
-.theme-black-light h6,
-[data-be-appearance="light"] h1,
-[data-be-appearance="light"] h2,
-[data-be-appearance="light"] h3,
-[data-be-appearance="light"] h4,
-[data-be-appearance="light"] h5,
-[data-be-appearance="light"] h6 {
+.theme-black-light h1:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
+.theme-black-light h2:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
+.theme-black-light h3:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
+.theme-black-light h4:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
+.theme-black-light h5:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
+.theme-black-light h6:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
+[data-be-appearance="light"] h1:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
+[data-be-appearance="light"] h2:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
+[data-be-appearance="light"] h3:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
+[data-be-appearance="light"] h4:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
+[data-be-appearance="light"] h5:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
+[data-be-appearance="light"] h6:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]) {
   color: var(--be-text-primary, #191D24) !important;
   letter-spacing: -0.015em;
 }
 
-.theme-black-light p,
-.theme-black-light .text-slate-600,
-.theme-black-light .text-slate-500,
-[data-be-appearance="light"] p,
-[data-be-appearance="light"] .text-slate-600,
-[data-be-appearance="light"] .text-slate-500 {
+.theme-black-light p:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]):not([class*="text-slate-100"]):not([class*="text-blue-100"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-amber"]):not([class*="text-sky"]),
+.theme-black-light .text-slate-600:not([data-theme-surface="dark"] *):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]),
+.theme-black-light .text-slate-500:not([data-theme-surface="dark"] *):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]),
+[data-be-appearance="light"] p:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]):not([class*="text-slate-100"]):not([class*="text-blue-100"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-amber"]):not([class*="text-sky"]),
+[data-be-appearance="light"] .text-slate-600:not([data-theme-surface="dark"] *):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]),
+[data-be-appearance="light"] .text-slate-500:not([data-theme-surface="dark"] *):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]) {
   color: var(--be-text-secondary, #555C66) !important;
 }
 
-.theme-black-light .text-slate-400,
-.theme-black-light .text-gray-400,
-[data-be-appearance="light"] .text-slate-400,
-[data-be-appearance="light"] .text-gray-400 {
+.theme-black-light .text-slate-400:not([data-theme-surface="dark"] *),
+.theme-black-light .text-gray-400:not([data-theme-surface="dark"] *),
+[data-be-appearance="light"] .text-slate-400:not([data-theme-surface="dark"] *),
+[data-be-appearance="light"] .text-gray-400:not([data-theme-surface="dark"] *) {
   color: var(--be-text-muted, #707782) !important;
+}
+
+/* 2b. ISOLATED DARK SURFACES (Comparison Tables, Dark Navy Callouts, Dark Hero CTAs) */
+[data-theme-surface="dark"] {
+  background-color: #0B1528 !important;
+  color: #F8FAFC !important;
+}
+[data-theme-surface="dark"] h1,
+[data-theme-surface="dark"] h2,
+[data-theme-surface="dark"] h3,
+[data-theme-surface="dark"] h4,
+[data-theme-surface="dark"] span {
+  color: inherit;
+}
+[data-theme-surface="dark"] p {
+  color: #F1F5F9 !important;
+}
+[data-theme-surface="dark"] [class*="text-sky-300"],
+[data-theme-surface="dark"] [class*="text-sky-400"] {
+  color: #7DD3FC !important;
+}
+[data-theme-surface="dark"] [class*="text-slate-100"],
+[data-theme-surface="dark"] [class*="text-white"] {
+  color: #F8FAFC !important;
 }
 
 /* 3. SAFETY GUARDS — Neutralize hardcoded dark background classes in light mode */

@@ -16,11 +16,15 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
   onReadStory,
   showExtendedBio = false,
   className = '',
-  theme = 'dark',
+  theme,
   initialProfile,
 }) => {
   const [profile, setProfile] = useState<FounderProfile>(initialProfile || DEFAULT_FOUNDER_PROFILE);
-  const isDark = theme === 'dark';
+  const isDark = theme !== undefined
+    ? theme === 'dark'
+    : (typeof document !== 'undefined'
+      ? (document.documentElement.getAttribute('data-be-appearance') !== 'light' && !document.documentElement.classList.contains('theme-black-light'))
+      : true);
 
   useEffect(() => {
     if (initialProfile) {

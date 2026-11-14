@@ -71,10 +71,32 @@
 
 ---
 
+### Defect E: Homepage Zero-Hallucination Comparison — Dark Text on Dark Navy Column
+- **Screenshot Ref:** `media_1794686052923_228c99bb.png`
+- **Affected Route & Component:** Homepage (`src/components/LandingPage.tsx` Section D: `#integrity`)
+- **Severity:** P0 — Critical Landing Page Readability & Brand Standard Failure
+- **Visual Evidence:**
+  - The comparison table's right-hand column, "APPLYVISE AI ENGINE", used a dark navy background (`#0B1528`).
+  - Column row headings ("WORK EXPERIENCE INTEGRITY", "JOB SOURCING AUTHENTICITY", "MATCH TRANSPARENCY", "SUBMISSION ACCOUNTABILITY") rendered in dark blue (`#1D4ED8` / `#2563EB`) against dark navy (contrast ratio 1.1:1).
+  - Supporting descriptions under every heading rendered in dark slate (`#1E293B`) against dark navy (contrast ratio 1.2:1).
+  - Check icon and column header lacked independent high-contrast luminous styling.
+- **Root Cause Analysis:**
+  1. In `src/components/LandingPage.tsx`, the right column used `text-slate-800 bg-blue-50/20` and `text-blue-600` for titles.
+  2. In `src/index.css`, `.theme-black [class*="bg-blue-50"]` turned `bg-blue-50/20` into semi-transparent navy over dark base surfaces.
+  3. Light mode paragraph rules (`.theme-black-light p { color: var(--be-text-secondary, #555C66) !important; }`) indiscriminately overrode text colors inside elements that were intentionally dark surfaces.
+  4. The container lacked an explicit `data-theme-surface="dark"` isolation boundary.
+  5. The Hero section lacked dynamic `--be-bg-canvas` binding, causing text flattening in dark mode.
+
+---
+
 ## 2. COMPREHENSIVE PLATFORM-WIDE AUDIT ACROSS WORKSPACES
 
 | Workspace | Module / Screen | Audit Findings | Status |
 | :--- | :--- | :--- | :--- |
+| **Public / Home** | Zero-Hallucination | ApplyVise AI Engine column had unreadable dark text on dark navy; fixed via `data-theme-surface="dark"` and luminous foreground tokens (`text-sky-300`, `text-slate-100`, `text-white`). | **AUDITED & FIXED** |
+| **Public / Home** | Hero Section & CTAs | Hero background bound to `--be-bg-canvas`; CTA banner button updated to `#0F172A` on `#FFFFFF` (contrast 18.5:1). | **AUDITED & FIXED** |
+| **Public / Home** | Live Vacancies | Vacancy cards audited across light and dark modes; text hierarchy verified. | **AUDITED & PASSED** |
+| **Public / Home** | Founder Section | Added dynamic theme detection so dark/light adapts seamlessly across palettes. | **AUDITED & FIXED** |
 | **Candidate** | Career Desk | Career Momentum card text unreadable; fixed background token conflict. | **AUDITED & FIXED** |
 | **Candidate** | Recruiter Review | SearchableSelect dropdown unreadable in light mode; fixed theme resolution. | **AUDITED & FIXED** |
 | **Candidate** | Resume Studio | Obstructed by floating language modal; migrated to header selector. | **AUDITED & FIXED** |

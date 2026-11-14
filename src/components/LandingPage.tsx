@@ -226,20 +226,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </header>
 
       {/* Hero Section — Architectural Grid Layout */}
-      <section className="relative overflow-hidden pt-12 pb-16 md:pt-16 md:pb-20 border-b border-[#DEDAD0] bg-[#F5F3EE]">
+      <section className="relative overflow-hidden pt-12 pb-16 md:pt-16 md:pb-20 border-b border-[#DEDAD0] dark:border-slate-800 bg-[var(--be-bg-canvas,#F5F3EE)]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
-          <div className="flex items-center space-x-2 text-xs font-semibold text-[#A78343]">
-            <span className="w-2 h-2 bg-[#A78343]" />
+          <div className="flex items-center space-x-2 text-xs font-semibold text-[#A78343] dark:text-[var(--be-accent,#C6A66A)]">
+            <span className="w-2 h-2 bg-[#A78343] dark:bg-[var(--be-accent,#C6A66A)]" />
             <span>ApplyVise AI · Unified Career Operating System</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-8 space-y-4">
-              <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-[#191D24] tracking-tight leading-[1.12]">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-[#191D24] dark:text-[#F2F0EA] tracking-tight leading-[1.12]">
                 Your Career. Intelligently Orchestrated.
               </h1>
 
-              <p className="max-w-2xl text-sm sm:text-base md:text-lg text-[#555C66] leading-relaxed">
+              <p className="max-w-2xl text-sm sm:text-base md:text-lg text-[#555C66] dark:text-[#C0BDB5] leading-relaxed">
                 Discover opportunities. Build your professional edge. Navigate every career move with AI-powered intelligence grounded in verified candidate facts.
               </p>
 
@@ -520,34 +520,41 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* Section D: The Zero-Hallucination Standard */}
-      <section id="integrity" className="py-16 sm:py-20 bg-[#F8FAFC] border-b border-slate-200/80">
+      <section id="integrity" className="py-16 sm:py-20 bg-[#F8FAFC] dark:bg-[var(--be-bg-primary,#0D1014)] border-b border-slate-200/80 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10">
           <div className="text-center max-w-3xl mx-auto space-y-2.5">
-            <span className="text-blue-600 font-semibold text-xs tracking-wider uppercase">
+            <span className="text-blue-600 dark:text-sky-400 font-semibold text-xs tracking-wider uppercase">
               Application Integrity Engine
             </span>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-[var(--be-text-primary,#F2F0EA)] tracking-tight">
               The Zero-Hallucination Standard.
             </h2>
-            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+            <p className="text-slate-600 dark:text-[var(--be-text-secondary,#C0BDB5)] text-xs sm:text-sm leading-relaxed">
               Most AI career tools make up numbers, fabricate employers, and flood ATS portals with toxic spam. ApplyVise AI is engineered with rigorous mathematical verification.
             </p>
           </div>
 
           {/* Comparison Matrix */}
-          <div className="max-w-4xl mx-auto rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden">
-            <div className="grid grid-cols-1 sm:grid-cols-2 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
-              <div className="p-4 sm:p-5 text-rose-700 bg-rose-50/70 flex items-center space-x-2">
-                <X className="h-4 w-4 shrink-0 text-rose-600" />
-                <span>Generic Generative AI</span>
+          <div className="max-w-4xl mx-auto rounded-2xl bg-white dark:bg-[#14171C] border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
+            <div className="grid grid-cols-1 sm:grid-cols-2 text-xs font-semibold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+              {/* Left Column Header — Generic Generative AI */}
+              <div className="p-4 sm:p-5 text-rose-700 dark:text-rose-300 bg-rose-50/80 dark:bg-rose-950/40 flex items-center space-x-2">
+                <X className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
+                <span className="font-bold tracking-wide">Generic Generative AI</span>
               </div>
-              <div className="p-4 sm:p-5 text-blue-700 bg-blue-50/70 flex items-center space-x-2 border-t sm:border-t-0 sm:border-l border-slate-200">
-                <Check className="h-4 w-4 shrink-0 text-blue-600" />
-                <span>ApplyVise AI Engine</span>
+              {/* Right Column Header — ApplyVise AI Engine (Premium Dark Navy Header) */}
+              <div
+                data-theme-surface="dark"
+                className="p-4 sm:p-5 text-white bg-[#0D1B30] flex items-center space-x-2.5 border-t sm:border-t-0 sm:border-l border-slate-700/60 shadow-inner"
+              >
+                <div className="h-5 w-5 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 border border-emerald-400/40">
+                  <Check className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                </div>
+                <span className="font-bold tracking-wide text-white text-xs sm:text-sm">ApplyVise AI Engine</span>
               </div>
             </div>
 
-            <div className="divide-y divide-slate-100 text-xs sm:text-sm">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs sm:text-sm">
               {[
                 {
                   issue: 'Work Experience Integrity',
@@ -570,14 +577,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   good: 'Transparent tracking, authentic external portal links, and verifiable audit records.',
                 },
               ].map((row, idx) => (
-                <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-                  <div className="p-4 sm:p-5 text-slate-600 bg-white space-y-1">
-                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{row.issue}</div>
-                    <p className="text-xs text-rose-700/90 leading-relaxed">{row.bad}</p>
+                <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-800/80">
+                  {/* Left Column Row — Generic Generative AI */}
+                  <div className="p-4 sm:p-5 text-slate-600 dark:text-slate-300 bg-white dark:bg-[#14171C] space-y-1.5">
+                    <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{row.issue}</div>
+                    <p className="text-xs text-rose-700 dark:text-rose-300/90 leading-relaxed font-medium">{row.bad}</p>
                   </div>
-                  <div className="p-4 sm:p-5 text-slate-800 bg-blue-50/20 space-y-1">
-                    <div className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider">{row.issue}</div>
-                    <p className="text-xs text-slate-800 leading-relaxed font-medium">{row.good}</p>
+                  {/* Right Column Row — ApplyVise AI Engine (Premium Dark Navy Surface with High Contrast) */}
+                  <div
+                    data-theme-surface="dark"
+                    className="p-4 sm:p-5 bg-[#0B1528] text-white space-y-1.5 border-t sm:border-t-0 sm:border-l border-slate-800/60"
+                  >
+                    <div className="text-[10px] font-bold text-sky-300 dark:text-sky-300 uppercase tracking-wider">{row.issue}</div>
+                    <p className="text-xs text-slate-100 dark:text-slate-100 leading-relaxed font-medium">{row.good}</p>
                   </div>
                 </div>
               ))}
@@ -661,8 +673,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* Section G: Call to Action */}
-      <section className="py-16 sm:py-20 bg-blue-600 text-white relative overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-5 relative z-10">
+      <section className="py-16 sm:py-20 bg-blue-600 text-white relative overflow-hidden" data-theme-surface="dark">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-5 relative z-10" data-theme-surface="dark">
           <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
             Make your next career move <br />
             with complete confidence.
@@ -675,13 +687,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <button
               onClick={() => onOpenAuth('signup')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-white hover:bg-slate-50 text-blue-700 font-bold text-sm rounded-xl shadow-md transition-all"
+              className="w-full sm:w-auto px-8 py-3.5 bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-sm rounded-xl shadow-md transition-all cursor-pointer"
             >
               Start for Free
             </button>
             <button
               onClick={() => onOpenAuth('login')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-blue-700/60 hover:bg-blue-700 border border-blue-400/40 text-white font-semibold text-sm rounded-xl transition-colors"
+              className="w-full sm:w-auto px-8 py-3.5 bg-blue-700/60 hover:bg-blue-700 border border-blue-400/40 text-white font-semibold text-sm rounded-xl transition-colors cursor-pointer"
             >
               Sign In to Existing Account
             </button>
