@@ -48,6 +48,7 @@ const AdminLoginPage = React.lazy(() => import('./components/AdminLoginPage.tsx'
 const CareerTwinPage = React.lazy(() => import('./components/CareerTwinPage.tsx').then(m => ({ default: m.CareerTwinPage })));
 const PricingPage = React.lazy(() => import('./components/PricingPage.tsx').then(m => ({ default: m.PricingPage })));
 const AboutPage = React.lazy(() => import('./components/AboutPage.tsx').then(m => ({ default: m.AboutPage })));
+const PublicResourcePage = React.lazy(() => import('./components/PublicResourcePage.tsx').then(m => ({ default: m.PublicResourcePage })));
 const HrOutreachPage = React.lazy(() => import('./components/HrOutreachPage.tsx').then(m => ({ default: m.HrOutreachPage })));
 const AiAutopilotStudio = React.lazy(() => import('./components/AiAutopilotStudio.tsx').then(m => ({ default: m.AiAutopilotStudio })));
 
@@ -85,7 +86,9 @@ const KNOWN_ROUTES = new Set([
   '/pricing',
   '/admin',
   '/admin/gcde',
+  '/admin/growth-engine',
   '/admin/login',
+  '/resources',
   '/login',
   '/signin',
   '/signup',
@@ -219,6 +222,9 @@ export default function App() {
   // Redirect candidate / non-admin users away from admin routes
   useEffect(() => {
     if (!isCheckingSession && currentUser && currentUser.role !== 'admin' && (currentRoute === '/admin' || currentRoute === '/admin/gcde')) {
+      showToast('Access denied: Administrator privileges required.');
+      navigateTo('/');
+    } else if (!isCheckingSession && currentUser && currentUser.role !== 'admin' && currentRoute === '/admin/growth-engine') {
       showToast('Access denied: Administrator privileges required.');
       navigateTo('/');
     }
@@ -562,7 +568,7 @@ export default function App() {
           </div>
         </div>
       }>
-      {!KNOWN_ROUTES.has(currentRoute) || currentRoute === '/404' ? (
+      {(!KNOWN_ROUTES.has(currentRoute) && !currentRoute.startsWith('/resources')) || currentRoute === '/404' ? (
         <NotFoundPage
           onNavigateHome={() => navigateTo('/')}
           onNavigateRadar={() => {
@@ -607,6 +613,34 @@ export default function App() {
           }}
           onSubscriptionUpdated={loadUserData}
         />
+      ) : currentRoute === '/resources' || currentRoute.startsWith('/resources/') ? (
+        <PublicResourcePage
+          slug={currentRoute.startsWith('/resources/') ? currentRoute.replace('/resources/', '') : undefined}
+          onNavigateHome={() => navigateTo('/')}
+          onNavigateRoute={route => navigateTo(route)}
+        />
+      ) : currentRoute === '/admin/growth-engine' ? (
+        currentUser && currentUser.role === 'admin' ? (
+          <AdminConsole
+            currentUser={currentUser}
+            initialTab="growth_engine"
+            currentRoute={currentRoute}
+            onNavigateRoute={route => navigateTo(route)}
+            onNavigateHome={() => navigateTo('/')}
+            onLogout={async () => {
+              await handleLogout();
+              navigateTo('/admin/login');
+            }}
+          />
+        ) : (
+          <AdminLoginPage
+            onSuccess={adminUser => {
+              setCurrentUser(adminUser);
+              navigateTo(currentRoute);
+            }}
+            onNavigateHome={() => navigateTo('/')}
+          />
+        )
       ) : currentRoute === '/admin' || currentRoute === '/admin/gcde' ? (
         currentUser && currentUser.role === 'admin' ? (
           <AdminConsole

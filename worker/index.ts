@@ -44,6 +44,9 @@ import {
 import { createWorkerHrOutreachApp } from './hrOutreachRoutes.ts';
 import { WorkerHrOutreachStore } from './hrOutreachStore.ts';
 import { WorkerHrDiscoveryQueueStore } from './hrDiscoveryQueueStore.ts';
+import { WorkerGrowthStore } from './growthStore.ts';
+import { WorkerGrowthEngineService } from './growthEngine.ts';
+import { MarketingContentItem, SocialPost } from '../src/types/growthEngine.ts';
 import {
   handleLocationSearchRequest,
   handleCountriesRequest,
@@ -4733,6 +4736,366 @@ app.get('/api/admin/autopilot/overview', requireAdmin, async (c) => {
       activeJobs: activeJobs || [],
       recentExecutions: recentExecutions || [],
     });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// ============================================================================
+// APPLYVISE GROWTH ENGINE — AUTONOMOUS AI MARKETING DEPARTMENT
+// ============================================================================
+
+// 1. Growth Command Center Overview
+app.get('/api/admin/growth/overview', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const overview = await growthStore.getOverview();
+    return c.json({ success: true, overview });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message || 'Failed to fetch growth overview' }, 500);
+  }
+});
+
+// 2. Growth Settings (Get & Update)
+app.get('/api/admin/growth/settings', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const settings = await growthStore.getSettings();
+    return c.json({ success: true, settings });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+app.put('/api/admin/growth/settings', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const body = await c.req.json().catch(() => ({}));
+    const updated = await growthStore.updateSettings(body);
+    await store.addAuditLog(user.id, 'Growth Engine', 'SETTINGS_UPDATED', 'growth_settings', `Autonomy mode: ${updated.autonomyMode}`);
+    return c.json({ success: true, settings: updated });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 3. Pause / Unpause
+app.post('/api/admin/growth/pause', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const { isPaused } = await c.req.json().catch(() => ({ isPaused: false }));
+    const updated = await growthStore.updateSettings({ isPaused: Boolean(isPaused) });
+    await store.addAuditLog(user.id, 'Growth Engine', isPaused ? 'AGENTS_PAUSED' : 'AGENTS_RESUMED', 'growth_settings', isPaused ? 'Paused marketing agent runs' : 'Resumed marketing agent runs');
+    return c.json({ success: true, settings: updated, message: isPaused ? 'Growth agents paused' : 'Growth agents resumed' });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 4. Emergency Stop
+app.post('/api/admin/growth/emergency-stop', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const { emergencyStopped } = await c.req.json().catch(() => ({ emergencyStopped: false }));
+    const updated = await growthStore.updateSettings({ emergencyStopped: Boolean(emergencyStopped), isPaused: Boolean(emergencyStopped) });
+    await store.addAuditLog(user.id, 'Growth Engine', emergencyStopped ? 'EMERGENCY_STOP_TRIGGERED' : 'EMERGENCY_STOP_CLEARED', 'growth_settings', emergencyStopped ? 'Emergency stop active' : 'Emergency stop cleared');
+    return c.json({ success: true, settings: updated, message: emergencyStopped ? 'Growth engine emergency stopped' : 'Emergency stop cleared' });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 5. Trigger Single Agent
+app.post('/api/admin/growth/run-agent', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const { agentType } = await c.req.json().catch(() => ({ agentType: '' }));
+    if (!agentType) return c.json({ success: false, error: 'agentType is required' }, 400);
+
+    const result = await WorkerGrowthEngineService.runAgent(growthStore, agentType, 'manual_trigger');
+    await store.addAuditLog(user.id, 'Growth Engine', 'AGENT_RUN_MANUAL', agentType, `Triggered ${agentType}: ${result.run.status}`);
+    return c.json(result);
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 6. Action Tasks & Approvals
+app.get('/api/admin/growth/tasks', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const tasks = await growthStore.getTasks(50);
+    return c.json({ success: true, tasks });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+app.post('/api/admin/growth/tasks/:id/approve', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const taskId = c.req.param('id');
+    const task = await growthStore.getTaskById(taskId);
+    if (!task) return c.json({ success: false, error: 'Task not found' }, 404);
+
+    if (task.category === 'content_draft' && task.payload?.articleId) {
+      await growthStore.updateMarketingContent(task.payload.articleId, {
+        status: 'PUBLISHED',
+        isPublished: true,
+        publishedAt: new Date().toISOString()
+      });
+    }
+
+    const updated = await growthStore.updateTaskStatus(taskId, 'completed', 'approved', user.id);
+    await store.addAuditLog(user.id, 'Growth Engine', 'TASK_APPROVED', task.agentType, `Approved task: ${task.title}`);
+    return c.json({ success: true, task: updated });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+app.post('/api/admin/growth/tasks/:id/reject', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const taskId = c.req.param('id');
+    const task = await growthStore.getTaskById(taskId);
+    if (!task) return c.json({ success: false, error: 'Task not found' }, 404);
+
+    const updated = await growthStore.updateTaskStatus(taskId, 'rejected', 'rejected', user.id);
+    await store.addAuditLog(user.id, 'Growth Engine', 'TASK_REJECTED', task.agentType, `Rejected task: ${task.title}`);
+    return c.json({ success: true, task: updated });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 7. SEO Properties & Keywords
+app.get('/api/admin/growth/seo', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const properties = await growthStore.getSeoProperties();
+    const keywords = await growthStore.getSeoKeywordGroups();
+    return c.json({ success: true, properties, keywords });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+app.post('/api/admin/growth/seo/audit', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const result = await WorkerGrowthEngineService.runAgent(growthStore, 'seo_intelligence', 'manual_trigger');
+    const properties = await growthStore.getSeoProperties();
+    return c.json({ success: true, properties, run: result.run });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 8. Marketing Content
+app.get('/api/admin/growth/content', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const content = await growthStore.getMarketingContent(false);
+    return c.json({ success: true, content });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+app.post('/api/admin/growth/content', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const payload = await c.req.json().catch(() => ({}));
+    const now = new Date().toISOString();
+    const slug = (payload.slug || (payload.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+    const contentItem: MarketingContentItem = {
+      id: `content_${Date.now()}`,
+      slug,
+      title: payload.title || 'Untitled Guide',
+      contentType: payload.contentType || 'ats_optimization',
+      targetAudience: payload.targetAudience || 'General Job Seekers',
+      searchIntent: payload.searchIntent || 'informational',
+      primaryKeyword: payload.primaryKeyword || '',
+      secondaryKeywords: payload.secondaryKeywords || [],
+      seoTitle: payload.seoTitle || payload.title,
+      metaDescription: payload.metaDescription || '',
+      canonicalUrl: `https://applyvise-ai.ayushprakash0021.workers.dev/resources/${slug}`,
+      status: payload.status || 'IDEA',
+      outline: payload.outline || [],
+      bodyMarkdown: payload.bodyMarkdown || '',
+      readTimeMinutes: payload.readTimeMinutes || 5,
+      internalLinkTargets: payload.internalLinkTargets || ['/signup', '/pricing'],
+      callToAction: payload.callToAction || { text: 'Start with ApplyVise Free', url: '/signup' },
+      sources: payload.sources || [],
+      isPublished: payload.isPublished || false,
+      publishedAt: payload.isPublished ? now : undefined,
+      viewsCount: 0,
+      conversionsCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const created = await growthStore.createMarketingContent(contentItem);
+    await store.addAuditLog(user.id, 'Growth Content', 'ARTICLE_CREATED', contentItem.id, `Created draft: ${contentItem.title}`);
+    return c.json({ success: true, content: created });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+app.put('/api/admin/growth/content/:id', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const contentId = c.req.param('id');
+    const body = await c.req.json().catch(() => ({}));
+    const updated = await growthStore.updateMarketingContent(contentId, body);
+    if (!updated) return c.json({ success: false, error: 'Content not found' }, 404);
+    await store.addAuditLog(user.id, 'Growth Content', 'ARTICLE_UPDATED', contentId, `Updated: ${updated.title}`);
+    return c.json({ success: true, content: updated });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+app.post('/api/admin/growth/content/:id/publish', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user: AuthUser = c.get('user')!;
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const contentId = c.req.param('id');
+    const now = new Date().toISOString();
+    const updated = await growthStore.updateMarketingContent(contentId, {
+      status: 'PUBLISHED',
+      isPublished: true,
+      publishedAt: now
+    });
+    if (!updated) return c.json({ success: false, error: 'Content not found' }, 404);
+    await store.addAuditLog(user.id, 'Growth Content', 'ARTICLE_PUBLISHED', contentId, `Published: ${updated.title}`);
+    return c.json({ success: true, content: updated });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 9. Competitor Intelligence
+app.get('/api/admin/growth/competitors', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const competitors = await growthStore.getCompetitorProfiles();
+    return c.json({ success: true, competitors });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 10. Social Media
+app.get('/api/admin/growth/social', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const posts = await growthStore.getSocialPosts();
+    return c.json({ success: true, posts });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+app.post('/api/admin/growth/social/draft', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const body = await c.req.json().catch(() => ({}));
+    const now = new Date().toISOString();
+    const post: SocialPost = {
+      id: `post_${Date.now()}`,
+      platform: body.platform || 'linkedin',
+      postText: body.postText,
+      mediaUrls: body.mediaUrls || [],
+      scheduledFor: body.scheduledFor || null,
+      status: 'draft',
+      engagementMetrics: { impressions: 0, clicks: 0, likes: 0, shares: 0 },
+      createdAt: now,
+      updatedAt: now,
+    };
+    const created = await growthStore.createSocialPost(post);
+    return c.json({ success: true, post: created });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 11. Marketing Integrations
+app.get('/api/admin/growth/integrations', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const integrations = await growthStore.getIntegrations();
+    return c.json({ success: true, integrations });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// 12. Funnel Metrics
+app.get('/api/admin/growth/funnel', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const metrics = await growthStore.getFunnelMetrics();
+    return c.json({ success: true, metrics });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+// ============================================================================
+// PUBLIC RESOURCE HUB ENDPOINTS (SEO Indexable)
+// ============================================================================
+
+app.get('/api/resources', async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const articles = await growthStore.getMarketingContent(true);
+    return c.json({ success: true, articles });
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+app.get('/api/resources/:slug', async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const growthStore = new WorkerGrowthStore((store as any).db);
+    const slug = c.req.param('slug');
+    const article = await growthStore.getMarketingContentBySlug(slug);
+    if (!article || (!article.isPublished && article.status !== 'PUBLISHED')) {
+      return c.json({ success: false, error: 'Article not found or not published' }, 404);
+    }
+    return c.json({ success: true, article });
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500);
   }

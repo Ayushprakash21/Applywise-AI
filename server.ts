@@ -43,6 +43,9 @@ import { hrOutreachStore } from './server/hrOutreachStore.ts';
 import { hrDiscoveryQueueStore } from './server/hrDiscoveryQueueStore.ts';
 import { processHrDiscoveryQueueBatch, revalidateStaleContacts } from './server/hrDiscoveryEngine.ts';
 import { createHrOutreachRouter } from './server/hrOutreachRoutes.ts';
+import { growthStore } from './server/growthStore.ts';
+import { GrowthEngineService } from './server/growthEngine.ts';
+import { MarketingContentItem, SocialPost } from './src/types/growthEngine.ts';
 import {
   handleLocationSearchRequest,
   handleCountriesRequest,
@@ -2973,6 +2976,305 @@ app.delete('/api/admin/founder-profile/photo', requireAdmin, (req: Authenticated
     authAndStore.removeFounderPhoto();
     authAndStore.addAuditLog(req.user!.id, 'Founder Profile', 'PHOTO_REMOVED', 'founder_main', 'Founder photograph removed from draft');
     return res.json({ success: true, message: 'Photograph removed from draft' });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ============================================================================
+// APPLYVISE GROWTH ENGINE — AUTONOMOUS AI MARKETING DEPARTMENT
+// ============================================================================
+
+// 1. Growth Command Center Overview
+app.get('/api/admin/growth/overview', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const overview = growthStore.getOverview();
+    return res.json({ success: true, overview });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message || 'Failed to fetch growth overview' });
+  }
+});
+
+// 2. Growth Settings (Get & Update)
+app.get('/api/admin/growth/settings', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const settings = growthStore.getSettings();
+    return res.json({ success: true, settings });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/admin/growth/settings', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const updated = growthStore.updateSettings(req.body || {});
+    authAndStore.addAuditLog(req.user!.id, 'Growth Engine', 'SETTINGS_UPDATED', 'growth_settings', `Autonomy mode: ${updated.autonomyMode}`);
+    return res.json({ success: true, settings: updated });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 3. Pause / Unpause Agents
+app.post('/api/admin/growth/pause', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { isPaused } = req.body;
+    const updated = growthStore.updateSettings({ isPaused: Boolean(isPaused) });
+    authAndStore.addAuditLog(req.user!.id, 'Growth Engine', isPaused ? 'AGENTS_PAUSED' : 'AGENTS_RESUMED', 'growth_settings', isPaused ? 'Paused marketing agent runs' : 'Resumed marketing agent runs');
+    return res.json({ success: true, settings: updated, message: isPaused ? 'Growth agents paused' : 'Growth agents resumed' });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4. Emergency Stop
+app.post('/api/admin/growth/emergency-stop', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { emergencyStopped } = req.body;
+    const updated = growthStore.updateSettings({ emergencyStopped: Boolean(emergencyStopped), isPaused: Boolean(emergencyStopped) });
+    authAndStore.addAuditLog(req.user!.id, 'Growth Engine', emergencyStopped ? 'EMERGENCY_STOP_TRIGGERED' : 'EMERGENCY_STOP_CLEARED', 'growth_settings', emergencyStopped ? 'Emergency stop active - all autonomous actions halted' : 'Emergency stop cleared');
+    return res.json({ success: true, settings: updated, message: emergencyStopped ? 'Growth engine emergency stopped' : 'Emergency stop cleared' });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5. Trigger Single Agent Execution
+app.post('/api/admin/growth/run-agent', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { agentType } = req.body;
+    if (!agentType) {
+      return res.status(400).json({ success: false, error: 'agentType is required' });
+    }
+    const result = await GrowthEngineService.runAgent(agentType, 'manual_trigger');
+    authAndStore.addAuditLog(req.user!.id, 'Growth Engine', 'AGENT_RUN_MANUAL', agentType, `Triggered ${agentType}: ${result.run.status}`);
+    return res.json(result);
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 6. Action Tasks & Approvals
+app.get('/api/admin/growth/tasks', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const tasks = growthStore.getTasks(50);
+    return res.json({ success: true, tasks });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/growth/tasks/:id/approve', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const task = growthStore.getTaskById(req.params.id);
+    if (!task) return res.status(404).json({ success: false, error: 'Task not found' });
+    
+    // If it's a content publishing task, publish the article
+    if (task.category === 'content_draft' && task.payload?.articleId) {
+      growthStore.updateMarketingContent(task.payload.articleId, {
+        status: 'PUBLISHED',
+        isPublished: true,
+        publishedAt: new Date().toISOString()
+      });
+    }
+
+    const updated = growthStore.updateTaskStatus(req.params.id, 'completed', 'approved', req.user!.id);
+    authAndStore.addAuditLog(req.user!.id, 'Growth Engine', 'TASK_APPROVED', task.agentType, `Approved task: ${task.title}`);
+    return res.json({ success: true, task: updated });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/growth/tasks/:id/reject', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const task = growthStore.getTaskById(req.params.id);
+    if (!task) return res.status(404).json({ success: false, error: 'Task not found' });
+    const updated = growthStore.updateTaskStatus(req.params.id, 'rejected', 'rejected', req.user!.id);
+    authAndStore.addAuditLog(req.user!.id, 'Growth Engine', 'TASK_REJECTED', task.agentType, `Rejected task: ${task.title}`);
+    return res.json({ success: true, task: updated });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 7. SEO Properties & Keyword Groups
+app.get('/api/admin/growth/seo', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const properties = growthStore.getSeoProperties();
+    const keywords = growthStore.getSeoKeywordGroups();
+    return res.json({ success: true, properties, keywords });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/growth/seo/audit', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const result = await GrowthEngineService.runAgent('seo_intelligence', 'manual_trigger');
+    return res.json({ success: true, properties: growthStore.getSeoProperties(), run: result.run });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 8. Marketing Content Pipeline
+app.get('/api/admin/growth/content', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const content = growthStore.getMarketingContent(false);
+    return res.json({ success: true, content });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/growth/content', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const payload = req.body;
+    const now = new Date().toISOString();
+    const slug = (payload.slug || payload.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+    const contentItem: MarketingContentItem = {
+      id: `content_${Date.now()}`,
+      slug,
+      title: payload.title,
+      contentType: payload.contentType || 'ats_optimization',
+      targetAudience: payload.targetAudience || 'General Job Seekers',
+      searchIntent: payload.searchIntent || 'informational',
+      primaryKeyword: payload.primaryKeyword || '',
+      secondaryKeywords: payload.secondaryKeywords || [],
+      seoTitle: payload.seoTitle || payload.title,
+      metaDescription: payload.metaDescription || '',
+      canonicalUrl: `https://applyvise-ai.ayushprakash0021.workers.dev/resources/${slug}`,
+      status: payload.status || 'IDEA',
+      outline: payload.outline || [],
+      bodyMarkdown: payload.bodyMarkdown || '',
+      readTimeMinutes: payload.readTimeMinutes || 5,
+      internalLinkTargets: payload.internalLinkTargets || ['/signup', '/pricing'],
+      callToAction: payload.callToAction || { text: 'Start with ApplyVise Free', url: '/signup' },
+      sources: payload.sources || [],
+      isPublished: payload.isPublished || false,
+      publishedAt: payload.isPublished ? now : undefined,
+      viewsCount: 0,
+      conversionsCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const created = growthStore.createMarketingContent(contentItem);
+    authAndStore.addAuditLog(req.user!.id, 'Growth Content', 'ARTICLE_CREATED', contentItem.id, `Created draft: ${contentItem.title}`);
+    return res.json({ success: true, content: created });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/admin/growth/content/:id', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const updated = growthStore.updateMarketingContent(req.params.id, req.body || {});
+    if (!updated) return res.status(404).json({ success: false, error: 'Content not found' });
+    authAndStore.addAuditLog(req.user!.id, 'Growth Content', 'ARTICLE_UPDATED', req.params.id, `Updated: ${updated.title}`);
+    return res.json({ success: true, content: updated });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/growth/content/:id/publish', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const now = new Date().toISOString();
+    const updated = growthStore.updateMarketingContent(req.params.id, {
+      status: 'PUBLISHED',
+      isPublished: true,
+      publishedAt: now
+    });
+    if (!updated) return res.status(404).json({ success: false, error: 'Content not found' });
+    authAndStore.addAuditLog(req.user!.id, 'Growth Content', 'ARTICLE_PUBLISHED', req.params.id, `Published: ${updated.title}`);
+    return res.json({ success: true, content: updated });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 9. Competitor Intelligence
+app.get('/api/admin/growth/competitors', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const competitors = growthStore.getCompetitorProfiles();
+    return res.json({ success: true, competitors });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 10. Social Media
+app.get('/api/admin/growth/social', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const posts = growthStore.getSocialPosts();
+    return res.json({ success: true, posts });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/growth/social/draft', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const now = new Date().toISOString();
+    const post: SocialPost = {
+      id: `post_${Date.now()}`,
+      platform: req.body.platform || 'linkedin',
+      postText: req.body.postText,
+      mediaUrls: req.body.mediaUrls || [],
+      scheduledFor: req.body.scheduledFor || null,
+      status: 'draft',
+      engagementMetrics: { impressions: 0, clicks: 0, likes: 0, shares: 0 },
+      createdAt: now,
+      updatedAt: now,
+    };
+    const created = growthStore.createSocialPost(post);
+    return res.json({ success: true, post: created });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 11. Marketing Integrations
+app.get('/api/admin/growth/integrations', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const integrations = growthStore.getIntegrations();
+    return res.json({ success: true, integrations });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 12. Funnel Metrics
+app.get('/api/admin/growth/funnel', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const metrics = growthStore.getFunnelMetrics();
+    return res.json({ success: true, metrics });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ============================================================================
+// PUBLIC RESOURCE HUB ENDPOINTS (SEO Indexable)
+// ============================================================================
+
+app.get('/api/resources', (req: Request, res: Response) => {
+  try {
+    const articles = growthStore.getMarketingContent(true);
+    return res.json({ success: true, articles });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/resources/:slug', (req: Request, res: Response) => {
+  try {
+    const article = growthStore.getMarketingContentBySlug(req.params.slug);
+    if (!article || (!article.isPublished && article.status !== 'PUBLISHED')) {
+      return res.status(404).json({ success: false, error: 'Article not found or not published' });
+    }
+    return res.json({ success: true, article });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message });
   }

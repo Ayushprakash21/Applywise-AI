@@ -24,7 +24,8 @@ import {
   Lock,
   ChevronRight,
   Filter,
-  Award
+  Award,
+  TrendingUp
 } from 'lucide-react';
 import { api, AuthUser } from '../services/api.ts';
 import { AuditLogEntry } from '../types/index.ts';
@@ -35,6 +36,7 @@ import { AdminResumeManagement } from './AdminResumeManagement.tsx';
 import { AdminUserProvisioning } from './AdminUserProvisioning.tsx';
 import { GlobalSourceIntelligence } from './GlobalSourceIntelligence.tsx';
 import { AdminHrDiscoveryDiagnostics } from './AdminHrDiscoveryDiagnostics.tsx';
+import { GrowthEngineDashboard } from './admin/growth-engine/GrowthEngineDashboard.tsx';
 import { getEffectivePlan } from '../config/freeAccess.ts';
 import { FilterSelect, SearchableSelect } from './ui/SelectSystem.tsx';
 
@@ -48,7 +50,7 @@ interface AdminConsoleProps {
 }
 
 type AdminTab = 'overview' | 'users' | 'resumes' | 'sources' | 'audit' | 'system' | 'founder';
-type ExtendedAdminTab = AdminTab | 'provisioning' | 'hr_discovery';
+type ExtendedAdminTab = AdminTab | 'provisioning' | 'hr_discovery' | 'growth_engine';
 
 export const AdminConsole: React.FC<AdminConsoleProps> = ({
   currentUser,
@@ -66,6 +68,9 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
     if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin/gcde')) {
       return 'sources';
     }
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin/growth-engine')) {
+      return 'growth_engine';
+    }
     return 'overview';
   });
 
@@ -75,6 +80,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
       setTabState(initialTab);
     } else if (currentRoute === '/admin/gcde') {
       setTabState('sources');
+    } else if (currentRoute === '/admin/growth-engine') {
+      setTabState('growth_engine');
     }
   }, [initialTab, currentRoute]);
 
@@ -544,6 +551,32 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
               >
                 <Sparkles className={`h-3.5 w-3.5 ${activeTab === 'founder' ? 'text-[#C6A66A]' : 'text-pink-400'}`} />
                 <span>Founder Profile</span>
+              </button>
+
+              {/* 9. ApplyVise Growth Engine */}
+              <button
+                id="admin-tab-growth-engine"
+                role="tab"
+                type="button"
+                tabIndex={0}
+                aria-selected={activeTab === 'growth_engine'}
+                aria-controls="admin-panel-growth-engine"
+                onClick={() => {
+                  setActiveTab('growth_engine');
+                  if (onNavigateRoute) onNavigateRoute('/admin/growth-engine');
+                }}
+                className={`px-3 py-1.5 min-h-[38px] rounded-xl font-semibold flex items-center space-x-2 transition cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-[#C6A66A] ${
+                  activeTab === 'growth_engine'
+                    ? isBlack
+                      ? 'bg-[#191D23] text-[#F2F0EA] shadow-xs border border-[rgba(198,166,106,0.40)]'
+                      : 'bg-slate-800 text-white shadow-xs border border-slate-700'
+                    : isBlack
+                      ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#14171C] border border-transparent'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
+                }`}
+              >
+                <TrendingUp className={`h-3.5 w-3.5 ${activeTab === 'growth_engine' ? 'text-[#C6A66A]' : 'text-amber-400'}`} />
+                <span>Growth Engine</span>
               </button>
             </div>
           </div>
@@ -1104,6 +1137,11 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
         {/* TAB 6: FOUNDER PROFILE MANAGEMENT */}
         {activeTab === 'founder' && (
           <AdminFounderProfile onNotify={showNotification} />
+        )}
+
+        {/* TAB 7: APPLYVISE GROWTH ENGINE & AI MARKETING DEPARTMENT */}
+        {activeTab === 'growth_engine' && (
+          <GrowthEngineDashboard onNavigateRoute={onNavigateRoute} />
         )}
       </main>
     </div>

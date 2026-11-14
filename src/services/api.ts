@@ -1680,4 +1680,114 @@ export const api = {
       activeJobs: any[];
       recentExecutions: any[];
     }>('/api/admin/autopilot/overview'),
+
+  // --- APPLYVISE GROWTH ENGINE — AUTONOMOUS AI MARKETING DEPARTMENT ---
+  getGrowthOverview: () =>
+    fetchJson<{ success: boolean; overview: import('../types/growthEngine.ts').GrowthCommandCenterOverview }>('/api/admin/growth/overview'),
+
+  getGrowthSettings: () =>
+    fetchJson<{ success: boolean; settings: import('../types/growthEngine.ts').GrowthAgentSettings }>('/api/admin/growth/settings'),
+
+  updateGrowthSettings: (settings: Partial<import('../types/growthEngine.ts').GrowthAgentSettings>) =>
+    fetchJson<{ success: boolean; settings: import('../types/growthEngine.ts').GrowthAgentSettings }>('/api/admin/growth/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    }),
+
+  pauseGrowthAgents: (isPaused: boolean) =>
+    fetchJson<{ success: boolean; settings: import('../types/growthEngine.ts').GrowthAgentSettings; message: string }>('/api/admin/growth/pause', {
+      method: 'POST',
+      body: JSON.stringify({ isPaused }),
+    }),
+
+  emergencyStopGrowthEngine: (emergencyStopped: boolean) =>
+    fetchJson<{ success: boolean; settings: import('../types/growthEngine.ts').GrowthAgentSettings; message: string }>('/api/admin/growth/emergency-stop', {
+      method: 'POST',
+      body: JSON.stringify({ emergencyStopped }),
+    }),
+
+  runGrowthAgent: (agentType: import('../types/growthEngine.ts').GrowthAgentType) =>
+    fetchJson<{
+      success: boolean;
+      run: import('../types/growthEngine.ts').GrowthAgentRun;
+      createdTask?: import('../types/growthEngine.ts').GrowthAgentTask;
+      message: string;
+    }>('/api/admin/growth/run-agent', {
+      method: 'POST',
+      body: JSON.stringify({ agentType }),
+    }),
+
+  getGrowthTasks: () =>
+    fetchJson<{ success: boolean; tasks: import('../types/growthEngine.ts').GrowthAgentTask[] }>('/api/admin/growth/tasks'),
+
+  approveGrowthTask: (taskId: string) =>
+    fetchJson<{ success: boolean; task: import('../types/growthEngine.ts').GrowthAgentTask }>(`/api/admin/growth/tasks/${encodeURIComponent(taskId)}/approve`, {
+      method: 'POST',
+    }),
+
+  rejectGrowthTask: (taskId: string) =>
+    fetchJson<{ success: boolean; task: import('../types/growthEngine.ts').GrowthAgentTask }>(`/api/admin/growth/tasks/${encodeURIComponent(taskId)}/reject`, {
+      method: 'POST',
+    }),
+
+  getGrowthSeo: () =>
+    fetchJson<{
+      success: boolean;
+      properties: import('../types/growthEngine.ts').SeoProperty[];
+      keywords: import('../types/growthEngine.ts').SeoKeywordGroup[];
+    }>('/api/admin/growth/seo'),
+
+  runGrowthSeoAudit: () =>
+    fetchJson<{
+      success: boolean;
+      properties: import('../types/growthEngine.ts').SeoProperty[];
+      run: import('../types/growthEngine.ts').GrowthAgentRun;
+    }>('/api/admin/growth/seo/audit', {
+      method: 'POST',
+    }),
+
+  getGrowthMarketingContent: () =>
+    fetchJson<{ success: boolean; content: import('../types/growthEngine.ts').MarketingContentItem[] }>('/api/admin/growth/content'),
+
+  createGrowthMarketingContent: (content: Partial<import('../types/growthEngine.ts').MarketingContentItem>) =>
+    fetchJson<{ success: boolean; content: import('../types/growthEngine.ts').MarketingContentItem }>('/api/admin/growth/content', {
+      method: 'POST',
+      body: JSON.stringify(content),
+    }),
+
+  updateGrowthMarketingContent: (id: string, updates: Partial<import('../types/growthEngine.ts').MarketingContentItem>) =>
+    fetchJson<{ success: boolean; content: import('../types/growthEngine.ts').MarketingContentItem }>(`/api/admin/growth/content/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    }),
+
+  publishGrowthMarketingContent: (id: string) =>
+    fetchJson<{ success: boolean; content: import('../types/growthEngine.ts').MarketingContentItem }>(`/api/admin/growth/content/${encodeURIComponent(id)}/publish`, {
+      method: 'POST',
+    }),
+
+  getGrowthCompetitors: () =>
+    fetchJson<{ success: boolean; competitors: import('../types/growthEngine.ts').CompetitorProfile[] }>('/api/admin/growth/competitors'),
+
+  getGrowthSocialPosts: () =>
+    fetchJson<{ success: boolean; posts: import('../types/growthEngine.ts').SocialPost[] }>('/api/admin/growth/social'),
+
+  draftGrowthSocialPost: (post: { platform: string; postText: string; mediaUrls?: string[]; scheduledFor?: string }) =>
+    fetchJson<{ success: boolean; post: import('../types/growthEngine.ts').SocialPost }>('/api/admin/growth/social/draft', {
+      method: 'POST',
+      body: JSON.stringify(post),
+    }),
+
+  getGrowthIntegrations: () =>
+    fetchJson<{ success: boolean; integrations: import('../types/growthEngine.ts').MarketingIntegration[] }>('/api/admin/growth/integrations'),
+
+  getGrowthFunnelMetrics: () =>
+    fetchJson<{ success: boolean; metrics: import('../types/growthEngine.ts').MarketingFunnelMetrics[] }>('/api/admin/growth/funnel'),
+
+  // --- PUBLIC RESOURCES ---
+  getPublicResources: () =>
+    fetchJson<{ success: boolean; articles: import('../types/growthEngine.ts').MarketingContentItem[] }>('/api/resources'),
+
+  getPublicResourceBySlug: (slug: string) =>
+    fetchJson<{ success: boolean; article: import('../types/growthEngine.ts').MarketingContentItem }>(`/api/resources/${encodeURIComponent(slug)}`),
 };
