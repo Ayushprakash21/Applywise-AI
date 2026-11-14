@@ -1135,12 +1135,16 @@ input.border-0 {
 .theme-black-light [class*="bg-[#181A20]"],
 .theme-black-light [class*="bg-[#10261D]"],
 .theme-black-light [class*="bg-[#101318]"],
+.theme-black-light [class*="bg-[#13161B]"]:not([data-theme-surface="dark"] *),
+.theme-black-light [class*="bg-[#090B12]"]:not([data-theme-surface="dark"] *),
 [data-be-appearance="light"] [class*="bg-[#14171C]"],
 [data-be-appearance="light"] [class*="bg-[#101926]"],
 [data-be-appearance="light"] [class*="bg-[#1A132B]"],
 [data-be-appearance="light"] [class*="bg-[#181A20]"],
 [data-be-appearance="light"] [class*="bg-[#10261D]"],
-[data-be-appearance="light"] [class*="bg-[#101318]"] {
+[data-be-appearance="light"] [class*="bg-[#101318]"],
+[data-be-appearance="light"] [class*="bg-[#13161B]"]:not([data-theme-surface="dark"] *),
+[data-be-appearance="light"] [class*="bg-[#090B12]"]:not([data-theme-surface="dark"] *) {
   background-color: var(--be-bg-card, #FFFFFF) !important;
   color: var(--be-text-primary, #20242B) !important;
   border-color: var(--be-border-subtle, #DEDAD0) !important;

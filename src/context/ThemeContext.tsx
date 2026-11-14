@@ -66,12 +66,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     };
 
     const handleStorageEvent = (e: StorageEvent) => {
-      if (e.key === 'applyvise_black_appearance' && e.newValue) {
+      if ((e.key === 'applyvise_be_appearance' || e.key === 'applyvise_black_appearance') && e.newValue) {
         if (e.newValue === 'light' || e.newValue === 'dark') {
           setAppearanceState(e.newValue);
         }
       }
-      if (e.key === 'applyvise_black_palette' && e.newValue) {
+      if ((e.key === 'applyvise_be_palette' || e.key === 'applyvise_black_palette') && e.newValue) {
         const val = e.newValue as BlackElitePalette;
         if (BLACK_ELITE_PALETTES[val]) {
           setPaletteState(val);

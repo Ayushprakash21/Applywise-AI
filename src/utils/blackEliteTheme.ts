@@ -403,16 +403,16 @@ export function getStoredPalette(): BlackElitePalette {
 }
 
 export function getStoredAppearance(): BlackEliteAppearance {
-  if (typeof localStorage === 'undefined') return 'dark';
+  if (typeof localStorage === 'undefined') return 'light';
   try {
-    const val = localStorage.getItem(STORAGE_APPEARANCE_KEY) as BlackEliteAppearance;
+    const val = (localStorage.getItem(STORAGE_APPEARANCE_KEY) || localStorage.getItem('applyvise_black_appearance')) as BlackEliteAppearance;
     if (val === 'light' || val === 'dark') {
       return val;
     }
   } catch {
     // Ignore storage read error
   }
-  return 'dark';
+  return 'light';
 }
 
 export function applyThemeToDOM(
@@ -553,6 +553,7 @@ export function setBlackEliteAppearance(appearance: BlackEliteAppearance, isBlac
   if (typeof localStorage !== 'undefined') {
     try {
       localStorage.setItem(STORAGE_APPEARANCE_KEY, appearance);
+      localStorage.setItem('applyvise_black_appearance', appearance);
     } catch {}
   }
   const palette = getStoredPalette();

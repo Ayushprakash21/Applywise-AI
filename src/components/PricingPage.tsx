@@ -180,7 +180,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
               <div className="flex items-center gap-1.5">
                 {currentPlanId === 'black' || isFreeAccess ? (
                   <span className="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full bg-[#0B0D10] text-[#C6A66A] border border-[rgba(198,166,106,0.35)] shadow-xs">
-                    <RoyalCrownLogo size="xs" />
+                    <RoyalCrownLogo size="xs" variant={isBlack ? 'dark' : 'light'} />
                     <span>BLACK ELITE</span>
                   </span>
                 ) : (
@@ -211,9 +211,11 @@ export const PricingPage: React.FC<PricingPageProps> = ({
 
       {/* Hero Header — Editorial Layout */}
       <section className="pt-14 pb-8 max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[var(--be-border-subtle,rgba(255,255,255,0.08))]">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))]">
           <div className="space-y-2">
-            <span className="text-xs font-semibold text-[var(--be-accent,#A78343)]">
+            <span className={`text-xs font-bold uppercase tracking-wider ${
+              isBlack ? 'text-[#C6A66A]' : 'text-amber-700'
+            }`}>
               Subscription Entitlements & Pricing
             </span>
             <h1 className={`text-2xl sm:text-4xl font-extrabold tracking-tight ${
@@ -226,38 +228,6 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             }`}>
               Transparent subscriptions designed to maximize your application results with zero-hallucination resume intelligence.
             </p>
-          </div>
-
-          {/* Currency Toggle */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrency('INR')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
-                currency === 'INR'
-                  ? isBlack
-                    ? 'bg-[#C6A66A] text-[#08090B]'
-                    : 'bg-slate-900 text-white'
-                  : isBlack
-                  ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              INR (₹)
-            </button>
-            <button
-              onClick={() => setCurrency('USD')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
-                currency === 'USD'
-                  ? isBlack
-                    ? 'bg-[#C6A66A] text-[#08090B]'
-                    : 'bg-slate-900 text-white'
-                  : isBlack
-                  ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              USD ($)
-            </button>
           </div>
         </div>
 
@@ -379,78 +349,78 @@ export const PricingPage: React.FC<PricingPageProps> = ({
         {/* Currency & Billing Toggles */}
         <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
           {/* Monthly / Annual Toggle */}
-          <div className={`inline-flex p-1 rounded-2xl border ${
+          <div className={`inline-flex p-1 rounded-2xl border text-xs font-semibold shadow-2xs ${
             isBlack
-              ? 'bg-[#0B0D10] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
-              : 'bg-slate-100 border-slate-200'
+              ? 'bg-[#0B0D10] border-[rgba(255,255,255,0.12)]'
+              : 'bg-slate-100 border-slate-300/80'
           }`}>
             <button
               onClick={() => setBillingInterval('monthly')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                 billingInterval === 'monthly'
                   ? isBlack
-                    ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
-                    : 'bg-white text-slate-900 shadow-xs'
+                    ? 'bg-[#191D23] text-[#F0EEE9] border border-[rgba(198,166,106,0.40)] shadow-xs'
+                    : 'bg-white text-slate-900 border border-slate-200/90 shadow-xs'
                   : isBlack
-                  ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
-                  : 'text-slate-500 hover:text-slate-800'
+                  ? 'text-[#94A3B8] hover:text-[#F0EEE9]'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Monthly Billing
             </button>
             <button
               onClick={() => setBillingInterval('annual')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center space-x-1.5 cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
                 billingInterval === 'annual'
                   ? isBlack
-                    ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
-                    : 'bg-white text-slate-900 shadow-xs'
+                    ? 'bg-[#191D23] text-[#F0EEE9] border border-[rgba(198,166,106,0.40)] shadow-xs'
+                    : 'bg-white text-slate-900 border border-slate-200/90 shadow-xs'
                   : isBlack
-                  ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
-                  : 'text-slate-500 hover:text-slate-800'
+                  ? 'text-[#94A3B8] hover:text-[#F0EEE9]'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <span>Annual Billing</span>
-              <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-bold border ${
+              <span className={`px-2 py-0.5 rounded-md text-[10px] font-black border uppercase tracking-wider ${
                 isBlack
-                  ? 'bg-[rgba(54,184,135,0.18)] text-[#36B887] border-[rgba(54,184,135,0.30)]'
-                  : 'bg-emerald-100 text-emerald-800 border-transparent'
+                  ? 'bg-[rgba(54,184,135,0.20)] text-[#36B887] border-[rgba(54,184,135,0.40)]'
+                  : 'bg-emerald-100 text-emerald-800 border-emerald-300'
               }`}>
                 Save 17%
               </span>
             </button>
           </div>
 
-          {/* Currency Toggle */}
-          <div className={`inline-flex p-1 rounded-2xl border text-xs font-semibold ${
+          {/* Single High-Contrast Currency Toggle */}
+          <div className={`inline-flex p-1 rounded-2xl border text-xs font-semibold shadow-2xs ${
             isBlack
-              ? 'bg-[#0B0D10] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
-              : 'bg-slate-100 border-slate-200'
+              ? 'bg-[#0B0D10] border-[rgba(255,255,255,0.12)]'
+              : 'bg-slate-100 border-slate-300/80'
           }`}>
             <button
               onClick={() => setCurrency('INR')}
-              className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                 currency === 'INR'
                   ? isBlack
-                    ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
-                    : 'bg-white text-slate-900 shadow-xs'
+                    ? 'bg-[#191D23] text-[#F0EEE9] border border-[rgba(198,166,106,0.40)] shadow-xs'
+                    : 'bg-white text-slate-900 border border-slate-200/90 shadow-xs'
                   : isBlack
-                  ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
-                  : 'text-slate-500'
+                  ? 'text-[#94A3B8] hover:text-[#F0EEE9]'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               INR (₹)
             </button>
             <button
               onClick={() => setCurrency('USD')}
-              className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                 currency === 'USD'
                   ? isBlack
-                    ? 'bg-[var(--be-bg-elevated,#191D23)] text-[#F0EEE9] border border-[rgba(198,166,106,0.30)] shadow-xs'
-                    : 'bg-white text-slate-900 shadow-xs'
+                    ? 'bg-[#191D23] text-[#F0EEE9] border border-[rgba(198,166,106,0.40)] shadow-xs'
+                    : 'bg-white text-slate-900 border border-slate-200/90 shadow-xs'
                   : isBlack
-                  ? 'text-[#B7B4AD] hover:text-[#F0EEE9]'
-                  : 'text-slate-500'
+                  ? 'text-[#94A3B8] hover:text-[#F0EEE9]'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               USD ($)
@@ -503,11 +473,14 @@ export const PricingPage: React.FC<PricingPageProps> = ({
       <section className="pb-20 max-w-7xl mx-auto px-4 sm:px-6 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
           {/* 1. Free Plan Card */}
-          <div className={`p-6 sm:p-8 rounded-3xl border shadow-sm flex flex-col justify-between space-y-6 ${
-            isBlack
-              ? 'bg-[#13161B] border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
-              : `bg-white border ${currentPlanId === 'free' ? 'border-blue-400 ring-2 ring-blue-100' : 'border-slate-200/80'}`
-          }`}>
+          <div
+            data-testid="pricing-card-free"
+            className={`p-6 sm:p-8 rounded-3xl border shadow-sm flex flex-col justify-between space-y-6 transition-all duration-200 ${
+              isBlack
+                ? 'bg-[#13161B] border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F0EEE9]'
+                : `bg-white text-slate-900 border ${currentPlanId === 'free' ? 'border-blue-500 ring-2 ring-blue-100' : 'border-slate-200/90 hover:border-slate-300'}`
+            }`}
+          >
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -542,7 +515,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
 
               <div className={`border-t pt-4 space-y-2.5 ${isBlack ? 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))]' : 'border-slate-100'}`}>
                 <span className={`text-xs font-bold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'}`}>Included in Free:</span>
-                <ul className={`space-y-2 text-xs ${isBlack ? 'text-[#B7B4AD]' : 'text-slate-600'}`}>
+                <ul className={`space-y-2 text-xs ${isBlack ? 'text-[#B7B4AD]' : 'text-slate-700'}`}>
                   {SUBSCRIPTION_PLANS.free.features.map(f => (
                     <li key={f} className="flex items-start space-x-2.5">
                       <Check className={`h-4 w-4 shrink-0 mt-0.5 ${isBlack ? 'text-[#36B887]' : 'text-emerald-600'}`} />
@@ -563,7 +536,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                     : 'bg-slate-100 text-slate-400 border-transparent cursor-default'
                   : isBlack
                   ? 'bg-[var(--be-bg-elevated,#191D23)] hover:bg-[#20252D] text-[#F0EEE9] border-[rgba(255,255,255,0.12)] hover:border-[rgba(198,166,106,0.30)] shadow-xs'
-                  : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs'
+                  : 'border-slate-300/80 bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-xs'
               }`}
             >
               {currentPlanId === 'free' && currentUser ? 'Active Free Tier' : 'Get Started Free'}
@@ -571,11 +544,14 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           </div>
 
           {/* 2. Pro Plan Card */}
-          <div className={`p-6 sm:p-8 rounded-3xl border flex flex-col justify-between space-y-6 relative overflow-hidden ${
-            isBlack
-              ? 'bg-[#13161B] border-[rgba(117,169,214,0.35)] shadow-xl shadow-black/40'
-              : `bg-gradient-to-b from-white to-blue-50/40 border-2 ${currentPlanId === 'pro' ? 'border-blue-600 ring-4 ring-blue-100' : 'border-blue-500 shadow-xl shadow-blue-500/10'}`
-          }`}>
+          <div
+            data-testid="pricing-card-pro"
+            className={`p-6 sm:p-8 rounded-3xl border flex flex-col justify-between space-y-6 relative overflow-hidden transition-all duration-200 ${
+              isBlack
+                ? 'bg-[#13161B] border-[rgba(117,169,214,0.35)] shadow-xl shadow-black/40 text-[#F0EEE9]'
+                : `bg-gradient-to-b from-white to-blue-50/50 text-slate-900 border-2 ${currentPlanId === 'pro' ? 'border-blue-600 ring-4 ring-blue-100' : 'border-blue-500 shadow-xl shadow-blue-500/10'}`
+            }`}
+          >
             {/* Badge */}
             <div className={`absolute top-0 right-0 text-[10px] font-mono uppercase font-bold px-4 py-1 rounded-bl-xl shadow-xs border-l border-b ${
               isBlack
@@ -661,30 +637,55 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           </div>
 
           {/* 3. BLACK BY APPLYVISE AI — ULTRA-PREMIUM CENTERPIECE */}
-          <div className="relative rounded-3xl p-[2px] bg-gradient-to-b from-[#D6B46A] via-[#F3DEAC] to-[#8065F5] shadow-2xl shadow-[#D6B46A]/20 transition-transform duration-300 hover:scale-[1.01] flex flex-col justify-between">
+          <div
+            data-testid="pricing-card-black"
+            className={`relative rounded-3xl p-[2px] transition-transform duration-300 hover:scale-[1.01] flex flex-col justify-between ${
+              isBlack
+                ? 'bg-gradient-to-b from-[#D6B46A] via-[#F3DEAC] to-[#8065F5] shadow-2xl shadow-[#D6B46A]/20'
+                : 'bg-gradient-to-b from-[#C6A66A] via-[#E2C58A] to-[#A78343] shadow-xl shadow-amber-900/10'
+            }`}
+          >
             {/* Glowing Ambient Halo */}
-            <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-[#D6B46A]/20 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-[#8065F5]/25 blur-3xl pointer-events-none" />
+            <div className={`absolute -top-12 -right-12 w-48 h-48 rounded-full blur-3xl pointer-events-none ${
+              isBlack ? 'bg-[#D6B46A]/20' : 'bg-amber-400/20'
+            }`} />
+            <div className={`absolute -bottom-12 -left-12 w-48 h-48 rounded-full blur-3xl pointer-events-none ${
+              isBlack ? 'bg-[#8065F5]/25' : 'bg-amber-300/20'
+            }`} />
 
-            {/* Inner Obsidian Black Card Body */}
-            <div className="relative rounded-[22px] bg-[#090B12] text-[#F8F8FC] p-6 sm:p-8 flex flex-col justify-between h-full space-y-6">
+            {/* Inner Card Body — Adaptive Light/Dark Surface */}
+            <div className={`relative rounded-[22px] p-6 sm:p-8 flex flex-col justify-between h-full space-y-6 ${
+              isBlack
+                ? 'bg-[#090B12] text-[#F8F8FC]'
+                : 'bg-gradient-to-b from-[#FAF7F2] to-[#F5EFE6] text-slate-900 border border-[#E8DEC8]'
+            }`}>
               {/* Top Crown & Badges */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <RoyalCrownLogo size="lg" animated showWordmark />
-                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-[#D6B46A] via-[#F3DEAC] to-[#D6B46A] text-[#090B12] shadow-sm">
+                  <RoyalCrownLogo size="lg" animated showWordmark variant={isBlack ? 'dark' : 'light'} />
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs ${
+                    isBlack
+                      ? 'bg-gradient-to-r from-[#D6B46A] via-[#F3DEAC] to-[#D6B46A] text-[#090B12]'
+                      : 'bg-gradient-to-r from-[#C6A66A] via-[#E2C58A] to-[#C6A66A] text-[#191D24] border border-[#A78343]/30'
+                  }`}>
                     {isFreeAccess ? 'FOUNDER ACCESS — ACTIVE' : currentPlanId === 'black' ? 'YOUR ACTIVE TIER' : 'BLACK ELITE'}
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                  <h3 className={`text-2xl font-black tracking-tight flex items-center gap-2 ${
+                    isBlack ? 'text-white' : 'text-slate-900'
+                  }`}>
                     <span>{SUBSCRIPTION_PLANS.black.name}</span>
                   </h3>
-                  <p className="text-xs font-semibold text-[#D6B46A] mt-1 tracking-wide">
+                  <p className={`text-xs font-bold mt-1 tracking-wide ${
+                    isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'
+                  }`}>
                     {SUBSCRIPTION_PLANS.black.tagline}
                   </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
+                  <p className={`text-[11px] mt-0.5 ${
+                    isBlack ? 'text-slate-400' : 'text-slate-600'
+                  }`}>
                     {SUBSCRIPTION_PLANS.black.secondaryTagline}
                   </p>
                 </div>
@@ -692,64 +693,88 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                 {/* Price Display */}
                 <div className="pt-2">
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-4xl sm:text-5xl font-black text-[#E5C477]">
+                    <span className={`text-4xl sm:text-5xl font-black ${
+                      isBlack ? 'text-[#E5C477]' : 'text-[#9A6517]'
+                    }`}>
                       {currency === 'INR'
                         ? (billingInterval === 'annual' ? '₹1,332' : '₹1,599')
                         : (billingInterval === 'annual' ? '$16.65' : '$19.99')}
                     </span>
-                    <span className="text-xs text-slate-400">/ month</span>
+                    <span className={`text-xs ${isBlack ? 'text-slate-400' : 'text-slate-600'}`}>/ month</span>
                   </div>
                   {billingInterval === 'annual' && (
-                    <p className="text-[11px] text-[#D6B46A] font-semibold mt-0.5">
+                    <p className={`text-[11px] font-bold mt-0.5 ${
+                      isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'
+                    }`}>
                       Billed annually ({currency === 'INR' ? '₹15,990/yr' : '$199.90/yr'})
                     </p>
                   )}
                 </div>
 
-                <p className="text-xs text-slate-300 leading-relaxed pt-1">
+                <p className={`text-xs leading-relaxed pt-1 ${
+                  isBlack ? 'text-slate-300' : 'text-slate-700'
+                }`}>
                   {SUBSCRIPTION_PLANS.black.description}
                 </p>
 
                 {/* Measurable Doubled Limits Box (Executive Guarantee) */}
-                <div className="rounded-2xl bg-gradient-to-br from-[#12141D] to-[#1A1D2B] p-4 border border-[#D6B46A]/30 space-y-2.5">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-[#D6B46A] flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-[#D6B46A]" />
+                <div className={`rounded-2xl p-4 space-y-2.5 ${
+                  isBlack
+                    ? 'bg-gradient-to-br from-[#12141D] to-[#1A1D2B] border border-[#D6B46A]/30'
+                    : 'bg-white/90 backdrop-blur-xs border border-[#C6A66A]/40 shadow-xs'
+                }`}>
+                  <span className={`text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 ${
+                    isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'
+                  }`}>
+                    <Zap className={`w-3.5 h-3.5 ${isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'}`} />
                     <span>Exact 2× Pro Measurable Entitlements:</span>
                   </span>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-black/40 p-2 rounded-xl border border-white/5">
-                      <span className="block text-slate-400 text-[10px]">AI Copilot Volume</span>
-                      <span className="font-bold text-white">600 req / month</span>
-                      <span className="text-[9px] text-[#D6B46A] block">(2× Pro 300)</span>
+                    <div className={`p-2.5 rounded-xl border ${
+                      isBlack ? 'bg-black/40 border-white/5' : 'bg-amber-50/70 border-amber-200/80'
+                    }`}>
+                      <span className={`block text-[10px] font-medium ${isBlack ? 'text-slate-400' : 'text-slate-600'}`}>AI Copilot Volume</span>
+                      <span className={`font-bold ${isBlack ? 'text-white' : 'text-slate-900'}`}>600 req / month</span>
+                      <span className={`text-[9px] font-bold block ${isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'}`}>(2× Pro 300)</span>
                     </div>
-                    <div className="bg-black/40 p-2 rounded-xl border border-white/5">
-                      <span className="block text-slate-400 text-[10px]">Daily Auto-Apply</span>
-                      <span className="font-bold text-white">50 / day</span>
-                      <span className="text-[9px] text-[#D6B46A] block">(2× Pro 25)</span>
+                    <div className={`p-2.5 rounded-xl border ${
+                      isBlack ? 'bg-black/40 border-white/5' : 'bg-amber-50/70 border-amber-200/80'
+                    }`}>
+                      <span className={`block text-[10px] font-medium ${isBlack ? 'text-slate-400' : 'text-slate-600'}`}>Daily Auto-Apply</span>
+                      <span className={`font-bold ${isBlack ? 'text-white' : 'text-slate-900'}`}>50 / day</span>
+                      <span className={`text-[9px] font-bold block ${isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'}`}>(2× Pro 25)</span>
                     </div>
-                    <div className="bg-black/40 p-2 rounded-xl border border-white/5">
-                      <span className="block text-slate-400 text-[10px]">Resume Tailoring</span>
-                      <span className="font-bold text-white">60 / month</span>
-                      <span className="text-[9px] text-[#D6B46A] block">(2× Pro 30)</span>
+                    <div className={`p-2.5 rounded-xl border ${
+                      isBlack ? 'bg-black/40 border-white/5' : 'bg-amber-50/70 border-amber-200/80'
+                    }`}>
+                      <span className={`block text-[10px] font-medium ${isBlack ? 'text-slate-400' : 'text-slate-600'}`}>Resume Tailoring</span>
+                      <span className={`font-bold ${isBlack ? 'text-white' : 'text-slate-900'}`}>60 / month</span>
+                      <span className={`text-[9px] font-bold block ${isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'}`}>(2× Pro 30)</span>
                     </div>
-                    <div className="bg-black/40 p-2 rounded-xl border border-white/5">
-                      <span className="block text-slate-400 text-[10px]">Interview Prep</span>
-                      <span className="font-bold text-white">20 sessions</span>
-                      <span className="text-[9px] text-[#D6B46A] block">(2× Pro 10)</span>
+                    <div className={`p-2.5 rounded-xl border ${
+                      isBlack ? 'bg-black/40 border-white/5' : 'bg-amber-50/70 border-amber-200/80'
+                    }`}>
+                      <span className={`block text-[10px] font-medium ${isBlack ? 'text-slate-400' : 'text-slate-600'}`}>Interview Prep</span>
+                      <span className={`font-bold ${isBlack ? 'text-white' : 'text-slate-900'}`}>20 sessions</span>
+                      <span className={`text-[9px] font-bold block ${isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'}`}>(2× Pro 10)</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Exclusive Capabilities List */}
-                <div className="border-t border-white/10 pt-4 space-y-2.5">
-                  <span className="text-xs font-bold text-[#F3DEAC] flex items-center gap-1.5">
-                    <Crown className="w-3.5 h-3.5 text-[#D6B46A]" />
+                <div className={`border-t pt-4 space-y-2.5 ${isBlack ? 'border-white/10' : 'border-[#E8DEC8]'}`}>
+                  <span className={`text-xs font-bold flex items-center gap-1.5 ${
+                    isBlack ? 'text-[#F3DEAC]' : 'text-slate-900'
+                  }`}>
+                    <Crown className={`w-3.5 h-3.5 ${isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'}`} />
                     <span>Exclusive BLACK Capabilities:</span>
                   </span>
-                  <ul className="space-y-2 text-xs text-slate-200">
+                  <ul className={`space-y-2 text-xs ${isBlack ? 'text-slate-200' : 'text-slate-800'}`}>
                     {SUBSCRIPTION_PLANS.black.features.slice(5).map(f => (
                       <li key={f} className="flex items-start space-x-2.5">
-                        <Check className="h-4 w-4 text-[#D6B46A] shrink-0 mt-0.5 font-bold" />
+                        <Check className={`h-4 w-4 shrink-0 mt-0.5 font-bold ${
+                          isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'
+                        }`} />
                         <span className="leading-snug">{f}</span>
                       </li>
                     ))}
@@ -763,20 +788,24 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                 disabled={loadingPlan === 'black' || (currentPlanId === 'black' && !!currentUser)}
                 className={`w-full py-3.5 min-h-[46px] rounded-xl text-xs font-black tracking-wide uppercase transition-all duration-200 flex items-center justify-center space-x-2 cursor-pointer shadow-lg ${
                   currentPlanId === 'black' && currentUser
-                    ? 'bg-[#151821] text-[#D6B46A] border border-[#D6B46A]/50 cursor-default'
-                    : 'bg-gradient-to-r from-[#D6B46A] via-[#F3DEAC] to-[#D6B46A] text-[#090B12] hover:brightness-110 hover:shadow-[#D6B46A]/30 active:scale-[0.98]'
+                    ? isBlack
+                      ? 'bg-[#151821] text-[#D6B46A] border border-[#D6B46A]/50 cursor-default'
+                      : 'bg-amber-100/90 text-[#9A6517] border border-[#C6A66A]/50 cursor-default'
+                    : isBlack
+                    ? 'bg-gradient-to-r from-[#D6B46A] via-[#F3DEAC] to-[#D6B46A] text-[#090B12] hover:brightness-110 hover:shadow-[#D6B46A]/30 active:scale-[0.98]'
+                    : 'bg-gradient-to-r from-[#C6A66A] via-[#E2C58A] to-[#C6A66A] text-[#191D24] border border-[#A78343]/30 hover:brightness-105 hover:shadow-amber-900/10 active:scale-[0.98]'
                 }`}
               >
                 {loadingPlan === 'black' ? (
-                  <div className="h-4 w-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  <div className={`h-4 w-4 border-2 border-t-transparent rounded-full animate-spin ${isBlack ? 'border-black' : 'border-slate-900'}`} />
                 ) : currentPlanId === 'black' && currentUser ? (
                   <div className="flex items-center gap-1.5">
-                    <RoyalCrownLogo size="xs" />
+                    <RoyalCrownLogo size="xs" variant={isBlack ? 'dark' : 'light'} />
                     <span>Active BLACK Elite Membership</span>
                   </div>
                 ) : (
                   <>
-                    <RoyalCrownLogo size="xs" />
+                    <RoyalCrownLogo size="xs" variant={isBlack ? 'dark' : 'light'} />
                     <span>Subscribe to BLACK</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </>
@@ -831,9 +860,13 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                     }`}>
                       ApplyVise Pro
                     </th>
-                    <th className="py-4 px-4 text-center w-52 bg-[#090B12] text-[#D6B46A] font-black">
+                    <th className={`py-4 px-4 text-center w-52 font-black ${
+                      isBlack
+                        ? 'bg-[#090B12] text-[#D6B46A]'
+                        : 'bg-amber-100/70 text-[#9A6517] border-l border-r border-amber-200/60'
+                    }`}>
                       <div className="flex items-center justify-center gap-1.5">
-                        <RoyalCrownLogo size="xs" />
+                        <RoyalCrownLogo size="xs" variant={isBlack ? 'dark' : 'light'} />
                         <span>BLACK ELITE</span>
                       </div>
                     </th>
@@ -850,14 +883,18 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                       className={`transition ${
                         isBlack
                           ? feat.isBlackExclusive ? 'bg-[rgba(198,166,106,0.05)] hover:bg-[var(--be-bg-elevated,#191D23)]/60' : 'hover:bg-[var(--be-bg-elevated,#191D23)]/50'
-                          : feat.isBlackExclusive ? 'bg-amber-50/15 hover:bg-slate-50/60' : 'hover:bg-slate-50/60'
+                          : feat.isBlackExclusive ? 'bg-amber-50/30 hover:bg-slate-50/80' : 'hover:bg-slate-50/60'
                       }`}
                     >
                       <td className="py-3.5 px-6">
                         <div className="flex items-center gap-2">
                           <span className={`font-semibold ${isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'}`}>{feat.name}</span>
                           {feat.isBlackExclusive && (
-                            <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-[#090B12] text-[#D6B46A] border border-[#D6B46A]/40">
+                            <span className={`px-1.5 py-0.2 rounded text-[9px] font-black uppercase border ${
+                              isBlack
+                                ? 'bg-[#090B12] text-[#D6B46A] border-[#D6B46A]/40'
+                                : 'bg-amber-100 text-[#9A6517] border-amber-300'
+                            }`}>
                               ELITE
                             </span>
                           )}
@@ -885,17 +922,17 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                         )}
                       </td>
                       <td className={`py-3.5 px-4 text-center font-bold ${
-                        isBlack ? 'bg-[#090B12]/60' : 'bg-slate-950/5'
+                        isBlack ? 'bg-[#090B12]/60' : 'bg-amber-50/40'
                       }`}>
                         {feat.blackLimit ? (
                           <span className={`font-extrabold flex items-center justify-center gap-1 ${
                             isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
                           }`}>
-                            {feat.isBlackExclusive && <RoyalCrownLogo size="xs" />}
+                            {feat.isBlackExclusive && <RoyalCrownLogo size="xs" variant={isBlack ? 'dark' : 'light'} />}
                             <span>{feat.blackLimit}</span>
                           </span>
                         ) : feat.includedInBlack ? (
-                          <Check className="h-4 w-4 text-[#C6A66A] font-black mx-auto" />
+                          <Check className={`h-4 w-4 font-black mx-auto ${isBlack ? 'text-[#C6A66A]' : 'text-[#9A6517]'}`} />
                         ) : (
                           <span className={isBlack ? 'text-[#737780]' : 'text-slate-300'}>—</span>
                         )}
@@ -924,7 +961,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
               <h4 className={`font-bold text-sm flex items-center gap-2 ${
                 isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
               }`}>
-                <RoyalCrownLogo size="xs" />
+                <RoyalCrownLogo size="xs" variant={isBlack ? 'dark' : 'light'} />
                 <span>What is BLACK by ApplyVise AI?</span>
               </h4>
               <p className={`leading-relaxed ${
