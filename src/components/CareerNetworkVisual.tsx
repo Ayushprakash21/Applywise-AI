@@ -73,7 +73,7 @@ export const CareerNetworkVisual: React.FC<CareerNetworkVisualProps> = ({
   }, []);
 
   return (
-    <div ref={containerRef} className={`relative w-full h-[400px] sm:h-[480px] md:h-[580px] overflow-hidden select-none ${className}`}>
+    <div ref={containerRef} className={`relative w-full select-none ${className}`}>
       <CareerOpportunityUniverse
         theme={theme}
         vacancies={vacancies}

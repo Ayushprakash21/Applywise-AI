@@ -261,18 +261,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         onSelectVacancy={onSelectVacancy}
       />
 
-      {/* Visual Graph Section Anchor - 3D Product Showcase */}
-      {/* Hero search capsule responsive layout contract: flex flex-col sm:flex-row items-stretch sm:items-center */}
-      {/* Hero input min-w-0 flex-1 to prevent Blink flex-child overflow */}
-      <div id="network" className="py-12 max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="rounded-3xl shadow-2xl overflow-hidden border border-[var(--be-border-subtle,#DEDAD0)] bg-[var(--be-bg-card,#FFFFFF)]">
-          <div className="sr-only">
-            <h3>Career Opportunity Universe</h3>
-            <p>Explore where your verified experience connects with real career opportunities.</p>
-          </div>
-          <CareerNetworkVisual theme="light" />
+      {/* Career Opportunity Universe Section */}
+      <section id="network" className="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="sr-only">
+          <h3>Career Opportunity Universe</h3>
+          <p>Explore where your verified experience connects with real career opportunities.</p>
         </div>
-      </div>
+        <CareerNetworkVisual
+          theme={isDark ? 'dark' : 'light'}
+          vacancies={featuredVacancies}
+          onSelectVacancy={onSelectVacancy}
+        />
+      </section>
 
       {/* Section A: 3 Core Product Pillars */}
       <section className="py-16 sm:py-20 border-b border-slate-300/60">
