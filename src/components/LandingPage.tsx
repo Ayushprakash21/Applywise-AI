@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
   Sparkles,
@@ -24,7 +24,9 @@ import {
   Bookmark,
   Send,
   Briefcase,
-  AlertCircle
+  AlertCircle,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo.tsx';
 import { GlobalFooter } from './GlobalFooter.tsx';
@@ -32,6 +34,16 @@ import { JobVacancy } from '../types/index.ts';
 import { FounderSection } from './FounderSection.tsx';
 import { CareerNetworkVisual } from './CareerNetworkVisual.tsx';
 import { JobMatchExperience } from './JobMatchExperience.tsx';
+import { CareerIntelligenceHero } from './hero/CareerIntelligenceHero.tsx';
+import {
+  getStoredAppearance,
+  setBlackEliteAppearance,
+  getStoredPalette,
+  setBlackElitePalette,
+  BlackElitePalette,
+  BlackEliteAppearance,
+  THEME_CHANGE_EVENT,
+} from '../utils/blackEliteTheme.ts';
 
 interface LandingPageProps {
   onOpenAuth: (mode: 'login' | 'signup') => void;
@@ -56,6 +68,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentAppearance, setCurrentAppearance] = useState<BlackEliteAppearance>(getStoredAppearance);
+  const [currentPalette, setCurrentPalette] = useState<BlackElitePalette>(getStoredPalette);
+
+  useEffect(() => {
+    const handleThemeUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ palette: BlackElitePalette; appearance: BlackEliteAppearance }>;
+      if (customEvent.detail) {
+        if (customEvent.detail.palette) setCurrentPalette(customEvent.detail.palette);
+        if (customEvent.detail.appearance) setCurrentAppearance(customEvent.detail.appearance);
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener(THEME_CHANGE_EVENT, handleThemeUpdate);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener(THEME_CHANGE_EVENT, handleThemeUpdate);
+      }
+    };
+  }, []);
+
+  const toggleAppearance = () => {
+    const nextMode = currentAppearance === 'dark' ? 'light' : 'dark';
+    setCurrentAppearance(nextMode);
+    setBlackEliteAppearance(nextMode, true);
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,18 +103,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F3EE] text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-[var(--be-bg-canvas,#F5F3EE)] text-[var(--be-text-primary,#20242B)] flex flex-col font-sans transition-colors duration-200">
       {/* Top Navigation */}
-      <header className="sticky top-0 z-50 bg-[#F5F3EE] border-b border-[#DEDAD0] transition-colors">
+      <header className="sticky top-0 z-50 bg-[var(--be-bg-canvas,#F5F3EE)] border-b border-[var(--be-border-subtle,#DEDAD0)] transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <BrandLogo
-            variant="light"
+            variant={currentAppearance === 'dark' ? 'dark' : 'light'}
             size="md"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           />
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-7 text-xs font-semibold text-slate-600">
+          <nav className="hidden lg:flex items-center space-x-7 text-xs font-semibold text-[var(--be-text-secondary,#555C66)]">
             <a href="#network" className="hover:text-[var(--be-accent,#A78343)] transition-colors">
               Skill Alignment
             </a>
@@ -95,7 +133,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {onOpenPricing && (
               <button
                 onClick={onOpenPricing}
-                className="hover:text-[var(--be-accent,#A78343)] transition-colors font-semibold"
+                className="hover:text-[var(--be-accent,#A78343)] transition-colors font-semibold cursor-pointer"
               >
                 Pricing
               </button>
@@ -103,20 +141,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {onOpenAbout && (
               <button
                 onClick={onOpenAbout}
-                className="hover:text-[var(--be-accent,#A78343)] transition-colors font-semibold"
+                className="hover:text-[var(--be-accent,#A78343)] transition-colors font-semibold cursor-pointer"
               >
                 About Us
               </button>
             )}
           </nav>
 
-          {/* Action CTAs */}
+          {/* Action CTAs & Appearance Toggle */}
           <div className="hidden sm:flex items-center space-x-3">
+            <button
+              type="button"
+              onClick={toggleAppearance}
+              aria-label={currentAppearance === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              className="p-2 rounded-xl text-[var(--be-text-secondary,#555C66)] hover:text-[var(--be-text-primary,#20242B)] hover:bg-[var(--be-hover-bg,rgba(0,0,0,0.05))] transition-colors border border-transparent hover:border-[var(--be-border-subtle,#DEDAD0)] cursor-pointer"
+            >
+              {currentAppearance === 'dark' ? <Sun className="h-4 w-4 text-[var(--be-accent,#C6A66A)]" /> : <Moon className="h-4 w-4" />}
+            </button>
             <button
               onClick={() => onOpenAuth('login')}
               aria-label="Sign In"
               data-testid="sign-in-button"
-              className="px-4 py-2 text-xs font-semibold text-slate-700 hover:text-[var(--be-accent,#A78343)] transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-[var(--be-text-secondary,#555C66)] hover:text-[var(--be-accent,#A78343)] transition-colors cursor-pointer"
             >
               Sign In
             </button>
@@ -124,7 +170,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => onOpenAuth('signup')}
               aria-label="Getting Started"
               data-testid="getting-started-button"
-              className="group px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-colors flex items-center space-x-1.5 shadow-xs"
+              className="group px-5 py-2.5 rounded-xl text-xs font-semibold text-[var(--be-accent-contrast,#FFFFFF)] transition-all flex items-center space-x-1.5 shadow-xs cursor-pointer"
+              style={{
+                backgroundColor: 'var(--be-accent, #A78343)',
+              }}
             >
               <span>Get Started Free</span>
               <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -132,18 +181,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Mobile menu trigger */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 text-slate-600 hover:text-slate-900 transition-colors"
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? <CloseIcon className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          <div className="lg:hidden flex items-center space-x-2">
+            <button
+              type="button"
+              onClick={toggleAppearance}
+              aria-label={currentAppearance === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              className="p-2 text-[var(--be-text-secondary,#555C66)]"
+            >
+              {currentAppearance === 'dark' ? <Sun className="h-5 w-5 text-[var(--be-accent,#C6A66A)]" /> : <Moon className="h-5 w-5" />}
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-[var(--be-text-secondary,#555C66)] hover:text-[var(--be-text-primary,#20242B)] transition-colors"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <CloseIcon className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile dropdown drawer */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-white border-b border-slate-200 px-6 py-6 space-y-4 text-xs font-semibold text-slate-700 animate-in fade-in slide-in-from-top-2 shadow-xs">
+          <div className="lg:hidden bg-[var(--be-bg-card,#FFFFFF)] border-b border-[var(--be-border-subtle,#DEDAD0)] px-6 py-6 space-y-4 text-xs font-semibold text-[var(--be-text-secondary,#555C66)] animate-in fade-in slide-in-from-top-2 shadow-xs">
             <a
               href="#network"
               onClick={() => setMobileMenuOpen(false)}
@@ -201,13 +260,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 About Us
               </button>
             )}
-            <div className="pt-4 border-t border-slate-200/80 flex flex-col space-y-2">
+            <div className="pt-4 border-t border-[var(--be-border-subtle,#DEDAD0)] flex flex-col space-y-2">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onOpenAuth('login');
                 }}
-                className="w-full py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 flex items-center justify-center font-semibold text-slate-700 transition-colors"
+                className="w-full py-2.5 rounded-xl bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#DEDAD0)] hover:bg-[var(--be-bg-elevated,#FAF8F5)] flex items-center justify-center font-semibold text-[var(--be-text-secondary,#555C66)] transition-colors cursor-pointer"
               >
                 Sign In
               </button>
@@ -216,7 +275,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenAuth('signup');
                 }}
-                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold flex items-center justify-center transition-colors shadow-xs"
+                className="w-full py-2.5 rounded-xl text-[var(--be-accent-contrast,#FFFFFF)] font-semibold flex items-center justify-center transition-colors shadow-xs cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--be-accent, #A78343)',
+                }}
               >
                 Get Started Free
               </button>
@@ -225,121 +287,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         )}
       </header>
 
-      {/* Hero Section — Architectural Grid Layout */}
-      <section className="relative overflow-hidden pt-12 pb-16 md:pt-16 md:pb-20 border-b border-[#DEDAD0] dark:border-slate-800 bg-[var(--be-bg-canvas,#F5F3EE)]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
-          <div className="flex items-center space-x-2 text-xs font-semibold text-[#A78343] dark:text-[var(--be-accent,#C6A66A)]">
-            <span className="w-2 h-2 bg-[#A78343] dark:bg-[var(--be-accent,#C6A66A)]" />
-            <span>ApplyVise AI · Unified Career Operating System</span>
+      {/* Signature Cinematic Homepage Hero Component */}
+      {/* Narrative Architecture: Your Career. Intelligently Orchestrated. · Your next career move */}
+      {/* Hero narrative copy: Discover opportunities. Bring your experience into one intelligent career workspace. */}
+      <CareerIntelligenceHero
+        onOpenAuth={onOpenAuth}
+        onSearch={onSearch}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        handleSearchSubmit={handleSearchSubmit}
+      />
+
+      {/* Visual Graph Section Anchor - 3D Product Showcase */}
+      {/* Hero search capsule responsive layout contract: flex flex-col sm:flex-row items-stretch sm:items-center */}
+      {/* Hero input min-w-0 flex-1 to prevent Blink flex-child overflow */}
+      <div id="network" className="py-12 max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="rounded-3xl shadow-2xl overflow-hidden border border-[var(--be-border-subtle,#DEDAD0)] bg-[var(--be-bg-card,#FFFFFF)]">
+          <div className="sr-only">
+            <h3>Career Opportunity Universe</h3>
+            <p>Explore where your verified experience connects with real career opportunities.</p>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-8 space-y-4">
-              <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-[#191D24] dark:text-[#F2F0EA] tracking-tight leading-[1.12]">
-                Your Career. Intelligently Orchestrated.
-              </h1>
-
-              <p className="max-w-2xl text-sm sm:text-base md:text-lg text-[#555C66] dark:text-[#C0BDB5] leading-relaxed">
-                Discover opportunities. Build your professional edge. Navigate every career move with AI-powered intelligence grounded in verified candidate facts.
-              </p>
-
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <button
-                  onClick={() => onOpenAuth('signup')}
-                  className="px-6 py-3.5 bg-[#A78343] hover:bg-[#8E6F37] text-white font-semibold text-sm rounded-md transition-all flex items-center justify-center cursor-pointer shadow-xs"
-                >
-                  Create Candidate Account
-                </button>
-                <a
-                  href="#cockpit"
-                  className="px-6 py-3.5 bg-white border border-[#DEDAD0] hover:bg-[#F0EDE5] text-[#20242B] font-semibold text-sm rounded-md transition-colors flex items-center justify-center cursor-pointer"
-                >
-                  Explore Opportunity Match
-                </a>
-              </div>
-            </div>
-
-            <div className="lg:col-span-4 p-5 rounded-lg bg-white border border-[#DEDAD0] space-y-3 shadow-xs">
-              <span className="text-xs font-semibold text-[#555C66]">Live Verification Status</span>
-              <div className="space-y-2 text-xs text-[#555C66]">
-                <div className="flex justify-between py-1 border-b border-[#DEDAD0]">
-                  <span>Active Vacancy Connectors</span>
-                  <span className="font-bold text-[#147A58]">12 Connectors</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-[#DEDAD0]">
-                  <span>Hallucination Prevention</span>
-                  <span className="font-bold text-[#147A58]">Enforced</span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span>ATS Export Format</span>
-                  <span className="font-bold text-[#20242B]">Native DOCX</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Interactive Search Capsule */}
-          <div className="max-w-2xl mx-auto pt-4 px-2 sm:px-0">
-            <form
-              onSubmit={handleSearchSubmit}
-              className="relative flex flex-col sm:flex-row items-stretch sm:items-center p-2 rounded-2xl bg-white border border-slate-200 gap-2 shadow-xs"
-            >
-              <div className="flex items-center min-w-0 flex-1 bg-[#F5F3EE] border border-slate-200 rounded-xl px-3 py-1.5">
-                <Search className="h-5 w-5 text-slate-400 shrink-0" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search by title, skill, or role (e.g. Product Manager, Go, Staff Frontend)..."
-                  className="w-full min-w-0 px-2.5 py-1.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none bg-transparent"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs sm:text-sm font-semibold shrink-0 transition-colors shadow-xs"
-              >
-                Find Jobs
-              </button>
-            </form>
-
-            {/* Popular Filter Pills */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs text-slate-600">
-              <span className="font-semibold text-slate-500">Popular:</span>
-              {[
-                'Software Engineer',
-                'Product Manager',
-                'Data Analyst',
-                'Marketing',
-                'DevOps',
-                'Customer Success'
-              ].map(tag => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => {
-                    setSearchQuery(tag);
-                    onSearch(tag);
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-medium transition-colors shadow-2xs"
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          </div>
+          <CareerNetworkVisual theme="light" />
         </div>
-
-        {/* Visual Graph Section Anchor - 3D Product Showcase */}
-        <div id="network" className="mt-12 max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="rounded-3xl shadow-2xl overflow-hidden border border-slate-200/80 bg-white">
-            <div className="sr-only">
-              <h3>Career Opportunity Universe</h3>
-              <p>Explore where your verified experience connects with real career opportunities.</p>
-            </div>
-            <CareerNetworkVisual theme="light" />
-          </div>
-        </div>
-      </section>
+      </div>
 
       {/* Section A: 3 Core Product Pillars */}
       <section className="py-16 sm:py-20 border-b border-slate-300/60">
