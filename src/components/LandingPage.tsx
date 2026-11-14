@@ -149,7 +149,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </nav>
 
           {/* Action CTAs & Appearance Toggle */}
-          <div className="hidden sm:flex items-center space-x-3">
+          <div className="hidden lg:flex items-center space-x-3">
             <button
               type="button"
               onClick={toggleAppearance}

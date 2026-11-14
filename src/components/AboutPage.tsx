@@ -14,6 +14,7 @@ import {
 import { BrandLogo } from './BrandLogo.tsx';
 import { GlobalFooter } from './GlobalFooter.tsx';
 import { FounderSection } from './FounderSection.tsx';
+import { useTheme } from '../context/ThemeContext.tsx';
 
 interface AboutPageProps {
   onGetStarted: () => void;
@@ -26,6 +27,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
   onExplorePro,
   onNavigateHome,
 }) => {
+  const { appearance } = useTheme();
   return (
     <div className="min-h-screen bg-[var(--be-bg-primary,#F5F3EE)] text-[var(--be-text-primary,#20242B)] flex flex-col font-sans">
       {/* Top Header */}
@@ -234,7 +236,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({
       </section>
 
       {/* Meet the Founder Section */}
-      <FounderSection />
+      <FounderSection theme={appearance} />
 
       {/* Core Principles */}
       <section className="py-16 bg-[var(--be-bg-card,#FFFFFF)] border-t border-[var(--be-border-subtle,#DEDAD0)]">

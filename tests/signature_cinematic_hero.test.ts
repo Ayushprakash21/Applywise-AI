@@ -24,7 +24,7 @@ test('APPLYVISE AI — Signature Cinematic Homepage Hero Suite', async (t) => {
   await t.test('2. Signature Editorial Headline, Eyebrow & Brand Narrative', () => {
     // Official headline
     assert.match(heroSrc, /Your Career\./, 'Must contain headline "Your Career."');
-    assert.match(heroSrc, /Beyond the Next Application\./, 'Must contain signature headline "Beyond the Next Application."');
+    assert.match(heroSrc, /Intelligently Orchestrated\.|Beyond the Next Application\./, 'Must contain signature editorial headline');
     
     // Official subtitle
     assert.match(
@@ -47,29 +47,29 @@ test('APPLYVISE AI — Signature Cinematic Homepage Hero Suite', async (t) => {
     assert.doesNotMatch(heroSrc, /AI-powered everything/i, 'Must not use generic "AI-powered everything" cliché');
   });
 
-  await t.test('3. The Career Intelligence Structure: Four Authentic Dimensions', () => {
+  await t.test('3. The Career Intelligence Structure: Four Authentic Operating Dimensions', () => {
     // Dimension 1: Experience Architecture
-    assert.match(heroSrc, /01 · Experience/, 'Must present Dimension 01: Experience');
-    assert.match(heroSrc, /Senior Process Associate/, 'Must reference authentic experience');
-    assert.match(heroSrc, /Verified Facts Only/, 'Must emphasize fact-grounding guarantee');
+    assert.match(heroSrc, /Experience Architecture/, 'Must present Dimension 01: Experience Architecture');
+    assert.match(heroSrc, /Candidate Fact Registry|Master Profile Grounding/, 'Must emphasize fact-grounding guarantee');
 
-    // Dimension 2: Competency Vectors (Skills)
-    assert.match(heroSrc, /02 · Skills/, 'Must present Dimension 02: Skills');
-    assert.match(heroSrc, /System Architecture/, 'Must contain verified System Architecture skill node');
-    assert.match(heroSrc, /Distributed Operations/, 'Must contain verified Distributed Operations skill node');
-    assert.match(heroSrc, /TypeScript & Cloud/, 'Must contain verified TypeScript skill node');
-    assert.match(heroSrc, /Truthfulness Guarantee/, 'Must contain Truthfulness Guarantee skill node');
+    // Dimension 2: Competency Modeling (Skills)
+    assert.match(heroSrc, /Competency Modeling/, 'Must present Dimension 02: Competency Modeling');
+    assert.match(heroSrc, /System Architecture/, 'Must contain verified System Architecture capability');
+    assert.match(heroSrc, /Distributed Operations/, 'Must contain verified Distributed Operations capability');
+    assert.match(heroSrc, /TypeScript & Cloud/, 'Must contain verified TypeScript capability');
+    assert.match(heroSrc, /Truthfulness Guarantee/, 'Must contain Truthfulness Guarantee capability');
 
-    // Dimension 3: Verified Opportunity Match
-    assert.match(heroSrc, /03 · Opportunities/, 'Must present Dimension 03: Opportunities');
-    assert.match(heroSrc, /94% Match/, 'Must feature high-precision mathematical match');
-    assert.match(heroSrc, /Staff Operations & Systems Engineer/, 'Must feature authentic verified vacancy match');
+    // Dimension 3: Opportunity Ingestion
+    assert.match(heroSrc, /Opportunity Ingestion/, 'Must present Dimension 03: Opportunity Ingestion');
+    assert.match(heroSrc, /Direct ATS Connectors|Live Hiring Feeds/, 'Must feature authentic verified vacancy ingestion');
 
-    // Dimension 4: Strategic Momentum Telemetry
-    assert.match(heroSrc, /04 · Progress/, 'Must present Dimension 04: Progress telemetry');
-    assert.match(heroSrc, /Targeted App/, 'Must report targeted applications');
-    assert.match(heroSrc, /0.*Hallucinations|Hallucinations/, 'Must verify zero hallucinations');
-    assert.match(heroSrc, /100%.*Candidate Truth|Candidate Truth/, 'Must verify 100% truth metric');
+    // Dimension 4: Application Control
+    assert.match(heroSrc, /Application Control/, 'Must present Dimension 04: Application Control');
+    assert.match(heroSrc, /Native DOCX ATS Formatting|Pre-Submission Screening/, 'Must present verified application control');
+
+    // Strict prohibition of fabricated metrics & fake candidate records
+    assert.doesNotMatch(heroSrc, /94% Match/, 'Must NOT contain fabricated 94% match scores');
+    assert.doesNotMatch(heroSrc, /Senior Process Associate.*Supply Chain/i, 'Must NOT contain fake candidate profiles');
   });
 
   await t.test('4. CTAs, Navigation and Search Capsule Usability', () => {

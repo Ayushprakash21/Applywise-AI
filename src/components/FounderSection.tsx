@@ -3,6 +3,7 @@ import { Sparkles, ArrowRight, Linkedin, Quote } from 'lucide-react';
 import { FounderProfile } from '../types/index.ts';
 import { DEFAULT_FOUNDER_PROFILE } from '../data/defaultFounderProfile.ts';
 import { api } from '../services/api.ts';
+import { useTheme } from '../context/ThemeContext.tsx';
 
 interface FounderSectionProps {
   onReadStory?: () => void;
@@ -20,11 +21,9 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
   initialProfile,
 }) => {
   const [profile, setProfile] = useState<FounderProfile>(initialProfile || DEFAULT_FOUNDER_PROFILE);
-  const isDark = theme !== undefined
-    ? theme === 'dark'
-    : (typeof document !== 'undefined'
-      ? (document.documentElement.getAttribute('data-be-appearance') !== 'light' && !document.documentElement.classList.contains('theme-black-light'))
-      : true);
+  const themeContext = useTheme();
+  const effectiveTheme = theme || themeContext.appearance;
+  const isDark = effectiveTheme === 'dark';
 
   useEffect(() => {
     if (initialProfile) {
@@ -99,7 +98,11 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
             <div className="lg:col-span-4 flex flex-col items-center text-center space-y-5">
               {/* Premium Photo or Monogram Mark with Orbital Lighting */}
               <div className="relative group">
-                <div className="w-44 h-44 sm:w-52 sm:h-52 rounded-2xl bg-slate-800 border border-[var(--be-border-focus,#C6A66A)] p-[2px] shadow-sm transition-transform duration-300 group-hover:scale-[1.01]">
+                <div className={`w-44 h-44 sm:w-52 sm:h-52 rounded-2xl border p-[2px] shadow-sm transition-transform duration-300 group-hover:scale-[1.01] ${
+                  isDark
+                    ? 'bg-slate-800 border-[var(--be-border-focus,#C6A66A)]'
+                    : 'bg-slate-100 border-slate-200'
+                }`}>
                   {profile.photoUrl ? (
                     <div className="w-full h-full rounded-[14px] bg-slate-950 overflow-hidden relative group/img">
                       <img
@@ -128,7 +131,7 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
                 <h3 className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
                   {profile.name || 'Ayush Prakash'}
                 </h3>
-                <p className="text-xs font-semibold text-cyan-400 mt-1">
+                <p className={`text-xs font-semibold mt-1 ${isDark ? 'text-cyan-400' : 'text-blue-600'}`}>
                   {profile.designation || 'Founder & Product Architect, ApplyVise AI'}
                 </p>
                 {profile.subtitle && (
@@ -144,7 +147,7 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
                   {profile.expertiseTags.map((tag, idx) => (
                     <span
                       key={idx}
-                      className={`px-2.5 py-1 rounded-lg border ${
+                      className={`px-2.5 py-1 rounded-lg border font-medium ${
                         isDark
                           ? 'bg-[var(--be-bg-surface,#181C22)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))] text-slate-300'
                           : 'bg-slate-100 border-slate-200 text-slate-700'
@@ -171,21 +174,21 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
                 )}
               </div>
 
-              {/* Founder Personal Quote Box */}
+              {/* Founder Personal Quote Box — High-Contrast Accessible Surface */}
               {profile.quote && (
-                <div className={`p-5 rounded-2xl border relative ${
+                <div className={`p-5 sm:p-6 rounded-2xl border relative transition-colors ${
                   isDark
                     ? 'bg-[var(--be-bg-surface,#181C22)] border-[var(--be-border-subtle,rgba(255,255,255,0.08))]'
-                    : 'bg-slate-50 border-slate-200'
+                    : 'bg-slate-50 border-slate-200/90 shadow-2xs'
                 }`}>
-                  <Quote className="h-6 w-6 text-[var(--be-accent,#A78343)] opacity-40 absolute top-3 right-4" />
-                  <p className={`text-xs sm:text-sm italic leading-relaxed ${
-                    isDark ? 'text-slate-200' : 'text-slate-700'
+                  <Quote className={`h-6 w-6 absolute top-3.5 right-4 ${isDark ? 'text-[var(--be-accent,#A78343)] opacity-70' : 'text-blue-600 opacity-60'}`} />
+                  <p className={`text-xs sm:text-sm italic leading-relaxed pr-6 ${
+                    isDark ? 'text-slate-100 font-medium' : 'text-slate-800 font-medium'
                   }`}>
                     "{profile.quote}"
                   </p>
                   <div className="mt-3 text-right">
-                    <span className={`text-xs font-semibold ${isDark ? 'text-[var(--be-accent,#A78343)]' : 'text-slate-900'}`}>
+                    <span className={`text-xs font-semibold ${isDark ? 'text-[var(--be-accent,#A78343)]' : 'text-blue-700 font-bold'}`}>
                       — {profile.quoteAuthor || profile.name}
                     </span>
                   </div>
@@ -197,7 +200,11 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
                 {onReadStory && (
                   <button
                     onClick={onReadStory}
-                    className="px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 dark:bg-[var(--be-accent,#A78343)] text-white dark:text-[#17130C] hover:bg-slate-800 transition flex items-center space-x-2"
+                    className={`px-5 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 transition ${
+                      isDark
+                        ? 'bg-[var(--be-accent,#A78343)] hover:bg-[var(--be-accent-hover,#917135)] text-[#17130C]'
+                        : 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs'
+                    }`}
                   >
                     <span>Read Full Founder Story</span>
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -211,7 +218,7 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
                   className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition flex items-center space-x-2 ${
                     isDark
                       ? 'bg-[var(--be-bg-surface,#181C22)] hover:bg-[var(--be-bg-card,#14171C)] text-slate-200 border-[var(--be-border-subtle,rgba(255,255,255,0.08))]'
-                      : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                      : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200 shadow-2xs'
                   }`}
                 >
                   <Linkedin className="h-3.5 w-3.5 text-[#0A66C2]" />

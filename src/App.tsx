@@ -43,6 +43,7 @@ import { InterviewStudio } from './components/InterviewStudio.tsx';
 import { RecruiterReview } from './components/RecruiterReview.tsx';
 import { CareerAtlas } from './components/CareerAtlas.tsx';
 import { initBlackEliteTheme } from './utils/blackEliteTheme.ts';
+import { useTheme } from './context/ThemeContext.tsx';
 
 // Code-split heavy routes and administrative modules for production performance
 const AdminConsole = React.lazy(() => import('./components/AdminConsole.tsx').then(m => ({ default: m.AdminConsole })));
@@ -148,6 +149,8 @@ export default function App() {
     isPermanentFreeAccessAccount(currentUser)
   );
 
+  const { appearance, palette, isDark, isLight } = useTheme();
+
   useEffect(() => {
     const root = document.documentElement;
     const body = document.body;
@@ -161,6 +164,7 @@ export default function App() {
       root.classList.remove('theme-black');
       body.classList.remove('theme-black');
     }
+
     initBlackEliteTheme(isBlackSubscriber ? 'black' : 'free');
   }, [isBlackSubscriber]);
 

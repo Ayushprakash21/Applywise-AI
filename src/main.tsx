@@ -2,6 +2,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import { LanguageProvider } from './context/LanguageContext.tsx';
+import { ThemeProvider } from './context/ThemeContext.tsx';
 import { initTypographySystem } from './utils/typographySystem.ts';
 import { initBlackEliteTheme } from './utils/blackEliteTheme.ts';
 import './index.css';
@@ -12,8 +13,10 @@ initBlackEliteTheme();
 
 createRoot(document.getElementById('root')!).render(
   <ErrorBoundary>
-    <LanguageProvider>
-      <App />
-    </LanguageProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <App />
+      </LanguageProvider>
+    </ThemeProvider>
   </ErrorBoundary>
 );
