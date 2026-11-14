@@ -29,6 +29,19 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
   const dim = sizeMap[size];
   const isDarkBg = variant === 'dark';
+  const isAuto = variant === 'auto';
+
+  const textClass = isDarkBg 
+    ? 'text-white' 
+    : isAuto 
+      ? 'text-slate-900 dark:text-white' 
+      : 'text-slate-900';
+
+  const badgeClass = isDarkBg
+    ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
+    : isAuto
+      ? 'bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-400/30 shadow-xs'
+      : 'bg-blue-50 text-blue-700 border border-blue-200/80 shadow-xs';
 
   const content = (
     <div className={`inline-flex items-center ${dim.gap} select-none ${className}`}>
@@ -52,20 +65,14 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       {showWordmark && (
         <div className="flex items-center space-x-1.5 tracking-tight">
           <span
-            className={`font-bold ${dim.text} ${
-              isDarkBg ? 'text-white' : 'text-slate-900'
-            }`}
+            className={`font-bold ${dim.text} ${textClass}`}
           >
             ApplyVise
           </span>
           <span className="font-semibold text-blue-600">AI</span>
           {badge && (
             <span
-              className={`font-mono uppercase font-semibold tracking-wider rounded-md ${dim.badge} ${
-                isDarkBg
-                  ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30'
-                  : 'bg-blue-50 text-blue-700 border border-blue-200/80 shadow-xs'
-              }`}
+              className={`font-mono uppercase font-semibold tracking-wider rounded-md ${dim.badge} ${badgeClass}`}
             >
               {badge}
             </span>

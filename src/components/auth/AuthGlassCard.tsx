@@ -26,12 +26,12 @@ export const AuthGlassCard: React.FC<AuthGlassCardProps> = ({
     >
       {/* Specular glass reflection line at top edge */}
       <div 
-        className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent" 
+        className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 dark:via-white/20 to-transparent" 
         aria-hidden="true"
       />
       {/* Subtle corner sheen */}
       <div 
-        className="pointer-events-none absolute -top-24 -left-24 w-48 h-48 rounded-full bg-white/20 blur-2xl" 
+        className="pointer-events-none absolute -top-24 -left-24 w-48 h-48 rounded-full bg-white/30 dark:bg-white/10 blur-2xl" 
         aria-hidden="true"
       />
 

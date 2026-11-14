@@ -109,3 +109,25 @@
 | **Admin** | Admin Console | Role select, user filters, and GCDE connector dropdowns verified. | **AUDITED & PASSED** |
 | **Admin** | User Provisioning | Multi-select and tier provisioning dropdowns verified. | **AUDITED & PASSED** |
 | **Shared** | Modal System | Dialog surfaces now strictly bound to `--be-bg-modal`. | **AUDITED & FIXED** |
+| **Auth** | Candidate Sign In (`/login`) | Removed dark card forcing in light mode; repaired submit button, labels, and text contrast. | **AUDITED & FIXED (P0)** |
+| **Auth** | Candidate Registration (`/signup`) | Form card, input borders, terms agreement, strength meter, and CTA adapt between light and dark. | **AUDITED & FIXED (P0)** |
+| **Auth** | Auth Feature Information Cards | Neutralized dark-on-dark bleed; rendered high-contrast elevated cards with accessible badges. | **AUDITED & FIXED (P0)** |
+| **Auth** | Google Auth Container & Buttons | Clean white container in light mode, dark container in dark mode; official branding preserved. | **AUDITED & FIXED (P0)** |
+
+---
+
+## 5. Critical Defect Remediation: Authentication Theme Architecture (P0 Blocker)
+
+### Root Cause
+1. In `src/index.css`, legacy rules `.theme-black .glass-auth-surface`, `.theme-black .glass-google-btn`, and `.theme-black .glass-auth-input` were declared under `.theme-black` without scoping to `.theme-black-dark`.
+2. Because `theme-black` is always present on `<html>` and `<body>` as the core design system namespace in both light and dark mode, these rules forced the authentication glass card to `rgba(14, 16, 23, 0.88)` (pitch black) even when `data-be-appearance="light"` / `.theme-black-light` was active.
+3. Concurrently, light-mode typography rules mapped `h1`, `h2`, `p`, and `label` to dark foreground colors (`#191D24`, `#555C66`), creating a critical contrast failure (dark text on pitch-black card).
+4. Feature cards in `AuthFeatureCards.tsx` lacked appearance scoping, and button styling suffered from substring selector interference with `dark:hover:bg-slate-100`.
+
+### Remediation
+- Scoped all `.glass-auth-surface`, `.glass-google-btn`, `.glass-auth-input`, and `.auth-feature-card` selectors to `.theme-black-light` and `[data-be-appearance="light"]` for pure white/light elevated surfaces with `#DEDAD0` borders and dark readable typography.
+- Scoped dark mode styling to `.theme-black-dark`, `[data-be-appearance="dark"]`, and `.dark`.
+- Added dedicated `.auth-submit-btn` class with explicit light mode `#0F172A` / `#FFFFFF` and dark mode `#FFFFFF` / `#090A0F` styling.
+- Bound outer container backgrounds in `FlowLogin.tsx` and `FlowSignup.tsx` to `--be-bg-canvas`.
+- Added `variant="auto"` support to `BrandLogo.tsx`.
+- Verified across 4 responsive viewports (Desktop 1920x1080, Laptop 1366x768, Tablet 768x1024, Mobile 375x812) and 608 automated tests.

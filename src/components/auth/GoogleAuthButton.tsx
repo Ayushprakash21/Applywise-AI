@@ -50,26 +50,26 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
     <div
       data-testid="google-auth-button"
       className={`glass-google-btn group relative w-full h-[50px] min-h-[50px] px-2 rounded-[14px] 
-        bg-white/35 hover:bg-white/55 active:bg-white/40
+        bg-white hover:bg-slate-50 active:bg-slate-100
+        dark:bg-[#191D23] dark:hover:bg-[#20242B] dark:active:bg-[#14171C]
         backdrop-blur-xl -webkit-backdrop-blur-xl
-        border border-white/65 hover:border-violet-300/80 active:border-white/70
-        shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.85),0_2px_8px_rgba(15,23,42,0.04)]
-        hover:shadow-[0_10px_25px_-4px_rgba(128,101,245,0.22),0_0_15px_rgba(128,101,245,0.12),inset_0_1px_1px_rgba(255,255,255,0.9)]
+        border border-white/80 dark:border-white/12 hover:border-slate-300 dark:hover:border-white/20 active:border-slate-300
+        shadow-[inset_0_1px_1px_0_rgba(255,255,255,0.85),0_2px_8px_rgba(15,23,42,0.04)] hover:shadow-sm
         hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]
         focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#8065F5]/60 focus-visible:ring-offset-2
-        text-[#0F172A] font-semibold text-sm tracking-tight
+        text-[#0F172A] dark:text-[#F0EEE9] font-semibold text-sm tracking-tight
         flex items-center justify-center
         transition-all duration-200 cubic-bezier(0.34, 1.56, 0.64, 1)
         overflow-hidden ${className}`}
     >
       {/* Specular glass reflection line at top */}
       <span
-        className="pointer-events-none absolute inset-x-3 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent"
+        className="pointer-events-none absolute inset-x-3 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 dark:via-white/20 to-transparent"
         aria-hidden="true"
       />
 
       {loading ? (
-        <div className="flex items-center space-x-2.5 text-[#0F172A]">
+        <div className="flex items-center space-x-2.5 text-[#0F172A] dark:text-[#F0EEE9]">
           <div className="w-4 h-4 border-2 border-[#8065F5]/30 border-t-[#8065F5] rounded-full animate-spin" />
           <span className="text-xs font-medium">Connecting to Google...</span>
         </div>
@@ -81,7 +81,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
           onClick={onClick}
           disabled={disabled || loading}
           aria-label={label}
-          className="w-full h-full flex items-center justify-center space-x-3 cursor-pointer select-none"
+          className="w-full h-full flex items-center justify-center space-x-3 cursor-pointer select-none text-[#0F172A] dark:text-[#F0EEE9]"
         >
           <GoogleIcon size={20} className="transition-transform duration-200 group-hover:scale-105" />
           <span className="truncate">{label}</span>

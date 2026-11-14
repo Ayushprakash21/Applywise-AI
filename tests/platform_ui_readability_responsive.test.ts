@@ -321,4 +321,63 @@ describe('APPLYVISE AI — Platform-Wide UI Readability, Dropdown & Responsive S
       assert.ok(src.includes('data-theme-surface="dark"'), 'CTA banner must specify dark surface');
     });
   });
+
+  // ==========================================================================
+  // 8. Authentication Theme Architecture & Contrast Repair (P0 Defect)
+  // ==========================================================================
+  describe('8. Authentication Theme Architecture & Contrast Repair (P0 Release Blocker)', () => {
+    const loginPath = path.resolve('src/components/FlowLogin.tsx');
+    const signupPath = path.resolve('src/components/FlowSignup.tsx');
+    const authHeaderPath = path.resolve('src/components/AuthHeader.tsx');
+    const authFeaturesPath = path.resolve('src/components/AuthFeatureCards.tsx');
+    const googleBtnPath = path.resolve('src/components/auth/GoogleAuthButton.tsx');
+
+    it('8.1. FlowLogin container and typography bind cleanly to light/dark theme tokens', () => {
+      const src = fs.readFileSync(loginPath, 'utf8');
+      assert.ok(src.includes('var(--be-bg-canvas'), 'Login page must bind to --be-bg-canvas');
+      assert.ok(src.includes('text-slate-900 dark:text-[#F2F0EA]'), 'Headings must adapt to dark/light');
+      assert.ok(src.includes('text-slate-600 dark:text-[#94A3B8]'), 'Subtitles must adapt to dark/light');
+      assert.ok(src.includes('text-slate-700 dark:text-[#CBD5E1]'), 'Labels must adapt to dark/light');
+      assert.ok(src.includes('text-blue-600 dark:text-sky-400'), 'Forgot password link must use high-contrast primary');
+    });
+
+    it('8.2. FlowSignup form inputs, password strength meter, and terms adapt to theme', () => {
+      const src = fs.readFileSync(signupPath, 'utf8');
+      assert.ok(src.includes('var(--be-bg-canvas'), 'Signup page must bind to --be-bg-canvas');
+      assert.ok(src.includes('glass-auth-input text-sm text-slate-900 dark:text-[#F0EEE9]'), 'Inputs must adapt to theme');
+      assert.ok(src.includes('text-slate-600 dark:text-slate-300'), 'Terms agreement text must be high-contrast');
+      assert.ok(src.includes('text-blue-600 dark:text-sky-400 hover:underline'), 'Terms & Privacy links must be accessible');
+    });
+
+    it('8.3. CSS rules for .glass-auth-surface declare solid light elevated card in light mode', () => {
+      const css = fs.readFileSync(cssPath, 'utf8');
+      assert.ok(css.includes('.theme-black-light .glass-auth-surface'), 'Must define .theme-black-light .glass-auth-surface');
+      assert.ok(css.includes('.theme-black-dark .glass-auth-surface'), 'Must define .theme-black-dark .glass-auth-surface');
+      assert.ok(!css.includes('.theme-black .glass-auth-surface {\n  background: rgba(14, 16, 23, 0.88);'), 'Must not allow un-scoped .theme-black to turn auth cards dark in light mode');
+    });
+
+    it('8.4. AuthFeatureCards renders light elevated card in light mode and dark card in dark mode', () => {
+      const src = fs.readFileSync(authFeaturesPath, 'utf8');
+      const css = fs.readFileSync(cssPath, 'utf8');
+      assert.ok(src.includes('auth-feature-card'), 'Feature card items must use auth-feature-card class');
+      assert.ok(css.includes('.theme-black-light .auth-feature-card'), 'CSS must define light mode feature card rules');
+      assert.ok(css.includes('.theme-black-dark .auth-feature-card'), 'CSS must define dark mode feature card rules');
+    });
+
+    it('8.5. GoogleAuthButton container and typography adapt cleanly without dark bleeding', () => {
+      const src = fs.readFileSync(googleBtnPath, 'utf8');
+      const css = fs.readFileSync(cssPath, 'utf8');
+      assert.ok(src.includes('dark:bg-[#191D23]'), 'Button must specify dark mode container');
+      assert.ok(css.includes('.theme-black-light .glass-google-btn'), 'CSS must define light google button styling');
+      assert.ok(css.includes('.theme-black-dark .glass-google-btn'), 'CSS must define dark google button styling');
+    });
+
+    it('8.6. AuthHeader navigation links, brand logo, and toggle buttons adapt to light/dark', () => {
+      const src = fs.readFileSync(authHeaderPath, 'utf8');
+      assert.ok(src.includes('BrandLogo'), 'Must render BrandLogo');
+      assert.ok(src.includes('variant="auto"'), 'BrandLogo must use variant="auto"');
+      assert.ok(src.includes('dark:bg-[var(--be-bg-header'), 'Header must bind to dark header background');
+      assert.ok(src.includes('dark:text-white'), 'Nav links must have dark mode text contrast');
+    });
+  });
 });

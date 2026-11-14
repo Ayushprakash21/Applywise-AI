@@ -243,23 +243,23 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-800/10 text-violet-700 border border-violet-300/30 mb-3">
               Password Recovery
             </span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight whitespace-normal sm:whitespace-nowrap">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#F2F0EA] tracking-tight whitespace-normal sm:whitespace-nowrap">
               Reset Password
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-[#94A3B8] mt-1 leading-relaxed">
               Enter your verified email address to receive password recovery instructions.
             </p>
           </div>
 
           {error && (
-            <div className="flex items-start space-x-2.5 p-3.5 rounded-xl bg-red-50/90 border border-red-200 text-xs text-red-700">
+            <div className="flex items-start space-x-2.5 p-3.5 rounded-xl bg-red-50/90 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 text-xs text-red-700 dark:text-red-300">
               <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="flex items-start space-x-2.5 p-3.5 rounded-xl bg-emerald-50/90 border border-emerald-200 text-xs text-emerald-800">
+            <div className="flex items-start space-x-2.5 p-3.5 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/40 text-xs text-emerald-800 dark:text-emerald-300">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <span>{successMsg}</span>
             </div>
@@ -267,18 +267,18 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
 
           <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
             <div>
-              <label htmlFor="recovery-email" className="block text-xs font-medium text-slate-700 mb-1.5">
+              <label htmlFor="recovery-email" className="block text-xs font-medium text-slate-700 dark:text-[#CBD5E1] mb-1.5">
                 Email address
               </label>
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                 <input
                   id="recovery-email"
                   type="email"
                   value={recoveryEmail}
                   onChange={(e) => setRecoveryEmail(e.target.value)}
                   placeholder="you@domain.com"
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden transition"
+                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 dark:text-[#F0EEE9] placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden transition"
                   required
                 />
               </div>
@@ -287,10 +287,10 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
             <button
               type="submit"
               disabled={recoveryLoading}
-              className="w-full py-3 px-6 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm shadow-xs disabled:opacity-50 flex items-center justify-center cursor-pointer transition-colors duration-150 select-none"
+              className="auth-submit-btn w-full py-3 px-6 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm shadow-xs disabled:opacity-50 flex items-center justify-center cursor-pointer transition-colors duration-150 select-none"
             >
               {recoveryLoading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white dark:border-slate-400/30 dark:border-t-slate-950 rounded-full animate-spin" />
               ) : (
                 <span>Send Recovery Instructions</span>
               )}
@@ -305,7 +305,7 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
                 setError(null);
                 setSuccessMsg(null);
               }}
-              className="text-xs font-semibold text-[var(--be-accent,#A78343)] hover:underline transition cursor-pointer"
+              className="text-xs font-semibold text-blue-600 dark:text-sky-400 hover:underline transition cursor-pointer"
             >
               Return to sign in
             </button>
@@ -318,23 +318,23 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
             <span className="text-xs font-semibold text-[var(--be-accent,#A78343)] block mb-1">
               Candidate Account Sign In
             </span>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight whitespace-normal sm:whitespace-nowrap">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#F2F0EA] tracking-tight whitespace-normal sm:whitespace-nowrap">
               {title}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-[#94A3B8] mt-1 leading-relaxed">
               {subtitle}
             </p>
           </div>
 
           {error && (
-            <div className="flex items-start space-x-2.5 p-3.5 rounded-xl bg-red-50/90 border border-red-200 text-xs text-red-700">
+            <div className="flex items-start space-x-2.5 p-3.5 rounded-xl bg-red-50/90 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 text-xs text-red-700 dark:text-red-300">
               <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
               <span className="leading-snug">{error}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="flex items-start space-x-2.5 p-3.5 rounded-xl bg-emerald-50/90 border border-emerald-200 text-xs text-emerald-800">
+            <div className="flex items-start space-x-2.5 p-3.5 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/40 text-xs text-emerald-800 dark:text-emerald-300">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <span>{successMsg}</span>
             </div>
@@ -343,11 +343,11 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Field */}
             <div>
-              <label htmlFor="login-email" className="block text-xs font-medium text-slate-700 mb-1.5">
+              <label htmlFor="login-email" className="block text-xs font-medium text-slate-700 dark:text-[#CBD5E1] mb-1.5">
                 Email address
               </label>
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                 <input
                   id="login-email"
                   type="email"
@@ -355,7 +355,7 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   autoComplete="email"
-                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden transition"
+                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 dark:text-[#F0EEE9] placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden transition"
                   required
                 />
               </div>
@@ -363,11 +363,11 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
 
             {/* Password Field */}
             <div>
-              <label htmlFor="login-password" className="block text-xs font-medium text-slate-700 mb-1.5">
+              <label htmlFor="login-password" className="block text-xs font-medium text-slate-700 dark:text-[#CBD5E1] mb-1.5">
                 Password
               </label>
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                 <input
                   id="login-password"
                   type={passwordVisible ? 'text' : 'password'}
@@ -375,13 +375,13 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   autoComplete="current-password"
-                  className="w-full pl-10 pr-11 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden transition"
+                  className="w-full pl-10 pr-11 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 dark:text-[#F0EEE9] placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden transition"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setPasswordVisible(!passwordVisible)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition cursor-pointer"
                   aria-label={passwordVisible ? 'Hide password' : 'Show password'}
                 >
                   {passwordVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -392,12 +392,12 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
             {/* Remember Me & Forgot Password Row */}
             <div className="flex items-center justify-between text-xs pt-0.5">
               {showRemember && (
-                <label className="flex items-center space-x-2 text-slate-600 cursor-pointer select-none">
+                <label className="flex items-center space-x-2 text-slate-700 dark:text-slate-300 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={remember}
                     onChange={(e) => setRemember(e.target.checked)}
-                    className="w-4 h-4 rounded-md border-slate-300 text-blue-600 focus:ring-[#8065F5]/30 cursor-pointer"
+                    className="w-4 h-4 rounded-md border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-[#8065F5]/30 cursor-pointer"
                   />
                   <span>Remember me</span>
                 </label>
@@ -412,7 +412,7 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
                     setSuccessMsg(null);
                     setRecoveryEmail(email);
                   }}
-                  className="font-medium text-[#8065F5] hover:text-blue-700 transition cursor-pointer"
+                  className="font-medium text-blue-600 dark:text-sky-400 hover:text-blue-700 dark:hover:text-sky-300 transition cursor-pointer"
                 >
                   Forgot password?
                 </button>
@@ -423,10 +423,10 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-6 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm shadow-xs disabled:opacity-50 flex items-center justify-center cursor-pointer transition-colors duration-150 select-none mt-2"
+              className="auth-submit-btn w-full py-3 px-6 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm shadow-xs disabled:opacity-50 flex items-center justify-center cursor-pointer transition-colors duration-150 select-none mt-2"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white dark:border-slate-400/30 dark:border-t-slate-950 rounded-full animate-spin" />
               ) : (
                 <span>{primaryText}</span>
               )}
@@ -437,11 +437,11 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
           {showSocial && (
             <div className="pt-1">
               <div className="relative flex py-2 items-center">
-                <div className="flex-grow border-t border-slate-300/40" />
-                <span className="shrink-0 mx-3 text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                <div className="flex-grow border-t border-slate-300/60 dark:border-white/10" />
+                <span className="shrink-0 mx-3 text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Or continue with
                 </span>
-                <div className="flex-grow border-t border-slate-300/40" />
+                <div className="flex-grow border-t border-slate-300/60 dark:border-white/10" />
               </div>
 
               {/* Google Auth Container */}
@@ -459,12 +459,12 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
                 </GoogleAuthButton>
 
                 {authConfig && !authConfig.googleAuthEnabled && (
-                  <p className="mt-2 text-center text-xs text-slate-500">
+                  <p className="mt-2 text-center text-xs text-slate-600 dark:text-slate-400">
                     Google Sign-In is not configured for this deployment. Please sign in with email.
                   </p>
                 )}
                 {googleInitError && (
-                  <p className="mt-2 text-center text-xs text-amber-600">
+                  <p className="mt-2 text-center text-xs text-amber-600 dark:text-amber-400">
                     {googleInitError}. Please sign in with email and password.
                   </p>
                 )}
@@ -473,13 +473,13 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
           )}
 
           {/* Bottom Redirect Link */}
-          <div className="pt-3 text-center border-t border-slate-300/40">
-            <p className="text-xs text-slate-500">
+          <div className="pt-3 text-center border-t border-slate-300/60 dark:border-white/10">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Don't have an account?{' '}
               <button
                 type="button"
                 onClick={onNavigateToSignup}
-                className="font-semibold text-[#8065F5] hover:text-blue-700 transition cursor-pointer"
+                className="font-semibold text-blue-600 dark:text-sky-400 hover:underline transition cursor-pointer"
               >
                 Sign Up
               </button>
@@ -501,7 +501,7 @@ export const FlowLogin: React.FC<FlowLoginProps> = ({
 
   // Standalone Full-Page Route Experience
   return (
-    <div className="relative min-h-screen w-full bg-[#E9EEF6] font-sans flex flex-col overflow-x-hidden selection:bg-violet-200 selection:text-violet-900">
+    <div className="relative min-h-screen w-full bg-[#E9EEF6] bg-[var(--be-bg-canvas,#F5F3EE)] dark:bg-[var(--be-bg-canvas,#070B12)] font-sans flex flex-col overflow-x-hidden selection:bg-violet-200 selection:text-violet-900 transition-colors">
       {/* 1. SHARED GLOBAL NAVIGATION HEADER */}
       <AuthHeader
         activePage="login"

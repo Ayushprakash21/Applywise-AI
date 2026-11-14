@@ -249,23 +249,23 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
           <span className="text-xs font-semibold text-[var(--be-accent,#A78343)] block mb-1">
             Candidate Registration
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight whitespace-normal sm:whitespace-nowrap">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-[#F2F0EA] tracking-tight whitespace-normal sm:whitespace-nowrap">
             {title}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-[#94A3B8] mt-1 leading-relaxed">
             {subtitle}
           </p>
         </div>
 
         {error && (
-          <div className="flex items-start space-x-2.5 p-3.5 rounded-xl bg-red-50/90 border border-red-200 text-xs text-red-700">
+          <div className="flex items-start space-x-2.5 p-3.5 rounded-xl bg-red-50/90 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 text-xs text-red-700 dark:text-red-300">
             <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
             <span className="leading-snug">{error}</span>
           </div>
         )}
 
         {successMsg && (
-          <div className="flex items-start space-x-2.5 p-3.5 rounded-xl bg-emerald-50/90 border border-emerald-200 text-xs text-emerald-800">
+          <div className="flex items-start space-x-2.5 p-3.5 rounded-xl bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/40 text-xs text-emerald-800 dark:text-emerald-300">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <span>{successMsg}</span>
           </div>
@@ -274,11 +274,11 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
         <form onSubmit={handleSubmit} className="space-y-3.5">
           {/* Full Name */}
           <div>
-            <label htmlFor="signup-name" className="block text-xs font-medium text-slate-700 mb-1">
+            <label htmlFor="signup-name" className="block text-xs font-medium text-slate-700 dark:text-[#CBD5E1] mb-1">
               Full name
             </label>
             <div className="relative">
-              <User className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <User className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
               <input
                 id="signup-name"
                 type="text"
@@ -286,7 +286,7 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Alex Rivera"
                 autoComplete="name"
-                className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden transition"
+                className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 dark:text-[#F0EEE9] placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden transition"
                 required
               />
             </div>
@@ -294,11 +294,11 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
 
           {/* Email */}
           <div>
-            <label htmlFor="signup-email" className="block text-xs font-medium text-slate-700 mb-1">
+            <label htmlFor="signup-email" className="block text-xs font-medium text-slate-700 dark:text-[#CBD5E1] mb-1">
               Email address
             </label>
             <div className="relative">
-              <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
               <input
                 id="signup-email"
                 type="email"
@@ -306,7 +306,7 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="alex@domain.com"
                 autoComplete="email"
-                className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden transition"
+                className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 dark:text-[#F0EEE9] placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden transition"
                 required
               />
             </div>
@@ -314,11 +314,11 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
 
           {/* Password */}
           <div>
-            <label htmlFor="signup-password" className="block text-xs font-medium text-slate-700 mb-1">
+            <label htmlFor="signup-password" className="block text-xs font-medium text-slate-700 dark:text-[#CBD5E1] mb-1">
               Password
             </label>
             <div className="relative">
-              <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
               <input
                 id="signup-password"
                 type={passwordVisible ? 'text' : 'password'}
@@ -326,13 +326,13 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="At least 8 characters"
                 autoComplete="new-password"
-                className="w-full pl-10 pr-11 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden transition"
+                className="w-full pl-10 pr-11 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 dark:text-[#F0EEE9] placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden transition"
                 required
               />
               <button
                 type="button"
                 onClick={() => setPasswordVisible(!passwordVisible)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition cursor-pointer"
                 aria-label={passwordVisible ? 'Hide password' : 'Show password'}
               >
                 {passwordVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -342,13 +342,13 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
             {/* Password Strength Meter */}
             {password && (
               <div className="mt-1.5 flex items-center space-x-2">
-                <div className="flex-1 grid grid-cols-4 gap-1 h-1.5 bg-slate-300/50 rounded-full overflow-hidden">
+                <div className="flex-1 grid grid-cols-4 gap-1 h-1.5 bg-slate-300/50 dark:bg-white/10 rounded-full overflow-hidden">
                   <div className={`h-full rounded-full transition-all ${strength.score >= 1 ? strength.color : 'bg-transparent'}`} />
                   <div className={`h-full rounded-full transition-all ${strength.score >= 2 ? strength.color : 'bg-transparent'}`} />
                   <div className={`h-full rounded-full transition-all ${strength.score >= 3 ? strength.color : 'bg-transparent'}`} />
                   <div className={`h-full rounded-full transition-all ${strength.score >= 4 ? strength.color : 'bg-transparent'}`} />
                 </div>
-                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                   {strength.label}
                 </span>
               </div>
@@ -357,11 +357,11 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
 
           {/* Confirm Password */}
           <div>
-            <label htmlFor="signup-confirm-password" className="block text-xs font-medium text-slate-700 mb-1">
+            <label htmlFor="signup-confirm-password" className="block text-xs font-medium text-slate-700 dark:text-[#CBD5E1] mb-1">
               Confirm password
             </label>
             <div className="relative">
-              <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
               <input
                 id="signup-confirm-password"
                 type={confirmVisible ? 'text' : 'password'}
@@ -369,13 +369,13 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Re-enter your password"
                 autoComplete="new-password"
-                className="w-full pl-10 pr-11 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden transition"
+                className="w-full pl-10 pr-11 py-2.5 sm:py-3 rounded-xl glass-auth-input text-sm text-slate-900 dark:text-[#F0EEE9] placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden transition"
                 required
               />
               <button
                 type="button"
                 onClick={() => setConfirmVisible(!confirmVisible)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition cursor-pointer"
                 aria-label={confirmVisible ? 'Hide password' : 'Show password'}
               >
                 {confirmVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -391,14 +391,14 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
                   type="checkbox"
                   checked={terms}
                   onChange={(e) => setTerms(e.target.checked)}
-                  className="w-4 h-4 mt-0.5 rounded-md border-slate-300 text-blue-600 focus:ring-[#8065F5]/30 shrink-0 cursor-pointer"
+                  className="w-4 h-4 mt-0.5 rounded-md border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-[#8065F5]/30 shrink-0 cursor-pointer"
                 />
-                <span className="text-xs text-slate-600 leading-snug">
+                <span className="text-xs text-slate-600 dark:text-slate-300 leading-snug">
                   I agree to the{' '}
                   <button
                     type="button"
                     onClick={onOpenTerms}
-                    className="font-medium text-[#8065F5] hover:underline cursor-pointer"
+                    className="font-medium text-blue-600 dark:text-sky-400 hover:underline cursor-pointer"
                   >
                     Terms of Service
                   </button>{' '}
@@ -406,7 +406,7 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
                   <button
                     type="button"
                     onClick={onOpenPrivacy}
-                    className="font-medium text-[#8065F5] hover:underline cursor-pointer"
+                    className="font-medium text-blue-600 dark:text-sky-400 hover:underline cursor-pointer"
                   >
                     Privacy Policy
                   </button>
@@ -420,10 +420,10 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-6 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm shadow-xs disabled:opacity-50 flex items-center justify-center cursor-pointer transition-colors duration-150 select-none mt-2"
+            className="auth-submit-btn w-full py-3 px-6 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm shadow-xs disabled:opacity-50 flex items-center justify-center cursor-pointer transition-colors duration-150 select-none mt-2"
           >
             {loading ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white dark:border-slate-400/30 dark:border-t-slate-950 rounded-full animate-spin" />
             ) : (
               <span>{primaryText}</span>
             )}
@@ -434,11 +434,11 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
         {showSocial && (
           <div className="pt-1">
             <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-slate-300/40" />
-              <span className="shrink-0 mx-3 text-[11px] font-medium uppercase tracking-wider text-slate-400">
+              <div className="flex-grow border-t border-slate-300/60 dark:border-white/10" />
+              <span className="shrink-0 mx-3 text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Or continue with
               </span>
-              <div className="flex-grow border-t border-slate-300/40" />
+              <div className="flex-grow border-t border-slate-300/60 dark:border-white/10" />
             </div>
 
             {/* Google Auth Container */}
@@ -456,12 +456,12 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
               </GoogleAuthButton>
 
               {authConfig && !authConfig.googleAuthEnabled && (
-                <p className="mt-2 text-center text-xs text-slate-500">
+                <p className="mt-2 text-center text-xs text-slate-600 dark:text-slate-400">
                   Google Sign-Up is not configured for this deployment. Please register using the form below.
                 </p>
               )}
               {googleInitError && (
-                <p className="mt-2 text-center text-xs text-amber-600">
+                <p className="mt-2 text-center text-xs text-amber-600 dark:text-amber-400">
                   {googleInitError}. Please register using the form below.
                 </p>
               )}
@@ -470,13 +470,13 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
         )}
 
         {/* Bottom Redirect Link */}
-        <div className="pt-3 text-center border-t border-slate-300/40">
-          <p className="text-xs text-slate-500">
+        <div className="pt-3 text-center border-t border-slate-300/60 dark:border-white/10">
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             Already have an account?{' '}
             <button
               type="button"
               onClick={onNavigateToLogin}
-              className="font-semibold text-[#8065F5] hover:text-blue-700 transition cursor-pointer"
+              className="font-semibold text-blue-600 dark:text-sky-400 hover:underline transition cursor-pointer"
             >
               Sign In
             </button>
@@ -497,7 +497,7 @@ export const FlowSignup: React.FC<FlowSignupProps> = ({
 
   // Standalone Full-Page Route Experience
   return (
-    <div className="relative min-h-screen w-full bg-[#E9EEF6] font-sans flex flex-col overflow-x-hidden selection:bg-violet-200 selection:text-violet-900">
+    <div className="relative min-h-screen w-full bg-[#E9EEF6] bg-[var(--be-bg-canvas,#F5F3EE)] dark:bg-[var(--be-bg-canvas,#070B12)] font-sans flex flex-col overflow-x-hidden selection:bg-violet-200 selection:text-violet-900 transition-colors">
       {/* 1. SHARED GLOBAL NAVIGATION HEADER */}
       <AuthHeader
         activePage="signup"

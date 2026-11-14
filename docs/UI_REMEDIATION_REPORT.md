@@ -104,4 +104,11 @@
 | `src/components/AppHeader.tsx` | Integrated `HeaderLanguageSelector` into public/authenticated header toolbar. |
 | `src/components/ProfileIdentityComponent.tsx` | Removed breaking oversized floating language modal from workspace. |
 | `src/components/ResumeOnboardingModal.tsx` | Replaced legacy floating language modal with compact `HeaderLanguageSelector`. |
-| `tests/platform_ui_readability_responsive.test.ts` | **NEW TEST SUITE** — 33 comprehensive automated regression tests across workspaces, dropdowns, and homepage integrity. |
+| `src/components/FlowLogin.tsx` | Bound page background to `--be-bg-canvas`; bound form card headings, labels, and text to high-contrast tokens; integrated `.auth-submit-btn`. |
+| `src/components/FlowSignup.tsx` | Bound page background to `--be-bg-canvas`; adapted inputs, password strength meter, terms checkbox, and CTA button to light/dark. |
+| `src/components/auth/AuthGlassCard.tsx` | Added adaptive light/dark specular reflection line and corner sheen; removed hardcoded dark styling. |
+| `src/components/auth/GoogleAuthButton.tsx` | Clean light elevated container with official Google branding and high-contrast typography; dark mode styling in dark mode. |
+| `src/components/AuthFeatureCards.tsx` | Refactored side info cards to `.auth-feature-card`; pure white elevated surface in light mode with accessible badges and readable text. |
+| `src/components/AuthHeader.tsx` | Responsive header adapting navigation links, BrandLogo, and auth toggle buttons across light and dark modes. |
+| `src/components/BrandLogo.tsx` | Enhanced `variant="auto"` to automatically render high-contrast dark text in light mode and white text in dark mode. |
+| `tests/platform_ui_readability_responsive.test.ts` | **NEW TEST SUITE** — 39 comprehensive automated regression tests across workspaces, dropdowns, homepage integrity, and auth theme architecture. |
