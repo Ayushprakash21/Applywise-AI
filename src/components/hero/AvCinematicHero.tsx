@@ -1,19 +1,12 @@
 // src/components/hero/AvCinematicHero.tsx
 // APPLYWISE AI — THE SINGLE PRIMARY CINEMATIC AV HERO
-// Official Layout matching Image 3 with Neon Pilgrim Beneath the AV Monogram (Image 2)
+// Full-screen 4K Cinematic Hero with Luminous AV Gateway, Neon Pilgrim & Staggered Animations
 
 import React from 'react';
 import './AvCinematicHero.css';
 import { AvCinematicCanvas } from './AvCinematicCanvas.tsx';
 import { JobVacancy } from '../../types/index.ts';
-import {
-  ArrowRight,
-  Compass,
-  FileText,
-  Zap,
-  TrendingUp,
-  Play
-} from 'lucide-react';
+import { ArrowRight, Play, ChevronDown } from 'lucide-react';
 
 export interface AvCinematicHeroProps {
   onOpenAuth?: (mode: 'login' | 'signup') => void;
@@ -36,7 +29,7 @@ export const AvCinematicHero: React.FC<AvCinematicHeroProps> = ({
     if (onOpenAuth) {
       onOpenAuth('signup');
     } else {
-      const el = document.getElementById('jobs');
+      const el = document.getElementById('jobs') || document.getElementById('journey');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
   };
@@ -45,42 +38,56 @@ export const AvCinematicHero: React.FC<AvCinematicHeroProps> = ({
     if (onExploreHowItWorks) {
       onExploreHowItWorks();
     } else {
-      const el = document.getElementById('journey');
+      const el = document.getElementById('journey') || document.getElementById('jobs');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleScrollDown = () => {
+    const nextSection = document.getElementById('journey') || document.getElementById('jobs');
+    if (nextSection) {
+      nextSection.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
     }
   };
 
   return (
     <section
-      className={`av-hero-section ${className}`}
+      className={`av-hero-section relative w-full overflow-hidden ${className}`}
       aria-label="ApplyWise AI — Single Cinematic AV Hero"
       data-testid="av-cinematic-hero"
       data-theme-surface="dark"
     >
-      <div className="av-hero-container">
-        {/* LEFT COLUMN: 40% Width - Brand Narrative, Headline, Description, Action CTAs */}
-        <div className="av-hero-left">
-          {/* Brand Identity Pill */}
-          <div className="av-brand-pill" data-testid="av-brand-pill">
-            <span className="av-brand-icon" aria-hidden="true">AV</span>
-            <span className="av-brand-text">ApplyWise AI</span>
-          </div>
+      {/* FULL-SECTION CINEMATIC ARTWORK & ANIMATION CANVAS LAYER */}
+      <div className="av-hero-artwork-backdrop" data-testid="av-hero-artwork-backdrop">
+        <AvCinematicCanvas imageSrc="/hero/av-pilgrim-hero.jpg" isFullBleed={true} />
+      </div>
 
-          {/* Main Headline */}
+      {/* CAREFULLY CONTROLLED READABILITY GRADIENT OVERLAY */}
+      <div className="av-hero-gradient-overlay" aria-hidden="true" />
+
+      {/* FOREGROUND HERO CONTENT CONTAINER */}
+      <div className="av-hero-foreground">
+        <div className="av-hero-content-col">
+          {/* Main Headline with Staggered Entrance */}
           <h1 className="av-hero-headline" data-testid="av-main-headline">
-            India's First <br />
-            <span className="av-headline-accent">AI-Powered Job</span> <br />
-            Discovery &amp; Application <br className="hidden sm:inline" />
-            Automation Platform.
+            <span className="av-headline-white av-anim-line-1">India&apos;s First</span>
+            <br />
+            <span className="av-headline-gold av-anim-line-2">AI-Powered Job</span>
+            <br />
+            <span className="av-headline-white av-anim-line-3">Discovery &amp; Application</span>
+            <br className="hidden sm:inline" />
+            <span className="av-headline-white av-anim-line-4">Automation Platform.</span>
           </h1>
 
           {/* Supporting Description */}
-          <p className="av-hero-description" data-testid="av-supporting-description">
+          <p className="av-hero-description av-anim-desc" data-testid="av-supporting-description">
             Find the right opportunities, tailor your applications and move faster towards your next career milestone.
           </p>
 
           {/* Action CTAs */}
-          <div className="av-hero-ctas">
+          <div className="av-hero-ctas av-anim-ctas">
             <button
               type="button"
               className="av-btn-primary"
@@ -102,39 +109,21 @@ export const AvCinematicHero: React.FC<AvCinematicHeroProps> = ({
             </button>
           </div>
         </div>
-
-        {/* RIGHT COLUMN: 60% Width - The Animated AV Monogram Cinematic Artwork (Image 2) */}
-        <div className="av-hero-right" data-testid="av-hero-artwork-column">
-          <AvCinematicCanvas imageSrc="/hero/av-pilgrim-hero.jpg" />
-        </div>
       </div>
 
-      {/* TRUST / CAPABILITIES STRIP (Matching Image 3) */}
-      <div className="av-trust-strip" data-testid="av-trust-strip">
-        <div className="av-trust-container">
-          <span className="av-trust-label">
-            Trusted by professionals for smarter career growth
-          </span>
-
-          <div className="av-trust-pills">
-            <span className="av-trust-pill">
-              <Compass className="av-trust-pill-icon" />
-              <span>AI Job Discovery</span>
-            </span>
-            <span className="av-trust-pill">
-              <FileText className="av-trust-pill-icon" />
-              <span>Resume Intelligence</span>
-            </span>
-            <span className="av-trust-pill">
-              <Zap className="av-trust-pill-icon" />
-              <span>Application Automation</span>
-            </span>
-            <span className="av-trust-pill">
-              <TrendingUp className="av-trust-pill-icon" />
-              <span>Career Insights</span>
-            </span>
+      {/* SCROLL TO EXPLORE INDICATOR */}
+      <div className="av-hero-scroll-indicator" data-testid="av-scroll-indicator">
+        <button
+          type="button"
+          onClick={handleScrollDown}
+          className="av-scroll-btn group"
+          aria-label="Scroll to explore career opportunities"
+        >
+          <span className="av-scroll-text">Scroll to Explore</span>
+          <div className="av-scroll-chevron-circle">
+            <ChevronDown className="w-4 h-4 text-[#F4B942] group-hover:translate-y-0.5 transition-transform" />
           </div>
-        </div>
+        </button>
       </div>
     </section>
   );

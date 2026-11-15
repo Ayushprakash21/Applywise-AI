@@ -1515,9 +1515,11 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
           <AdminFounderProfile onNotify={showNotification} />
         )}
 
-        {/* TAB 7: APPLYVISE GROWTH ENGINE & AI MARKETING DEPARTMENT */}
+        {/* TAB 7: APPLYWISE GROWTH ENGINE & AI MARKETING DEPARTMENT */}
         {activeTab === 'growth_engine' && (
-          <GrowthEngineDashboard onNavigateRoute={onNavigateRoute} />
+          <div data-admin-workspace="dark" className="admin-dark-workspace rounded-2xl">
+            <GrowthEngineDashboard onNavigateRoute={onNavigateRoute} />
+          </div>
         )}
 
         {/* TAB 8: UNIVERSAL LANGUAGE ENGINE & LOCALIZATION */}

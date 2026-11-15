@@ -24,7 +24,13 @@ export class SourceAdapterRegistry {
   private initializeDefaultAdapters(): void {
     if (this.initialized) return;
 
-    // 1. Marketplace Adapters
+    // 1. Curated Direct Company Adapters (Primary Source: Direct Employer Career Portals)
+    const companyAdapters = buildCompanyAdapters();
+    for (const ca of companyAdapters) {
+      this.register(ca);
+    }
+
+    // 2. Supplemental Marketplace Aggregators (Secondary Fallback)
     const remotive = new RemotiveSourceAdapter();
     const arbeitnow = new ArbeitnowSourceAdapter();
     const jobicy = new JobicySourceAdapter();
@@ -32,12 +38,6 @@ export class SourceAdapterRegistry {
     this.register(remotive);
     this.register(arbeitnow);
     this.register(jobicy);
-
-    // 2. Curated Company Adapters (Indian Tech + Global Product Leaders)
-    const companyAdapters = buildCompanyAdapters();
-    for (const ca of companyAdapters) {
-      this.register(ca);
-    }
 
     this.initialized = true;
   }

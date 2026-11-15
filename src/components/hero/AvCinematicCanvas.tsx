@@ -55,11 +55,13 @@ const CAREER_SYMBOLS = [
 export interface AvCinematicCanvasProps {
   className?: string;
   imageSrc?: string;
+  isFullBleed?: boolean;
 }
 
 export const AvCinematicCanvas: React.FC<AvCinematicCanvasProps> = ({
   className = '',
   imageSrc = '/hero/av-pilgrim-hero.jpg',
+  isFullBleed = false,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -339,14 +341,14 @@ export const AvCinematicCanvas: React.FC<AvCinematicCanvasProps> = ({
       const px = mouseRef.current.x;
       const py = mouseRef.current.y;
 
-      // Handle High-DPI canvas projection
+      // Handle High-DPI canvas projection (tuned for 1080p, 1440p and 4K displays)
       const width = 1024;
       const height = 576;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
 
-      if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-        canvas.width = width * dpr;
-        canvas.height = height * dpr;
+      if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
       }
 
       ctx.save();
@@ -636,7 +638,7 @@ export const AvCinematicCanvas: React.FC<AvCinematicCanvasProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full aspect-[16/9] rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl border border-white/10 select-none bg-[#080F1C] ${className}`}
+      className={`relative w-full ${isFullBleed ? 'h-full overflow-hidden' : 'aspect-[16/9] rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl border border-white/10'} select-none bg-[#080F1C] ${className}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       data-testid="av-cinematic-canvas-container"
@@ -644,8 +646,7 @@ export const AvCinematicCanvas: React.FC<AvCinematicCanvasProps> = ({
       {/* High-Resolution Dynamic Canvas */}
       <canvas
         ref={canvasRef}
-        className="w-full h-full object-cover block"
-        style={{ width: '100%', height: '100%' }}
+        className="w-full h-full object-cover block av-canvas-element"
         aria-label="ApplyWise AI — Neon Pilgrim Beneath the AV Monogram Animated Artwork"
         role="img"
       />
@@ -655,7 +656,7 @@ export const AvCinematicCanvas: React.FC<AvCinematicCanvasProps> = ({
         <img
           src={imageSrc}
           alt="ApplyWise AI — Neon Pilgrim Beneath the AV Monogram Artwork"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover av-canvas-element"
         />
       </noscript>
 
@@ -669,11 +670,13 @@ export const AvCinematicCanvas: React.FC<AvCinematicCanvasProps> = ({
         </div>
       )}
 
-      {/* Subtle Cinematic Vignette Overlay */}
-      <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#080F1C]/70 via-transparent to-[#080F1C]/30"
-        aria-hidden="true"
-      />
+      {/* Subtle Cinematic Vignette Overlay (for standalone non-bleed use only) */}
+      {!isFullBleed && (
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#080F1C]/70 via-transparent to-[#080F1C]/30"
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 };

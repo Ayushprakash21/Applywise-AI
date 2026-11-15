@@ -1,5 +1,5 @@
 // src/components/admin/growth-engine/GrowthEngineDashboard.tsx
-// Dedicated BLACK ELITE Autonomous AI Marketing Command Center for ApplyVise
+// Dedicated BLACK ELITE Autonomous AI Marketing Command Center for ApplyWise
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -274,9 +274,9 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
 
   if (loading && !overview) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[500px] text-stone-400">
-        <RefreshCw className="w-8 h-8 animate-spin text-amber-400 mb-3" />
-        <p className="text-sm tracking-wide font-medium">Booting ApplyVise Growth Engine & Agent Workforce...</p>
+      <div data-admin-workspace="dark" className="admin-dark-workspace flex flex-col items-center justify-center min-h-[500px] text-[#D6D0C7] bg-[#171717] rounded-2xl p-8 border border-[#494139]">
+        <RefreshCw className="w-8 h-8 animate-spin text-[#D6A84B] mb-3" />
+        <p className="text-sm tracking-wide font-medium text-[#F5F5F4]">Booting ApplyWise Growth Engine & Agent Workforce...</p>
       </div>
     );
   }
@@ -284,54 +284,54 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
   const s = overview?.settings;
 
   return (
-    <div className="space-y-6 text-stone-100 font-sans pb-16">
+    <div data-admin-workspace="dark" className="admin-dark-workspace space-y-6 font-sans pb-16 bg-[#171717] text-[#F5F5F4]">
       {/* Top Banner / Notification */}
       {actionSuccessMsg && (
-        <div className="bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 px-4 py-3 rounded-xl flex items-center gap-3 text-sm animate-fade-in shadow-lg">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+        <div className="bg-emerald-950/80 border border-[#10B981]/50 text-[#F5F5F4] px-4 py-3 rounded-xl flex items-center gap-3 text-sm animate-fade-in shadow-lg">
+          <CheckCircle2 className="w-5 h-5 text-[#10B981] shrink-0" />
           <span>{actionSuccessMsg}</span>
         </div>
       )}
 
       {error && (
-        <div className="bg-rose-950/80 border border-rose-500/40 text-rose-200 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
-          <AlertOctagon className="w-5 h-5 text-rose-400 shrink-0" />
+        <div className="bg-rose-950/80 border border-[#F43F5E]/50 text-[#F5F5F4] px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
+          <AlertOctagon className="w-5 h-5 text-[#F43F5E] shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Header & Autonomous Command Bar */}
-      <div className="bg-gradient-to-b from-stone-900 to-stone-950 border border-stone-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-gradient-to-b from-[#201D1A] to-[#171717] border border-[#494139] rounded-2xl p-6 sm:p-7 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#D6A84B]/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <div className="flex items-center gap-3 mb-2.5 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#292521] text-[#D6A84B] border border-[#D6A84B]/40 shadow-sm">
+                <Sparkles className="w-3.5 h-3.5 text-[#D6A84B]" />
                 BLACK ELITE MARKETING AGENT
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono bg-stone-800 text-stone-300 border border-stone-700">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono bg-[#292521] text-[#D6D0C7] border border-[#494139]">
                 8 Autonomous Workers Active
               </span>
               {s?.emergencyStopped ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#F43F5E]/20 text-[#F43F5E] border border-[#F43F5E]/40">
                   <AlertOctagon className="w-3.5 h-3.5" /> EMERGENCY STOP
                 </span>
               ) : s?.isPaused ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40">
                   <Pause className="w-3.5 h-3.5" /> PAUSED
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> LIVE & DISPATCHING
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+                  <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" /> LIVE & DISPATCHING
                 </span>
               )}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-              ApplyVise Growth Engine
+            <h1 className="text-[28px] sm:text-[32px] font-extrabold tracking-tight text-[#F5F5F4] flex items-center gap-3">
+              ApplyWise Growth Engine
             </h1>
-            <p className="text-sm text-stone-400 mt-1 max-w-2xl">
+            <p className="text-[13.5px] text-[#D6D0C7] mt-1.5 max-w-2xl leading-relaxed">
               Coordinated AI marketing department optimizing SEO, authoritative editorial publishing, multi-platform thought leadership, competitor benchmark monitoring, and conversion funnels.
             </p>
           </div>
@@ -339,14 +339,14 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
           {/* Quick Action Controls */}
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Autonomy Selector */}
-            <div className="bg-stone-900 border border-stone-800 rounded-xl p-1 flex items-center gap-1 text-xs">
+            <div className="bg-[#201D1A] border border-[#494139] rounded-xl p-1 flex items-center gap-1 text-xs shadow-inner">
               <button
                 type="button"
                 onClick={() => handleModeChange('assisted')}
                 className={`px-3 py-1.5 rounded-lg font-medium transition ${
                   s?.autonomyMode === 'assisted'
-                    ? 'bg-amber-500 text-black font-semibold shadow-sm'
-                    : 'text-stone-400 hover:text-stone-200'
+                    ? 'bg-[#D6A84B] text-[#171717] font-bold shadow-sm'
+                    : 'text-[#D6D0C7] hover:text-[#F5F5F4] hover:bg-[#292521]'
                 }`}
               >
                 Assisted
@@ -356,8 +356,8 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                 onClick={() => handleModeChange('supervised')}
                 className={`px-3 py-1.5 rounded-lg font-medium transition ${
                   s?.autonomyMode === 'supervised'
-                    ? 'bg-amber-500 text-black font-semibold shadow-sm'
-                    : 'text-stone-400 hover:text-stone-200'
+                    ? 'bg-[#D6A84B] text-[#171717] font-bold shadow-sm'
+                    : 'text-[#D6D0C7] hover:text-[#F5F5F4] hover:bg-[#292521]'
                 }`}
               >
                 Supervised Autopilot
@@ -367,8 +367,8 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                 onClick={() => handleModeChange('autonomous')}
                 className={`px-3 py-1.5 rounded-lg font-medium transition ${
                   s?.autonomyMode === 'autonomous'
-                    ? 'bg-amber-500 text-black font-semibold shadow-sm'
-                    : 'text-stone-400 hover:text-stone-200'
+                    ? 'bg-[#D6A84B] text-[#171717] font-bold shadow-sm'
+                    : 'text-[#D6D0C7] hover:text-[#F5F5F4] hover:bg-[#292521]'
                 }`}
               >
                 Controlled Autonomous
@@ -379,30 +379,30 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
             <button
               type="button"
               onClick={handleTogglePause}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold border border-stone-700 bg-stone-900 hover:bg-stone-800 text-stone-200 flex items-center gap-1.5 transition"
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold border border-[#494139] bg-[#201D1A] hover:bg-[#292521] text-[#F5F5F4] flex items-center gap-1.5 transition shadow-sm"
             >
-              {s?.isPaused ? <Play className="w-3.5 h-3.5 text-emerald-400" /> : <Pause className="w-3.5 h-3.5 text-amber-400" />}
-              {s?.isPaused ? 'Resume Agents' : 'Pause Agents'}
+              {s?.isPaused ? <Play className="w-3.5 h-3.5 text-[#10B981]" /> : <Pause className="w-3.5 h-3.5 text-[#D6A84B]" />}
+              <span>{s?.isPaused ? 'Resume Agents' : 'Pause Agents'}</span>
             </button>
 
             {/* Emergency Stop */}
             <button
               type="button"
               onClick={handleEmergencyStop}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 shadow-sm ${
                 s?.emergencyStopped
-                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500'
-                  : 'bg-rose-950/70 hover:bg-rose-900 text-rose-300 border-rose-800'
+                  ? 'bg-[#10B981] hover:bg-emerald-500 text-[#171717] border-[#10B981]'
+                  : 'bg-[#F43F5E]/15 hover:bg-[#F43F5E]/25 text-[#F43F5E] border border-[#F43F5E]/40'
               }`}
             >
               <AlertOctagon className="w-3.5 h-3.5" />
-              {s?.emergencyStopped ? 'Clear Emergency Stop' : 'EMERGENCY STOP'}
+              <span>{s?.emergencyStopped ? 'Clear Emergency Stop' : 'EMERGENCY STOP'}</span>
             </button>
           </div>
         </div>
 
         {/* Sub-Tabs Navigation */}
-        <div className="flex items-center gap-1 sm:gap-2 mt-6 pt-5 border-t border-stone-800/80 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1 sm:gap-2 mt-6 pt-5 border-t border-[#494139] overflow-x-auto no-scrollbar">
           {[
             { id: 'overview', label: 'Strategy & Workforce', icon: Bot },
             { id: 'seo', label: 'SEO & Keywords', icon: Search },
@@ -420,16 +420,16 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                 onClick={() => setActiveTab(tab.id as DashboardTab)}
                 className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 whitespace-nowrap transition ${
                   isActive
-                    ? 'bg-amber-500 text-black shadow-md'
-                    : 'text-stone-400 hover:text-stone-200 hover:bg-stone-850'
+                    ? 'bg-[#D6A84B] text-[#171717] font-bold shadow-md'
+                    : 'text-[#D6D0C7] hover:text-[#F5F5F4] hover:bg-[#292521]'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-black' : 'text-stone-400'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-[#171717]' : 'text-[#D6A84B]'}`} />
                 <span>{tab.label}</span>
                 {tab.badge !== undefined && (
                   <span
                     className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                      isActive ? 'bg-black text-amber-400' : 'bg-stone-800 text-stone-300'
+                      isActive ? 'bg-[#171717] text-[#D6A84B]' : 'bg-[#292521] text-[#D6D0C7] border border-[#494139]'
                     }`}
                   >
                     {tab.badge}
@@ -448,54 +448,54 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
         <div className="space-y-6">
           {/* Executive KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-stone-900 border border-stone-800 p-5 rounded-2xl relative overflow-hidden">
-              <div className="text-xs uppercase tracking-wider text-stone-400 font-semibold mb-1 flex items-center justify-between">
+            <div className="bg-[#201D1A] border border-[#494139] hover:border-[#D6A84B]/40 hover:bg-[#292521] p-5 rounded-2xl relative overflow-hidden transition shadow-lg">
+              <div className="text-xs uppercase tracking-wider text-[#D6A84B] font-semibold mb-1 flex items-center justify-between">
                 <span>30-Day Organic Visitors</span>
-                <Globe className="w-4 h-4 text-amber-400/80" />
+                <Globe className="w-4 h-4 text-[#D6A84B]" />
               </div>
-              <div className="text-3xl font-extrabold text-white mt-1">
+              <div className="text-[32px] font-extrabold text-[#F5F5F4] mt-1 tracking-tight">
                 {overview.kpis.totalVisitors30d.toLocaleString()}
               </div>
-              <div className="text-xs text-emerald-400 font-medium mt-2 flex items-center gap-1">
+              <div className="text-[11.5px] text-[#10B981] font-semibold mt-2 flex items-center gap-1">
                 <TrendingUp className="w-3.5 h-3.5" /> +22.4% vs prior month
               </div>
             </div>
 
-            <div className="bg-stone-900 border border-stone-800 p-5 rounded-2xl relative overflow-hidden">
-              <div className="text-xs uppercase tracking-wider text-stone-400 font-semibold mb-1 flex items-center justify-between">
+            <div className="bg-[#201D1A] border border-[#494139] hover:border-[#D6A84B]/40 hover:bg-[#292521] p-5 rounded-2xl relative overflow-hidden transition shadow-lg">
+              <div className="text-xs uppercase tracking-wider text-[#D6A84B] font-semibold mb-1 flex items-center justify-between">
                 <span>Total Registrations</span>
-                <Users className="w-4 h-4 text-amber-400/80" />
+                <Users className="w-4 h-4 text-[#D6A84B]" />
               </div>
-              <div className="text-3xl font-extrabold text-white mt-1">
+              <div className="text-[32px] font-extrabold text-[#F5F5F4] mt-1 tracking-tight">
                 {overview.kpis.signups30d.toLocaleString()}
               </div>
-              <div className="text-xs text-stone-400 font-medium mt-2 flex items-center gap-1">
+              <div className="text-[11.5px] text-[#D6D0C7] font-medium mt-2 flex items-center gap-1">
                 <span>{((overview.kpis.signups30d / overview.kpis.totalVisitors30d) * 100).toFixed(1)}% conversion rate</span>
               </div>
             </div>
 
-            <div className="bg-stone-900 border border-stone-800 p-5 rounded-2xl relative overflow-hidden">
-              <div className="text-xs uppercase tracking-wider text-stone-400 font-semibold mb-1 flex items-center justify-between">
+            <div className="bg-[#201D1A] border border-[#494139] hover:border-[#D6A84B]/40 hover:bg-[#292521] p-5 rounded-2xl relative overflow-hidden transition shadow-lg">
+              <div className="text-xs uppercase tracking-wider text-[#D6A84B] font-semibold mb-1 flex items-center justify-between">
                 <span>Avg SEO Health Score</span>
-                <Award className="w-4 h-4 text-emerald-400/80" />
+                <Award className="w-4 h-4 text-[#10B981]" />
               </div>
-              <div className="text-3xl font-extrabold text-white mt-1">
-                {overview.kpis.averageSeoHealthScore} <span className="text-lg font-normal text-stone-500">/ 100</span>
+              <div className="text-[32px] font-extrabold text-[#F5F5F4] mt-1 tracking-tight">
+                {overview.kpis.averageSeoHealthScore} <span className="text-lg font-normal text-[#A8A29E]">/ 100</span>
               </div>
-              <div className="text-xs text-emerald-400 font-medium mt-2 flex items-center gap-1">
+              <div className="text-[11.5px] text-[#10B981] font-semibold mt-2 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" /> {overview.kpis.indexedPagesCount} indexed canonical routes
               </div>
             </div>
 
-            <div className="bg-stone-900 border border-stone-800 p-5 rounded-2xl relative overflow-hidden">
-              <div className="text-xs uppercase tracking-wider text-stone-400 font-semibold mb-1 flex items-center justify-between">
+            <div className="bg-[#201D1A] border border-[#494139] hover:border-[#D6A84B]/40 hover:bg-[#292521] p-5 rounded-2xl relative overflow-hidden transition shadow-lg">
+              <div className="text-xs uppercase tracking-wider text-[#D6A84B] font-semibold mb-1 flex items-center justify-between">
                 <span>Active Paying Subscriptions</span>
-                <DollarSign className="w-4 h-4 text-amber-400/80" />
+                <DollarSign className="w-4 h-4 text-[#D6A84B]" />
               </div>
-              <div className="text-3xl font-extrabold text-white mt-1">
+              <div className="text-[32px] font-extrabold text-[#F5F5F4] mt-1 tracking-tight">
                 {overview.kpis.activeSubscribers}
               </div>
-              <div className="text-xs text-amber-400 font-medium mt-2 flex items-center gap-1">
+              <div className="text-[11.5px] text-[#D6A84B] font-medium mt-2 flex items-center gap-1">
                 <span>Pro ($19) & Black Elite ($29)</span>
               </div>
             </div>
@@ -503,31 +503,31 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
 
           {/* Weekly Growth Memo */}
           {overview.weeklyGrowthMemo && (
-            <div className="bg-gradient-to-r from-stone-900 via-stone-900 to-stone-950 border border-amber-500/30 rounded-2xl p-6 relative">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            <div className="bg-gradient-to-r from-[#201D1A] via-[#201D1A] to-[#171717] border border-[#D6A84B]/40 rounded-2xl p-6 relative shadow-xl">
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-[#292521] text-[#D6A84B] border border-[#D6A84B]/40">
                   Weekly Executive Memo — Week {overview.weeklyGrowthMemo.weekNumber}, {overview.weeklyGrowthMemo.year}
                 </span>
-                <span className="text-xs text-stone-400">
+                <span className="text-xs text-[#A8A29E]">
                   Produced autonomously by Chief Growth Intelligence Agent
                 </span>
               </div>
-              <h2 className="text-lg font-bold text-white mb-2">
+              <h2 className="text-[20px] font-bold text-[#F5F5F4] mb-2 leading-snug">
                 {overview.weeklyGrowthMemo.headline}
               </h2>
-              <p className="text-sm text-stone-300 leading-relaxed mb-4">
+              <p className="text-[13.5px] text-[#D6D0C7] leading-relaxed mb-4">
                 {overview.weeklyGrowthMemo.executiveSummary}
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-stone-800 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-[#494139] text-xs">
                 <div>
-                  <h4 className="font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <h4 className="font-bold text-[#10B981] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Key Initiatives Completed
                   </h4>
-                  <ul className="space-y-1.5 text-stone-300">
+                  <ul className="space-y-1.5 text-[#D6D0C7]">
                     {overview.weeklyGrowthMemo.keyInitiativesCompleted.map((init: string, i: number) => (
                       <li key={i} className="flex items-start gap-1.5">
-                        <span className="text-emerald-400 font-bold">•</span>
+                        <span className="text-[#10B981] font-bold">•</span>
                         <span>{init}</span>
                       </li>
                     ))}
@@ -535,13 +535,13 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <h4 className="font-bold text-[#F59E0B] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                     <AlertOctagon className="w-3.5 h-3.5" /> Bottlenecks Identified
                   </h4>
-                  <ul className="space-y-1.5 text-stone-300">
+                  <ul className="space-y-1.5 text-[#D6D0C7]">
                     {overview.weeklyGrowthMemo.bottlenecksIdentified.map((bot: string, i: number) => (
                       <li key={i} className="flex items-start gap-1.5">
-                        <span className="text-amber-400 font-bold">•</span>
+                        <span className="text-[#F59E0B] font-bold">•</span>
                         <span>{bot}</span>
                       </li>
                     ))}
@@ -549,13 +549,13 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-sky-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <h4 className="font-bold text-[#38BDF8] uppercase tracking-wider mb-2 flex items-center gap-1.5">
                     <ArrowUpRight className="w-3.5 h-3.5" /> Recommendations
                   </h4>
-                  <ul className="space-y-1.5 text-stone-300">
+                  <ul className="space-y-1.5 text-[#D6D0C7]">
                     {overview.weeklyGrowthMemo.recommendationsNextWeek.map((rec: string, i: number) => (
                       <li key={i} className="flex items-start gap-1.5">
-                        <span className="text-sky-400 font-bold">•</span>
+                        <span className="text-[#38BDF8] font-bold">•</span>
                         <span>{rec}</span>
                       </li>
                     ))}
@@ -566,25 +566,25 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
           )}
 
           {/* Pending Action Approvals Queue */}
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-[#201D1A] border border-[#494139] rounded-2xl p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-amber-400" />
+                <h3 className="text-[19px] font-bold text-[#F5F5F4] flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-[#D6A84B]" />
                   Agent Actions Requiring Human Sign-Off
                 </h3>
-                <p className="text-xs text-stone-400 mt-0.5">
+                <p className="text-xs text-[#D6D0C7] mt-0.5">
                   Supervised Autopilot holds editorial releases, ad campaigns, and external distribution for explicit operator confirmation.
                 </p>
               </div>
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#292521] text-[#D6A84B] border border-[#494139]">
                 {overview.pendingTasks.length} Pending Actions
               </span>
             </div>
 
             {overview.pendingTasks.length === 0 ? (
-              <div className="text-center py-8 text-stone-500 text-sm">
-                <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500/60 mb-2" />
+              <div className="text-center py-8 text-[#D6D0C7] text-sm">
+                <CheckCircle2 className="w-8 h-8 mx-auto text-[#10B981] mb-2" />
                 All agent tasks up to date. Zero items awaiting review.
               </div>
             ) : (
@@ -592,30 +592,30 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                 {overview.pendingTasks.map((t: GrowthAgentTask) => (
                   <div
                     key={t.id}
-                    className="bg-stone-950 border border-stone-800 hover:border-stone-700 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition"
+                    className="bg-[#292521] border border-[#494139] hover:border-[#D6A84B]/40 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition shadow-md"
                   >
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-stone-800 text-stone-300">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#201D1A] text-[#D6D0C7] border border-[#494139]">
                           {t.agentType.replace('_', ' ')}
                         </span>
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                             t.priority === 'high' || t.priority === 'critical'
-                              ? 'bg-rose-500/20 text-rose-300'
-                              : 'bg-stone-800 text-stone-400'
+                              ? 'bg-[#F43F5E]/20 text-[#F43F5E] border border-[#F43F5E]/40'
+                              : 'bg-[#201D1A] text-[#A8A29E] border border-[#494139]'
                           }`}
                         >
                           {t.priority} Priority
                         </span>
-                        <span className="text-[11px] text-stone-500">
+                        <span className="text-[11px] text-[#A8A29E]">
                           {new Date(t.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
-                      <h4 className="text-sm font-semibold text-stone-100">{t.title}</h4>
+                      <h4 className="text-sm font-semibold text-[#F5F5F4]">{t.title}</h4>
                       {t.payload?.expectedLiftPercent && (
-                        <p className="text-xs text-stone-400 mt-1">
-                          Projected impact: <strong className="text-emerald-400">+{t.payload.expectedLiftPercent}%</strong> lift on target metric.
+                        <p className="text-xs text-[#D6D0C7] mt-1">
+                          Projected impact: <strong className="text-[#10B981]">+{t.payload.expectedLiftPercent}%</strong> lift on target metric.
                         </p>
                       )}
                     </div>
@@ -624,14 +624,14 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                       <button
                         type="button"
                         onClick={() => handleRejectTask(t.id)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-stone-900 hover:bg-stone-800 text-stone-400 hover:text-stone-200 border border-stone-700 transition"
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#201D1A] hover:bg-[#171717] text-[#D6D0C7] hover:text-[#F5F5F4] border border-[#494139] transition"
                       >
                         Reject
                       </button>
                       <button
                         type="button"
                         onClick={() => handleApproveTask(t.id)}
-                        className="px-4 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black transition shadow-sm"
+                        className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#D6A84B] hover:bg-[#E8BD68] text-[#171717] transition shadow-sm"
                       >
                         Approve & Execute
                       </button>
@@ -646,11 +646,11 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Bot className="w-5 h-5 text-amber-400" />
+                <h3 className="text-[19px] font-bold text-[#F5F5F4] flex items-center gap-2">
+                  <Bot className="w-5 h-5 text-[#D6A84B]" />
                   Marketing Agent Workforce (8 Specialized Agents)
                 </h3>
-                <p className="text-xs text-stone-400 mt-0.5">
+                <p className="text-xs text-[#D6D0C7] mt-0.5">
                   Each agent operates dedicated intelligence domains with deterministic rule constraints and zero score fabrication.
                 </p>
               </div>
@@ -662,35 +662,35 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                 return (
                   <div
                     key={agent.agentType}
-                    className="bg-stone-900 border border-stone-800 rounded-2xl p-5 flex flex-col justify-between hover:border-stone-700 transition"
+                    className="bg-[#201D1A] border border-[#494139] rounded-2xl p-5 flex flex-col justify-between hover:border-[#D6A84B]/50 hover:bg-[#292521] transition shadow-lg"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        <span className="text-[11px] font-mono text-stone-400">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-pulse" />
+                        <span className="text-xs font-mono font-semibold text-[#D6A84B]">
                           {agent.successRatePercent}% Success
                         </span>
                       </div>
-                      <h4 className="text-sm font-bold text-stone-100">{agent.name}</h4>
-                      <p className="text-xs text-stone-400 mt-1 leading-relaxed">
+                      <h4 className="text-[16px] font-bold text-[#F5F5F4] mt-2">{agent.name}</h4>
+                      <p className="text-[13.5px] text-[#D6D0C7] mt-1.5 leading-relaxed">
                         {agent.description}
                       </p>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-stone-800 flex items-center justify-between">
-                      <span className="text-[10px] text-stone-500">
+                    <div className="mt-4 pt-3 border-t border-[#494139] flex items-center justify-between">
+                      <span className="text-[11.5px] text-[#A8A29E]">
                         Run: {new Date(agent.lastRunAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       <button
                         type="button"
                         disabled={isRunning}
                         onClick={() => handleRunAgent(agent.agentType)}
-                        className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-stone-800 hover:bg-amber-500 hover:text-black text-amber-400 border border-stone-700 transition flex items-center gap-1 disabled:opacity-50"
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#292521] hover:bg-[#D6A84B] hover:text-[#171717] text-[#D6A84B] border border-[#494139] hover:border-[#D6A84B] transition flex items-center gap-1.5 disabled:opacity-50"
                       >
                         {isRunning ? (
-                          <RefreshCw className="w-3 h-3 animate-spin" />
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                         ) : (
-                          <Zap className="w-3 h-3" />
+                          <Zap className="w-3.5 h-3.5" />
                         )}
                         <span>{isRunning ? 'Running...' : 'Run Now'}</span>
                       </button>
@@ -709,13 +709,13 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
       {activeTab === 'seo' && (
         <div className="space-y-6">
           {/* Header Action */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-stone-900 border border-stone-800 p-5 rounded-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#201D1A] border border-[#494139] p-5 rounded-2xl shadow-lg">
             <div>
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Search className="w-5 h-5 text-amber-400" />
+              <h3 className="text-[19px] font-bold text-[#F5F5F4] flex items-center gap-2">
+                <Search className="w-5 h-5 text-[#D6A84B]" />
                 Technical SEO Audits & Keyword Clusters
               </h3>
-              <p className="text-xs text-stone-400 mt-0.5">
+              <p className="text-xs text-[#D6D0C7] mt-0.5">
                 Real-time crawl verification, canonical tag integrity, robots directives, and search volume clustering.
               </p>
             </div>
@@ -723,7 +723,7 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
               type="button"
               disabled={runningAgent === 'seo_intelligence'}
               onClick={() => handleRunAgent('seo_intelligence')}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black flex items-center gap-2 transition disabled:opacity-50 self-start sm:self-auto"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#D6A84B] hover:bg-[#E8BD68] text-[#171717] flex items-center gap-2 transition disabled:opacity-50 self-start sm:self-auto shadow-sm"
             >
               {runningAgent === 'seo_intelligence' ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -735,13 +735,13 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
           </div>
 
           {/* Crawled Pages Health */}
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6">
-            <h4 className="text-sm font-bold text-stone-200 uppercase tracking-wider mb-3">
+          <div className="bg-[#201D1A] border border-[#494139] rounded-2xl p-6 shadow-xl">
+            <h4 className="text-sm font-bold text-[#D6A84B] uppercase tracking-wider mb-3">
               Audited Landing & Resource Pages
             </h4>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-stone-300">
-                <thead className="bg-stone-950 text-stone-400 uppercase font-mono text-[10px] border-b border-stone-800">
+              <table className="w-full text-left text-xs text-[#D6D0C7]">
+                <thead className="bg-[#171717] text-[#A8A29E] uppercase font-mono text-[10px] border-b border-[#494139]">
                   <tr>
                     <th className="py-2.5 px-3">Page Route</th>
                     <th className="py-2.5 px-3">SEO Health Score</th>
@@ -752,32 +752,32 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                     <th className="py-2.5 px-3">Canonical Tag</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-800">
+                <tbody className="divide-y divide-[#494139]">
                   {seoProperties.map((p) => (
-                    <tr key={p.id} className="hover:bg-stone-850/50 transition">
-                      <td className="py-3 px-3 font-semibold text-white font-mono">
+                    <tr key={p.id} className="hover:bg-[#292521] transition">
+                      <td className="py-3 px-3 font-semibold text-[#F5F5F4] font-mono">
                         {p.url}
                       </td>
                       <td className="py-3 px-3">
-                        <span className="inline-flex items-center gap-1 font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        <span className="inline-flex items-center gap-1 font-bold text-[#10B981] bg-[#10B981]/15 px-2 py-0.5 rounded border border-[#10B981]/30">
                           {p.seoScore} / 100
                         </span>
                       </td>
                       <td className="py-3 px-3">
-                        <span className="text-emerald-400 font-mono font-semibold">
+                        <span className="text-[#10B981] font-mono font-semibold">
                           HTTP {p.statusCode}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-stone-300 font-mono">
+                      <td className="py-3 px-3 text-[#D6D0C7] font-mono">
                         {p.wordCount.toLocaleString()} words
                       </td>
-                      <td className="py-3 px-3 text-stone-400 font-mono">
+                      <td className="py-3 px-3 text-[#A8A29E] font-mono">
                         {p.structuredDataType || 'None'}
                       </td>
-                      <td className="py-3 px-3 text-stone-400 font-mono">
+                      <td className="py-3 px-3 text-[#A8A29E] font-mono">
                         {p.robotsDirective}
                       </td>
-                      <td className="py-3 px-3 text-stone-400 truncate max-w-xs font-mono text-[11px]">
+                      <td className="py-3 px-3 text-[#A8A29E] truncate max-w-xs font-mono text-[11px]">
                         {p.canonicalUrl}
                       </td>
                     </tr>
@@ -788,32 +788,32 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
           </div>
 
           {/* Keyword Clusters */}
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6">
-            <h4 className="text-sm font-bold text-stone-200 uppercase tracking-wider mb-3">
+          <div className="bg-[#201D1A] border border-[#494139] rounded-2xl p-6 shadow-xl">
+            <h4 className="text-sm font-bold text-[#D6A84B] uppercase tracking-wider mb-3">
               High-Intent Keyword Clusters & Target Content
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {seoKeywords.map((k) => (
                 <div
                   key={k.id}
-                  className="bg-stone-950 border border-stone-800 p-4 rounded-xl flex flex-col justify-between"
+                  className="bg-[#292521] border border-[#494139] hover:border-[#D6A84B]/40 p-4 rounded-xl flex flex-col justify-between transition shadow-md"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#201D1A] text-[#D6A84B] border border-[#494139]">
                         {k.primaryIntent}
                       </span>
-                      <span className="text-xs font-mono text-stone-400">
+                      <span className="text-xs font-mono text-[#A8A29E]">
                         {k.monthlySearchVolume.toLocaleString()} searches/mo
                       </span>
                     </div>
-                    <h5 className="text-sm font-bold text-white">{k.clusterName}</h5>
-                    <p className="text-xs text-amber-300 font-mono mt-1">
+                    <h5 className="text-sm font-bold text-[#F5F5F4]">{k.clusterName}</h5>
+                    <p className="text-xs text-[#D6A84B] font-mono mt-1">
                       Target: "{k.primaryKeyword}"
                     </p>
                     <div className="flex flex-wrap gap-1 mt-2.5">
                       {k.keywords.slice(0, 3).map((kw: string, i: number) => (
-                        <span key={i} className="text-[11px] bg-stone-900 text-stone-400 px-2 py-0.5 rounded">
+                        <span key={i} className="text-[11px] bg-[#201D1A] text-[#D6D0C7] border border-[#494139] px-2 py-0.5 rounded">
                           {kw}
                         </span>
                       ))}
@@ -821,13 +821,13 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                   </div>
 
                   {k.targetContentUrl && (
-                    <div className="mt-4 pt-3 border-t border-stone-850 flex items-center justify-between text-xs">
-                      <span className="text-stone-500 truncate">{k.targetContentUrl}</span>
+                    <div className="mt-4 pt-3 border-t border-[#494139] flex items-center justify-between text-xs">
+                      <span className="text-[#A8A29E] truncate">{k.targetContentUrl}</span>
                       <a
                         href={k.targetContentUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-amber-400 hover:underline flex items-center gap-1 font-semibold"
+                        className="text-[#D6A84B] hover:text-[#E8BD68] hover:underline flex items-center gap-1 font-semibold"
                       >
                         Preview <ExternalLink className="w-3 h-3" />
                       </a>
@@ -845,13 +845,13 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
       {/* ==================================================================== */}
       {activeTab === 'content' && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-stone-900 border border-stone-800 p-5 rounded-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#201D1A] border border-[#494139] p-5 rounded-2xl shadow-lg">
             <div>
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <FileText className="w-5 h-5 text-amber-400" />
+              <h3 className="text-[19px] font-bold text-[#F5F5F4] flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#D6A84B]" />
                 Authoritative Content Studio & Editorial Pipeline
               </h3>
-              <p className="text-xs text-stone-400 mt-0.5">
+              <p className="text-xs text-[#D6D0C7] mt-0.5">
                 Long-form career, ATS, and interview guides with canonical indexation, reading time, and zero-hallucination verification.
               </p>
             </div>
@@ -860,15 +860,15 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                 type="button"
                 disabled={runningAgent === 'content_marketing'}
                 onClick={() => handleRunAgent('content_marketing')}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 flex items-center gap-1.5 transition"
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#292521] hover:bg-[#201D1A] text-[#F5F5F4] border border-[#494139] flex items-center gap-1.5 transition"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <Sparkles className="w-3.5 h-3.5 text-[#D6A84B]" />
                 AI Generate Guide
               </button>
               <button
                 type="button"
                 onClick={() => setIsCreatingArticle(true)}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black flex items-center gap-1.5 transition"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#D6A84B] hover:bg-[#E8BD68] text-[#171717] flex items-center gap-1.5 transition shadow-sm"
               >
                 <PlusCircle className="w-4 h-4" />
                 Create New Draft
@@ -878,15 +878,15 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
 
           {/* New Article Creation Form Modal / Drawer */}
           {isCreatingArticle && (
-            <div className="bg-stone-900 border border-amber-500/40 p-6 rounded-2xl animate-fade-in shadow-xl">
+            <div className="bg-[#201D1A] border border-[#D6A84B]/40 p-6 rounded-2xl animate-fade-in shadow-2xl">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                  <PlusCircle className="w-4 h-4 text-amber-400" /> Draft New Educational Guide
+                <h4 className="text-sm font-bold text-[#F5F5F4] flex items-center gap-2">
+                  <PlusCircle className="w-4 h-4 text-[#D6A84B]" /> Draft New Educational Guide
                 </h4>
                 <button
                   type="button"
                   onClick={() => setIsCreatingArticle(false)}
-                  className="text-stone-400 hover:text-white text-xs font-bold"
+                  className="text-[#D6D0C7] hover:text-[#F5F5F4] text-xs font-bold"
                 >
                   Cancel
                 </button>
@@ -894,7 +894,7 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
               <form onSubmit={handleCreateArticleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-stone-300 mb-1">
+                    <label className="block text-xs font-medium text-[#D6D0C7] mb-1">
                       Article Title *
                     </label>
                     <input
@@ -903,11 +903,11 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                       placeholder="e.g. Master the STAR Method for Behavioral Interviews in 2026"
                       value={newArticleTitle}
                       onChange={(e) => setNewArticleTitle(e.target.value)}
-                      className="w-full bg-stone-950 border border-stone-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                      className="w-full bg-[#171717] border border-[#494139] rounded-xl px-3.5 py-2 text-xs text-[#F5F5F4] focus:outline-none focus:border-[#D6A84B]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-stone-300 mb-1">
+                    <label className="block text-xs font-medium text-[#D6D0C7] mb-1">
                       Primary Target Keyword
                     </label>
                     <input
@@ -915,13 +915,13 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                       placeholder="e.g. behavioral interview framework"
                       value={newArticleKeyword}
                       onChange={(e) => setNewArticleKeyword(e.target.value)}
-                      className="w-full bg-stone-950 border border-stone-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                      className="w-full bg-[#171717] border border-[#494139] rounded-xl px-3.5 py-2 text-xs text-[#F5F5F4] focus:outline-none focus:border-[#D6A84B]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-stone-300 mb-1">
+                  <label className="block text-xs font-medium text-[#D6D0C7] mb-1">
                     Body Content (Markdown Supported)
                   </label>
                   <textarea
@@ -929,7 +929,7 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                     placeholder="## 1. Introduction&#10;&#10;Explain the structured methodology with concrete metrics..."
                     value={newArticleMarkdown}
                     onChange={(e) => setNewArticleMarkdown(e.target.value)}
-                    className="w-full bg-stone-950 border border-stone-700 rounded-xl p-3 text-xs text-white font-mono focus:outline-none focus:border-amber-400"
+                    className="w-full bg-[#171717] border border-[#494139] rounded-xl p-3 text-xs text-[#F5F5F4] font-mono focus:outline-none focus:border-[#D6A84B]"
                   />
                 </div>
 
@@ -937,13 +937,13 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                   <button
                     type="button"
                     onClick={() => setIsCreatingArticle(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold bg-stone-850 hover:bg-stone-800 text-stone-300"
+                    className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#292521] hover:bg-[#201D1A] text-[#D6D0C7] border border-[#494139]"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black shadow-md"
+                    className="px-5 py-2 rounded-xl text-xs font-bold bg-[#D6A84B] hover:bg-[#E8BD68] text-[#171717] shadow-md"
                   >
                     Save Draft Article
                   </button>
@@ -953,13 +953,13 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
           )}
 
           {/* Articles Table */}
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6">
-            <h4 className="text-sm font-bold text-stone-200 uppercase tracking-wider mb-3">
+          <div className="bg-[#201D1A] border border-[#494139] rounded-2xl p-6 shadow-xl">
+            <h4 className="text-sm font-bold text-[#D6A84B] uppercase tracking-wider mb-3">
               Editorial Inventory ({contentList.length} Articles)
             </h4>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-stone-300">
-                <thead className="bg-stone-950 text-stone-400 uppercase font-mono text-[10px] border-b border-stone-800">
+              <table className="w-full text-left text-xs text-[#D6D0C7]">
+                <thead className="bg-[#171717] text-[#A8A29E] uppercase font-mono text-[10px] border-b border-[#494139]">
                   <tr>
                     <th className="py-2.5 px-3">Title & Slug</th>
                     <th className="py-2.5 px-3">Status</th>
@@ -970,36 +970,36 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                     <th className="py-2.5 px-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-800">
+                <tbody className="divide-y divide-[#494139]">
                   {contentList.map((a) => (
-                    <tr key={a.id} className="hover:bg-stone-850/50 transition">
+                    <tr key={a.id} className="hover:bg-[#292521] transition">
                       <td className="py-3 px-3 max-w-sm">
-                        <div className="font-bold text-white truncate">{a.title}</div>
-                        <div className="text-[11px] font-mono text-stone-500 truncate">/resources/{a.slug}</div>
+                        <div className="font-bold text-[#F5F5F4] truncate">{a.title}</div>
+                        <div className="text-[11px] font-mono text-[#A8A29E] truncate">/resources/{a.slug}</div>
                       </td>
                       <td className="py-3 px-3">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                             a.status === 'PUBLISHED'
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              ? 'bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30'
                               : a.status === 'REVIEW_REQUIRED'
-                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                              : 'bg-stone-800 text-stone-400'
+                              ? 'bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30'
+                              : 'bg-[#292521] text-[#A8A29E] border border-[#494139]'
                           }`}
                         >
                           {a.status}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-stone-300 font-mono">
+                      <td className="py-3 px-3 text-[#D6D0C7] font-mono">
                         {a.primaryKeyword || '—'}
                       </td>
-                      <td className="py-3 px-3 text-stone-400 font-mono">
+                      <td className="py-3 px-3 text-[#A8A29E] font-mono">
                         {a.readTimeMinutes} min
                       </td>
-                      <td className="py-3 px-3 text-stone-300 font-mono font-semibold">
+                      <td className="py-3 px-3 text-[#F5F5F4] font-mono font-semibold">
                         {a.viewsCount.toLocaleString()}
                       </td>
-                      <td className="py-3 px-3 text-emerald-400 font-mono font-semibold">
+                      <td className="py-3 px-3 text-[#10B981] font-mono font-semibold">
                         {a.conversionsCount}
                       </td>
                       <td className="py-3 px-3 text-right">
@@ -1007,7 +1007,7 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                           <button
                             type="button"
                             onClick={() => setSelectedArticle(a)}
-                            className="px-2.5 py-1 rounded-lg text-xs bg-stone-800 hover:bg-stone-700 text-stone-200 transition"
+                            className="px-2.5 py-1 rounded-lg text-xs bg-[#292521] hover:bg-[#171717] text-[#F5F5F4] border border-[#494139] transition"
                           >
                             Inspect
                           </button>
@@ -1015,7 +1015,7 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                             <button
                               type="button"
                               onClick={() => handlePublishArticle(a.id)}
-                              className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black transition"
+                              className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#D6A84B] hover:bg-[#E8BD68] text-[#171717] transition"
                             >
                               Publish
                             </button>
@@ -1025,7 +1025,7 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                               href={`/resources/${a.slug}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="p-1 text-stone-400 hover:text-amber-400 transition"
+                              className="p-1 text-[#D6A84B] hover:text-[#E8BD68] transition"
                             >
                               <ExternalLink className="w-4 h-4" />
                             </a>
@@ -1041,18 +1041,18 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
 
           {/* Article Detail Drawer / Inspector */}
           {selectedArticle && (
-            <div className="bg-stone-900 border border-amber-500/30 rounded-2xl p-6 shadow-2xl relative">
-              <div className="flex items-center justify-between pb-4 border-b border-stone-800">
+            <div className="bg-[#201D1A] border border-[#D6A84B]/40 rounded-2xl p-6 shadow-2xl relative">
+              <div className="flex items-center justify-between pb-4 border-b border-[#494139]">
                 <div>
-                  <span className="text-xs font-mono text-amber-400 font-bold uppercase">
+                  <span className="text-xs font-mono text-[#D6A84B] font-bold uppercase">
                     Editorial Preview & Metadata
                   </span>
-                  <h3 className="text-xl font-bold text-white mt-1">{selectedArticle.title}</h3>
+                  <h3 className="text-xl font-bold text-[#F5F5F4] mt-1">{selectedArticle.title}</h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedArticle(null)}
-                  className="text-stone-400 hover:text-white text-xs font-bold"
+                  className="text-[#D6D0C7] hover:text-[#F5F5F4] text-xs font-bold"
                 >
                   Close
                 </button>
@@ -1060,36 +1060,36 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
                 <div className="md:col-span-2 space-y-4">
-                  <div className="bg-stone-950 border border-stone-800 p-4 rounded-xl">
-                    <h5 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">
+                  <div className="bg-[#171717] border border-[#494139] p-4 rounded-xl">
+                    <h5 className="text-xs font-bold text-[#D6A84B] uppercase tracking-wider mb-2">
                       Article Body (Markdown)
                     </h5>
-                    <div className="text-xs text-stone-300 font-mono whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
+                    <div className="text-xs text-[#D6D0C7] font-mono whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
                       {selectedArticle.bodyMarkdown}
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-4 text-xs">
-                  <div className="bg-stone-950 border border-stone-800 p-4 rounded-xl space-y-2">
-                    <h5 className="font-bold text-stone-300 uppercase tracking-wider mb-2">
+                  <div className="bg-[#171717] border border-[#494139] p-4 rounded-xl space-y-2">
+                    <h5 className="font-bold text-[#D6A84B] uppercase tracking-wider mb-2">
                       SEO & Social Meta
                     </h5>
                     <div>
-                      <span className="text-stone-500">SEO Title:</span>
-                      <p className="text-white font-medium">{selectedArticle.seoTitle}</p>
+                      <span className="text-[#A8A29E]">SEO Title:</span>
+                      <p className="text-[#F5F5F4] font-medium">{selectedArticle.seoTitle}</p>
                     </div>
                     <div>
-                      <span className="text-stone-500">Meta Description:</span>
-                      <p className="text-stone-300 mt-0.5">{selectedArticle.metaDescription}</p>
+                      <span className="text-[#A8A29E]">Meta Description:</span>
+                      <p className="text-[#D6D0C7] mt-0.5">{selectedArticle.metaDescription}</p>
                     </div>
                     <div>
-                      <span className="text-stone-500">Canonical URL:</span>
-                      <p className="text-amber-400 font-mono break-all mt-0.5">{selectedArticle.canonicalUrl}</p>
+                      <span className="text-[#A8A29E]">Canonical URL:</span>
+                      <p className="text-[#D6A84B] font-mono break-all mt-0.5">{selectedArticle.canonicalUrl}</p>
                     </div>
                     <div>
-                      <span className="text-stone-500">Call to Action:</span>
-                      <p className="text-emerald-400 font-semibold">{selectedArticle.callToAction?.text} ({selectedArticle.callToAction?.url})</p>
+                      <span className="text-[#A8A29E]">Call to Action:</span>
+                      <p className="text-[#10B981] font-semibold">{selectedArticle.callToAction?.text} ({selectedArticle.callToAction?.url})</p>
                     </div>
                   </div>
 
@@ -1097,7 +1097,7 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                     <button
                       type="button"
                       onClick={() => handlePublishArticle(selectedArticle.id)}
-                      className="w-full py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black shadow-lg transition"
+                      className="w-full py-2.5 rounded-xl text-xs font-bold bg-[#D6A84B] hover:bg-[#E8BD68] text-[#171717] shadow-lg transition"
                     >
                       Publish to Live Website Now
                     </button>
@@ -1115,14 +1115,14 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
       {activeTab === 'social_competitors' && (
         <div className="space-y-6">
           {/* Social Posts Section */}
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-[#201D1A] border border-[#494139] rounded-2xl p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Share2 className="w-5 h-5 text-amber-400" />
+                <h3 className="text-[19px] font-bold text-[#F5F5F4] flex items-center gap-2">
+                  <Share2 className="w-5 h-5 text-[#D6A84B]" />
                   Multi-Platform Social Marketing Pipeline
                 </h3>
-                <p className="text-xs text-stone-400 mt-0.5">
+                <p className="text-xs text-[#D6D0C7] mt-0.5">
                   Automated distribution drafts for LinkedIn and X highlighting zero-hallucination resume tailoring.
                 </p>
               </div>
@@ -1130,7 +1130,7 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                 type="button"
                 disabled={runningAgent === 'social_media'}
                 onClick={() => handleRunAgent('social_media')}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-stone-800 hover:bg-amber-500 hover:text-black text-amber-400 border border-stone-700 flex items-center gap-1.5 transition"
+                className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#292521] hover:bg-[#D6A84B] hover:text-[#171717] text-[#D6A84B] border border-[#494139] flex items-center gap-1.5 transition"
               >
                 <Sparkles className="w-3.5 h-3.5" /> Draft New Social Post
               </button>
@@ -1138,31 +1138,31 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
 
             <div className="space-y-3">
               {socialPosts.length === 0 ? (
-                <div className="text-center py-6 text-stone-500 text-xs">
+                <div className="text-center py-6 text-[#A8A29E] text-xs">
                   Zero social drafts generated. Click "Draft New Social Post" to trigger the Social Media Agent.
                 </div>
               ) : (
                 socialPosts.map((post) => (
                   <div
                     key={post.id}
-                    className="bg-stone-950 border border-stone-800 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4"
+                    className="bg-[#292521] border border-[#494139] p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-md"
                   >
                     <div className="max-w-2xl">
                       <div className="flex items-center gap-2 mb-1.5">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-stone-800 text-amber-400">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-[#171717] text-[#D6A84B] border border-[#494139]">
                           {post.platform}
                         </span>
-                        <span className="text-[11px] text-stone-500 font-mono">
+                        <span className="text-[11px] text-[#A8A29E] font-mono">
                           {post.postText.length} characters
                         </span>
                       </div>
-                      <p className="text-xs text-stone-200 whitespace-pre-wrap leading-relaxed">
+                      <p className="text-xs text-[#D6D0C7] whitespace-pre-wrap leading-relaxed">
                         {post.postText}
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2 self-end md:self-center">
-                      <span className="text-[11px] font-mono text-stone-400 px-2 py-1 rounded bg-stone-900 border border-stone-800">
+                      <span className="text-[11px] font-mono text-[#D6A84B] px-2.5 py-1 rounded bg-[#171717] border border-[#494139]">
                         {post.status.toUpperCase()}
                       </span>
                     </div>
@@ -1173,40 +1173,40 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
           </div>
 
           {/* Connected Integrations Status */}
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6">
-            <h4 className="text-sm font-bold text-stone-200 uppercase tracking-wider mb-2">
+          <div className="bg-[#201D1A] border border-[#494139] rounded-2xl p-6 shadow-xl">
+            <h4 className="text-sm font-bold text-[#D6A84B] uppercase tracking-wider mb-2">
               External Marketing Integrations Status
             </h4>
-            <p className="text-xs text-stone-400 mb-4">
-              ApplyVise practices honest connection transparency: APIs without verified keys display disconnected badges.
+            <p className="text-xs text-[#D6D0C7] mb-4">
+              ApplyWise practices honest connection transparency: APIs without verified keys display disconnected badges.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {integrations.map((i) => (
                 <div
                   key={i.id}
-                  className="bg-stone-950 border border-stone-800 p-4 rounded-xl flex flex-col justify-between"
+                  className="bg-[#292521] border border-[#494139] p-4 rounded-xl flex flex-col justify-between shadow-md"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-white">{i.name}</span>
+                      <span className="text-xs font-bold text-[#F5F5F4]">{i.name}</span>
                       <span
                         className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                           i.status === 'connected'
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                            : 'bg-stone-800 text-stone-400'
+                            ? 'bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30'
+                            : 'bg-[#171717] text-[#A8A29E] border border-[#494139]'
                         }`}
                       >
                         {i.status}
                       </span>
                     </div>
                     {i.errorMessage && (
-                      <p className="text-[11px] text-stone-400 leading-normal mt-1">
+                      <p className="text-[11px] text-[#D6D0C7] leading-normal mt-1">
                         {i.errorMessage}
                       </p>
                     )}
                   </div>
-                  <div className="mt-3 pt-2 border-t border-stone-850 text-[10px] text-stone-500 font-mono">
+                  <div className="mt-3 pt-2 border-t border-[#494139] text-[10px] text-[#A8A29E] font-mono">
                     Key: {i.integrationKey}
                   </div>
                 </div>
@@ -1215,13 +1215,13 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
           </div>
 
           {/* Competitor Benchmarks */}
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-[#201D1A] border border-[#494139] rounded-2xl p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <div>
-                <h4 className="text-sm font-bold text-stone-200 uppercase tracking-wider">
+                <h4 className="text-sm font-bold text-[#D6A84B] uppercase tracking-wider">
                   Verified Competitor Intelligence Radar
                 </h4>
-                <p className="text-xs text-stone-400 mt-0.5">
+                <p className="text-xs text-[#D6D0C7] mt-0.5">
                   Continuously benchmarked against Simplify, Teal, Jobscan, and Huntr for feature parity and pricing advantage.
                 </p>
               </div>
@@ -1229,7 +1229,7 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                 type="button"
                 disabled={runningAgent === 'competitor_intelligence'}
                 onClick={() => handleRunAgent('competitor_intelligence')}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 flex items-center gap-1 transition"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#292521] hover:bg-[#171717] text-[#F5F5F4] border border-[#494139] flex items-center gap-1 transition"
               >
                 <RefreshCw className="w-3 h-3" /> Refresh Scan
               </button>
@@ -1239,39 +1239,39 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
               {competitors.map((c) => (
                 <div
                   key={c.id}
-                  className="bg-stone-950 border border-stone-800 p-5 rounded-xl flex flex-col justify-between"
+                  className="bg-[#292521] border border-[#494139] p-5 rounded-xl flex flex-col justify-between shadow-md"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <h5 className="text-base font-bold text-white">{c.name}</h5>
+                      <h5 className="text-base font-bold text-[#F5F5F4]">{c.name}</h5>
                       <a
                         href={c.websiteUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs text-amber-400 hover:underline flex items-center gap-1"
+                        className="text-xs text-[#D6A84B] hover:text-[#E8BD68] hover:underline flex items-center gap-1"
                       >
                         {c.websiteUrl.replace('https://', '')} <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>
-                    <p className="text-xs text-stone-300 mb-3">{c.positioningSummary}</p>
+                    <p className="text-xs text-[#D6D0C7] mb-3 leading-relaxed">{c.positioningSummary}</p>
 
                     <div className="text-xs space-y-1.5 mb-3">
-                      <div className="text-stone-400 font-semibold">Public Pricing:</div>
+                      <div className="text-[#A8A29E] font-semibold">Public Pricing:</div>
                       <div className="flex flex-wrap gap-2">
                         {c.pricingTiers.map((p: any, i: number) => (
-                          <span key={i} className="px-2 py-0.5 rounded bg-stone-900 text-stone-300 font-mono text-[11px] border border-stone-800">
-                            {p.tierName}: <strong className="text-amber-400">{p.price}</strong>
+                          <span key={i} className="px-2 py-0.5 rounded bg-[#171717] text-[#D6D0C7] font-mono text-[11px] border border-[#494139]">
+                            {p.tierName}: <strong className="text-[#D6A84B]">{p.price}</strong>
                           </span>
                         ))}
                       </div>
                     </div>
 
                     <div className="text-xs space-y-1">
-                      <div className="text-stone-400 font-semibold">Identified Weaknesses vs ApplyVise:</div>
-                      <ul className="text-stone-400 space-y-0.5">
+                      <div className="text-[#A8A29E] font-semibold">Identified Weaknesses vs ApplyWise:</div>
+                      <ul className="text-[#D6D0C7] space-y-0.5">
                         {c.weaknesses.map((w: string, i: number) => (
                           <li key={i} className="flex items-start gap-1">
-                            <span className="text-rose-400 font-bold">•</span>
+                            <span className="text-[#F43F5E] font-bold">•</span>
                             <span>{w}</span>
                           </li>
                         ))}
@@ -1290,12 +1290,12 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
       {/* ==================================================================== */}
       {activeTab === 'funnel' && (
         <div className="space-y-6">
-          <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6">
-            <h3 className="text-base font-bold text-white flex items-center gap-2 mb-1">
-              <TrendingUp className="w-5 h-5 text-amber-400" />
+          <div className="bg-[#201D1A] border border-[#494139] rounded-2xl p-6 shadow-xl">
+            <h3 className="text-[19px] font-bold text-[#F5F5F4] flex items-center gap-2 mb-1">
+              <TrendingUp className="w-5 h-5 text-[#D6A84B]" />
               7-Stage User Acquisition & Conversion Funnel
             </h3>
-            <p className="text-xs text-stone-400 mb-6">
+            <p className="text-xs text-[#D6D0C7] mb-6">
               Track candidate progression from first anonymous visit to verified paid subscriber with automated step drop-off calculations.
             </p>
 
@@ -1310,22 +1310,22 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                   { stage: '6. Started Plan Checkout', count: funnelMetrics[0].checkoutStartedCount, rate: (funnelMetrics[0].checkoutStartedCount / funnelMetrics[0].firstApplicationCount) * 100 },
                   { stage: '7. Paid Pro / Black Subscriber', count: funnelMetrics[0].paidSubscribersCount, rate: (funnelMetrics[0].paidSubscribersCount / funnelMetrics[0].checkoutStartedCount) * 100 },
                 ].map((step, idx) => (
-                  <div key={idx} className="bg-stone-950 border border-stone-800 p-4 rounded-xl">
+                  <div key={idx} className="bg-[#292521] border border-[#494139] p-4 rounded-xl shadow-md">
                     <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="font-bold text-white">{step.stage}</span>
+                      <span className="font-bold text-[#F5F5F4]">{step.stage}</span>
                       <div className="flex items-center gap-3">
-                        <span className="text-stone-300 font-mono font-semibold">
+                        <span className="text-[#D6D0C7] font-mono font-semibold">
                           {step.count.toLocaleString()} candidates
                         </span>
-                        <span className="text-amber-400 font-mono font-bold">
+                        <span className="text-[#D6A84B] font-mono font-bold">
                           {step.rate.toFixed(1)}% conversion
                         </span>
                       </div>
                     </div>
                     {/* Visual Progress Bar */}
-                    <div className="w-full bg-stone-900 h-2 rounded-full overflow-hidden">
+                    <div className="w-full bg-[#171717] h-2 rounded-full overflow-hidden border border-[#494139]">
                       <div
-                        className="bg-gradient-to-r from-amber-500 to-amber-300 h-full rounded-full transition-all duration-500"
+                        className="bg-gradient-to-r from-[#D6A84B] to-[#E8BD68] h-full rounded-full transition-all duration-500"
                         style={{ width: `${Math.min(100, Math.max(4, step.rate))}%` }}
                       />
                     </div>
@@ -1341,20 +1341,20 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
       {/* TAB 6: SETTINGS */}
       {/* ==================================================================== */}
       {activeTab === 'settings' && overview && (
-        <div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 space-y-6">
+        <div className="bg-[#201D1A] border border-[#494139] rounded-2xl p-6 space-y-6 shadow-xl">
           <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Sliders className="w-5 h-5 text-amber-400" />
+            <h3 className="text-[19px] font-bold text-[#F5F5F4] flex items-center gap-2">
+              <Sliders className="w-5 h-5 text-[#D6A84B]" />
               Growth Engine Autonomy & Safety Governance
             </h3>
-            <p className="text-xs text-stone-400 mt-0.5">
+            <p className="text-xs text-[#D6D0C7] mt-0.5">
               Configure operational boundaries, human sign-off gates, and marketing budget limits.
             </p>
           </div>
 
           <div className="space-y-4 max-w-xl text-xs">
             <div>
-              <label className="block font-semibold text-stone-300 mb-1.5">
+              <label className="block font-semibold text-[#D6D0C7] mb-1.5">
                 Autonomy Operating Mode
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -1369,19 +1369,19 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                     onClick={() => handleModeChange(item.mode as any)}
                     className={`p-3 rounded-xl border text-left transition ${
                       s?.autonomyMode === item.mode
-                        ? 'bg-amber-500/10 border-amber-500 text-white'
-                        : 'bg-stone-950 border-stone-800 text-stone-400 hover:border-stone-700'
+                        ? 'bg-[#D6A84B]/15 border-[#D6A84B] text-[#F5F5F4]'
+                        : 'bg-[#292521] border-[#494139] text-[#D6D0C7] hover:border-[#D6A84B]/50'
                     }`}
                   >
-                    <div className="font-bold text-xs text-stone-200">{item.label}</div>
-                    <div className="text-[10px] text-stone-400 mt-0.5">{item.desc}</div>
+                    <div className="font-bold text-xs text-[#F5F5F4]">{item.label}</div>
+                    <div className="text-[10px] text-[#A8A29E] mt-0.5">{item.desc}</div>
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="block font-semibold text-stone-300 mb-1">
+              <label className="block font-semibold text-[#D6D0C7] mb-1">
                 Content Publishing Frequency
               </label>
               <input
@@ -1390,13 +1390,13 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                 max="14"
                 defaultValue={s?.contentFrequencyPerWeek}
                 onChange={(e) => api.updateGrowthSettings({ contentFrequencyPerWeek: Number(e.target.value) })}
-                className="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                className="w-full bg-[#171717] border border-[#494139] rounded-xl px-3 py-2 text-xs text-[#F5F5F4] focus:outline-none focus:border-[#D6A84B]"
               />
-              <span className="text-[11px] text-stone-500">Articles drafted per week</span>
+              <span className="text-[11px] text-[#A8A29E]">Articles drafted per week</span>
             </div>
 
             <div>
-              <label className="block font-semibold text-stone-300 mb-1">
+              <label className="block font-semibold text-[#D6D0C7] mb-1">
                 Monthly Advertising & Distribution Budget Ceiling ($)
               </label>
               <input
@@ -1405,19 +1405,19 @@ export const GrowthEngineDashboard: React.FC<GrowthEngineDashboardProps> = ({ on
                 step="50"
                 defaultValue={s?.budgetCeilingMonthly}
                 onChange={(e) => api.updateGrowthSettings({ budgetCeilingMonthly: Number(e.target.value) })}
-                className="w-full bg-stone-950 border border-stone-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+                className="w-full bg-[#171717] border border-[#494139] rounded-xl px-3 py-2 text-xs text-[#F5F5F4] focus:outline-none focus:border-[#D6A84B]"
               />
-              <span className="text-[11px] text-stone-500">Hard limit on paid campaign execution ($0 = strictly organic)</span>
+              <span className="text-[11px] text-[#A8A29E]">Hard limit on paid campaign execution ($0 = strictly organic)</span>
             </div>
 
-            <div className="pt-4 border-t border-stone-800">
+            <div className="pt-4 border-t border-[#494139]">
               <button
                 type="button"
                 onClick={handleEmergencyStop}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
                   s?.emergencyStopped
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-rose-950 border border-rose-800 text-rose-300 hover:bg-rose-900'
+                    ? 'bg-[#10B981] text-[#171717]'
+                    : 'bg-[#F43F5E]/15 border border-[#F43F5E]/40 text-[#F43F5E] hover:bg-[#F43F5E]/25'
                 }`}
               >
                 <AlertOctagon className="w-4 h-4" />

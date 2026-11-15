@@ -39,6 +39,11 @@ import {
   GeographicCoverageSummary,
   GlobalSourceIntelligenceSummary
 } from '../src/types/index.ts';
+import {
+  EmployerRecord,
+  EmployerSourceHealthLog,
+} from './employerRegistry.ts';
+import { NormalizedEmployerJob } from './directAtsAdapters.ts';
 import { evaluateCandidateJobMatch } from '../src/utils/explainableMatcher.ts';
 import {
   addCalendarMonthsUTC,
@@ -5108,5 +5113,435 @@ export class D1Store {
     }
 
     return true;
+  }
+
+  // ============================================================================
+  // DIRECT EMPLOYER CAREER PORTALS & ATS ENGINE
+  // ============================================================================
+  async getDirectEmployers(options?: {
+    search?: string;
+    country?: string;
+    ats?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ employers: EmployerRecord[]; total: number }> {
+    try {
+      const conditions: string[] = ['1=1'];
+      const params: any[] = [];
+
+      if (options?.search) {
+        const q = `%${options.search.trim().toLowerCase()}%`;
+        conditions.push('(LOWER(name) LIKE ? OR LOWER(domain) LIKE ?)');
+        params.push(q, q);
+      }
+
+      if (options?.country && options.country !== 'all' && options.country !== 'All') {
+        conditions.push('LOWER(country) = LOWER(?)');
+        params.push(options.country.trim());
+      }
+
+      if (options?.ats && options.ats !== 'all' && options.ats !== 'All') {
+        conditions.push('LOWER(detected_ats) = LOWER(?)');
+        params.push(options.ats.trim());
+      }
+
+      if (options?.status && options.status !== 'all') {
+        if (options.status === 'enabled') conditions.push('is_enabled = 1');
+        else if (options.status === 'disabled') conditions.push('is_enabled = 0');
+        else if (options.status === 'healthy') conditions.push("fetch_status = 'success'");
+        else if (options.status === 'error') conditions.push("fetch_status = 'error'");
+      }
+
+      const countSql = `SELECT COUNT(*) as c FROM company_directory WHERE ${conditions.join(' AND ')}`;
+      const countRow = await this.db.prepare(countSql).bind(...params).first<any>();
+      const total = Number(countRow?.c || 0);
+
+      const limit = Math.min(options?.limit || 100, 200);
+      const offset = options?.offset || 0;
+
+      const sql = `
+        SELECT * FROM company_directory
+        WHERE ${conditions.join(' AND ')}
+        ORDER BY is_enabled DESC, total_jobs_active DESC, name ASC
+        LIMIT ? OFFSET ?
+      `;
+
+      const { results } = await this.db.prepare(sql).bind(...params, limit, offset).all<any>();
+
+      const employers: EmployerRecord[] = (results || []).map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        domain: r.domain,
+        careersUrl: r.careers_url,
+        country: r.country,
+        industry: r.industry,
+        companySize: r.company_size || '1000-5000',
+        detectedAts: r.detected_ats,
+        atsBoardId: r.ats_board_id || r.public_board_token || undefined,
+        jobFeedEndpoint: r.job_feed_endpoint || r.public_endpoint || undefined,
+        logoUrl: r.logo_url || `https://www.google.com/s2/favicons?domain=${encodeURIComponent(r.domain)}&sz=128`,
+        logoStatus: r.logo_status || 'domain_favicon',
+        lastDiscoveryTime: r.last_discovery_at || r.created_at,
+        lastSuccessfulFetch: r.last_successful_fetch_at || undefined,
+        fetchStatus: r.fetch_status || 'idle',
+        isEnabled: Boolean(r.is_enabled ?? 1),
+        lastError: r.last_error || undefined,
+        totalJobsActive: Number(r.total_jobs_active || 0),
+      }));
+
+      return { employers, total };
+    } catch (err) {
+      console.warn('[getDirectEmployers error]:', err);
+      return { employers: [], total: 0 };
+    }
+  }
+
+  async getDirectEmployerById(idOrDomain: string): Promise<EmployerRecord | null> {
+    try {
+      const row = await this.db.prepare(`
+        SELECT * FROM company_directory
+        WHERE id = ? OR LOWER(domain) = LOWER(?)
+        LIMIT 1
+      `).bind(idOrDomain, idOrDomain).first<any>();
+
+      if (!row) return null;
+
+      return {
+        id: row.id,
+        name: row.name,
+        domain: row.domain,
+        careersUrl: row.careers_url,
+        country: row.country,
+        industry: row.industry,
+        companySize: row.company_size || '1000-5000',
+        detectedAts: row.detected_ats,
+        atsBoardId: row.ats_board_id || row.public_board_token || undefined,
+        jobFeedEndpoint: row.job_feed_endpoint || row.public_endpoint || undefined,
+        logoUrl: row.logo_url || `https://www.google.com/s2/favicons?domain=${encodeURIComponent(row.domain)}&sz=128`,
+        logoStatus: row.logo_status || 'domain_favicon',
+        lastDiscoveryTime: row.last_discovery_at || row.created_at,
+        lastSuccessfulFetch: row.last_successful_fetch_at || undefined,
+        fetchStatus: row.fetch_status || 'idle',
+        isEnabled: Boolean(row.is_enabled ?? 1),
+        lastError: row.last_error || undefined,
+        totalJobsActive: Number(row.total_jobs_active || 0),
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  async saveDirectEmployer(emp: Partial<EmployerRecord>): Promise<EmployerRecord> {
+    const now = new Date().toISOString();
+    const domain = (emp.domain || '').trim().toLowerCase();
+    const id = emp.id || `emp_${domain.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const name = (emp.name || domain).trim();
+    const careersUrl = (emp.careersUrl || `https://${domain}/careers`).trim();
+    const country = emp.country || 'United States';
+    const region = country === 'India' || country === 'Japan' ? 'asia_pacific' : country === 'United States' ? 'north_america' : 'europe';
+    const industry = emp.industry || 'Technology';
+    const ats = emp.detectedAts || 'custom_portal';
+    const boardId = emp.atsBoardId || null;
+    const endpoint = emp.jobFeedEndpoint || null;
+    const logoUrl = emp.logoUrl || `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`;
+    const logoStatus = emp.logoStatus || 'domain_favicon';
+    const isEnabled = emp.isEnabled === false ? 0 : 1;
+
+    await this.db.prepare(`
+      INSERT INTO company_directory (
+        id, name, domain, careers_url, country, region, industry,
+        company_size, detected_ats, public_board_token, public_endpoint,
+        ats_board_id, job_feed_endpoint, logo_url, logo_status,
+        verification_status, last_checked_at, last_discovery_at,
+        is_enabled, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'verified', ?, ?, ?, ?, ?)
+      ON CONFLICT(domain) DO UPDATE SET
+        name = excluded.name,
+        careers_url = excluded.careers_url,
+        country = excluded.country,
+        industry = excluded.industry,
+        detected_ats = excluded.detected_ats,
+        ats_board_id = excluded.ats_board_id,
+        job_feed_endpoint = excluded.job_feed_endpoint,
+        public_board_token = excluded.public_board_token,
+        public_endpoint = excluded.public_endpoint,
+        logo_url = excluded.logo_url,
+        logo_status = excluded.logo_status,
+        is_enabled = excluded.is_enabled,
+        last_checked_at = excluded.last_checked_at,
+        updated_at = excluded.updated_at
+    `).bind(
+      id, name, domain, careersUrl, country, region, industry,
+      emp.companySize || '1000-5000', ats, boardId, endpoint,
+      boardId, endpoint, logoUrl, logoStatus,
+      now, now, isEnabled, now, now
+    ).run();
+
+    return (await this.getDirectEmployerById(domain))!;
+  }
+
+  async saveEmployerSourceHealth(log: EmployerSourceHealthLog): Promise<void> {
+    try {
+      await this.db.prepare(`
+        INSERT INTO employer_source_health (
+          id, employer_id, company_name, domain, ats_provider,
+          endpoint, status, http_status, latency_ms, jobs_fetched,
+          new_jobs, duplicate_jobs, closed_jobs, error_message, checked_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        log.id,
+        log.employerId,
+        log.companyName,
+        log.domain,
+        log.atsProvider,
+        log.endpoint,
+        log.status,
+        log.httpStatus || null,
+        log.latencyMs,
+        log.jobsFetched,
+        log.newJobs,
+        log.duplicateJobs,
+        log.closedJobs,
+        log.errorMessage || null,
+        log.checkedAt
+      ).run();
+    } catch (err) {
+      console.warn('[saveEmployerSourceHealth error]:', err);
+    }
+  }
+
+  async getEmployerSourceHealthLogs(limit: number = 30): Promise<EmployerSourceHealthLog[]> {
+    try {
+      const { results } = await this.db.prepare(`
+        SELECT * FROM employer_source_health
+        ORDER BY checked_at DESC
+        LIMIT ?
+      `).bind(limit).all<any>();
+
+      return (results || []).map((r: any) => ({
+        id: r.id,
+        employerId: r.employer_id,
+        companyName: r.company_name,
+        domain: r.domain,
+        atsProvider: r.ats_provider,
+        endpoint: r.endpoint,
+        status: r.status,
+        httpStatus: r.http_status,
+        latencyMs: r.latency_ms,
+        jobsFetched: r.jobs_fetched,
+        newJobs: r.new_jobs,
+        duplicateJobs: r.duplicate_jobs,
+        closedJobs: r.closed_jobs,
+        errorMessage: r.error_message,
+        checkedAt: r.checked_at,
+      }));
+    } catch {
+      return [];
+    }
+  }
+
+  async saveDirectEmployerJobs(employerId: string, jobs: NormalizedEmployerJob[]): Promise<{
+    saved: number;
+    closed: number;
+  }> {
+    const now = new Date().toISOString();
+    const ttl = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+
+    const emp = await this.getDirectEmployerById(employerId);
+    if (!emp) return { saved: 0, closed: 0 };
+
+    let closedCount = 0;
+    try {
+      const { results: existingJobs } = await this.db.prepare(`
+        SELECT id, source_job_id FROM live_jobs_cache
+        WHERE (company_id = ? OR employer_id = ? OR LOWER(company) = LOWER(?)) AND is_active = 1
+      `).bind(emp.id, emp.id, emp.name).all<any>();
+
+      const newJobIds = new Set(jobs.map(j => j.id));
+      const newSourceIds = new Set(jobs.map(j => j.sourceJobId));
+
+      for (const ej of existingJobs || []) {
+        if (!newJobIds.has(ej.id) && !newSourceIds.has(ej.source_job_id)) {
+          await this.db.prepare(`
+            UPDATE live_jobs_cache
+            SET is_active = 0, lifecycle_status = 'REMOVED', last_checked_at = ?
+            WHERE id = ?
+          `).bind(now, ej.id).run();
+          closedCount++;
+        }
+      }
+    } catch (err) {
+      console.warn('[Closed job detection error]:', err);
+    }
+
+    let savedCount = 0;
+    for (const job of jobs) {
+      try {
+        await this.db.prepare(`
+          INSERT INTO live_jobs_cache (
+            id, source, source_job_id, company_id, title, company, company_logo,
+            location, country, work_arrangement, employment_type, experience_level,
+            url, description, requirements, tags, published_at, retrieved_at,
+            expires_at, is_active, last_checked_at, lifecycle_status,
+            employer_id, employer_domain, source_portal, ats_provider,
+            original_job_url, original_application_url, last_verified_at
+          ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?,
+            ?, 1, ?, 'ACTIVE',
+            ?, ?, ?, ?,
+            ?, ?, ?
+          )
+          ON CONFLICT(id) DO UPDATE SET
+            title = excluded.title,
+            company = excluded.company,
+            company_logo = excluded.company_logo,
+            location = excluded.location,
+            country = excluded.country,
+            work_arrangement = excluded.work_arrangement,
+            employment_type = excluded.employment_type,
+            experience_level = excluded.experience_level,
+            url = excluded.url,
+            description = excluded.description,
+            requirements = excluded.requirements,
+            tags = excluded.tags,
+            is_active = 1,
+            lifecycle_status = 'ACTIVE',
+            last_checked_at = excluded.last_checked_at,
+            last_verified_at = excluded.last_verified_at,
+            original_job_url = excluded.original_job_url,
+            original_application_url = excluded.original_application_url
+        `).bind(
+          job.id,
+          job.atsProvider,
+          job.sourceJobId,
+          emp.id,
+          job.title,
+          emp.name,
+          job.companyLogo || emp.logoUrl,
+          job.location,
+          job.country,
+          job.workArrangement,
+          job.employmentType,
+          job.experienceLevel,
+          job.originalJobUrl,
+          job.description,
+          JSON.stringify(job.requirements || []),
+          JSON.stringify(job.tags || []),
+          job.publishedAt || now,
+          now,
+          ttl,
+          now,
+          emp.id,
+          emp.domain,
+          job.sourcePortal,
+          job.atsProvider,
+          job.originalJobUrl,
+          job.originalApplicationUrl,
+          now
+        ).run();
+        savedCount++;
+      } catch (err) {
+        console.warn(`[Save direct job error ${job.id}]:`, err);
+      }
+    }
+
+    try {
+      await this.db.prepare(`
+        UPDATE company_directory
+        SET last_successful_fetch_at = ?,
+            total_jobs_active = ?,
+            fetch_status = 'success',
+            last_error = NULL,
+            updated_at = ?
+        WHERE id = ?
+      `).bind(now, jobs.length, now, emp.id).run();
+    } catch {}
+
+    return { saved: savedCount, closed: closedCount };
+  }
+
+  async getDirectCareerPortalsMetrics(): Promise<{
+    totalRegisteredCompanies: number;
+    totalDetectedCareerPortals: number;
+    atsDistribution: Record<string, number>;
+    activeCompanyFeeds: number;
+    successfulFetches: number;
+    failedFetches: number;
+    jobsFetchedToday: number;
+    newJobsToday: number;
+    closedJobsRemoved: number;
+    lastSuccessfulSync?: string;
+    nextScheduledSync?: string;
+  }> {
+    try {
+      const regRow = await this.db.prepare('SELECT COUNT(*) as c FROM company_directory').first<any>();
+      const totalRegistered = Number(regRow?.c || 0);
+
+      const detRow = await this.db.prepare("SELECT COUNT(*) as c FROM company_directory WHERE detected_ats != 'custom_portal' AND detected_ats != 'custom_web'").first<any>();
+      const totalDetected = Number(detRow?.c || 0);
+
+      const feedRow = await this.db.prepare("SELECT COUNT(*) as c FROM company_directory WHERE is_enabled = 1 AND job_feed_endpoint IS NOT NULL").first<any>();
+      const activeFeeds = Number(feedRow?.c || 0);
+
+      const activeJobsRow = await this.db.prepare("SELECT COUNT(*) as c FROM live_jobs_cache WHERE is_active = 1").first<any>();
+      const totalActiveJobs = Number(activeJobsRow?.c || 0);
+
+      const { results: atsRows } = await this.db.prepare(`
+        SELECT detected_ats, COUNT(*) as c FROM company_directory
+        GROUP BY detected_ats
+      `).all<any>();
+      const atsDist: Record<string, number> = {};
+      for (const r of atsRows || []) {
+        atsDist[r.detected_ats] = r.c;
+      }
+
+      const healthStats = await this.db.prepare(`
+        SELECT
+          SUM(CASE WHEN status IN ('healthy', 'empty') THEN 1 ELSE 0 END) as successes,
+          SUM(CASE WHEN status IN ('error', 'offline', 'degraded') THEN 1 ELSE 0 END) as failures,
+          SUM(jobs_fetched) as total_jobs_fetched,
+          SUM(new_jobs) as total_new_jobs,
+          SUM(closed_jobs) as total_closed_jobs,
+          MAX(checked_at) as last_sync
+        FROM employer_source_health
+      `).first<any>();
+
+      const lastSync = healthStats?.last_sync || undefined;
+      const nextSync = lastSync
+        ? new Date(new Date(lastSync).getTime() + 10 * 60 * 1000).toISOString()
+        : new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+      return {
+        totalRegisteredCompanies: totalRegistered,
+        totalRegisteredEmployers: totalRegistered,
+        totalDetectedCareerPortals: totalDetected,
+        atsDistribution: atsDist,
+        atsBreakdown: atsDist,
+        activeCompanyFeeds: activeFeeds,
+        totalActiveJobsIngested: totalActiveJobs,
+        successfulFetches: Number(healthStats?.successes || 0),
+        failedFetches: Number(healthStats?.failures || 0),
+        jobsFetchedToday: Number(healthStats?.total_jobs_fetched || 0),
+        newJobsToday: Number(healthStats?.total_new_jobs || 0),
+        closedJobsRemoved: Number(healthStats?.total_closed_jobs || 0),
+        lastSuccessfulSync: lastSync,
+        nextScheduledSync: nextSync,
+      };
+    } catch {
+      return {
+        totalRegisteredCompanies: 0,
+        totalDetectedCareerPortals: 0,
+        atsDistribution: {},
+        activeCompanyFeeds: 0,
+        successfulFetches: 0,
+        failedFetches: 0,
+        jobsFetchedToday: 0,
+        newJobsToday: 0,
+        closedJobsRemoved: 0,
+      };
+    }
   }
 }

@@ -32,6 +32,8 @@ import {
 } from '../src/services/careerAtlasEngine.ts';
 
 import { SOURCE_REGISTRY, SOURCE_ADAPTERS, detectCompanyATSAndFeed, isSafePublicUrl, LiveJobItem } from './jobConnectors.ts';
+import { discoverEmployerCareerPortal } from './careerPortalDiscovery.ts';
+import { bulkImportEmployers, fetchDirectEmployerJobs } from './employerRegistry.ts';
 import { runIncrementalJobSync } from './jobSyncManager.ts';
 import { runCentralIntegrityAudit, evaluateTransferableSkills } from './integrityEngine.ts';
 import { careerIntelligenceEngine } from './careerIntelligenceEngine.ts';
@@ -4359,6 +4361,194 @@ app.post('/api/admin/sources/sync', requireAdmin, async (c) => {
       return c.json({ success: true, message: `Synced ${result.jobs.length} jobs from ${adapter.name}`, result });
     }
     return c.json({ success: true, message: 'Sync triggered successfully' });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+// ============================================================================
+// DIRECT COMPANY CAREER PORTALS & ATS ENGINE WORKER ROUTES
+// ============================================================================
+
+app.get('/api/admin/direct-employers', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const search = c.req.query('search');
+    const country = c.req.query('country');
+    const ats = c.req.query('ats');
+    const status = c.req.query('status');
+    const limit = c.req.query('limit') ? Number(c.req.query('limit')) : 50;
+    const offset = c.req.query('offset') ? Number(c.req.query('offset')) : 0;
+
+    const res = await store.getDirectEmployers({ search, country, ats, status, limit, offset });
+    return c.json({ success: true, employers: res.employers, total: res.total });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.get('/api/admin/direct-employers/metrics', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const metrics = await store.getDirectCareerPortalsMetrics();
+    return c.json({ success: true, metrics });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.post('/api/admin/direct-employers/discover', requireAdmin, async (c) => {
+  try {
+    const body = await c.req.json<{ domainOrUrl?: string; preferredName?: string; testLiveFeed?: boolean }>();
+    if (!body?.domainOrUrl) {
+      return c.json({ success: false, error: 'domainOrUrl is required' }, 400);
+    }
+
+    const discovery = await discoverEmployerCareerPortal({
+      domainOrUrl: body.domainOrUrl,
+      preferredName: body.preferredName,
+      testLiveFeed: body.testLiveFeed !== false,
+    });
+
+    return c.json({ success: true, discovery });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.post('/api/admin/direct-employers', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user = c.get('user') as AuthUser;
+    const body = await c.req.json();
+    if (!body?.domain) {
+      return c.json({ success: false, error: 'Employer domain is required' }, 400);
+    }
+
+    const saved = await store.saveDirectEmployer(body);
+    await store.addAuditLog(
+      user.id,
+      'Direct Career Portals',
+      'EMPLOYER_SAVED',
+      saved.id,
+      `Saved employer: ${saved.name} (${saved.domain}) with ATS ${saved.detectedAts}`
+    );
+
+    return c.json({ success: true, employer: saved });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.post('/api/admin/direct-employers/bulk-import', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user = c.get('user') as AuthUser;
+    const body = await c.req.json<{ employers?: any[] }>();
+    if (!body?.employers || !Array.isArray(body.employers) || body.employers.length === 0) {
+      return c.json({ success: false, error: 'Array of employers is required' }, 400);
+    }
+
+    const importResult = await bulkImportEmployers(body.employers);
+    for (const record of importResult.records) {
+      await store.saveDirectEmployer(record);
+    }
+
+    await store.addAuditLog(
+      user.id,
+      'Direct Career Portals',
+      'BULK_EMPLOYERS_IMPORTED',
+      `bulk_${Date.now()}`,
+      `Imported ${importResult.importedCount} employers (${importResult.discoveredCount} detected with ATS)`
+    );
+
+    return c.json({
+      success: true,
+      importedCount: importResult.importedCount,
+      discoveredCount: importResult.discoveredCount,
+      errors: importResult.errors,
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.post('/api/admin/direct-employers/:id/sync', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const user = c.get('user') as AuthUser;
+    const employerId = c.req.param('id');
+    const emp = await store.getDirectEmployerById(employerId);
+    if (!emp) {
+      return c.json({ success: false, error: 'Employer not found' }, 404);
+    }
+
+    const fetchResult = await fetchDirectEmployerJobs(emp);
+    await store.saveEmployerSourceHealth(fetchResult.health);
+
+    let savedCount = 0;
+    let closedCount = 0;
+    if (fetchResult.jobs.length > 0) {
+      const saveRes = await store.saveDirectEmployerJobs(emp.id, fetchResult.jobs);
+      savedCount = saveRes.saved;
+      closedCount = saveRes.closed;
+    }
+
+    await store.addAuditLog(
+      user.id,
+      'Direct Career Portals',
+      'EMPLOYER_SYNCED',
+      emp.id,
+      `Direct sync for ${emp.name}: fetched ${fetchResult.jobs.length}, saved ${savedCount}, closed ${closedCount}`
+    );
+
+    return c.json({
+      success: true,
+      jobsFetched: fetchResult.jobs.length,
+      saved: savedCount,
+      closed: closedCount,
+      health: fetchResult.health,
+      jobs: fetchResult.jobs.slice(0, 10),
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.post('/api/admin/direct-employers/:id/toggle', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const employerId = c.req.param('id');
+    const emp = await store.getDirectEmployerById(employerId);
+    if (!emp) {
+      return c.json({ success: false, error: 'Employer not found' }, 404);
+    }
+
+    const updated = await store.saveDirectEmployer({
+      ...emp,
+      isEnabled: !emp.isEnabled,
+    });
+
+    return c.json({ success: true, employer: updated });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return c.json({ success: false, error: msg }, 500);
+  }
+});
+
+app.get('/api/admin/direct-employers/health', requireAdmin, async (c) => {
+  try {
+    const store: D1Store = c.get('store');
+    const limit = c.req.query('limit') ? Number(c.req.query('limit')) : 30;
+    const logs = await store.getEmployerSourceHealthLogs(limit);
+    return c.json({ success: true, logs });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     return c.json({ success: false, error: msg }, 500);

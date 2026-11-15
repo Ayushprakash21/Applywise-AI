@@ -61,20 +61,21 @@ export const FounderSection: React.FC<FounderSectionProps> = ({
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <div className={`inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-mono tracking-wider uppercase ${
-            isDark
-              ? 'bg-cyan-950/40 border border-cyan-500/30 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
-              : 'bg-blue-50 border border-blue-200/80 text-blue-700'
-          }`}>
-            <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-            <span>Meet the Founder</span>
+        <div className="text-center max-w-5xl mx-auto mb-16 space-y-3.5">
+          {/* Prominent Editorial Subheading (Eyebrow) */}
+          <div className="flex items-center justify-center">
+            <span className="text-[14px] sm:text-[16px] font-bold tracking-[0.18em] uppercase text-blue-600 dark:text-sky-400">
+              Meet the Founder
+            </span>
           </div>
-          <h2 className={`text-3xl sm:text-5xl font-extrabold tracking-tight ${
+
+          {/* Single-Line Desktop Heading */}
+          <h2 className={`text-3xl sm:text-4xl lg:text-[44px] xl:text-5xl font-extrabold tracking-tight text-center md:whitespace-nowrap ${
             isDark ? 'text-white' : 'text-slate-900'
           }`}>
             Built with ambition. Powered by AI.
           </h2>
+
           <p className={`text-sm sm:text-base max-w-xl mx-auto leading-relaxed ${
             isDark ? 'text-slate-400' : 'text-slate-600'
           }`}>

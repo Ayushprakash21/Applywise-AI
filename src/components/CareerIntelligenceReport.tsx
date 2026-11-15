@@ -89,7 +89,7 @@ export const CareerIntelligenceReport: React.FC<CareerIntelligenceReportProps> =
             className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md transition flex items-center space-x-1.5"
           >
             <Sparkles className="h-4 w-4" />
-            <span>Discuss with Copilot</span>
+            <span>Discuss with Leo</span>
           </button>
         </div>
       </div>

@@ -13,6 +13,7 @@ import {
   FileText,
   ShieldCheck,
   ArrowRight,
+  ArrowLeft,
   BrainCircuit,
   Compass,
   Check,
@@ -298,18 +299,21 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 dark:bg-black/75 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto"
+      onClick={onClose}
+    >
       <div
-        className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl bg-white h-full shadow-2xl border-l border-slate-200 overflow-y-auto flex flex-col animate-in slide-in-from-right duration-250 select-text"
+        className="w-full max-w-[1150px] max-h-[96vh] sm:max-h-[88vh] bg-white dark:bg-[#161D2A] rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 select-text relative my-auto"
         onClick={e => e.stopPropagation()}
       >
         {/* TOP BAR / BACK NAVIGATION */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-20">
+        <div className="shrink-0 px-5 sm:px-8 py-3.5 sm:py-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-[#161D2A]/95 backdrop-blur-md z-20">
           <button
             onClick={onClose}
-            className="flex items-center space-x-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition py-1 px-2.5 rounded-lg hover:bg-slate-100 min-h-[36px]"
+            className="flex items-center space-x-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition py-1.5 px-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 min-h-[36px]"
           >
-            <span>&larr;</span>
+            <ArrowLeft className="h-4 w-4" />
             <span>Back to Opportunities</span>
           </button>
 
@@ -317,7 +321,9 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
             <button
               onClick={() => { setIsSaved(!isSaved); if (onShowToast) onShowToast(isSaved ? 'Removed from saved jobs' : 'Job saved to bookmarks'); }}
               className={`p-2 rounded-xl border transition min-h-[38px] min-w-[38px] flex items-center justify-center ${
-                isSaved ? 'bg-amber-50 text-amber-600 border-amber-200' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
+                isSaved
+                  ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800'
+                  : 'border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`}
               title={isSaved ? 'Saved' : 'Save opportunity'}
             >
@@ -326,7 +332,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
 
             <button
               onClick={handleShare}
-              className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition min-h-[38px] min-w-[38px] flex items-center justify-center"
+              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition min-h-[38px] min-w-[38px] flex items-center justify-center"
               title="Share job link"
             >
               <Share2 className="h-4 w-4" />
@@ -334,158 +340,160 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition min-h-[38px] min-w-[38px] flex items-center justify-center"
-              title="Close drawer (ESC)"
+              className="p-2 text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/60 transition min-h-[38px] min-w-[38px] flex items-center justify-center"
+              title="Close modal (ESC)"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
         </div>
 
-        {/* TOP SECTION: COMPANY & JOB HERO */}
-        <div className="p-6 sm:p-8 bg-gradient-to-b from-slate-50/70 to-white border-b border-slate-100">
-          <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
-            <div className="flex items-start space-x-4 min-w-0 flex-1">
-              {/* Verified Company Logo or Stylized Initial Container */}
-              <CompanyLogo
-                companyName={vacancy.company}
-                logoUrl={vacancy.companyLogo || vacancy.companyLogoUrl}
-                domain={vacancy.companyDomain}
-                size="xl"
-                className="shadow-md"
-              />
+        {/* SCROLLABLE INNER MODAL CONTAINER */}
+        <div className="flex-1 overflow-y-auto min-h-0 overscroll-contain">
+          {/* TOP SECTION: COMPANY & JOB HERO */}
+          <div className="p-6 sm:p-8 bg-gradient-to-b from-slate-50/70 to-white dark:from-slate-900/60 dark:to-[#161D2A] border-b border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
+              <div className="flex items-start space-x-4 min-w-0 flex-1">
+                {/* Verified Company Logo or Stylized Initial Container */}
+                <CompanyLogo
+                  companyName={vacancy.company}
+                  logoUrl={vacancy.companyLogo || vacancy.companyLogoUrl}
+                  domain={vacancy.companyDomain}
+                  size="xl"
+                  className="shadow-md"
+                />
 
-              <div className="space-y-1.5 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-bold text-sm text-blue-600 uppercase tracking-wider">
-                    {vacancy.company}
-                  </span>
-                  {vacancy.source && (
-                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-mono text-[10px] uppercase font-bold border border-slate-200">
-                      {vacancy.source}
+                <div className="space-y-1.5 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-sm text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                      {vacancy.company}
                     </span>
-                  )}
-                  {vacancy.lastCheckedAt && (
-                    <span className="inline-flex items-center space-x-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      <Check className="h-3 w-3 text-emerald-600" />
-                      <span>Verified live</span>
-                    </span>
-                  )}
-                </div>
+                    {vacancy.source && (
+                      <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono text-[10px] uppercase font-bold border border-slate-200 dark:border-slate-700">
+                        {vacancy.source}
+                      </span>
+                    )}
+                    {vacancy.lastCheckedAt && (
+                      <span className="inline-flex items-center space-x-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                        <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                        <span>Verified live</span>
+                      </span>
+                    )}
+                  </div>
 
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                  {vacancy.title}
-                </h1>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
+                    {vacancy.title}
+                  </h1>
 
-                {/* Subtitle Metadata Row */}
-                <div className="flex flex-wrap items-center gap-y-1.5 gap-x-4 text-xs text-slate-500 pt-1">
-                  <div className="flex items-center space-x-1.5">
-                    <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                    <span>{vacancy.remote ? 'Remote' : (vacancy.location || 'Location Unspecified')}</span>
-                  </div>
-                  <div className="flex items-center space-x-1.5">
-                    <Briefcase className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                    <span className="capitalize">{vacancy.employmentType || 'Full-time'}</span>
-                  </div>
-                  <div className="flex items-center space-x-1.5">
-                    <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                    <span>Posted {formattedPostedDate}</span>
-                  </div>
-                  {vacancy.salaryRange?.raw && (
-                    <div className="flex items-center space-x-1.5 text-emerald-600 font-semibold">
-                      <DollarSign className="h-3.5 w-3.5 shrink-0" />
-                      <span>{vacancy.salaryRange.raw}</span>
+                  {/* Subtitle Metadata Row */}
+                  <div className="flex flex-wrap items-center gap-y-1.5 gap-x-4 text-xs text-slate-500 dark:text-slate-400 pt-1">
+                    <div className="flex items-center space-x-1.5">
+                      <MapPin className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                      <span>{vacancy.remote ? 'Remote' : (vacancy.location || 'Location Unspecified')}</span>
                     </div>
-                  )}
+                    <div className="flex items-center space-x-1.5">
+                      <Briefcase className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                      <span className="capitalize">{vacancy.employmentType || 'Full-time'}</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <Calendar className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                      <span>Posted {formattedPostedDate}</span>
+                    </div>
+                    {vacancy.salaryRange?.raw && (
+                      <div className="flex items-center space-x-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                        <DollarSign className="h-3.5 w-3.5 shrink-0" />
+                        <span>{vacancy.salaryRange.raw}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Quick Hero Actions */}
-            <div className="flex sm:flex-col items-center sm:items-end gap-2 w-full sm:w-auto">
-              <button
-                onClick={() => onPrepareApplication(vacancy.id)}
-                disabled={isPreparing}
-                className="flex-1 sm:flex-initial w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs disabled:opacity-50 transition flex items-center justify-center space-x-1.5 min-h-[42px]"
-              >
-                {isPreparing ? (
-                  <>
-                    <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Preparing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>Tailor & Apply</span>
-                  </>
-                )}
-              </button>
+              {/* Quick Hero Actions */}
+              <div className="flex sm:flex-col items-center sm:items-end gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => onPrepareApplication(vacancy.id)}
+                  disabled={isPreparing}
+                  className="flex-1 sm:flex-initial w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs disabled:opacity-50 transition flex items-center justify-center space-x-1.5 min-h-[42px]"
+                >
+                  {isPreparing ? (
+                    <>
+                      <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Preparing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-3.5 w-3.5" />
+                      <span>Tailor & Apply</span>
+                    </>
+                  )}
+                </button>
 
-              <button
-                onClick={handleAssistedApply}
-                disabled={isApplyingAssisted}
-                className="flex-1 sm:flex-initial w-full sm:w-auto px-4 py-2 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition flex items-center justify-center space-x-1.5 min-h-[38px]"
-              >
-                <Compass className="h-3.5 w-3.5" />
-                <span>Assisted Apply</span>
-              </button>
+                <button
+                  onClick={handleAssistedApply}
+                  disabled={isApplyingAssisted}
+                  className="flex-1 sm:flex-initial w-full sm:w-auto px-4 py-2 rounded-xl border border-blue-200 dark:border-blue-800/80 bg-blue-50/70 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-semibold transition flex items-center justify-center space-x-1.5 min-h-[38px]"
+                >
+                  <Compass className="h-3.5 w-3.5" />
+                  <span>Assisted Apply</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* 4 PREMIUM NAVIGATION TABS */}
-        <div className="flex border-b border-slate-200 px-6 sm:px-8 bg-slate-50/80 text-xs font-semibold text-slate-500 overflow-x-auto space-x-2">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`py-3.5 px-3.5 border-b-2 transition whitespace-nowrap flex items-center space-x-1.5 ${
-              activeTab === 'overview'
-                ? 'border-blue-600 text-blue-600 font-bold bg-white'
-                : 'border-transparent hover:text-slate-900'
-            }`}
-          >
-            <FileText className="h-4 w-4" />
-            <span>Job Overview</span>
-          </button>
+          {/* 4 PREMIUM NAVIGATION TABS */}
+          <div className="flex border-b border-slate-200 dark:border-slate-800 px-6 sm:px-8 bg-slate-50/80 dark:bg-slate-900/80 text-xs font-semibold text-slate-500 dark:text-slate-400 overflow-x-auto space-x-2 sticky top-0 z-10 backdrop-blur-md">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`py-3.5 px-3.5 border-b-2 transition whitespace-nowrap flex items-center space-x-1.5 ${
+                activeTab === 'overview'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-bold bg-white dark:bg-[#161D2A]'
+                  : 'border-transparent hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <FileText className="h-4 w-4" />
+              <span>Job Overview</span>
+            </button>
 
-          <button
-            onClick={handleAnalyzeJob}
-            className={`py-3.5 px-3.5 border-b-2 transition whitespace-nowrap flex items-center space-x-1.5 ${
-              activeTab === 'analysis'
-                ? 'border-blue-600 text-blue-600 font-bold bg-white'
-                : 'border-transparent hover:text-slate-900'
-            }`}
-          >
-            <BrainCircuit className="h-4 w-4" />
-            <span>AI Job Analysis</span>
-          </button>
+            <button
+              onClick={handleAnalyzeJob}
+              className={`py-3.5 px-3.5 border-b-2 transition whitespace-nowrap flex items-center space-x-1.5 ${
+                activeTab === 'analysis'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-bold bg-white dark:bg-[#161D2A]'
+                  : 'border-transparent hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <BrainCircuit className="h-4 w-4" />
+              <span>AI Job Analysis</span>
+            </button>
 
-          <button
-            onClick={handleMatchResume}
-            className={`py-3.5 px-3.5 border-b-2 transition whitespace-nowrap flex items-center space-x-1.5 ${
-              activeTab === 'match'
-                ? 'border-blue-600 text-blue-600 font-bold bg-white'
-                : 'border-transparent hover:text-slate-900'
-            }`}
-          >
-            <Compass className="h-4 w-4" />
-            <span>Match Assessment</span>
-          </button>
+            <button
+              onClick={handleMatchResume}
+              className={`py-3.5 px-3.5 border-b-2 transition whitespace-nowrap flex items-center space-x-1.5 ${
+                activeTab === 'match'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-bold bg-white dark:bg-[#161D2A]'
+                  : 'border-transparent hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Compass className="h-4 w-4" />
+              <span>Match Assessment</span>
+            </button>
 
-          <button
-            onClick={handleLoadReadiness}
-            className={`py-3.5 px-3.5 border-b-2 transition whitespace-nowrap flex items-center space-x-1.5 ${
-              activeTab === 'readiness'
-                ? 'border-blue-600 text-blue-600 font-bold bg-white'
-                : 'border-transparent hover:text-slate-900'
-            }`}
-          >
-            <ShieldCheck className="h-4 w-4 text-emerald-600" />
-            <span>Integrity & Readiness</span>
-          </button>
-        </div>
+            <button
+              onClick={handleLoadReadiness}
+              className={`py-3.5 px-3.5 border-b-2 transition whitespace-nowrap flex items-center space-x-1.5 ${
+                activeTab === 'readiness'
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-bold bg-white dark:bg-[#161D2A]'
+                  : 'border-transparent hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Integrity & Readiness</span>
+            </button>
+          </div>
 
-        {/* TAB BODY CONTAINER (with generous bottom padding to prevent sticky footer overlap) */}
-        <div className="p-6 sm:p-8 flex-1 pb-28">
+          {/* TAB BODY CONTAINER */}
+          <div className="p-6 sm:p-8 flex-1 pb-8">
           {/* ========================================================================= */}
           {/* TAB 1: JOB OVERVIEW */}
           {/* ========================================================================= */}
@@ -497,12 +505,12 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                 <div className="lg:col-span-8 space-y-8">
                   {/* Company Overview (if detected or available) */}
                   {semanticSections.companyOverview && (
-                    <div className="space-y-2.5 pb-6 border-b border-slate-100">
-                      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-                        <Building className="h-4 w-4 text-blue-600" />
+                    <div className="space-y-2.5 pb-6 border-b border-slate-100 dark:border-slate-800">
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center space-x-2">
+                        <Building className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         <span>About {vacancy.company}</span>
                       </h3>
-                      <p className="text-sm text-slate-600 leading-relaxed">
+                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                         {semanticSections.companyOverview}
                       </p>
                     </div>
@@ -510,13 +518,13 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
 
                   {/* Sanitized Faithful Original Job Description */}
                   <div className="space-y-3">
-                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-                      <FileText className="h-4 w-4 text-blue-600" />
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center space-x-2">
+                      <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       <span>Original Job Description</span>
                     </h3>
 
                     {/* Safe HTML Renderer without cramped scrollbox */}
-                    <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs">
+                    <div className="bg-white dark:bg-slate-900/60 p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
                       <SafeHtmlRenderer
                         html={vacancy.description}
                         enableExpandCollapse={true}
@@ -528,14 +536,14 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                   {/* Responsibilities (if semantic sections detected) */}
                   {semanticSections.responsibilities.length > 0 && (
                     <div className="space-y-3 pt-2">
-                      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center space-x-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                         <span>Key Responsibilities</span>
                       </h3>
-                      <ul className="space-y-2 bg-slate-50/60 p-5 rounded-2xl border border-slate-200 text-sm text-slate-700">
+                      <ul className="space-y-2 bg-slate-50/60 dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300">
                         {semanticSections.responsibilities.map((resp, idx) => (
                           <li key={idx} className="flex items-start space-x-2.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-blue-600 mt-2 shrink-0" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-blue-600 dark:bg-blue-400 mt-2 shrink-0" />
                             <span className="leading-relaxed">{resp}</span>
                           </li>
                         ))}
@@ -546,14 +554,14 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                   {/* Qualifications & Requirements */}
                   {semanticSections.qualifications.length > 0 && (
                     <div className="space-y-3 pt-2">
-                      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-                        <Award className="h-4 w-4 text-indigo-600" />
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center space-x-2">
+                        <Award className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                         <span>Qualifications & Requirements</span>
                       </h3>
-                      <ul className="space-y-2 bg-slate-50/60 p-5 rounded-2xl border border-slate-200 text-sm text-slate-700">
+                      <ul className="space-y-2 bg-slate-50/60 dark:bg-slate-900/40 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 text-sm text-slate-700 dark:text-slate-300">
                         {semanticSections.qualifications.map((qual, idx) => (
                           <li key={idx} className="flex items-start space-x-2.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-slate-900 dark:bg-[var(--be-accent,#A78343)] dark:text-[#17130C] mt-2 shrink-0" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-slate-900 dark:bg-slate-300 mt-2 shrink-0" />
                             <span className="leading-relaxed">{qual}</span>
                           </li>
                         ))}
@@ -562,13 +570,13 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                   )}
 
                   {/* Structured Skills & Technologies (Part 11 Data Quality Fix) */}
-                  <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                     <div>
-                      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-                        <Tag className="h-4 w-4 text-blue-600" />
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center space-x-2">
+                        <Tag className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         <span>Skills & Technologies</span>
                       </h3>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         Categorized against verified taxonomies to separate technical proficiencies from recruiter tags.
                       </p>
                     </div>
@@ -576,10 +584,10 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                     {/* Technical Skills */}
                     {classifiedSkills.technicalSkills.length > 0 && (
                       <div className="space-y-1.5">
-                        <span className="text-xs font-bold text-slate-700">Technical Skills</span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Technical Skills</span>
                         <div className="flex flex-wrap gap-1.5">
                           {classifiedSkills.technicalSkills.map((sk, idx) => (
-                            <span key={idx} className="px-3 py-1 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 text-xs font-medium">
+                            <span key={idx} className="px-3 py-1 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/80 text-xs font-medium">
                               {sk.name}
                             </span>
                           ))}
@@ -590,10 +598,10 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                     {/* Tools and Technologies */}
                     {classifiedSkills.toolsAndTechnologies.length > 0 && (
                       <div className="space-y-1.5">
-                        <span className="text-xs font-bold text-slate-700">Tools & Platforms</span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Tools & Platforms</span>
                         <div className="flex flex-wrap gap-1.5">
                           {classifiedSkills.toolsAndTechnologies.map((sk, idx) => (
-                            <span key={idx} className="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-medium">
+                            <span key={idx} className="px-3 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80 text-xs font-medium">
                               {sk.name}
                             </span>
                           ))}
@@ -604,10 +612,10 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                     {/* Functional Skills */}
                     {classifiedSkills.functionalSkills.length > 0 && (
                       <div className="space-y-1.5">
-                        <span className="text-xs font-bold text-slate-700">Functional Competencies</span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Functional Competencies</span>
                         <div className="flex flex-wrap gap-1.5">
                           {classifiedSkills.functionalSkills.map((sk, idx) => (
-                            <span key={idx} className="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium">
+                            <span key={idx} className="px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 text-xs font-medium">
                               {sk.name}
                             </span>
                           ))}
@@ -618,13 +626,13 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                     {/* Recruiter / Category Tags (e.g. JCP Growth correctly isolated!) */}
                     {classifiedSkills.otherPhrases.length > 0 && (
                       <div className="space-y-1.5 pt-1">
-                        <span className="text-xs font-bold text-slate-500 flex items-center space-x-1">
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center space-x-1">
                           <HelpCircle className="h-3 w-3 text-slate-400" />
                           <span>External Tags & Categories</span>
                         </span>
                         <div className="flex flex-wrap gap-1.5">
                           {classifiedSkills.otherPhrases.map((sk, idx) => (
-                            <span key={idx} className="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200 text-[11px] font-mono">
+                            <span key={idx} className="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[11px] font-mono">
                               {sk.name}
                             </span>
                           ))}
@@ -637,18 +645,18 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                 {/* Right Sidebar (4 cols): Metadata, Company Card & Quick Tools */}
                 <div className="lg:col-span-4 space-y-6">
                   {/* Card 1: Job Metadata Card */}
-                  <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-4">
-                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+                  <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-4">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 pb-2">
                       Job Overview Details
                     </h4>
 
-                    <div className="space-y-3.5 text-xs text-slate-600">
+                    <div className="space-y-3.5 text-xs text-slate-600 dark:text-slate-300">
                       <div className="flex items-start justify-between">
                         <span className="text-slate-400 flex items-center space-x-1.5">
                           <Calendar className="h-3.5 w-3.5" />
                           <span>Date posted:</span>
                         </span>
-                        <span className="font-semibold text-slate-800">{formattedPostedDate}</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">{formattedPostedDate}</span>
                       </div>
 
                       <div className="flex items-start justify-between">
@@ -656,7 +664,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                           <Briefcase className="h-3.5 w-3.5" />
                           <span>Employment type:</span>
                         </span>
-                        <span className="font-semibold text-slate-800 capitalize">{vacancy.employmentType || 'Full-time'}</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200 capitalize">{vacancy.employmentType || 'Full-time'}</span>
                       </div>
 
                       <div className="flex items-start justify-between">
@@ -664,7 +672,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                           <DollarSign className="h-3.5 w-3.5" />
                           <span>Offered salary:</span>
                         </span>
-                        <span className={`font-semibold text-right max-w-[140px] truncate ${vacancy.salaryRange?.raw ? 'text-emerald-700' : 'text-slate-500'}`}>
+                        <span className={`font-semibold text-right max-w-[140px] truncate ${vacancy.salaryRange?.raw ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>
                           {formattedSalary}
                         </span>
                       </div>
@@ -674,7 +682,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                           <MapPin className="h-3.5 w-3.5" />
                           <span>Work arrangement:</span>
                         </span>
-                        <span className="font-semibold text-slate-800 capitalize">
+                        <span className="font-semibold text-slate-800 dark:text-slate-200 capitalize">
                           {vacancy.arrangement || (vacancy.remote ? 'Remote' : 'On-site')}
                         </span>
                       </div>
@@ -684,7 +692,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                           <ShieldCheck className="h-3.5 w-3.5" />
                           <span>Source status:</span>
                         </span>
-                        <span className="font-mono text-[11px] font-bold text-blue-600">
+                        <span className="font-mono text-[11px] font-bold text-blue-600 dark:text-blue-400">
                           {vacancy.source || 'Arbeitnow'} Verified
                         </span>
                       </div>
@@ -692,9 +700,9 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                   </div>
 
                   {/* Card 2: Company Information Card */}
-                  <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3.5">
-                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center space-x-1.5">
-                      <Building className="h-3.5 w-3.5 text-blue-600" />
+                  <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3.5">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center space-x-1.5">
+                      <Building className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                       <span>Company Profile</span>
                     </h4>
 
@@ -706,8 +714,8 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                         size="md"
                       />
                       <div className="min-w-0">
-                        <h5 className="font-bold text-sm text-slate-900 truncate">{vacancy.company}</h5>
-                        <p className="text-xs text-slate-500 truncate">{vacancy.location || 'Global Headquarters'}</p>
+                        <h5 className="font-bold text-sm text-slate-900 dark:text-white truncate">{vacancy.company}</h5>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{vacancy.location || 'Global Headquarters'}</p>
                       </div>
                     </div>
 
@@ -716,7 +724,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                         href={vacancy.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full py-2 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center justify-center space-x-1.5 transition"
+                        className="w-full py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 flex items-center justify-center space-x-1.5"
                       >
                         <span>Visit Original Listing</span>
                         <ExternalLink className="h-3 w-3" />
@@ -725,10 +733,10 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                   </div>
 
                   {/* Card 2b: Recruiter & Hiring Team Intelligence Graph */}
-                  <div className="p-5 rounded-2xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] shadow-2xs space-y-3.5">
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] pb-2">
-                      <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center space-x-1.5">
-                        <Users className="h-3.5 w-3.5 text-blue-600" />
+                  <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3.5">
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center space-x-1.5">
+                        <Users className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                         <span>Hiring Team & Outreach</span>
                       </h4>
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/40 font-semibold">
@@ -743,13 +751,13 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                     ) : recruiterContacts.length > 0 ? (
                       <div className="space-y-3">
                         {recruiterContacts.slice(0, 2).map((contact, idx) => (
-                          <div key={idx} className="p-3 rounded-xl bg-slate-50 dark:bg-[var(--be-bg-elevated,#1e232b)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] space-y-2">
+                          <div key={idx} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
                             <div className="flex items-start justify-between">
                               <div className="min-w-0">
-                                <h5 className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
+                                <h5 className="font-bold text-xs text-slate-900 dark:text-white truncate">
                                   {contact.contact_name || `${vacancy.company} Talent Lead`}
                                 </h5>
-                                <p className="text-[11px] text-slate-500 truncate">
+                                <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                                   {contact.designation || 'Recruitment & Talent Specialist'}
                                 </p>
                               </div>
@@ -763,7 +771,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                               </span>
                             </div>
 
-                            <div className="text-[11px] font-mono text-slate-600 dark:text-slate-400 flex items-center space-x-1.5 truncate">
+                            <div className="text-[11px] font-mono text-slate-600 dark:text-slate-300 flex items-center space-x-1.5 truncate">
                               <Mail className="h-3 w-3 text-slate-400 shrink-0" />
                               <span className="truncate">{contact.email}</span>
                             </div>
@@ -785,7 +793,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                         ))}
                       </div>
                     ) : (
-                      <div className="p-3 rounded-xl bg-slate-50 dark:bg-[var(--be-bg-elevated,#1e232b)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] space-y-2 text-center">
+                      <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 text-center">
                         <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                           No personal recruiter publicly disclosed for this vacancy. Applications are ingested directly through the primary employer portal.
                         </p>
@@ -794,7 +802,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                             href={vacancy.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center space-x-1 text-xs font-semibold text-blue-600 hover:text-blue-700"
+                            className="inline-flex items-center space-x-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700"
                           >
                             <span>Apply Directly on ATS Portal</span>
                             <ExternalLink className="h-3 w-3" />
@@ -804,22 +812,22 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                     )}
                   </div>
 
-                  {/* Card 3: Apply Readiness Tools (Part 7) */}
-                  <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 shadow-xs space-y-3">
+                  {/* Card 3: Apply Readiness Tools */}
+                  <div className="p-5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
                     <div className="flex items-center space-x-2">
-                      <Sparkles className="h-4 w-4 text-blue-600" />
-                      <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                      <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                         Apply Readiness Tools
                       </h4>
                     </div>
-                    <p className="text-xs text-slate-600 leading-relaxed">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                       Analyze employer expectations, compare verified skills, and prepare truthful application materials.
                     </p>
 
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       <button
                         onClick={handleAnalyzeJob}
-                        className="py-2 px-3 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-semibold text-slate-700 hover:text-blue-600 flex items-center justify-center space-x-1 transition"
+                        className="py-2 px-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 transition text-xs font-semibold hover:text-blue-600 dark:hover:text-blue-400 flex items-center justify-center space-x-1"
                       >
                         <BrainCircuit className="h-3.5 w-3.5" />
                         <span>Analyze Job</span>
@@ -827,7 +835,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
 
                       <button
                         onClick={handleMatchResume}
-                        className="py-2 px-3 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-semibold text-slate-700 hover:text-blue-600 flex items-center justify-center space-x-1 transition"
+                        className="py-2 px-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 transition text-xs font-semibold hover:text-blue-600 dark:hover:text-blue-400 flex items-center justify-center space-x-1"
                       >
                         <Compass className="h-3.5 w-3.5" />
                         <span>Match Skills</span>
@@ -844,13 +852,13 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
           {/* ========================================================================= */}
           {activeTab === 'analysis' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
-                    <BrainCircuit className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                    <BrainCircuit className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     <span>AI Job Analysis & Search Intent</span>
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     Structured breakdown of employer requirements, seniority expectations, and inferred capabilities.
                   </p>
                 </div>
@@ -864,28 +872,28 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
               {isLoadingAnalysis ? (
                 <div className="p-16 text-center space-y-3">
                   <div className="h-8 w-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                  <p className="text-xs font-semibold text-slate-600">Conducting multi-dimensional job analysis...</p>
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">Conducting multi-dimensional job analysis...</p>
                   <p className="text-[11px] text-slate-400">Evaluating role requirements against market expectations.</p>
                 </div>
               ) : analysisData ? (
                 <div className="space-y-6">
                   {/* Intent & What company is looking for */}
-                  <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
-                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider text-blue-600">
+                  <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
+                    <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
                       What the Company is Looking For
                     </h4>
-                    <p className="text-sm text-slate-700 leading-relaxed">
-                      {vacancy.company} is seeking an experienced professional for <strong className="text-slate-900">{vacancy.title}</strong>.
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                      {vacancy.company} is seeking an experienced professional for <strong className="text-slate-900 dark:text-white">{vacancy.title}</strong>.
                       The position emphasizes {classifiedSkills.technicalSkills.slice(0, 3).map(s => s.name).join(', ') || 'specialized technical leadership'} and strong execution.
                     </p>
                   </div>
 
                   {/* Most Important Responsibilities */}
-                  <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
-                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider text-slate-800">
+                  <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                       Most Important Responsibilities
                     </h4>
-                    <ul className="space-y-2 text-xs text-slate-700">
+                    <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300">
                       {(analysisData.aiInsights?.keyResponsibilities || semanticSections.responsibilities.slice(0, 4)).map((r: string, i: number) => (
                         <li key={i} className="flex items-start space-x-2">
                           <CheckCircle2 className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
@@ -897,11 +905,11 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
 
                   {/* Essential vs Preferred Qualifications */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-5 rounded-2xl bg-emerald-50/40 border border-emerald-200/80 space-y-2.5">
-                      <h4 className="text-xs font-bold text-emerald-900 uppercase tracking-wider">
+                    <div className="p-5 rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/60 space-y-2.5">
+                      <h4 className="text-xs font-bold text-emerald-900 dark:text-emerald-300 uppercase tracking-wider">
                         Essential Employer Requirements
                       </h4>
-                      <ul className="space-y-1.5 text-xs text-emerald-800">
+                      <ul className="space-y-1.5 text-xs text-emerald-800 dark:text-emerald-300">
                         {classifiedSkills.technicalSkills.slice(0, 4).map((s, idx) => (
                           <li key={idx} className="flex items-center space-x-1.5">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
@@ -911,15 +919,15 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                       </ul>
                     </div>
 
-                    <div className="p-5 rounded-2xl bg-indigo-50/40 border border-indigo-200/80 space-y-2.5">
-                      <h4 className="text-xs font-bold text-indigo-900 uppercase tracking-wider">
+                    <div className="p-5 rounded-2xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-200/80 dark:border-indigo-800/60 space-y-2.5">
+                      <h4 className="text-xs font-bold text-indigo-900 dark:text-indigo-300 uppercase tracking-wider">
                         Inferred / Implied Competencies
                       </h4>
-                      <ul className="space-y-1.5 text-xs text-indigo-800">
+                      <ul className="space-y-1.5 text-xs text-indigo-800 dark:text-indigo-300">
                         {(analysisData.aiInsights?.recommendedFocusAreas || ['Cross-team Communication', 'System Observability']).map((item: string, idx: number) => (
                           <li key={idx} className="flex items-center space-x-1.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-slate-800" />
-                            <span>{item} <em className="text-[10px] text-indigo-500">(Inferred)</em></span>
+                            <span className="h-1.5 w-1.5 rounded-full bg-slate-800 dark:bg-slate-300" />
+                            <span>{item} <em className="text-[10px] text-indigo-500 dark:text-indigo-400">(Inferred)</em></span>
                           </li>
                         ))}
                       </ul>
@@ -927,10 +935,10 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="p-12 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-3">
+                <div className="p-12 text-center bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 space-y-3">
                   <BrainCircuit className="h-10 w-10 text-blue-500 mx-auto" />
-                  <h4 className="text-sm font-bold text-slate-800">Generate In-Depth AI Analysis</h4>
-                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">Generate In-Depth AI Analysis</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
                     Inspect hidden qualifications, core employer expectations, and key focus areas for {vacancy.title}.
                   </p>
                   <button
@@ -949,12 +957,12 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
           {/* ========================================================================= */}
           {activeTab === 'match' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="border-b border-slate-100 pb-4">
-                <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
-                  <Compass className="h-5 w-5 text-blue-600" />
+              <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                  <Compass className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   <span>Match Assessment & Fit Evidence</span>
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Honest evaluation calculated against your authentic background without inflated claims.
                 </p>
               </div>
@@ -970,10 +978,10 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
               {isLoadingEvidence ? (
                 <div className="p-12 text-center space-y-3">
                   <div className="h-6 w-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                  <p className="text-xs text-slate-500 font-medium">Constructing Fit Evidence Map...</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Constructing Fit Evidence Map...</p>
                 </div>
               ) : evidenceMap ? (
-                <div className="pt-4 border-t border-slate-100">
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
                   <FitEvidenceMapView
                     evidenceMap={evidenceMap}
                     jobTitle={vacancy.title}
@@ -994,12 +1002,12 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
           {/* ========================================================================= */}
           {activeTab === 'readiness' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="border-b border-slate-100 pb-4">
-                <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
-                  <ShieldCheck className="h-5 w-5 text-emerald-600" />
+              <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                  <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                   <span>Integrity Verification & Application Readiness</span>
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Verify source authenticity, audit truthfulness, and tailor application materials without fabrication.
                 </p>
               </div>
@@ -1017,7 +1025,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
               {isLoadingReadiness ? (
                 <div className="p-12 text-center space-y-3">
                   <div className="h-6 w-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                  <p className="text-xs text-slate-500 font-medium">Evaluating Application Readiness...</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Evaluating Application Readiness...</p>
                 </div>
               ) : readiness ? (
                 <ApplicationReadinessView
@@ -1027,10 +1035,10 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                   onProceedToApply={() => onPrepareApplication(vacancy.id)}
                 />
               ) : (
-                <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-3">
-                  <FileCheck className="h-8 w-8 text-emerald-600 mx-auto" />
-                  <h4 className="text-xs font-bold text-slate-800">Run Pre-Apply Readiness Studio</h4>
-                  <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-center space-y-3">
+                  <FileCheck className="h-8 w-8 text-emerald-600 dark:text-emerald-400 mx-auto" />
+                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Run Pre-Apply Readiness Studio</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                     Verify pre-flight checklists and critical alignment requirements before applying.
                   </p>
                   <button
@@ -1043,28 +1051,28 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
               )}
 
               {/* Zero-Hallucination Truth Audit */}
-              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-3">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center space-x-1.5">
-                  <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center space-x-1.5">
+                  <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   <span>Truthfulness & Source Audit</span>
                 </h4>
 
                 {integrityReport ? (
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-800">Source Destination Integrity</span>
-                      <span className="text-emerald-700 font-bold">PASS: Legitimate Employer URL</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">Source Destination Integrity</span>
+                      <span className="text-emerald-700 dark:text-emerald-400 font-bold">PASS: Legitimate Employer URL</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-800">Credential Verification</span>
-                      <span className="text-emerald-700 font-bold">PASS: Zero Fabricated Claims</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">Credential Verification</span>
+                      <span className="text-emerald-700 dark:text-emerald-400 font-bold">PASS: Zero Fabricated Claims</span>
                     </div>
                   </div>
                 ) : (
                   <button
                     onClick={handleAuditIntegrity}
                     disabled={isAuditingIntegrity}
-                    className="py-2 px-4 rounded-xl bg-white dark:bg-[var(--be-bg-surface,#181C22)] border border-slate-200 dark:border-[var(--be-border-subtle,rgba(255,255,255,0.08))] hover:bg-slate-50 text-slate-700 dark:text-slate-300 transition text-xs font-semibold text-slate-700 hover:text-emerald-700 flex items-center space-x-1.5 transition"
+                    className="py-2 px-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 transition text-xs font-semibold hover:text-emerald-700 dark:hover:text-emerald-400 flex items-center space-x-1.5"
                   >
                     {isAuditingIntegrity ? (
                       <>
@@ -1073,7 +1081,7 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
                       </>
                     ) : (
                       <>
-                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                         <span>Run Truthfulness Audit</span>
                       </>
                     )}
@@ -1084,76 +1092,77 @@ export const JobDetailDrawer: React.FC<JobDetailDrawerProps> = ({
           )}
 
           {autoApplyError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start space-x-2 mt-4">
+            <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl text-xs text-red-700 dark:text-red-300 flex items-start space-x-2 mt-4">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
               <span>{autoApplyError}</span>
             </div>
           )}
         </div>
+      </div>
 
-        {/* PART 8: PREMIUM ACTION STICKY FOOTER */}
-        <div className="p-4 sm:p-6 border-t border-slate-100 bg-white/95 backdrop-blur-md sticky bottom-0 z-30 flex flex-wrap items-center justify-between gap-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-lg shadow-slate-200/50">
-          {/* Left: View Original Listing */}
-          <a
-            href={vacancy.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition flex items-center justify-center space-x-1.5 min-h-[44px] shadow-2xs"
+      {/* PART 8: PREMIUM ACTION STICKY FOOTER */}
+      <div className="shrink-0 p-4 sm:px-8 sm:py-3.5 border-t border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-[#161D2A]/95 backdrop-blur-md sticky bottom-0 z-20 flex flex-wrap items-center justify-between gap-3 shadow-lg">
+        {/* Left: View Original Listing */}
+        <a
+          href={vacancy.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 transition flex items-center justify-center space-x-1.5 min-h-[42px] shadow-2xs"
+        >
+          <span>View Original Listing</span>
+          <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
+        </a>
+
+        {/* Right: Actions */}
+        <div className="w-full sm:w-auto flex flex-wrap items-center gap-2.5">
+          {/* Assisted Apply */}
+          <button
+            onClick={handleAssistedApply}
+            disabled={isApplyingAssisted}
+            className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl border border-blue-200 dark:border-blue-800/80 bg-blue-50/70 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 text-xs font-bold transition flex items-center justify-center space-x-1.5 min-h-[42px]"
           >
-            <span>View Original Listing</span>
-            <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
-          </a>
+            {isApplyingAssisted ? (
+              <>
+                <div className="h-3.5 w-3.5 border-2 border-blue-700 dark:border-blue-400 border-t-transparent rounded-full animate-spin" />
+                <span>Preparing...</span>
+              </>
+            ) : (
+              <>
+                <Compass className="h-3.5 w-3.5" />
+                <span>Assisted Apply</span>
+              </>
+            )}
+          </button>
 
-          {/* Right: Actions */}
-          <div className="w-full sm:w-auto flex flex-wrap items-center gap-2.5">
-            {/* Assisted Apply */}
+          {/* Tailor & Apply (Primary Action) */}
+          {hasApplied ? (
+            <div className="flex-1 sm:flex-initial flex items-center justify-center space-x-2 text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-5 py-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800 min-h-[42px]">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Tracked Application</span>
+            </div>
+          ) : (
             <button
-              onClick={handleAssistedApply}
-              disabled={isApplyingAssisted}
-              className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-700 text-xs font-bold transition flex items-center justify-center space-x-1.5 min-h-[44px]"
+              onClick={() => onPrepareApplication(vacancy.id)}
+              disabled={isPreparing}
+              className="flex-1 sm:flex-initial px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs disabled:opacity-50 transition flex items-center justify-center space-x-1.5 min-h-[42px]"
             >
-              {isApplyingAssisted ? (
+              {isPreparing ? (
                 <>
-                  <div className="h-3.5 w-3.5 border-2 border-blue-700 border-t-transparent rounded-full animate-spin" />
-                  <span>Preparing...</span>
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Tailoring...</span>
                 </>
               ) : (
                 <>
-                  <Compass className="h-3.5 w-3.5" />
-                  <span>Assisted Apply</span>
+                  <Sparkles className="h-4 w-4" />
+                  <span>Tailor & Apply</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </>
               )}
             </button>
-
-            {/* Tailor & Apply (Primary Action) */}
-            {hasApplied ? (
-              <div className="flex-1 sm:flex-initial flex items-center justify-center space-x-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-5 py-2.5 rounded-xl border border-emerald-200 min-h-[44px]">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Tracked Application</span>
-              </div>
-            ) : (
-              <button
-                onClick={() => onPrepareApplication(vacancy.id)}
-                disabled={isPreparing}
-                className="flex-1 sm:flex-initial px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs disabled:opacity-50 transition flex items-center justify-center space-x-1.5 min-h-[44px]"
-              >
-                {isPreparing ? (
-                  <>
-                    <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Tailoring...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4" />
-                    <span>Tailor & Apply</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </>
-                )}
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };

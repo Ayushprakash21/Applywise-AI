@@ -365,7 +365,7 @@ export const CareerAtlas: React.FC<CareerAtlasProps> = ({
                 }`}
               >
                 <Compass className="w-3.5 h-3.5" />
-                <span>Ask Career Copilot</span>
+                <span>Ask Leo</span>
               </button>
             )}
           </div>

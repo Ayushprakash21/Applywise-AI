@@ -594,6 +594,8 @@ export function FilterSelect<T = any>(props: FilterSelectProps<T>) {
   return <SearchableSelect size="sm" {...props} />;
 }
 
+export const Select = SearchableSelect;
+
 // ============================================================================
 // 3. MultiSelect — Multi-value selector with chips, search & toggle actions
 // ============================================================================

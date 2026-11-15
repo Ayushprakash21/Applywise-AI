@@ -151,59 +151,82 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
   const { t } = useLanguage();
 
-  // Simplified candidate navigation architecture:
-  // Consolidated into 6 task-based sections:
-  // 1. Home (overview & desk)
-  // 2. Find Jobs (search, matches, radar)
-  // 3. My Applications (tracker, control, recruiter review, interviews, autopilot)
-  // 4. My Career (profile, resume studio, career report, atlas, recruiter outreach)
-  // 5. AI Career Assistant (copilot & coaching)
-  // 6. Settings (account, preferences, subscription)
   const navGroups: Array<{ group: string; items: NavItem[] }> = [
     {
-      group: 'MAIN NAVIGATION · WORKSPACE',
+      group: 'CAREER INTELLIGENCE & WORKSPACE',
       items: [
-        { id: 'overview' as const, label: 'Home', icon: LayoutDashboard },
-        { id: 'jobs' as const, label: 'Find Jobs', icon: Search },
-        { id: 'applications' as const, label: 'My Applications', icon: Briefcase },
-        { id: 'profile' as const, label: 'My Career', icon: User },
-        { id: 'copilot' as const, label: 'AI Career Assistant', icon: Bot },
+        { id: 'desk' as const, label: t('nav.desk') || 'Career Desk', icon: LayoutDashboard },
+        { id: 'autopilot' as const, label: t('nav.autopilot') || 'AI Autopilot', icon: Bot },
+        { id: 'radar' as const, label: t('nav.radar') || 'Opportunity Radar', icon: Radio },
+        { id: 'control' as const, label: t('nav.control') || 'Application Control', icon: Briefcase },
+        { id: 'interview_studio' as const, label: t('nav.interview_studio') || 'Interview Studio', icon: Calendar },
+        { id: 'recruiter_review' as const, label: t('nav.recruiter_review') || 'Recruiter Review', icon: ShieldCheck },
+        { id: 'atlas' as const, label: t('nav.atlas') || 'Career Atlas', icon: Map },
+        { id: 'hr_outreach' as const, label: t('nav.hr_outreach') || 'AI HR Outreach', icon: Send },
       ],
     },
     {
-      group: 'ACCOUNT & SETTINGS',
+      group: 'CAREER OPERATIONS & PROFILE',
       items: [
-        { id: 'notifications' as const, label: 'Notifications', icon: Bell, badge: unreadCount },
-        { id: 'settings' as const, label: 'Settings', icon: Sliders },
-        { id: 'subscription' as const, label: 'Membership & Billing', icon: Award },
+        { id: 'profile' as const, label: t('nav.profile') || 'Career Profile & Facts', icon: User },
+        { id: 'resume_studio' as const, label: t('nav.resume_studio') || 'Resume Studio', icon: FileCheck },
+        { id: 'career_report' as const, label: t('nav.career_report') || 'Skills & Gap Report', icon: BarChart3 },
+      ],
+    },
+    {
+      group: 'ACCOUNT',
+      items: [
+        { id: 'notifications' as const, label: t('nav.notifications') || 'Notifications', icon: Bell, badge: unreadCount },
+        { id: 'settings' as const, label: t('nav.settings') || 'Settings', icon: Sliders },
+        { id: 'subscription' as const, label: t('nav.subscription') || 'Membership & Billing', icon: Award },
       ],
     },
   ];
 
-  // Internal Contextual Route Registry (Preserves CAREER INTELLIGENCE, resume_intelligence, matches, interviews, and hr_outreach test contracts)
-  const CONTEXTUAL_ROUTE_REGISTRY = {
-    overview: { parent: 'overview', label: 'Home' },
-    desk: { parent: 'overview', label: 'Home' },
-    jobs: { parent: 'jobs', label: 'Find Jobs' },
-    matches: { parent: 'jobs', label: 'Find Jobs · Matches' },
-    radar: { parent: 'jobs', label: 'Find Jobs · Visual Radar' },
-    applications: { parent: 'applications', label: 'My Applications' },
-    control: { parent: 'applications', label: 'My Applications · Control' },
-    interviews: { parent: 'applications', label: 'My Applications · Interviews' },
-    interview_studio: { parent: 'applications', label: 'My Applications · Interview Studio' },
-    recruiter_review: { parent: 'applications', label: 'My Applications · Recruiter Review' },
-    autopilot: { parent: 'applications', label: 'My Applications · Automatic Apply' },
-    profile: { parent: 'profile', label: 'My Career · Profile' },
-    resume_studio: { parent: 'profile', label: 'My Career · Resume Studio' },
-    resume_intelligence: { parent: 'profile', label: 'My Career · Resume Intelligence' },
-    career_report: { parent: 'profile', label: 'My Career · Insights' },
-    career_twin: { parent: 'profile', label: 'My Career · Career Twin' },
-    atlas: { parent: 'profile', label: 'My Career · Career Atlas' },
-    hr_outreach: { parent: 'profile', label: 'AI HR Outreach · Recruiter Contact' },
-    copilot: { parent: 'copilot', label: 'AI Career Assistant' },
-    notifications: { parent: 'notifications', label: 'Notifications' },
-    settings: { parent: 'settings', label: 'Settings' },
-    subscription: { parent: 'subscription', label: 'Membership & Billing' },
+  const isItemActive = (itemId: DashboardTab): boolean => {
+    if (itemId === 'desk') {
+      return activeTab === 'desk' || activeTab === 'overview';
+    }
+    if (itemId === 'radar') {
+      return activeTab === 'radar';
+    }
+    if (itemId === 'control') {
+      return activeTab === 'control' || activeTab === 'applications' || activeTab === 'jobs' || activeTab === 'matches';
+    }
+    if (itemId === 'interview_studio') {
+      return activeTab === 'interview_studio' || activeTab === 'interviews';
+    }
+    if (itemId === 'recruiter_review') {
+      return activeTab === 'recruiter_review';
+    }
+    if (itemId === 'autopilot') {
+      return activeTab === 'autopilot';
+    }
+    if (itemId === 'atlas') {
+      return activeTab === 'atlas';
+    }
+    if (itemId === 'hr_outreach') {
+      return activeTab === 'hr_outreach';
+    }
+    if (itemId === 'profile') {
+      return activeTab === 'profile' || activeTab === 'career_twin' || (activeTab as string) === 'twin';
+    }
+    if (itemId === 'resume_studio') {
+      return activeTab === 'resume_studio' || activeTab === 'resume_intelligence';
+    }
+    if (itemId === 'career_report') {
+      return activeTab === 'career_report';
+    }
+    if (itemId === 'notifications') {
+      return activeTab === 'notifications';
+    }
+    if (itemId === 'settings') {
+      return activeTab === 'settings';
+    }
+    if (itemId === 'subscription') {
+      return activeTab === 'subscription';
+    }
+    return activeTab === itemId;
   };
 
   return (
@@ -256,7 +279,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
               <BrandLogo
                 variant="auto"
                 size="md"
-                onClick={() => onSelectTab('overview')}
+                onClick={() => onSelectTab('desk')}
                 className="cursor-pointer"
               />
               {plan === 'black' && (
@@ -478,7 +501,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className={`lg:hidden border-b px-4 py-4 space-y-3 animate-in fade-in slide-in-from-top-2 shadow-md ${
+          <div className={`mobile-nav-drawer lg:hidden border-b px-4 py-4 space-y-3 animate-in fade-in slide-in-from-top-2 shadow-md ${
             plan === 'black'
               ? 'bg-[#101318] border-[rgba(255,255,255,0.08)]'
               : 'bg-white/95 border-slate-200'
@@ -490,7 +513,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                 </span>
                 {grp.items.map(item => {
                   const Icon = item.icon;
-                  const isActive = activeTab === item.id;
+                  const isActive = isItemActive(item.id);
                   return (
                     <button
                       key={item.id}
@@ -501,7 +524,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
                       }}
                       className={`w-full flex items-center px-3.5 py-3 rounded-xl text-xs font-semibold min-h-[44px] transition cursor-pointer ${
                         isActive
-                          ? 'bg-blue-600 text-white font-bold'
+                          ? 'active bg-blue-600 text-white font-bold'
                           : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
                       }`}
                     >
@@ -525,12 +548,13 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       <div className="flex-1 flex w-full max-w-[1720px] mx-auto relative z-10">
         {/* Left Desktop Sidebar - Frosted Glass Navigation */}
         <aside
-          className={`hidden lg:flex flex-col border-r transition-all duration-300 relative select-none ${
+          data-user-sidebar="true"
+          className={`hidden lg:flex flex-col border-r transition-all duration-300 relative select-none shrink-0 ${
             sidebarCollapsed ? 'w-20' : 'w-68'
           } ${
             plan === 'black'
               ? 'border-[var(--be-border-subtle,rgba(255,255,255,0.09))]'
-              : 'border-white/80 bg-white/55 backdrop-blur-2xl'
+              : 'border-[#E2E8F0] bg-[#F0F4F8] backdrop-blur-2xl dark:bg-[#111318]'
           }`}
           style={
             plan === 'black'
@@ -545,7 +569,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
           <button
             type="button"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-white border border-slate-200/90 shadow-xs flex items-center justify-center text-slate-500 hover:text-slate-900 hover:shadow-sm transition z-20 cursor-pointer"
+            className="absolute -right-3 top-6 w-6 h-6 rounded-full bg-white dark:bg-[#1E293B] border border-slate-200/90 dark:border-slate-700 shadow-xs flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:shadow-sm transition z-20 cursor-pointer"
             aria-label={sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
           >
             {sidebarCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
@@ -555,50 +579,78 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
           <div className="flex-1 py-6 px-3.5 space-y-6 overflow-y-auto scrollbar-none">
             {navGroups.map((grp) => (
               <div key={grp.group} className="space-y-1.5">
-                {!sidebarCollapsed && (
-                  <h4 className="px-3 text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
+                {!sidebarCollapsed ? (
+                  <h4 className="px-3 text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                     {grp.group}
                   </h4>
+                ) : (
+                  <div className="w-8 h-px bg-slate-200 dark:bg-slate-800 mx-auto my-2" />
                 )}
 
                 <div className="space-y-1">
                   {grp.items.map((item) => {
                     const Icon = item.icon;
-                    const isActive = activeTab === item.id ||
-                      (item.id === 'overview' && (activeTab === 'overview' || activeTab === 'desk')) ||
-                      (item.id === 'jobs' && (activeTab === 'jobs' || activeTab === 'matches' || activeTab === 'radar')) ||
-                      (item.id === 'applications' && (activeTab === 'applications' || activeTab === 'control' || activeTab === 'interviews' || activeTab === 'interview_studio' || activeTab === 'recruiter_review' || activeTab === 'autopilot')) ||
-                      (item.id === 'profile' && (activeTab === 'profile' || activeTab === 'resume_studio' || activeTab === 'resume_intelligence' || activeTab === 'career_report' || activeTab === 'career_twin' || (activeTab as string) === 'twin' || activeTab === 'atlas' || activeTab === 'hr_outreach')) ||
-                      (item.id === 'copilot' && activeTab === 'copilot');
+                    const isActive = isItemActive(item.id);
                     return (
                       <button
                         key={item.id}
                         type="button"
                         onClick={() => onSelectTab(item.id)}
-                        className={`w-full flex items-center px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-colors duration-150 cursor-pointer group relative ${
+                        className={`user-nav-item w-full flex items-center ${sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'px-3.5 py-2.5'} rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer group relative ${
                           isActive
-                            ? 'bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#DEDAD0)] text-[var(--be-text-heading,#191D24)] shadow-xs font-bold'
-                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                            ? plan === 'black'
+                              ? 'active bg-[#181D26] border border-[rgba(255,255,255,0.12)] text-[#F2F0EA] shadow-xs font-bold'
+                              : 'active bg-white border border-blue-200/80 text-blue-700 shadow-2xs font-bold'
+                            : plan === 'black'
+                            ? 'text-[#92949A] hover:text-[#F2F0EA] hover:bg-[#15181F]'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
                         }`}
                         title={sidebarCollapsed ? item.label : undefined}
+                        aria-label={item.label}
                       >
-                        {/* Active vertical indicator */}
+                        {/* Blue active-state indicator */}
                         {isActive && (
-                          <span className="absolute left-1 top-2 bottom-2 w-1 rounded-full bg-[var(--be-accent,#A78343)]" />
+                          <span
+                            className={`active-indicator absolute left-1 top-2 bottom-2 w-1 rounded-full ${
+                              plan === 'black' ? 'bg-[var(--be-accent,#C6A66A)]' : 'bg-blue-600'
+                            }`}
+                          />
                         )}
 
-                        <Icon className={`w-4.5 h-4.5 shrink-0 transition-colors ${
-                          isActive ? 'text-[var(--be-accent,#A78343)]' : 'text-slate-400 group-hover:text-slate-700'
-                        }`} />
+                        <Icon
+                          className={`w-4.5 h-4.5 shrink-0 transition-colors ${
+                            isActive
+                              ? plan === 'black'
+                                ? 'text-[var(--be-accent,#C6A66A)]'
+                                : 'text-blue-600'
+                              : plan === 'black'
+                              ? 'text-[#92949A] group-hover:text-[#F2F0EA]'
+                              : 'text-slate-400 group-hover:text-slate-700'
+                          }`}
+                        />
 
                         {!sidebarCollapsed && (
                           <span className="ml-3 truncate">{item.label}</span>
                         )}
 
                         {!sidebarCollapsed && item.badge !== undefined && item.badge > 0 && (
-                          <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[var(--be-accent,#A78343)] text-white">
+                          <span
+                            className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                              plan === 'black'
+                                ? 'bg-[var(--be-accent,#C6A66A)] text-black'
+                                : 'bg-blue-600 text-white'
+                            } shadow-2xs`}
+                          >
                             {item.badge}
                           </span>
+                        )}
+
+                        {sidebarCollapsed && item.badge !== undefined && item.badge > 0 && (
+                          <span
+                            className={`absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full ${
+                              plan === 'black' ? 'bg-[var(--be-accent,#C6A66A)]' : 'bg-blue-600'
+                            } ring-2 ring-white dark:ring-[#111318]`}
+                          />
                         )}
                       </button>
                     );

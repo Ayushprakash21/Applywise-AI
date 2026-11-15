@@ -464,6 +464,87 @@ export const api = {
       body: JSON.stringify(item),
     }),
 
+  // --- DIRECT COMPANY CAREER PORTALS & ATS ENGINE ---
+  getDirectEmployers: (params?: {
+    search?: string;
+    country?: string;
+    ats?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const q = new URLSearchParams();
+    if (params?.search) q.set('search', params.search);
+    if (params?.country) q.set('country', params.country);
+    if (params?.ats) q.set('ats', params.ats);
+    if (params?.status) q.set('status', params.status);
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.offset) q.set('offset', String(params.offset));
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return fetchJson<{ success: boolean; employers: any[]; total: number }>(`/api/admin/direct-employers${qs}`);
+  },
+
+  getDirectEmployerMetrics: () =>
+    fetchJson<{
+      success: boolean;
+      metrics: {
+        totalRegisteredCompanies: number;
+        totalDetectedCareerPortals: number;
+        atsDistribution: Record<string, number>;
+        activeCompanyFeeds: number;
+        successfulFetches: number;
+        failedFetches: number;
+        jobsFetchedToday: number;
+        newJobsToday: number;
+        closedJobsRemoved: number;
+        lastSuccessfulSync?: string;
+        nextScheduledSync?: string;
+      };
+    }>('/api/admin/direct-employers/metrics'),
+
+  discoverCareerPortal: (domainOrUrl: string, preferredName?: string, testLiveFeed: boolean = true) =>
+    fetchJson<{ success: boolean; discovery: any }>('/api/admin/direct-employers/discover', {
+      method: 'POST',
+      body: JSON.stringify({ domainOrUrl, preferredName, testLiveFeed }),
+    }),
+
+  saveDirectEmployer: (employer: any) =>
+    fetchJson<{ success: boolean; employer: any }>('/api/admin/direct-employers', {
+      method: 'POST',
+      body: JSON.stringify(employer),
+    }),
+
+  bulkImportDirectEmployers: (employers: any[]) =>
+    fetchJson<{
+      success: boolean;
+      importedCount: number;
+      discoveredCount: number;
+      errors: string[];
+    }>('/api/admin/direct-employers/bulk-import', {
+      method: 'POST',
+      body: JSON.stringify({ employers }),
+    }),
+
+  syncDirectEmployer: (employerId: string) =>
+    fetchJson<{
+      success: boolean;
+      jobsFetched: number;
+      saved: number;
+      closed: number;
+      health: any;
+      jobs: any[];
+    }>(`/api/admin/direct-employers/${encodeURIComponent(employerId)}/sync`, {
+      method: 'POST',
+    }),
+
+  toggleDirectEmployer: (employerId: string) =>
+    fetchJson<{ success: boolean; employer: any }>(`/api/admin/direct-employers/${encodeURIComponent(employerId)}/toggle`, {
+      method: 'POST',
+    }),
+
+  getDirectEmployerHealth: (limit: number = 30) =>
+    fetchJson<{ success: boolean; logs: any[] }>(`/api/admin/direct-employers/health?limit=${limit}`),
+
   getJobContacts: (jobId: string) =>
     fetchJson<{
       success: boolean;

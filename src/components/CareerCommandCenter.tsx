@@ -603,7 +603,10 @@ export const CareerCommandCenter: React.FC<CareerCommandCenterProps> = ({
                 <Bot className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-slate-900">AI Career Copilot</h4>
+                <h4 className="text-xs font-bold text-slate-900 flex items-center space-x-1">
+                  <span>Leo — Career Companion</span>
+                  <span className="text-[10px] text-slate-400 font-normal"> (AI Career Copilot)</span>
+                </h4>
                 <p className="text-[10px] text-slate-500">Personal guidance based on your verified background</p>
               </div>
             </div>

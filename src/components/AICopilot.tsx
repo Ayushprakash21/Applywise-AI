@@ -1,21 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Bot,
   X,
   Send,
-  Sparkles,
-  ChevronDown,
   Minimize2,
   Maximize2,
-  Zap,
-  CheckCircle2,
-  AlertCircle,
-  ArrowRight
+  ArrowRight,
+  Sparkles,
+  Bot
 } from 'lucide-react';
 import { api, AuthUser } from '../services/api.ts';
-import { BrandLogo } from './BrandLogo.tsx';
 import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 import { useLanguage } from '../context/LanguageContext.tsx';
+import { LeoAvatar } from './leo/LeoAvatar.tsx';
+import { LeoCharacter, LeoState } from './leo/LeoCharacter.tsx';
 
 interface Message {
   id: string;
@@ -24,7 +21,7 @@ interface Message {
   timestamp: string;
 }
 
-interface AICopilotProps {
+export interface AICopilotProps {
   currentUser: AuthUser | null;
   currentPageContext: string;
   contextDetails?: Record<string, unknown>;
@@ -51,16 +48,23 @@ export const AICopilot: React.FC<AICopilotProps> = ({
     setInternalOpen(val);
     if (onToggleOpen) onToggleOpen(val);
   };
+
   const { currentLocale } = useLanguage();
   const [isMinimized, setIsMinimized] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
+  
+  // Leo mascot reaction state
+  const [leoState, setLeoState] = useState<LeoState>('idle');
+  const [isHoveredLauncher, setIsHoveredLauncher] = useState(false);
+  const [isClickingPaw, setIsClickingPaw] = useState(false);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
       role: 'assistant',
       content: currentUser
-        ? `Hello **${currentUser.fullName}**! I'm **ApplyVise Copilot**, your career strategist. How can I assist your job search today?`
-        : `Welcome! I'm **ApplyVise Copilot**. Sign in to get context-aware career guidance, interview coaching, and ATS resume optimization!`,
+        ? `Hey! I'm Leo. 🐾\n\nI can help you discover opportunities, improve your resume, prepare for interviews and navigate your career journey.\n\nWhat shall we work on today?`
+        : `Hey! I'm Leo. 🐾\n\nI can help you discover opportunities, improve your resume, prepare for interviews and navigate your career journey.\n\nWhat shall we work on today?`,
       timestamp: new Date().toISOString(),
     },
   ]);
@@ -96,6 +100,17 @@ export const AICopilot: React.FC<AICopilotProps> = ({
     }
   }, [externalTriggerPrompt]);
 
+  // Handler for opening with paw greeting
+  const handleLauncherClick = () => {
+    setIsClickingPaw(true);
+    setLeoState('greeting');
+    setTimeout(() => {
+      setIsClickingPaw(false);
+      setIsOpen(true);
+      setLeoState('idle');
+    }, 280);
+  };
+
   const handleSendMessage = async (textToSend?: string) => {
     const text = (textToSend || inputMessage).trim();
     if (!text || isLoading) return;
@@ -116,6 +131,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
     setInputMessage('');
     setErrorMsg(null);
     setIsLoading(true);
+    setLeoState('thinking');
 
     try {
       const res = await api.askCopilot(text, {
@@ -132,12 +148,18 @@ export const AICopilot: React.FC<AICopilotProps> = ({
       };
 
       setMessages(prev => [...prev, assistantMsg]);
+      setLeoState('responding');
+      setTimeout(() => {
+        setLeoState('idle');
+      }, 3500);
+
       if (res.usage) {
         setUsage(res.usage);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setErrorMsg(msg);
+      setLeoState('error');
       const errorResponse: Message = {
         id: `err_${Date.now()}`,
         role: 'assistant',
@@ -145,12 +167,15 @@ export const AICopilot: React.FC<AICopilotProps> = ({
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, errorResponse]);
+      setTimeout(() => {
+        setLeoState('idle');
+      }, 4000);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Context-specific suggestion chips
+  // Context-specific suggestion chips for Leo
   const getSuggestions = () => {
     switch (currentPageContext) {
       case 'jobs':
@@ -173,7 +198,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
         ];
       default:
         return [
-          'How does ApplyVise AI ATS tailoring work?',
+          'How does ApplyWise AI ATS tailoring work?',
           'Tell me about Free vs Pro plan benefits',
           'Give me top 3 interview preparation tips',
         ];
@@ -182,28 +207,62 @@ export const AICopilot: React.FC<AICopilotProps> = ({
 
   return (
     <>
-      {/* Floating Copilot Launcher Button */}
+      {/* Floating Leo Launcher Button */}
       {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center space-x-2.5 px-4 py-3 min-h-[44px] rounded-full bg-slate-900 text-white shadow-2xl hover:bg-slate-800 transition-all duration-300 hover:scale-[1.03] group border border-slate-700/80 touch-target"
-          aria-label="Open ApplyVise Copilot"
-        >
-          <div className="relative">
-            <BrandLogo size="xs" showWordmark={false} />
-            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#9483E8] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#9483E8]"></span>
-            </span>
+        <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 group">
+          {/* Tooltip: Talk to Leo */}
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-slate-900/90 text-white text-[11px] font-medium rounded-lg shadow-xl border border-slate-700/80 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap backdrop-blur-xs flex items-center space-x-1">
+            <span>Talk to Leo</span>
+            <span className="text-amber-400">🐾</span>
           </div>
-          <span className="text-xs font-bold tracking-tight text-white">AI Copilot</span>
-          <span className="px-1.5 py-0.2 rounded-md bg-[rgba(148,131,232,0.15)] text-[#9483E8] border border-[rgba(148,131,232,0.30)] text-[10px] font-mono font-semibold">
-            {usage?.remaining !== undefined ? `${usage.remaining} left` : 'AI'}
-          </span>
-        </button>
+
+          <button
+            onClick={handleLauncherClick}
+            onMouseEnter={() => {
+              setIsHoveredLauncher(true);
+              setLeoState('greeting');
+            }}
+            onMouseLeave={() => {
+              setIsHoveredLauncher(false);
+              setLeoState('idle');
+            }}
+            className="flex items-center space-x-2.5 pl-2 pr-4 py-2 min-h-[44px] rounded-full bg-slate-900 text-white shadow-2xl hover:bg-slate-800 transition-all duration-300 hover:scale-[1.03] border border-slate-700/80 touch-target focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            aria-label="Open ApplyVise Copilot"
+            title="Talk to Leo"
+          >
+            {/* Leo Animated Mascot Avatar */}
+            <div className="relative -my-1">
+              <LeoCharacter
+                state={isClickingPaw ? 'greeting' : isHoveredLauncher ? 'greeting' : 'idle'}
+                size={40}
+                interactive={true}
+                showPaw={true}
+                showTail={false}
+                showCollar={true}
+              />
+              {/* Subtle Availability Indicator */}
+              <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400 border border-slate-900"></span>
+              </span>
+            </div>
+
+            {/* Leo Name Label */}
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-xs font-bold tracking-tight text-white flex items-center space-x-1">
+                <span>Leo</span>
+              </span>
+            </div>
+
+            {/* Availability / Quota Pill */}
+            <span className="px-1.5 py-0.5 rounded-md bg-[rgba(148,131,232,0.15)] text-[#9483E8] border border-[rgba(148,131,232,0.30)] text-[10px] font-mono font-semibold">
+              {usage?.remaining !== undefined ? `${usage.remaining} left` : 'AI'}
+            </span>
+          </button>
+        </div>
       )}
 
-      {/* Expanded Copilot Drawer / Panel */}
+      {/* Expanded Leo Chat Drawer / Panel */}
       {isOpen && (
         <div
           className={`fixed z-50 transition-all duration-200 bg-white shadow-2xl border border-slate-200/90 flex flex-col overflow-hidden ${
@@ -211,19 +270,34 @@ export const AICopilot: React.FC<AICopilotProps> = ({
               ? 'bottom-20 right-3 sm:bottom-6 sm:right-6 w-[calc(100vw-1.5rem)] max-w-sm sm:w-[420px] h-14 rounded-2xl'
               : 'inset-x-3 bottom-20 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[420px] max-h-[calc(100vh-6rem)] sm:max-h-[85vh] h-[580px] rounded-2xl sm:rounded-3xl'
           }`}
+          role="dialog"
+          aria-label="Leo — Your Career Companion"
         >
           {/* Header */}
-          <div className="p-4 bg-slate-900 text-white flex items-center justify-between shrink-0 select-none">
-            <div className="flex items-center space-x-2.5">
-              <BrandLogo size="xs" showWordmark={false} />
+          <div className="p-3.5 sm:p-4 bg-slate-900 text-white flex items-center justify-between shrink-0 select-none border-b border-slate-800">
+            <div className="flex items-center space-x-3">
+              {/* Animated Leo Avatar in Header */}
+              <div className="relative">
+                <LeoAvatar
+                  state={leoState}
+                  size={42}
+                  interactive={true}
+                  showStatusIndicator={true}
+                  status={isLoading ? 'thinking' : 'online'}
+                />
+              </div>
+
               <div>
-                <div className="flex items-center space-x-1.5">
-                  <span className="text-xs font-bold tracking-tight">ApplyVise Copilot</span>
-                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-md bg-blue-500/20 text-blue-300 border border-blue-400/30">
-                    AI 2.0
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-bold tracking-tight text-white flex items-center space-x-1">
+                    <span>Leo</span>
+                    <span className="text-amber-400 text-xs">🐾</span>
+                  </span>
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                    Career Assistant
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400">Context: {currentPageContext.toUpperCase()}</p>
+                <p className="text-[11px] text-slate-400 font-medium">Your ApplyWise Career Companion</p>
               </div>
             </div>
 
@@ -232,6 +306,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
                 onClick={() => setIsMinimized(!isMinimized)}
                 className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center hover:text-white hover:bg-slate-800 rounded-lg transition"
                 title={isMinimized ? 'Expand' : 'Minimize'}
+                aria-label={isMinimized ? 'Expand Leo chat' : 'Minimize Leo chat'}
               >
                 {isMinimized ? <Maximize2 className="h-3.5 w-3.5" /> : <Minimize2 className="h-3.5 w-3.5" />}
               </button>
@@ -239,6 +314,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
                 onClick={() => setIsOpen(false)}
                 className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center hover:text-white hover:bg-slate-800 rounded-lg transition"
                 title="Close"
+                aria-label="Close Leo chat"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -279,14 +355,28 @@ export const AICopilot: React.FC<AICopilotProps> = ({
                     key={m.id}
                     className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}
                   >
-                    <div
-                      className={`max-w-[88%] rounded-2xl p-3.5 leading-relaxed whitespace-pre-wrap ${
-                        m.role === 'user'
-                          ? 'bg-blue-600 text-white rounded-br-xs shadow-xs'
-                          : 'bg-slate-100 text-slate-800 rounded-bl-xs border border-slate-200/60'
-                      }`}
-                    >
-                      {m.content}
+                    <div className="flex items-end space-x-2 max-w-[92%]">
+                      {m.role === 'assistant' && (
+                        <div className="shrink-0 mb-1">
+                          <LeoCharacter
+                            state={m.id === 'welcome' ? 'idle' : 'responding'}
+                            size={28}
+                            interactive={false}
+                            showPaw={false}
+                            showTail={false}
+                            showCollar={true}
+                          />
+                        </div>
+                      )}
+                      <div
+                        className={`rounded-2xl p-3.5 leading-relaxed whitespace-pre-wrap ${
+                          m.role === 'user'
+                            ? 'bg-blue-600 text-white rounded-br-xs shadow-xs'
+                            : 'bg-slate-100 text-slate-800 rounded-bl-xs border border-slate-200/60'
+                        }`}
+                      >
+                        {m.content}
+                      </div>
                     </div>
                     <span className="text-[10px] text-slate-400 mt-1 px-1">
                       {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -294,10 +384,21 @@ export const AICopilot: React.FC<AICopilotProps> = ({
                   </div>
                 ))}
 
+                {/* Leo is thinking state */}
                 {isLoading && (
-                  <div className="flex items-center space-x-2 p-3.5 rounded-2xl bg-slate-100 max-w-[70%] text-slate-500 rounded-bl-xs">
-                    <div className="h-2 w-2 rounded-full bg-blue-600 animate-ping" />
-                    <span className="text-[11px] font-medium">Copilot is thinking...</span>
+                  <div className="flex items-center space-x-2.5 p-3 rounded-2xl bg-slate-100 max-w-[75%] text-slate-600 rounded-bl-xs border border-slate-200/60">
+                    <LeoCharacter
+                      state="thinking"
+                      size={28}
+                      interactive={false}
+                      showPaw={false}
+                      showTail={false}
+                      showCollar={true}
+                    />
+                    <div className="flex items-center space-x-1.5">
+                      <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-ping" />
+                      <span className="text-[11px] font-medium">Leo is thinking...</span>
+                    </div>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -331,8 +432,8 @@ export const AICopilot: React.FC<AICopilotProps> = ({
                   onChange={e => setInputMessage(e.target.value)}
                   placeholder={
                     currentUser
-                      ? `Ask Copilot about ${currentPageContext}...`
-                      : 'Sign in to chat with AI Copilot...'
+                      ? `Ask Leo about ${currentPageContext}...`
+                      : 'Sign in to chat with Leo...'
                   }
                   disabled={isLoading}
                   className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition"
@@ -341,7 +442,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
                   type="submit"
                   disabled={!inputMessage.trim() || isLoading}
                   className="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-xl shadow-xs transition"
-                  aria-label="Send message"
+                  aria-label="Send message to Leo"
                 >
                   <Send className="h-4 w-4" />
                 </button>
@@ -353,3 +454,6 @@ export const AICopilot: React.FC<AICopilotProps> = ({
     </>
   );
 };
+
+// Aliases for clean adoption
+export const Leo = AICopilot;

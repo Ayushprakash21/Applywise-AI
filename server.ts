@@ -25,6 +25,8 @@ import { CURATED_COMPANY_REGISTRY } from './server/sourceAdapters/companyAdapter
 import { durableScheduler } from './server/durableScheduler.ts';
 import { verifyJobFreshness } from './server/jobQualityEngine.ts';
 import { sqlite } from './server/authAndStore.ts';
+import { discoverEmployerCareerPortal } from './worker/careerPortalDiscovery.ts';
+import { bulkImportEmployers, fetchDirectEmployerJobs, EmployerRecord } from './worker/employerRegistry.ts';
 import {
   initialVacancies,
   initialIntegrations,
@@ -3055,6 +3057,177 @@ app.post('/api/admin/sources/sync', requireAdmin, async (req: AuthenticatedReque
       return res.json({ success: true, message: `Synced ${result.jobs?.length || 0} jobs from ${adapter.name}`, result });
     }
     res.json({ success: true, message: 'Sync triggered successfully' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ============================================================================
+// DIRECT COMPANY CAREER PORTALS & ATS ENGINE ADMIN ENDPOINTS
+// ============================================================================
+
+app.get('/api/admin/direct-employers', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { search, country, ats, status, limit, offset } = req.query;
+    const result = authAndStore.getDirectEmployers({
+      search: search ? String(search) : undefined,
+      country: country ? String(country) : undefined,
+      ats: ats ? String(ats) : undefined,
+      status: status ? String(status) : undefined,
+      limit: limit ? Number(limit) : 50,
+      offset: offset ? Number(offset) : 0,
+    });
+    res.json({ success: true, employers: result.employers, total: result.total });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/admin/direct-employers/metrics', requireAdmin, (_req: AuthenticatedRequest, res: Response) => {
+  try {
+    const metrics = authAndStore.getDirectCareerPortalsMetrics();
+    res.json({ success: true, metrics });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/direct-employers/discover', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { domainOrUrl, preferredName, testLiveFeed } = req.body || {};
+    if (!domainOrUrl) {
+      return res.status(400).json({ success: false, error: 'domainOrUrl is required' });
+    }
+
+    const discovery = await discoverEmployerCareerPortal({
+      domainOrUrl,
+      preferredName,
+      testLiveFeed: testLiveFeed !== false,
+    });
+
+    res.json({ success: true, discovery });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/direct-employers', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const body = req.body;
+    if (!body.domain) {
+      return res.status(400).json({ success: false, error: 'Employer domain is required' });
+    }
+
+    const saved = authAndStore.saveDirectEmployer(body);
+    authAndStore.addAuditLog(
+      req.user!.id,
+      'Direct Career Portals',
+      'EMPLOYER_SAVED',
+      saved.id,
+      `Saved employer: ${saved.name} (${saved.domain}) with ATS ${saved.detectedAts}`
+    );
+
+    res.json({ success: true, employer: saved });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/direct-employers/bulk-import', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { employers } = req.body || {};
+    if (!Array.isArray(employers) || employers.length === 0) {
+      return res.status(400).json({ success: false, error: 'Array of employers is required' });
+    }
+
+    const importResult = await bulkImportEmployers(employers);
+    for (const record of importResult.records) {
+      authAndStore.saveDirectEmployer(record);
+    }
+
+    authAndStore.addAuditLog(
+      req.user!.id,
+      'Direct Career Portals',
+      'BULK_EMPLOYERS_IMPORTED',
+      `bulk_${Date.now()}`,
+      `Imported ${importResult.importedCount} employers (${importResult.discoveredCount} detected with ATS)`
+    );
+
+    res.json({
+      success: true,
+      importedCount: importResult.importedCount,
+      discoveredCount: importResult.discoveredCount,
+      errors: importResult.errors,
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/direct-employers/:id/sync', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const employerId = req.params.id;
+    const emp = authAndStore.getDirectEmployerById(employerId);
+    if (!emp) {
+      return res.status(404).json({ success: false, error: 'Employer not found' });
+    }
+
+    const fetchResult = await fetchDirectEmployerJobs(emp);
+    authAndStore.saveEmployerSourceHealth(fetchResult.health);
+
+    let savedCount = 0;
+    let closedCount = 0;
+    if (fetchResult.jobs.length > 0) {
+      const saveRes = authAndStore.saveDirectEmployerJobs(emp.id, fetchResult.jobs);
+      savedCount = saveRes.saved;
+      closedCount = saveRes.closed;
+    }
+
+    authAndStore.addAuditLog(
+      req.user!.id,
+      'Direct Career Portals',
+      'EMPLOYER_SYNCED',
+      emp.id,
+      `Direct sync for ${emp.name}: fetched ${fetchResult.jobs.length}, saved ${savedCount}, closed ${closedCount}`
+    );
+
+    res.json({
+      success: true,
+      jobsFetched: fetchResult.jobs.length,
+      saved: savedCount,
+      closed: closedCount,
+      health: fetchResult.health,
+      jobs: fetchResult.jobs.slice(0, 10), // preview first 10
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/direct-employers/:id/toggle', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const employerId = req.params.id;
+    const emp = authAndStore.getDirectEmployerById(employerId);
+    if (!emp) {
+      return res.status(404).json({ success: false, error: 'Employer not found' });
+    }
+
+    const updated = authAndStore.saveDirectEmployer({
+      ...emp,
+      isEnabled: !emp.isEnabled,
+    });
+
+    res.json({ success: true, employer: updated });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/admin/direct-employers/health', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const limit = req.query.limit ? Number(req.query.limit) : 30;
+    const logs = authAndStore.getEmployerSourceHealthLogs(limit);
+    res.json({ success: true, logs });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }

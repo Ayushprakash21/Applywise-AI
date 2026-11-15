@@ -70,7 +70,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>('');
   const { appearance, isDark } = useTheme();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+
+      const sections = ['network', 'journey', 'cockpit', 'integrity', 'jobs'];
+      const scrollPos = window.scrollY + 120;
+      for (const section of sections) {
+        const el = document.getElementById(section);
+        if (el) {
+          const top = el.offsetTop;
+          const height = el.offsetHeight;
+          if (scrollPos >= top && scrollPos < top + height) {
+            setActiveSection(section);
+            break;
+          }
+        }
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,8 +105,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   return (
     <div className="min-h-screen bg-[var(--be-bg-canvas,#F5F3EE)] text-[var(--be-text-primary,#20242B)] flex flex-col font-sans transition-colors duration-200">
-      {/* Top Navigation */}
-      <header className="sticky top-0 z-50 bg-[var(--be-bg-canvas,#F5F3EE)] border-b border-[var(--be-border-subtle,#DEDAD0)] transition-colors">
+      {/* Top Navigation — Theme-Aware Frosted Glass Overlay */}
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? 'bg-[#F5F3EE]/95 dark:bg-[#080F1C]/85 backdrop-blur-md border-b border-[#E2DFD7] dark:border-white/10 shadow-sm dark:shadow-xl'
+            : 'bg-[#F5F3EE]/90 dark:bg-[#080F1C]/35 backdrop-blur-md border-b border-[#E2DFD7]/80 dark:border-white/10'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           {/* Brand Logo */}
           <BrandLogo
@@ -92,26 +122,61 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           />
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-7 text-xs font-semibold text-[var(--be-text-secondary,#555C66)]">
-            <a href="#network" className="hover:text-[var(--be-accent,#A78343)] transition-colors">
+          <nav className="hidden lg:flex items-center space-x-7 text-xs font-semibold">
+            <a
+              href="#network"
+              className={`transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0788D1]/40 rounded-sm ${
+                activeSection === 'network'
+                  ? 'text-[#0788D1] dark:text-[#F4B942] font-bold'
+                  : 'text-[#1B2638] dark:text-slate-200 hover:text-[#0788D1] dark:hover:text-[#F4B942]'
+              }`}
+            >
               Skill Alignment
             </a>
-            <a href="#journey" className="hover:text-[var(--be-accent,#A78343)] transition-colors">
+            <a
+              href="#journey"
+              className={`transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0788D1]/40 rounded-sm ${
+                activeSection === 'journey'
+                  ? 'text-[#0788D1] dark:text-[#F4B942] font-bold'
+                  : 'text-[#1B2638] dark:text-slate-200 hover:text-[#0788D1] dark:hover:text-[#F4B942]'
+              }`}
+            >
               How It Works
             </a>
-            <a href="#cockpit" className="hover:text-[var(--be-accent,#A78343)] transition-colors">
+            <a
+              href="#cockpit"
+              className={`transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0788D1]/40 rounded-sm ${
+                activeSection === 'cockpit'
+                  ? 'text-[#0788D1] dark:text-[#F4B942] font-bold'
+                  : 'text-[#1B2638] dark:text-slate-200 hover:text-[#0788D1] dark:hover:text-[#F4B942]'
+              }`}
+            >
               Job Match Preview
             </a>
-            <a href="#integrity" className="hover:text-[var(--be-accent,#A78343)] transition-colors">
+            <a
+              href="#integrity"
+              className={`transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0788D1]/40 rounded-sm ${
+                activeSection === 'integrity'
+                  ? 'text-[#0788D1] dark:text-[#F4B942] font-bold'
+                  : 'text-[#1B2638] dark:text-slate-200 hover:text-[#0788D1] dark:hover:text-[#F4B942]'
+              }`}
+            >
               Integrity Standard
             </a>
-            <a href="#jobs" className="hover:text-[var(--be-accent,#A78343)] transition-colors">
+            <a
+              href="#jobs"
+              className={`transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0788D1]/40 rounded-sm ${
+                activeSection === 'jobs'
+                  ? 'text-[#0788D1] dark:text-[#F4B942] font-bold'
+                  : 'text-[#1B2638] dark:text-slate-200 hover:text-[#0788D1] dark:hover:text-[#F4B942]'
+              }`}
+            >
               Live Vacancies
             </a>
             {onOpenPricing && (
               <button
                 onClick={onOpenPricing}
-                className="hover:text-[var(--be-accent,#A78343)] transition-colors font-semibold cursor-pointer"
+                className="text-[#1B2638] dark:text-slate-200 hover:text-[#0788D1] dark:hover:text-[#F4B942] transition-colors font-semibold cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0788D1]/40 rounded-sm"
               >
                 Pricing
               </button>
@@ -119,7 +184,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {onOpenAbout && (
               <button
                 onClick={onOpenAbout}
-                className="hover:text-[var(--be-accent,#A78343)] transition-colors font-semibold cursor-pointer"
+                className="text-[#1B2638] dark:text-slate-200 hover:text-[#0788D1] dark:hover:text-[#F4B942] transition-colors font-semibold cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0788D1]/40 rounded-sm"
               >
                 About Us
               </button>
@@ -133,7 +198,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => onOpenAuth('login')}
               aria-label="Sign In"
               data-testid="sign-in-button"
-              className="px-4 py-2 text-xs font-semibold text-[var(--be-text-secondary,#555C66)] hover:text-[var(--be-accent,#A78343)] transition-colors cursor-pointer"
+              className="px-4 py-2 text-xs font-semibold text-[#1B2638] hover:text-[#0788D1] dark:text-slate-200 dark:hover:text-white transition-colors cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0788D1]/40 rounded-lg"
             >
               Sign In
             </button>
@@ -141,10 +206,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => onOpenAuth('signup')}
               aria-label="Getting Started"
               data-testid="getting-started-button"
-              className="group px-5 py-2.5 rounded-xl text-xs font-semibold text-[var(--be-accent-contrast,#FFFFFF)] transition-all flex items-center space-x-1.5 shadow-xs cursor-pointer"
-              style={{
-                backgroundColor: 'var(--be-accent, #A78343)',
-              }}
+              className="group px-5 py-2.5 rounded-xl text-xs font-bold text-[#080F1C] bg-[#F4B942] hover:bg-[#F3B748] transition-all flex items-center space-x-1.5 shadow-md cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#F4B942]/60"
             >
               <span>Get Started Free</span>
               <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -156,49 +218,49 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <GlobalThemeSwitch size="sm" />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-[var(--be-text-secondary,#555C66)] hover:text-[var(--be-text-primary,#20242B)] transition-colors"
+              className="p-2 text-[#1B2638] hover:text-[#0788D1] dark:text-slate-200 dark:hover:text-white transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0788D1]/40 rounded-lg"
               aria-label="Toggle navigation menu"
             >
-              {mobileMenuOpen ? <CloseIcon className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {mobileMenuOpen ? <CloseIcon className="h-6 w-6 text-current" /> : <Menu className="h-6 w-6 text-current" />}
             </button>
           </div>
         </div>
 
         {/* Mobile dropdown drawer */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-[var(--be-bg-card,#FFFFFF)] border-b border-[var(--be-border-subtle,#DEDAD0)] px-6 py-6 space-y-4 text-xs font-semibold text-[var(--be-text-secondary,#555C66)] animate-in fade-in slide-in-from-top-2 shadow-xs">
+          <div className="lg:hidden bg-[#F5F3EE]/95 dark:bg-[#080F1C]/95 backdrop-blur-xl border-b border-[#E2DFD7] dark:border-white/10 px-6 py-6 space-y-4 text-xs font-semibold text-[#1B2638] dark:text-slate-200 animate-in fade-in slide-in-from-top-2 shadow-xl">
             <a
               href="#network"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-[var(--be-accent,#A78343)]"
+              className="block py-2 text-[#1B2638] hover:text-[#0788D1] dark:text-slate-200 dark:hover:text-[#F4B942]"
             >
               Skill Alignment
             </a>
             <a
               href="#journey"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-[var(--be-accent,#A78343)]"
+              className="block py-2 text-[#1B2638] hover:text-[#0788D1] dark:text-slate-200 dark:hover:text-[#F4B942]"
             >
               How It Works
             </a>
             <a
               href="#cockpit"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-[var(--be-accent,#A78343)]"
+              className="block py-2 text-[#1B2638] hover:text-[#0788D1] dark:text-slate-200 dark:hover:text-[#F4B942]"
             >
               Job Match Preview
             </a>
             <a
               href="#integrity"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-[var(--be-accent,#A78343)]"
+              className="block py-2 text-[#1B2638] hover:text-[#0788D1] dark:text-slate-200 dark:hover:text-[#F4B942]"
             >
               Integrity Standard
             </a>
             <a
               href="#jobs"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 hover:text-[var(--be-accent,#A78343)]"
+              className="block py-2 text-[#1B2638] hover:text-[#0788D1] dark:text-slate-200 dark:hover:text-[#F4B942]"
             >
               Live Vacancies
             </a>
@@ -208,7 +270,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenPricing();
                 }}
-                className="block w-full text-left py-2 hover:text-[var(--be-accent,#A78343)]"
+                className="block w-full text-left py-2 text-[#1B2638] hover:text-[#0788D1] dark:text-slate-200 dark:hover:text-[#F4B942]"
               >
                 Pricing
               </button>
@@ -219,18 +281,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenAbout();
                 }}
-                className="block w-full text-left py-2 hover:text-[var(--be-accent,#A78343)]"
+                className="block w-full text-left py-2 text-[#1B2638] hover:text-[#0788D1] dark:text-slate-200 dark:hover:text-[#F4B942]"
               >
                 About Us
               </button>
             )}
-            <div className="pt-4 border-t border-[var(--be-border-subtle,#DEDAD0)] flex flex-col space-y-2">
+            <div className="pt-4 border-t border-[#E2DFD7] dark:border-white/10 flex flex-col space-y-2">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onOpenAuth('login');
                 }}
-                className="w-full py-2.5 rounded-xl bg-[var(--be-bg-card,#FFFFFF)] border border-[var(--be-border-subtle,#DEDAD0)] hover:bg-[var(--be-bg-elevated,#FAF8F5)] flex items-center justify-center font-semibold text-[var(--be-text-secondary,#555C66)] transition-colors cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-slate-200/80 hover:bg-slate-300/80 border border-slate-300/60 dark:bg-white/5 dark:border-white/15 dark:hover:bg-white/10 flex items-center justify-center font-semibold text-[#1B2638] dark:text-white transition-colors cursor-pointer"
               >
                 Sign In
               </button>
@@ -239,10 +301,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   setMobileMenuOpen(false);
                   onOpenAuth('signup');
                 }}
-                className="w-full py-2.5 rounded-xl text-[var(--be-accent-contrast,#FFFFFF)] font-semibold flex items-center justify-center transition-colors shadow-xs cursor-pointer"
-                style={{
-                  backgroundColor: 'var(--be-accent, #A78343)',
-                }}
+                className="w-full py-2.5 rounded-xl text-[#080F1C] bg-[#F4B942] hover:bg-[#F3B748] font-bold flex items-center justify-center transition-colors shadow-md cursor-pointer"
               >
                 Get Started Free
               </button>

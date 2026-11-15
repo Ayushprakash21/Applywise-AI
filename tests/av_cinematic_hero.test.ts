@@ -35,13 +35,21 @@ describe('ApplyWise AI — Cinematic AV Hero & Homepage Structure Suite', () => 
     assert.match(landingSrc, /<AvCinematicHero[\s\S]*?<section id="journey"/, 'AvCinematicHero is the primary hero preceding journey');
   });
 
-  test('3. AvCinematicHero Layout: 40/60 Proportions, Typography & CTAs', () => {
-    // 40/60 Layout in CSS
-    assert.match(heroCssSrc, /max-width:\s*42%/, 'Left column must be ~40% width in desktop layout');
-    assert.match(heroCssSrc, /max-width:\s*58%/, 'Right column must be ~60% width in desktop layout');
+  test('3. AvCinematicHero Layout: Full-Width Cinematic Artwork Layer, Typography & CTAs', () => {
+    // Full-width artwork backdrop layer
+    assert.match(heroTsxSrc, /av-hero-artwork-backdrop/, 'Must render full-section artwork backdrop layer');
+    assert.match(heroCssSrc, /\.av-hero-artwork-backdrop/, 'CSS defines full-section artwork layer');
 
-    // Brand pill & Headline
-    assert.match(heroTsxSrc, /data-testid="av-brand-pill"/, 'Must render AV Brand Pill');
+    // Readability gradient overlay
+    assert.match(heroTsxSrc, /av-hero-gradient-overlay/, 'Must render controlled readability gradient overlay');
+    assert.match(heroCssSrc, /\.av-hero-gradient-overlay/, 'CSS defines controlled readability gradient');
+
+    // Brand pill is removed per user instruction
+    assert.ok(!heroTsxSrc.includes('data-testid="av-brand-pill"'), 'Brand pill must be completely removed');
+
+    // High-contrast headline colors
+    assert.match(heroTsxSrc, /av-headline-white/, 'Headline uses pure white styling for high contrast');
+    assert.match(heroTsxSrc, /av-headline-gold/, 'Headline uses warm gold styling for accent');
     assert.match(heroTsxSrc, /India(?:'|&apos;|&#39;)s First/, 'Headline contains "India\'s First"');
     assert.match(heroTsxSrc, /AI-Powered Job/, 'Headline contains "AI-Powered Job"');
     assert.match(heroTsxSrc, /Discovery &amp; Application/, 'Headline contains "Discovery & Application"');
@@ -51,12 +59,10 @@ describe('ApplyWise AI — Cinematic AV Hero & Homepage Structure Suite', () => 
     assert.match(heroTsxSrc, /Explore How It Works/, 'Secondary CTA must be "Explore How It Works"');
   });
 
-  test('4. Capability Strip Below Hero', () => {
-    assert.match(heroTsxSrc, /Trusted by professionals for smarter career growth/, 'Must feature official capability strip heading');
-    assert.match(heroTsxSrc, /AI Job Discovery/, 'Pill 1: AI Job Discovery');
-    assert.match(heroTsxSrc, /Resume Intelligence/, 'Pill 2: Resume Intelligence');
-    assert.match(heroTsxSrc, /Application Automation/, 'Pill 3: Application Automation');
-    assert.match(heroTsxSrc, /Career Insights/, 'Pill 4: Career Insights');
+  test('4. Capability Trust Strip Removed Per Visual Instructions', () => {
+    // The bottom trust strip is removed per instructions
+    assert.ok(!heroTsxSrc.includes('av-trust-strip'), 'Capability strip must be completely removed');
+    assert.ok(!heroTsxSrc.includes('Trusted by professionals for smarter career growth'), 'Trust heading must be removed');
   });
 
   test('5. Multi-Layer Canvas Animation Engine (Image 2 Artwork)', () => {
@@ -103,5 +109,22 @@ describe('ApplyWise AI — Cinematic AV Hero & Homepage Structure Suite', () => 
     assert.match(footerSrc, /Made in India/, 'Footer features Made in India badge');
     assert.match(footerSrc, /LinkedIn/i, 'Footer features LinkedIn link');
     assert.match(footerSrc, /#080F1C/, 'Footer background uses Deep Navy #080F1C');
+  });
+
+  test('8. Founder Section Visual Corrections: Editorial Eyebrow & Single-Line Heading', () => {
+    const founderPath = path.resolve('src/components/FounderSection.tsx');
+    const founderSrc = fs.readFileSync(founderPath, 'utf8');
+
+    // Editorial eyebrow instead of AI-style badge
+    assert.match(founderSrc, /Meet the Founder/, 'Features "Meet the Founder" label');
+    assert.match(founderSrc, /text-\[14px\]\s*sm:text-\[16px\]/, 'Eyebrow has prominent 15-17px desktop typography');
+    assert.match(founderSrc, /tracking-\[0\.18em\]/, 'Eyebrow has clear letter spacing');
+    assert.ok(!founderSrc.includes('rounded-full text-xs font-mono'), 'No oversized AI pill background on Meet the Founder');
+    assert.ok(!founderSrc.includes('<Sparkles className="h-3.5 w-3.5 text-cyan-400" />'), 'No unnecessary decorative sparkles icon');
+
+    // Single-line desktop heading
+    assert.match(founderSrc, /Built with ambition\.\s*Powered by AI\./, 'Features verified founder headline');
+    assert.match(founderSrc, /md:whitespace-nowrap/, 'Heading enforces single-line rendering on desktop viewports');
+    assert.match(founderSrc, /max-w-5xl/, 'Container has expanded max-width to accommodate single-line headline');
   });
 });

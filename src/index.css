@@ -424,12 +424,16 @@ body.theme-black {
 
 /* Navigation items in sidebar & mobile */
 .theme-black aside button:not([class*="rounded-full"]),
-.theme-black nav button {
+.theme-black aside nav button,
+.theme-black nav[aria-label="Mobile Navigation"] button,
+.theme-black nav:not(header nav) button {
   color: var(--be-text-secondary, #C0BDB5) !important;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .theme-black aside button:hover:not([class*="border-violet-400"]),
-.theme-black nav button:hover:not([class*="font-bold"]) {
+.theme-black aside nav button:hover:not([class*="font-bold"]),
+.theme-black nav[aria-label="Mobile Navigation"] button:hover:not([class*="font-bold"]),
+.theme-black nav:not(header nav) button:hover:not([class*="font-bold"]) {
   color: var(--be-text-primary, #F2F0EA) !important;
   background-color: var(--be-hover-bg, rgba(255, 255, 255, 0.04)) !important;
 }
@@ -1019,30 +1023,106 @@ input.border-0 {
 
 /* Sidebar navigation buttons in Light Mode */
 .theme-black-light aside button:not([class*="rounded-full"]),
-.theme-black-light nav button,
+.theme-black-light aside nav button,
+.theme-black-light nav[aria-label="Mobile Navigation"] button,
+.theme-black-light nav:not(header nav) button,
 [data-be-appearance="light"] aside button:not([class*="rounded-full"]),
-[data-be-appearance="light"] nav button {
+[data-be-appearance="light"] aside nav button,
+[data-be-appearance="light"] nav[aria-label="Mobile Navigation"] button,
+[data-be-appearance="light"] nav:not(header nav) button {
   color: var(--be-text-secondary, #555C66) !important;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .theme-black-light aside button:hover:not([class*="border-violet-400"]),
-.theme-black-light nav button:hover:not([class*="font-bold"]),
+.theme-black-light aside nav button:hover:not([class*="font-bold"]),
+.theme-black-light nav[aria-label="Mobile Navigation"] button:hover:not([class*="font-bold"]),
+.theme-black-light nav:not(header nav) button:hover:not([class*="font-bold"]),
 [data-be-appearance="light"] aside button:hover:not([class*="border-violet-400"]),
-[data-be-appearance="light"] nav button:hover:not([class*="font-bold"]) {
+[data-be-appearance="light"] aside nav button:hover:not([class*="font-bold"]),
+[data-be-appearance="light"] nav[aria-label="Mobile Navigation"] button:hover:not([class*="font-bold"]),
+[data-be-appearance="light"] nav:not(header nav) button:hover:not([class*="font-bold"]) {
   color: var(--be-text-primary, #20242B) !important;
   background-color: var(--be-hover-bg, rgba(0, 0, 0, 0.04)) !important;
 }
 
 .theme-black-light aside button[class*="border-violet-400"],
-.theme-black-light aside button[class*="text-blue-700"],
 .theme-black-light aside button[class*="from-blue-600"],
-.theme-black-light nav button[class*="font-bold"],
-[data-be-appearance="light"] aside button[class*="border-violet-400"],
-[data-be-appearance="light"] nav button[class*="font-bold"] {
+[data-be-appearance="light"] aside button[class*="border-violet-400"] {
   background: var(--be-nav-active-bg, rgba(167, 131, 67, 0.12)) !important;
   border: 1px solid var(--be-nav-active-border, #DCC69D) !important;
   color: var(--be-nav-active-text, #A78343) !important;
   box-shadow: none !important;
+}
+
+/* ApplyWise Header Navigation Links in Light & Dark Mode */
+.theme-black-light header nav a,
+.theme-black-light header nav button,
+[data-be-appearance="light"] header nav a,
+[data-be-appearance="light"] header nav button,
+:root:not(.dark) header nav a,
+:root:not(.dark) header nav button {
+  color: #1B2638 !important;
+}
+.theme-black-light header nav a:hover,
+.theme-black-light header nav button:hover,
+[data-be-appearance="light"] header nav a:hover,
+[data-be-appearance="light"] header nav button:hover,
+:root:not(.dark) header nav a:hover,
+:root:not(.dark) header nav button:hover {
+  color: #0788D1 !important;
+  background-color: transparent !important;
+}
+
+.dark header nav a,
+.dark header nav button,
+[data-be-appearance="dark"] header nav a,
+[data-be-appearance="dark"] header nav button {
+  color: #E2E8F0 !important;
+}
+.dark header nav a:hover,
+.dark header nav button:hover,
+[data-be-appearance="dark"] header nav a:hover,
+[data-be-appearance="dark"] header nav button:hover {
+  color: #F4B942 !important;
+  background-color: transparent !important;
+}
+
+/* Candidate User Sidebar & Mobile Drawer in Light Mode: Light blue-grey background & blue active indicator */
+.theme-black-light aside[data-user-sidebar="true"],
+[data-be-appearance="light"] aside[data-user-sidebar="true"] {
+  background: #F0F4F8 !important;
+  border-right: 1px solid #E2E8F0 !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+.theme-black-light aside[data-user-sidebar="true"] button.user-nav-item.active,
+[data-be-appearance="light"] aside[data-user-sidebar="true"] button.user-nav-item.active {
+  background: #FFFFFF !important;
+  border: 1px solid #BFDBFE !important;
+  color: #1D4ED8 !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+.theme-black-light aside[data-user-sidebar="true"] button.user-nav-item.active .active-indicator,
+[data-be-appearance="light"] aside[data-user-sidebar="true"] button.user-nav-item.active .active-indicator {
+  background: #2563EB !important;
+}
+
+.theme-black-light aside[data-user-sidebar="true"] button.user-nav-item.active svg,
+[data-be-appearance="light"] aside[data-user-sidebar="true"] button.user-nav-item.active svg {
+  color: #2563EB !important;
+}
+
+.theme-black-light .mobile-nav-drawer button.active,
+[data-be-appearance="light"] .mobile-nav-drawer button.active {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  border: 1px solid #1D4ED8 !important;
+}
+
+.theme-black-light .mobile-nav-drawer button.active svg,
+[data-be-appearance="light"] .mobile-nav-drawer button.active svg {
+  color: #FFFFFF !important;
 }
 
 .theme-black-light aside button [class*="bg-gradient-to-b from-blue-600"],
@@ -1060,37 +1140,35 @@ input.border-0 {
 }
 
 /* 2. Light Mode Typography Overrides */
-.theme-black-light h1,
-.theme-black-light h2,
-.theme-black-light h1:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
-.theme-black-light h2:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
-.theme-black-light h3:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
-.theme-black-light h4:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
-.theme-black-light h5:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
-.theme-black-light h6:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
-[data-be-appearance="light"] h1:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
-[data-be-appearance="light"] h2:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
-[data-be-appearance="light"] h3:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
-[data-be-appearance="light"] h4:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
-[data-be-appearance="light"] h5:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]),
-[data-be-appearance="light"] h6:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]) {
+.theme-black-light h1:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]),
+.theme-black-light h2:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]),
+.theme-black-light h3:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]),
+.theme-black-light h4:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]),
+.theme-black-light h5:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]),
+.theme-black-light h6:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]),
+[data-be-appearance="light"] h1:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]),
+[data-be-appearance="light"] h2:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]),
+[data-be-appearance="light"] h3:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]),
+[data-be-appearance="light"] h4:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]),
+[data-be-appearance="light"] h5:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]),
+[data-be-appearance="light"] h6:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]) {
   color: var(--be-text-primary, #191D24) !important;
   letter-spacing: -0.015em;
 }
 
-.theme-black-light p:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]):not([class*="text-slate-100"]):not([class*="text-blue-100"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-amber"]):not([class*="text-sky"]),
-.theme-black-light .text-slate-600:not([data-theme-surface="dark"] *):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]),
-.theme-black-light .text-slate-500:not([data-theme-surface="dark"] *):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]),
-[data-be-appearance="light"] p:not([data-theme-surface="dark"] *):not(.text-white):not([class*="text-white"]):not([class*="text-slate-100"]):not([class*="text-blue-100"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-amber"]):not([class*="text-sky"]),
-[data-be-appearance="light"] .text-slate-600:not([data-theme-surface="dark"] *):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]),
-[data-be-appearance="light"] .text-slate-500:not([data-theme-surface="dark"] *):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]) {
+.theme-black-light p:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]):not([class*="text-slate-100"]):not([class*="text-blue-100"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-amber"]):not([class*="text-sky"]),
+.theme-black-light .text-slate-600:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]),
+.theme-black-light .text-slate-500:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]),
+[data-be-appearance="light"] p:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not(.text-white):not([class*="text-white"]):not([class*="text-slate-100"]):not([class*="text-blue-100"]):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]):not([class*="text-amber"]):not([class*="text-sky"]),
+[data-be-appearance="light"] .text-slate-600:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]),
+[data-be-appearance="light"] .text-slate-500:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *):not([class*="text-rose"]):not([class*="text-red"]):not([class*="text-emerald"]):not([class*="text-green"]) {
   color: var(--be-text-secondary, #555C66) !important;
 }
 
-.theme-black-light .text-slate-400:not([data-theme-surface="dark"] *),
-.theme-black-light .text-gray-400:not([data-theme-surface="dark"] *),
-[data-be-appearance="light"] .text-slate-400:not([data-theme-surface="dark"] *),
-[data-be-appearance="light"] .text-gray-400:not([data-theme-surface="dark"] *) {
+.theme-black-light .text-slate-400:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *),
+.theme-black-light .text-gray-400:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *),
+[data-be-appearance="light"] .text-slate-400:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *),
+[data-be-appearance="light"] .text-gray-400:not([data-theme-surface="dark"] *):not([data-admin-workspace="dark"] *):not([data-admin-card="dark"] *):not(.admin-dark-card *) {
   color: var(--be-text-muted, #707782) !important;
 }
 
@@ -1146,6 +1224,83 @@ input.border-0 {
 .black-elite-theme-card p,
 [data-theme-variant="black-elite"] p {
   color: #D8D3C8 !important;
+}
+
+/* ==========================================================================
+   2d. APPLYWISE ADMIN CONSOLE — GROWTH ENGINE DARK WORKSPACE & THEME REPAIR
+   Centralized dark charcoal & gold token system with guaranteed light text contrast.
+   ========================================================================== */
+:root {
+  --admin-surface-main: #171717;
+  --admin-surface-secondary: #201D1A;
+  --admin-surface-elevated: #292521;
+  --admin-text-primary: #F5F5F4;
+  --admin-text-secondary: #D6D0C7;
+  --admin-text-muted: #A8A29E;
+  --admin-gold: #D6A84B;
+  --admin-gold-hover: #E8BD68;
+  --admin-border: #494139;
+  --admin-success: #10B981;
+  --admin-warning: #F59E0B;
+  --admin-danger: #F43F5E;
+  --admin-info: #38BDF8;
+}
+
+[data-admin-workspace="dark"],
+.admin-dark-workspace {
+  background-color: var(--admin-surface-main) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+[data-admin-workspace="dark"] h1,
+.admin-dark-workspace h1,
+[data-admin-workspace="dark"] h2,
+.admin-dark-workspace h2,
+[data-admin-workspace="dark"] h3,
+.admin-dark-workspace h3,
+[data-admin-workspace="dark"] h4,
+.admin-dark-workspace h4,
+[data-admin-workspace="dark"] h5,
+.admin-dark-workspace h5,
+[data-admin-workspace="dark"] h6,
+.admin-dark-workspace h6 {
+  color: var(--admin-text-primary) !important;
+}
+
+[data-admin-workspace="dark"] p,
+.admin-dark-workspace p {
+  color: var(--admin-text-secondary) !important;
+}
+
+/* Scoped surfaces for admin workspace cards */
+[data-admin-workspace="dark"] .admin-card-main,
+.admin-dark-workspace .admin-card-main {
+  background-color: var(--admin-surface-main) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+[data-admin-workspace="dark"] .admin-card-secondary,
+.admin-dark-workspace .admin-card-secondary {
+  background-color: var(--admin-surface-secondary) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+[data-admin-workspace="dark"] .admin-card-elevated,
+.admin-dark-workspace .admin-card-elevated {
+  background-color: var(--admin-surface-elevated) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Ensure admin dark workspace elements are never neutralized */
+.theme-black-light [data-admin-workspace="dark"],
+.theme-black-light .admin-dark-workspace,
+[data-be-appearance="light"] [data-admin-workspace="dark"],
+[data-be-appearance="light"] .admin-dark-workspace {
+  background-color: var(--admin-surface-main) !important;
+  color: var(--admin-text-primary) !important;
 }
 
 /* 3. SAFETY GUARDS — Neutralize hardcoded dark background classes in light mode */
@@ -1231,29 +1386,29 @@ input.border-0 {
 }
 
 /* Neutralize inverted light text classes in light mode */
-.theme-black-light [class*="text-[#F2F0EA]"],
-.theme-black-light [class*="text-[#F0F6FC]"],
-.theme-black-light [class*="text-[#F5F3FF]"],
-.theme-black-light [class*="text-[#F8FAFC]"],
-.theme-black-light [class*="text-[#F0FDF4]"],
-[data-be-appearance="light"] [class*="text-[#F2F0EA]"],
-[data-be-appearance="light"] [class*="text-[#F0F6FC]"],
-[data-be-appearance="light"] [class*="text-[#F5F3FF]"],
-[data-be-appearance="light"] [class*="text-[#F8FAFC]"],
-[data-be-appearance="light"] [class*="text-[#F0FDF4]"] {
+.theme-black-light [class*="text-[#F2F0EA]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+.theme-black-light [class*="text-[#F0F6FC]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+.theme-black-light [class*="text-[#F5F3FF]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+.theme-black-light [class*="text-[#F8FAFC]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+.theme-black-light [class*="text-[#F0FDF4]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+[data-be-appearance="light"] [class*="text-[#F2F0EA]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+[data-be-appearance="light"] [class*="text-[#F0F6FC]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+[data-be-appearance="light"] [class*="text-[#F5F3FF]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+[data-be-appearance="light"] [class*="text-[#F8FAFC]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+[data-be-appearance="light"] [class*="text-[#F0FDF4]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *) {
   color: var(--be-text-primary, #20242B) !important;
 }
 
-.theme-black-light [class*="text-[#C0BDB5]"],
-.theme-black-light [class*="text-[#94A3B8]"],
-.theme-black-light [class*="text-[#C4B5FD]"],
-.theme-black-light [class*="text-[#CBD5E1]"],
-.theme-black-light [class*="text-[#A7F3D0]"],
-[data-be-appearance="light"] [class*="text-[#C0BDB5]"],
-[data-be-appearance="light"] [class*="text-[#94A3B8]"],
-[data-be-appearance="light"] [class*="text-[#C4B5FD]"],
-[data-be-appearance="light"] [class*="text-[#CBD5E1]"],
-[data-be-appearance="light"] [class*="text-[#A7F3D0]"] {
+.theme-black-light [class*="text-[#C0BDB5]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+.theme-black-light [class*="text-[#94A3B8]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+.theme-black-light [class*="text-[#C4B5FD]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+.theme-black-light [class*="text-[#CBD5E1]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+.theme-black-light [class*="text-[#A7F3D0]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+[data-be-appearance="light"] [class*="text-[#C0BDB5]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+[data-be-appearance="light"] [class*="text-[#94A3B8]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+[data-be-appearance="light"] [class*="text-[#C4B5FD]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+[data-be-appearance="light"] [class*="text-[#CBD5E1]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *),
+[data-be-appearance="light"] [class*="text-[#A7F3D0]"]:not([data-admin-workspace="dark"] *):not(.admin-dark-workspace *) {
   color: var(--be-text-secondary, #555C66) !important;
 }
 
