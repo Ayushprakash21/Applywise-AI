@@ -129,7 +129,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
   const unreadCount = notifications.filter(n => !n.read).length;
   const isFounderAccount = isPermanentFreeAccessAccount(user);
-  const isAdmin = user.role === 'admin';
+  const isAdmin = user.role === 'admin' || user.role === 'super_admin';
 
   // Synchronize BLACK ELITE art-directed theme tokens and appearance on boot / plan change
   useEffect(() => {

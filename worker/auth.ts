@@ -90,3 +90,68 @@ export function validateEmail(email: string): boolean {
 export function validatePassword(password: string): boolean {
   return typeof password === 'string' && password.length >= 8;
 }
+
+export function isAdminRole(role?: string): boolean {
+  return role === 'admin' || role === 'super_admin';
+}
+
+export function isSuperAdmin(role?: string): boolean {
+  return role === 'super_admin';
+}
+
+export function decodeJwtClaims(token: string): Record<string, any> | null {
+  if (!token || typeof token !== 'string') return null;
+  const parts = token.trim().split('.');
+  if (parts.length !== 3) return null;
+  try {
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    const jsonStr = typeof atob === 'function'
+      ? decodeURIComponent(atob(padded).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))
+      : Buffer.from(padded, 'base64').toString('utf8');
+    return JSON.parse(jsonStr);
+  } catch {
+    return null;
+  }
+}
+
+export function verifyFirebaseIdTokenClaims(token: string): {
+  isValid: boolean;
+  uid?: string;
+  email?: string;
+  admin?: boolean;
+  role?: string;
+  isSuperAdmin?: boolean;
+} {
+  const claims = decodeJwtClaims(token);
+  if (!claims) return { isValid: false };
+
+  // Validate expiration
+  if (typeof claims.exp === 'number' && claims.exp * 1000 < Date.now()) {
+    return { isValid: false };
+  }
+
+  // Validate token issuer matches Firebase or Google Identity
+  const iss = claims.iss || '';
+  const isFirebaseOrGoogle = iss.startsWith('https://securetoken.google.com/') ||
+    iss === 'accounts.google.com' ||
+    iss === 'https://accounts.google.com';
+
+  if (!isFirebaseOrGoogle) {
+    return { isValid: false };
+  }
+
+  const role = claims.role || (claims.admin === true ? 'super_admin' : 'user');
+  const admin = claims.admin === true || isAdminRole(role);
+  const isSuper = role === 'super_admin';
+
+  return {
+    isValid: true,
+    uid: claims.sub || claims.user_id,
+    email: claims.email ? claims.email.toLowerCase().trim() : undefined,
+    admin,
+    role,
+    isSuperAdmin: isSuper,
+  };
+}

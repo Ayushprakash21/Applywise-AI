@@ -228,10 +228,10 @@ export default function App() {
 
   // Redirect candidate / non-admin users away from admin routes
   useEffect(() => {
-    if (!isCheckingSession && currentUser && currentUser.role !== 'admin' && (currentRoute === '/admin' || currentRoute === '/admin/gcde')) {
+    if (!isCheckingSession && currentUser && currentUser.role !== 'super_admin' && currentUser.role !== 'admin' && (currentRoute === '/admin' || currentRoute === '/admin/gcde')) {
       showToast('Access denied: Administrator privileges required.');
       navigateTo('/');
-    } else if (!isCheckingSession && currentUser && currentUser.role !== 'admin' && currentRoute === '/admin/growth-engine') {
+    } else if (!isCheckingSession && currentUser && currentUser.role !== 'super_admin' && currentUser.role !== 'admin' && currentRoute === '/admin/growth-engine') {
       showToast('Access denied: Administrator privileges required.');
       navigateTo('/');
     }
@@ -627,7 +627,7 @@ export default function App() {
           onNavigateRoute={route => navigateTo(route)}
         />
       ) : currentRoute === '/admin/growth-engine' ? (
-        currentUser && currentUser.role === 'admin' ? (
+        currentUser && (currentUser.role === 'admin' || currentUser.role === 'super_admin') ? (
           <AdminConsole
             currentUser={currentUser}
             initialTab="growth_engine"
@@ -649,7 +649,7 @@ export default function App() {
           />
         )
       ) : currentRoute === '/admin' || currentRoute === '/admin/gcde' ? (
-        currentUser && currentUser.role === 'admin' ? (
+        currentUser && (currentUser.role === 'admin' || currentUser.role === 'super_admin') ? (
           <AdminConsole
             currentUser={currentUser}
             initialTab={currentRoute === '/admin/gcde' ? 'sources' : 'overview'}

@@ -1,0 +1,100 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // -------------------------------------------------------------------------
+    // ApplyWise AI — Core Security Rules & Role-Based Access Control (RBAC)
+    // -------------------------------------------------------------------------
+
+    // Helper: Determine if caller is authenticated
+    function isAuthenticated() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    // Helper: Determine if caller has administrative privileges
+    // Checks verified Firebase custom claims: admin: true or role in ['admin', 'super_admin']
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.admin == true ||
+        request.auth.token.role == 'admin' ||
+        request.auth.token.role == 'super_admin'
+      );
+    }
+
+    // Helper: Determine if caller is a Super Administrator
+    function isSuperAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'super_admin'
+      );
+    }
+
+    // Helper: Determine if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 1. Admin Management & Internal Control Plane (Strict Admin Verification)
+    match /admin/{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // 2. System Configuration & Root Infrastructure (Strict Super Admin Only)
+    match /system/{document=**} {
+      allow read, write: if isSuperAdmin();
+    }
+
+    // 3. Immutable Security Audit Logs
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Append-only audit integrity
+    }
+
+    // 4. User Profiles & RBAC Self-Assignment Prevention
+    match /users/{userId} {
+      // Users can view their own profile; admins can inspect any profile
+      allow read: if isOwner(userId) || isAdmin();
+
+      // New registrations: role MUST default to 'user' or be omitted.
+      // Public users CANNOT assign themselves 'admin' or 'super_admin'.
+      allow create: if isAuthenticated() && isOwner(userId) && (
+        !('role' in request.resource.data) ||
+        request.resource.data.role == 'user'
+      ) && (
+        !('admin' in request.resource.data) ||
+        request.resource.data.admin == false
+      );
+
+      // Updates: Ordinary users cannot alter their role, admin claim, or permissions
+      allow update: if isSuperAdmin() || (
+        isAdmin() && resource.data.role != 'super_admin'
+      ) || (
+        isOwner(userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'admin', 'permissions', 'customClaims'])
+      );
+
+      // Deletion: Restricted strictly to Super Administrator
+      allow delete: if isSuperAdmin();
+    }
+
+    // 5. Candidate Documents, Resumes, and Applications (Strict Tenant Isolation)
+    match /users/{userId}/{subcollection}/{docId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // 6. Direct Employer Registry & Public Live Vacancies
+    match /employers/{employerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /vacancies/{vacancyId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Default deny all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

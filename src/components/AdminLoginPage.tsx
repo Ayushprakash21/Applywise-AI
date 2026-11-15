@@ -39,10 +39,10 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({
       }
 
       // Strict client verification of server-issued role
-      if (res.user.role !== 'admin') {
+      if (res.user.role !== 'super_admin' && res.user.role !== 'admin') {
         setIsAccessDenied(true);
         setErrorMessage(
-          `Access Denied: Account "${res.user.email}" authenticated successfully but is not assigned the "admin" role. Administrator privileges are required to access this console.`
+          `Access Denied: Account "${res.user.email}" authenticated successfully but is not assigned the "admin" or "super_admin" role. Administrator privileges are required to access this console.`
         );
         return;
       }

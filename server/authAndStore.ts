@@ -916,7 +916,22 @@ export const authAndStore = {
       throw new Error('Invalid email or password');
     }
 
-    const matches = bcrypt.compareSync(passwordPlain, userRow.password_hash);
+    let matches = false;
+    if (userRow.password_hash.startsWith('pbkdf2:')) {
+      const parts = userRow.password_hash.split(':');
+      if (parts.length === 3) {
+        const [, saltHex, expectedHashHex] = parts;
+        const salt = Buffer.from(saltHex, 'hex');
+        const calculatedKey = crypto.pbkdf2Sync(passwordPlain, salt, 100000, 32, 'sha256');
+        matches = crypto.timingSafeEqual(calculatedKey, Buffer.from(expectedHashHex, 'hex'));
+      }
+    } else {
+      try {
+        matches = bcrypt.compareSync(passwordPlain, userRow.password_hash);
+      } catch {
+        matches = false;
+      }
+    }
     if (!matches) {
       throw new Error('Invalid email or password');
     }
@@ -2959,7 +2974,7 @@ export const authAndStore = {
   // Real Database Queries for Administrator Overview & Users
   getRealAdminOverview() {
     const totalUsers = (sqlite.prepare('SELECT COUNT(*) as count FROM users').get() as any)?.count || 0;
-    const totalAdmins = (sqlite.prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").get() as any)?.count || 0;
+    const totalAdmins = (sqlite.prepare("SELECT COUNT(*) as count FROM users WHERE role IN ('admin', 'super_admin')").get() as any)?.count || 0;
     const totalApplications = (sqlite.prepare('SELECT COUNT(*) as count FROM applications').get() as any)?.count || 0;
     const totalResumes = (sqlite.prepare('SELECT COUNT(*) as count FROM resume_documents').get() as any)?.count || 0;
     const totalVacancies = (sqlite.prepare('SELECT COUNT(*) as count FROM cached_vacancies').get() as any)?.count || 0;

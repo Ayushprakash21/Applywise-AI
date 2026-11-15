@@ -284,6 +284,11 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
       return;
     }
 
+    if (targetUser.role === 'super_admin') {
+      setError('Super Administrator accounts are protected and cannot be modified from the standard user list.');
+      return;
+    }
+
     const nextRole = targetUser.role === 'admin' ? 'user' : 'admin';
     const confirmMsg = nextRole === 'admin'
       ? `Are you sure you want to GRANT full administrator privileges to ${targetUser.email}?`
@@ -1160,7 +1165,12 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                             <div className="text-[11px] text-[#92949A] font-mono">{u.email}</div>
                           </td>
                           <td className="px-5 py-3.5">
-                            {u.role === 'admin' ? (
+                            {u.role === 'super_admin' ? (
+                              <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-[rgba(244,185,66,0.22)] border border-[rgba(244,185,66,0.45)] text-[#F4B942] font-extrabold text-[10px] tracking-wide uppercase">
+                                <Shield className="h-3 w-3" />
+                                <span>SUPER ADMIN</span>
+                              </span>
+                            ) : u.role === 'admin' ? (
                               <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-[rgba(198,166,106,0.18)] border border-[rgba(198,166,106,0.35)] text-[#C6A66A] font-extrabold text-[10px] tracking-wide uppercase">
                                 <Shield className="h-3 w-3" />
                                 <span>ADMIN</span>
@@ -1194,6 +1204,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({
                           <td className="px-5 py-3.5 text-right">
                             {u.id === currentUser.id ? (
                               <span className="text-[11px] text-[#737780] italic">Current Session</span>
+                            ) : u.role === 'super_admin' ? (
+                              <span className="text-[11px] text-[#F4B942] font-semibold italic">Protected</span>
                             ) : (
                               <button
                                 type="button"

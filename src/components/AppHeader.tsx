@@ -70,7 +70,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   const unreadCount = notifications.filter(n => !n.read).length;
   const isFounderAccount = isPermanentFreeAccessAccount(user);
-  const isAdmin = user.role === 'admin';
+  const isAdmin = user.role === 'admin' || user.role === 'super_admin';
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

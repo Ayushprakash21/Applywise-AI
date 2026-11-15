@@ -164,6 +164,14 @@ export interface AuthUser {
   avatarUrl?: string | null;
 }
 
+export function isAdminRole(role?: string): boolean {
+  return role === 'admin' || role === 'super_admin';
+}
+
+export function isSuperAdmin(role?: string): boolean {
+  return role === 'super_admin';
+}
+
 export class ApiError extends Error {
   status: number;
   data?: any;

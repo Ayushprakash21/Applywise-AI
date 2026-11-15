@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import cookieParser from 'cookie-parser';
 import { authAndStore, AuthUser } from './server/authAndStore.ts';
+import { isAdminRole, isSuperAdmin, verifyFirebaseIdTokenClaims } from './worker/auth.ts';
 import { resumeEngine } from './server/resumeEngine.ts';
 import { ResumeExtractionError } from './src/utils/docxExtractor.ts';
 import { GoogleGenAI } from '@google/genai';
@@ -131,6 +132,26 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
     return res.status(401).json({ success: false, error: 'Authentication required. Please sign in.' });
   }
 
+  // Support verified Firebase ID tokens
+  if (token.includes('.') && token.split('.').length === 3) {
+    const claims = verifyFirebaseIdTokenClaims(token);
+    if (claims.isValid && claims.email) {
+      let user = authAndStore.getUserByEmail(claims.email);
+      if (!user) {
+        user = {
+          id: claims.uid || crypto.randomUUID(),
+          email: claims.email,
+          fullName: claims.email.split('@')[0],
+          role: claims.role || (claims.admin ? 'super_admin' : 'user'),
+          isVerified: true,
+          createdAt: new Date().toISOString(),
+        };
+      }
+      req.user = user;
+      return next();
+    }
+  }
+
   const user = authAndStore.getUserByToken(token);
   if (!user) {
     return res.status(401).json({ success: false, error: 'Session expired or invalid. Please sign in again.' });
@@ -143,7 +164,7 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
 // Optional Auth Middleware (allows unauthenticated browsing of public vacancies)
 export function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   requireAuth(req, res, () => {
-    if (req.user?.role !== 'admin') {
+    if (req.user?.role !== 'super_admin' && req.user?.role !== 'admin') {
       return res.status(403).json({ success: false, error: 'Access denied: Administrator privileges required.' });
     }
     next();

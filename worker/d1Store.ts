@@ -696,7 +696,7 @@ export class D1Store {
     }
   }
 
-  async updateUserRole(userId: string, newRole: 'admin' | 'user'): Promise<void> {
+  async updateUserRole(userId: string, newRole: 'super_admin' | 'admin' | 'user' | string): Promise<void> {
     const now = new Date().toISOString();
     await this.db.prepare('UPDATE users SET role = ?, updated_at = ? WHERE id = ?').bind(newRole, now, userId).run();
   }
@@ -726,7 +726,7 @@ export class D1Store {
 
     const [totalUsers, totalAdmins, totalApplications, totalResumes, totalVacancies, activeSubscriptions] = await Promise.all([
       safeCount('SELECT COUNT(*) as count FROM users'),
-      safeCount("SELECT COUNT(*) as count FROM users WHERE role = 'admin'"),
+      safeCount("SELECT COUNT(*) as count FROM users WHERE role IN ('admin', 'super_admin')"),
       safeCount('SELECT COUNT(*) as count FROM applications'),
       safeCount('SELECT COUNT(*) as count FROM resume_documents'),
       getVacanciesCount(),

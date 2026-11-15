@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { D1Store, AuthUser } from './d1Store.ts';
-import { hashPassword, verifyPassword, generateSessionToken, validateEmail, validatePassword } from './auth.ts';
+import { hashPassword, verifyPassword, generateSessionToken, validateEmail, validatePassword, isAdminRole, isSuperAdmin, verifyFirebaseIdTokenClaims } from './auth.ts';
 import { workerResumeEngine } from './resumeEngine.ts';
 import { MAX_RESUME_UPLOAD_BYTES, ResumeExtractionError } from '../src/utils/docxExtractor.ts';
 import { calculateExtractionDiff, mergeProfileSafely } from '../src/utils/resumeReprocessing.ts';
@@ -151,6 +151,33 @@ async function requireAuth(c: any, next: any) {
   if (!token) {
     return c.json({ success: false, error: 'Authentication required. Please sign in.' }, 401);
   }
+
+  // Support verified Firebase ID tokens
+  if (token.includes('.') && token.split('.').length === 3) {
+    const claims = verifyFirebaseIdTokenClaims(token);
+    if (claims.isValid && claims.email) {
+      const store: D1Store = c.get('store');
+      const row = await store.getUserByEmail(claims.email);
+      const authUser: AuthUser = row ? {
+        id: row.id,
+        email: row.email,
+        fullName: row.full_name,
+        role: row.role,
+        isVerified: !!row.is_verified,
+        createdAt: row.created_at,
+      } : {
+        id: claims.uid || crypto.randomUUID(),
+        email: claims.email,
+        fullName: claims.email.split('@')[0],
+        role: claims.role || (claims.admin ? 'super_admin' : 'user'),
+        isVerified: true,
+        createdAt: new Date().toISOString(),
+      };
+      c.set('user', authUser);
+      return await next();
+    }
+  }
+
   const store: D1Store = c.get('store');
   const user = await store.getUserByToken(token);
   if (!user) {
@@ -160,18 +187,45 @@ async function requireAuth(c: any, next: any) {
   await next();
 }
 
-// Auth Middleware: Administrator (Role-Based Server-Side Authorization)
+// Auth Middleware: Administrator (Role-Based Server-Side Authorization for super_admin & admin)
 async function requireAdmin(c: any, next: any) {
   const token = getRequestToken(c);
   if (!token) {
     return c.json({ success: false, error: 'Authentication required. Please sign in.' }, 401);
   }
+
+  // Support verified Firebase ID tokens with admin/super_admin claims
+  if (token.includes('.') && token.split('.').length === 3) {
+    const claims = verifyFirebaseIdTokenClaims(token);
+    if (claims.isValid && (claims.admin || isAdminRole(claims.role))) {
+      const store: D1Store = c.get('store');
+      const row = claims.email ? await store.getUserByEmail(claims.email) : null;
+      const authUser: AuthUser = row ? {
+        id: row.id,
+        email: row.email,
+        fullName: row.full_name,
+        role: row.role,
+        isVerified: !!row.is_verified,
+        createdAt: row.created_at,
+      } : {
+        id: claims.uid || crypto.randomUUID(),
+        email: claims.email || 'admin@applyvise.ai',
+        fullName: claims.email ? claims.email.split('@')[0] : 'Administrator',
+        role: claims.role || 'super_admin',
+        isVerified: true,
+        createdAt: new Date().toISOString(),
+      };
+      c.set('user', authUser);
+      return await next();
+    }
+  }
+
   const store: D1Store = c.get('store');
   const user = await store.getUserByToken(token);
   if (!user) {
     return c.json({ success: false, error: 'Session expired or invalid. Please sign in again.' }, 401);
   }
-  if (user.role !== 'admin') {
+  if (user.role !== 'super_admin' && user.role !== 'admin') {
     return c.json({ success: false, error: 'Access denied: Administrator privileges required.' }, 403);
   }
   c.set('user', user);
@@ -3647,12 +3701,17 @@ app.post('/api/admin/users/:id/role', requireAdmin, async (c) => {
     const targetUserId = c.req.param('id');
     const { newRole } = await c.req.json();
 
-    if (newRole !== 'admin' && newRole !== 'user') {
-      return c.json({ success: false, error: 'Invalid role specified. Role must be either "admin" or "user".' }, 400);
+    if (newRole !== 'super_admin' && newRole !== 'admin' && newRole !== 'user') {
+      return c.json({ success: false, error: 'Invalid role specified. Role must be "super_admin", "admin", or "user".' }, 400);
+    }
+
+    // Only a super_admin can assign or revoke super_admin privileges
+    if (newRole === 'super_admin' && adminUser.role !== 'super_admin') {
+      return c.json({ success: false, error: 'Only a Super Administrator can assign the super_admin role.' }, 403);
     }
 
     // Prevent self-demotion
-    if (targetUserId === adminUser.id && newRole !== 'admin') {
+    if (targetUserId === adminUser.id && (adminUser.role === 'super_admin' ? newRole !== 'super_admin' : newRole !== 'admin')) {
       return c.json({ success: false, error: 'Cannot demote your own administrator account. Another admin must perform this action.' }, 400);
     }
 

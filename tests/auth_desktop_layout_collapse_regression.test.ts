@@ -34,7 +34,7 @@ test('APPLYVISE AI — Auth Desktop Layout Collapse Regression Suite', async (t)
   });
 
   await t.test('4. AuthHeader Navigation Links Never Wrap Individually', () => {
-    assert.match(headerSrc, /whitespace-nowrap transition-colors hover:text-slate-900/, 'Nav links must have whitespace-nowrap');
+    assert.match(headerSrc, /whitespace-nowrap transition-colors (?:hover:text-slate-900|hover:text-\[#0788D1\])/, 'Nav links must have whitespace-nowrap');
     assert.match(headerSrc, /mobileMenuOpen/, 'AuthHeader must provide mobile menu toggle');
   });
 
