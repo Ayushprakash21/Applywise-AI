@@ -9,6 +9,9 @@ import {
   SmartRecruitersSourceAdapter,
   CustomCareersSourceAdapter,
 } from './atsAdapters.ts';
+import { WorkdaySourceAdapter } from './workdayAdapter.ts';
+import { BambooHRSourceAdapter } from './bamboohrAdapter.ts';
+import { SchemaOrgJobAdapter } from './schemaOrgAdapter.ts';
 
 export interface CompanyRegistryEntry {
   companyName: string;
@@ -16,7 +19,7 @@ export interface CompanyRegistryEntry {
   country: string;
   website: string;
   careersUrl: string;
-  atsPlatform: 'greenhouse' | 'lever' | 'ashby' | 'smartrecruiters' | 'workday' | 'custom';
+  atsPlatform: 'greenhouse' | 'lever' | 'ashby' | 'smartrecruiters' | 'workday' | 'bamboohr' | 'schema_org' | 'custom';
   tokenOrSlug: string;
   recruitmentInboxes?: string[];
 }
@@ -175,6 +178,46 @@ export const CURATED_COMPANY_REGISTRY: CompanyRegistryEntry[] = [
     tokenOrSlug: 'supabase',
     recruitmentInboxes: ['careers@supabase.com'],
   },
+  {
+    companyName: 'Walmart Global Tech',
+    category: 'global_product',
+    country: 'India / US',
+    website: 'https://walmart.com',
+    careersUrl: 'https://walmart.wd5.myworkdayjobs.com/WalmartExternal',
+    atsPlatform: 'workday',
+    tokenOrSlug: 'walmart',
+    recruitmentInboxes: ['globaltalent@walmart.com'],
+  },
+  {
+    companyName: 'Target India',
+    category: 'global_product',
+    country: 'India / US',
+    website: 'https://target.com',
+    careersUrl: 'https://target.wd5.myworkdayjobs.com/targetcareers',
+    atsPlatform: 'workday',
+    tokenOrSlug: 'target',
+    recruitmentInboxes: ['careers.india@target.com'],
+  },
+  {
+    companyName: 'Bosch Global Tech',
+    category: 'global_product',
+    country: 'Germany / India',
+    website: 'https://bosch.com',
+    careersUrl: 'https://careers.smartrecruiters.com/BoschGroup',
+    atsPlatform: 'smartrecruiters',
+    tokenOrSlug: 'BoschGroup',
+    recruitmentInboxes: ['careers@bosch.com'],
+  },
+  {
+    companyName: 'GitLab',
+    category: 'remote_startup',
+    country: 'Remote Worldwide',
+    website: 'https://gitlab.com',
+    careersUrl: 'https://about.gitlab.com/jobs/all-jobs',
+    atsPlatform: 'greenhouse',
+    tokenOrSlug: 'gitlab',
+    recruitmentInboxes: ['talent-acquisition@gitlab.com'],
+  },
 ];
 
 /**
@@ -192,6 +235,12 @@ export function buildCompanyAdapters(): JobSourceAdapter[] {
       adapters.push(new AshbySourceAdapter(comp.companyName, comp.tokenOrSlug));
     } else if (comp.atsPlatform === 'smartrecruiters') {
       adapters.push(new SmartRecruitersSourceAdapter(comp.companyName, comp.tokenOrSlug));
+    } else if (comp.atsPlatform === 'workday') {
+      adapters.push(new WorkdaySourceAdapter(comp.companyName, comp.tokenOrSlug));
+    } else if (comp.atsPlatform === 'bamboohr') {
+      adapters.push(new BambooHRSourceAdapter(comp.companyName, comp.tokenOrSlug));
+    } else if (comp.atsPlatform === 'schema_org') {
+      adapters.push(new SchemaOrgJobAdapter(comp.companyName, comp.careersUrl));
     } else {
       adapters.push(new CustomCareersSourceAdapter(comp.companyName, comp.careersUrl));
     }

@@ -176,3 +176,7 @@ export * from './types.ts';
 export * from './atsAdapters.ts';
 export * from './marketplaceAdapters.ts';
 export * from './companyAdapters.ts';
+export * from './workdayAdapter.ts';
+export * from './bamboohrAdapter.ts';
+export * from './schemaOrgAdapter.ts';
+export * from './rssAdapter.ts';

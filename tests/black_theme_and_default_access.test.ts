@@ -139,11 +139,12 @@ describe('APPLYVISE AI — BLACK Plan Default Access & Global BLACK/Gold UI Suit
   });
 
   it('9. Pricing Page accurately reflects BLACK Founder Elite status for allowlisted accounts', () => {
-    const pricingSrc = fs.readFileSync(path.resolve('src/components/PricingPage.tsx'), 'utf8');
+    const pricingSrc = fs.readFileSync(path.resolve('src/components/PricingPage.tsx'), 'utf8') +
+      fs.readFileSync(path.resolve('src/components/pricing/BlackElitePricingCard.tsx'), 'utf8');
 
     assert.ok(pricingSrc.includes('full BLACK Elite access'), 'Pricing page informs founder accounts of BLACK Elite');
     assert.ok(pricingSrc.includes('FOUNDER ACCESS — ACTIVE'), 'Badge highlights active founder tier');
-    assert.ok(pricingSrc.includes('SUBSCRIPTION_PLANS.black'), 'BLACK centerpiece rendered');
+    assert.ok(pricingSrc.includes('BlackElitePricingCard') || pricingSrc.includes('SUBSCRIPTION_PLANS.black'), 'BLACK centerpiece rendered');
   });
 
   it('10. Paid Razorpay upgrades continue working independently for non-allowlisted users', () => {

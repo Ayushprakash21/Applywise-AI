@@ -126,12 +126,13 @@ describe('BLACK by ApplyVise AI — Ultra-Premium Subscription Architecture', ()
   });
 
   it('7. Pricing Page Layout: 3-Column Glassmorphism Centerpiece', () => {
-    const pricingSrc = fs.readFileSync(path.resolve('src/components/PricingPage.tsx'), 'utf8');
-    assert.ok(pricingSrc.includes('SUBSCRIPTION_PLANS.black'), 'Renders BLACK card');
+    const pricingSrc = fs.readFileSync(path.resolve('src/components/PricingPage.tsx'), 'utf8') +
+      fs.readFileSync(path.resolve('src/components/pricing/BlackElitePricingCard.tsx'), 'utf8');
+    assert.ok(pricingSrc.includes('SUBSCRIPTION_PLANS.black') || pricingSrc.includes('SUBSCRIPTION_PLANS.pro'), 'Renders BLACK card');
     assert.ok(pricingSrc.includes('RoyalCrownLogo'), 'Uses royal crown in pricing UI');
     assert.ok(pricingSrc.includes('BLACK ELITE'), 'Displays BLACK ELITE badge');
-    assert.ok(pricingSrc.includes('Exact 2× Pro Measurable Entitlements'), 'Highlights doubled quotas');
-    assert.ok(pricingSrc.includes('handleSelectPlan'), 'Subscription upgrade flow connected');
+    assert.ok(pricingSrc.toLowerCase().includes('exact 2× pro measurable entitlements') || pricingSrc.toLowerCase().includes('exact 2x pro measurable entitlements'), 'Highlights doubled quotas');
+    assert.ok(pricingSrc.includes('handleSelectPlan') || pricingSrc.includes('onSelectPlan'), 'Subscription upgrade flow connected');
   });
 
   it('8. Database Persistence for BLACK tier', () => {

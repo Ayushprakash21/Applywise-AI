@@ -62,6 +62,7 @@ import { translationService } from './server/translationService.ts';
 import { LANGUAGE_CATALOGUE } from './src/utils/languageCatalogue.ts';
 import { GrowthEngineService } from './server/growthEngine.ts';
 import { MarketingContentItem, SocialPost } from './src/types/growthEngine.ts';
+import { discoveryRouter } from './server/sourceAdapters/routes.ts';
 import {
   handleLocationSearchRequest,
   handleCountriesRequest,
@@ -3118,6 +3119,7 @@ app.get('/api/opportunity-radar/live-jobs', (req: Request, res: Response) => {
 // AI HR OUTREACH & DIRECT APPLICATION AUTOMATION ROUTES
 // ============================================================================
 app.use('/api/hr-outreach', createHrOutreachRouter(requireAuth));
+app.use('/api/discovery', discoveryRouter);
 
 // Admin HR Contact Discovery & Pipeline Diagnostics Routes
 app.get('/api/admin/hr-discovery/diagnostics', requireAdmin, (_req: AuthenticatedRequest, res: Response) => {

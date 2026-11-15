@@ -24,8 +24,10 @@ export type AtsPlatform =
   | 'oracle_recruiting'
   | 'custom_ats';
 
-export interface DiscoveredJob extends JobVacancy {
+export interface DiscoveredJob extends Omit<JobVacancy, 'source'> {
+  source: string;
   atsPlatform?: AtsPlatform;
+  experienceLevel?: string;
   sourceConfidence: number; // 0.0 - 1.0
   sourceJobId: string;
   sourceCategory: AdapterCategory;
