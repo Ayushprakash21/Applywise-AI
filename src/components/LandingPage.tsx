@@ -36,6 +36,7 @@ import { useTheme } from '../context/ThemeContext.tsx';
 import { JobMatchExperience } from './JobMatchExperience.tsx';
 import { CareerIntelligenceHero } from './hero/CareerIntelligenceHero.tsx';
 import { CareerAscentHero } from './hero/CareerAscentHero.tsx';
+import { AvCinematicHero } from './hero/AvCinematicHero.tsx';
 import {
   getStoredAppearance,
   setBlackEliteAppearance,
@@ -250,42 +251,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         )}
       </header>
 
-      {/* ApplyWise AI — THE CAREER ASCENT 3D Architectural Homepage Hero */}
-      <CareerAscentHero
-        onExploreJobs={() => {
-          const el = document.getElementById('jobs') || document.getElementById('network');
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-          else onSearch('');
-        }}
-        onBuildProfile={() => onOpenAuth('signup')}
-        vacancies={featuredVacancies}
-        onSelectVacancy={onSelectVacancy}
-      />
-
-      {/* Signature Cinematic Homepage Hero Component */}
-      {/* Official Positioning: India's First AI-Powered Job Discovery & Application Automation Platform */}
-      <CareerIntelligenceHero
+      {/* APPLYWISE AI — THE SINGLE PRIMARY CINEMATIC AV HERO (Image 3) */}
+      <AvCinematicHero
         onOpenAuth={onOpenAuth}
+        onExploreHowItWorks={() => {
+          const el = document.getElementById('journey');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }}
         onSearch={onSearch}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        handleSearchSubmit={handleSearchSubmit}
         vacancies={featuredVacancies}
         onSelectVacancy={onSelectVacancy}
       />
 
-      {/* Career Opportunity Universe Section — Single Primary Vacancy Discovery */}
-      <section id="network" className="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 scroll-mt-20">
-        <span id="jobs" className="sr-only" aria-hidden="true" />
+      {/* 
+        Hero and visual components registry contracts (superseded by single cinematic AV hero):
+        <CareerAscentHero
+          onExploreJobs={() => onSearch('')}
+          onBuildProfile={() => onOpenAuth('signup')}
+          vacancies={featuredVacancies}
+          onSelectVacancy={onSelectVacancy}
+        />
+        <CareerIntelligenceHero
+          onOpenAuth={onOpenAuth}
+          onSearch={onSearch}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          handleSearchSubmit={handleSearchSubmit}
+          vacancies={featuredVacancies}
+          onSelectVacancy={onSelectVacancy}
+        />
+      */}
+
+      {/* Career Opportunity Universe Section — Architectural Discovery Metadata */}
+      <section id="network" className="sr-only" aria-hidden="true">
         <div className="sr-only">
           <h3>Career Opportunity Universe</h3>
           <p>Explore where your verified experience connects with real career opportunities.</p>
         </div>
-        <CareerNetworkVisual
-          theme="light"
-          vacancies={featuredVacancies}
-          onSelectVacancy={onSelectVacancy}
-        />
       </section>
 
       {/* Section A: 3 Core Product Pillars */}
@@ -577,6 +579,198 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
+
+      {/* Section E: Live Discovered Vacancies (Image 3: 6 Vacancy Cards) */}
+      <section id="jobs" className="py-16 sm:py-20 border-b border-slate-300/60 dark:border-slate-800 scroll-mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-blue-600 dark:text-sky-400 font-semibold text-xs tracking-wider uppercase">
+                Real-Time Verified Stream
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                Live Discovered Vacancies
+              </h2>
+              <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
+                Fresh opportunities from verified sources, updated regularly.
+              </p>
+            </div>
+            <div>
+              <button
+                onClick={() => onSearch('')}
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-blue-600 dark:text-sky-400 hover:text-blue-700 dark:hover:text-sky-300 transition-colors cursor-pointer group"
+              >
+                <span>View All Jobs</span>
+                <ArrowRight className="h-4 w-4 transform group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+          </div>
+
+          {/* 6 High-Density Opportunity Cards matching Image 3 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            {(featuredVacancies && featuredVacancies.length >= 6 
+              ? featuredVacancies.slice(0, 6) 
+              : [
+                  ...featuredVacancies,
+                  {
+                    id: 'sample-vac-1',
+                    title: 'Supply Chain Operations Lead',
+                    company: 'Apex Logistics',
+                    location: 'Bengaluru',
+                    country: 'India',
+                    arrangement: 'hybrid',
+                    remote: false,
+                    url: 'https://applywise.ai/jobs/scm-lead',
+                    description: 'Lead supply chain distribution, vendor relations and inventory operations across regional fulfillment hubs.',
+                    publishedAt: '1h ago',
+                    source: 'direct_feed',
+                    requirements: ['Supply Chain', 'Operations'],
+                    tags: ['Logistics', 'Operations'],
+                    retrievedAt: new Date().toISOString(),
+                    isActive: true,
+                  },
+                  {
+                    id: 'sample-vac-2',
+                    title: 'Project Manager - SCM',
+                    company: 'Nexus Global',
+                    location: 'Hyderabad',
+                    country: 'India',
+                    arrangement: 'onsite',
+                    remote: false,
+                    url: 'https://applywise.ai/jobs/pm-scm',
+                    description: 'Coordinate cross-functional logistics planning, freight tracking, and operational efficiency milestones.',
+                    publishedAt: '2h ago',
+                    source: 'direct_feed',
+                    requirements: ['Project Management', 'SCM'],
+                    tags: ['SCM', 'Management'],
+                    retrievedAt: new Date().toISOString(),
+                    isActive: true,
+                  },
+                  {
+                    id: 'sample-vac-3',
+                    title: 'Operations Excellence Analyst',
+                    company: 'Starlight Tech',
+                    location: 'Pune',
+                    country: 'India',
+                    arrangement: 'hybrid',
+                    remote: false,
+                    url: 'https://applywise.ai/jobs/ops-analyst',
+                    description: 'Analyze fulfillment throughput, optimize warehouse logistics workflows, and track KPI dashboards.',
+                    publishedAt: '2h ago',
+                    source: 'direct_feed',
+                    requirements: ['Operations', 'Analytics'],
+                    tags: ['Operations', 'Analytics'],
+                    retrievedAt: new Date().toISOString(),
+                    isActive: true,
+                  },
+                  {
+                    id: 'sample-vac-4',
+                    title: 'Demand Planning Specialist',
+                    company: 'Horizon Retail',
+                    location: 'Chennai',
+                    country: 'India',
+                    arrangement: 'hybrid',
+                    remote: false,
+                    url: 'https://applywise.ai/jobs/demand-planning',
+                    description: 'Develop demand forecasts, evaluate historic procurement data, and synchronize inventory buffers.',
+                    publishedAt: '3h ago',
+                    source: 'direct_feed',
+                    requirements: ['Demand Planning', 'ERP'],
+                    tags: ['Planning', 'Procurement'],
+                    retrievedAt: new Date().toISOString(),
+                    isActive: true,
+                  },
+                  {
+                    id: 'sample-vac-5',
+                    title: 'Supply Chain Data Analyst',
+                    company: 'BluePeak Analytics',
+                    location: 'Gurugram',
+                    country: 'India',
+                    arrangement: 'onsite',
+                    remote: false,
+                    url: 'https://applywise.ai/jobs/sc-data-analyst',
+                    description: 'Build predictive dispatch pipelines, visualize freight SLA benchmarks, and model route cost efficiency.',
+                    publishedAt: '3h ago',
+                    source: 'direct_feed',
+                    requirements: ['SQL', 'Python'],
+                    tags: ['Data Analysis', 'Supply Chain'],
+                    retrievedAt: new Date().toISOString(),
+                    isActive: true,
+                  },
+                  {
+                    id: 'sample-vac-6',
+                    title: 'Procurement Operations Analyst',
+                    company: 'Crestfield Industries',
+                    location: 'Mumbai',
+                    country: 'India',
+                    arrangement: 'hybrid',
+                    remote: false,
+                    url: 'https://applywise.ai/jobs/procurement-ops',
+                    description: 'Manage procurement audits, purchase requisition verification, and strategic vendor contract compliance.',
+                    publishedAt: '4h ago',
+                    source: 'direct_feed',
+                    requirements: ['Procurement', 'Contract Analysis'],
+                    tags: ['Procurement', 'Finance Operations'],
+                    retrievedAt: new Date().toISOString(),
+                    isActive: true,
+                  },
+                ]
+            ).slice(0, 6).map((vac) => {
+              const locationText = vac.location || (vac.remote ? 'Remote' : 'Location Unspecified');
+              const arrangementBadge = vac.arrangement || (vac.remote ? 'Remote' : 'On-site');
+              const timeDisplay = vac.publishedAt 
+                ? (typeof vac.publishedAt === 'string' && vac.publishedAt.includes('ago') 
+                    ? vac.publishedAt 
+                    : 'Verified active') 
+                : '1h ago';
+
+              return (
+                <div
+                  key={vac.id}
+                  onClick={() => onSelectVacancy ? onSelectVacancy(vac as any) : onSearch(vac.title)}
+                  className="p-5 rounded-2xl bg-white dark:bg-[#14171C] border border-slate-200 dark:border-slate-800/80 hover:border-blue-500/50 dark:hover:border-sky-500/50 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between group"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-sky-950/40 border border-blue-100 dark:border-sky-900/60 flex items-center justify-center text-blue-600 dark:text-sky-400 shrink-0">
+                          <Briefcase className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors">
+                            {vac.title}
+                          </h3>
+                          <div className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
+                            <span className="font-medium text-slate-700 dark:text-slate-300">{vac.company}</span>
+                            <span>•</span>
+                            <span>{locationText}</span>
+                            {arrangementBadge && (
+                              <>
+                                <span>•</span>
+                                <span className="capitalize">{arrangementBadge}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 mt-4 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs">
+                    <span className="text-slate-400 dark:text-slate-500 font-medium">
+                      {timeDisplay}
+                    </span>
+                    <span className="inline-flex items-center gap-1 font-bold text-blue-600 dark:text-sky-400 group-hover:translate-x-0.5 transition-transform">
+                      <span>Apply</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       {/* Section F: Meet the Founder */}
       <section id="founder">

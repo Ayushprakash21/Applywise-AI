@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrandLogo } from './BrandLogo.tsx';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Linkedin, Twitter, Youtube, Github } from 'lucide-react';
 import { BRAND_CONFIG } from '../config/brand.ts';
 
 export interface GlobalFooterProps {
@@ -163,82 +163,205 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({
     );
   }
 
-  // Landing / Marketing / Public Page Footer
+  // Landing / Marketing / Public Page Footer (Matching Image 3)
   return (
     <footer
-      className={`mt-auto py-12 text-xs border-t transition-colors ${
-        isBlack
-          ? 'bg-[#090A0C] border-[rgba(255,255,255,0.08)] text-[#92949A]'
-          : 'bg-slate-900 border-slate-800 text-slate-400'
-      } ${className}`}
+      className={`mt-auto pt-14 pb-12 text-xs border-t transition-colors bg-[#080F1C] border-[#101D30] text-slate-400 ${className}`}
+      data-testid="global-landing-footer"
+      data-theme-surface="dark"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-        {/* Left: Brand Identity, Positioning & Supporting Description */}
-        <div className="space-y-2 max-w-lg">
-          <div className="flex items-center">
-            <BrandLogo
-              variant="dark"
-              size="sm"
-              onClick={handleHome}
-            />
-          </div>
-          <div>
-            <h4 className="font-semibold text-sm tracking-tight text-[#F2F0EA]">
-              {BRAND_CONFIG.tagline}
-            </h4>
-            <p className="text-xs text-slate-400 dark:text-[#92949A] mt-1 leading-relaxed">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-10 pb-12 border-b border-white/10">
+          {/* Column 1 & 2: Brand Identity, Positioning & Supporting Description */}
+          <div className="lg:col-span-2 space-y-3">
+            <div className="flex items-center">
+              <BrandLogo
+                variant="dark"
+                size="sm"
+                onClick={handleHome}
+              />
+            </div>
+            <p className="text-xs text-slate-300 font-medium leading-relaxed max-w-sm">
+              India's First AI-Powered Job Discovery &amp; Application Automation Platform.
+            </p>
+            <p className="text-[11px] text-slate-400 leading-relaxed max-w-sm">
               {BRAND_CONFIG.description}
             </p>
           </div>
-        </div>
 
-        {/* Right: Navigation Links & Copyright */}
-        <div className="flex flex-col items-start md:items-end gap-3.5">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] font-medium text-slate-400">
-            {handleAbout && (
-              <button
-                type="button"
-                onClick={handleAbout}
-                className="hover:text-white transition-colors cursor-pointer"
-              >
-                About Us
-              </button>
-            )}
-            {handlePricing && (
-              <button
-                type="button"
-                onClick={handlePricing}
-                className="hover:text-white transition-colors cursor-pointer"
-              >
-                Features & Pricing
-              </button>
-            )}
-            {onOpenPrivacy && (
-              <button
-                type="button"
-                onClick={onOpenPrivacy}
-                className="hover:text-white transition-colors cursor-pointer"
-              >
-                Privacy Policy
-              </button>
-            )}
-            {onOpenTerms && (
-              <button
-                type="button"
-                onClick={onOpenTerms}
-                className="hover:text-white transition-colors cursor-pointer"
-              >
-                Terms of Use
-              </button>
-            )}
-            <span className="text-slate-500 font-mono text-[10px]">
-              Zero Hallucination Standard
-            </span>
+          {/* Column 3: Quick Links */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-white">
+              Quick Links
+            </h4>
+            <ul className="space-y-2 text-xs text-slate-400">
+              <li>
+                <a href="#jobs" className="hover:text-[#20B9F3] transition-colors">
+                  Jobs
+                </a>
+              </li>
+              <li>
+                <a href="#cockpit" className="hover:text-[#20B9F3] transition-colors">
+                  AI Tools
+                </a>
+              </li>
+              <li>
+                <a href="#journey" className="hover:text-[#20B9F3] transition-colors">
+                  Resources
+                </a>
+              </li>
+              {handlePricing && (
+                <li>
+                  <button
+                    type="button"
+                    onClick={handlePricing}
+                    className="hover:text-[#20B9F3] transition-colors cursor-pointer text-left"
+                  >
+                    Pricing
+                  </button>
+                </li>
+              )}
+            </ul>
           </div>
 
-          <p className="text-slate-500 font-mono text-[11px]">
-            &copy; {currentYear} ApplyVise AI. All rights reserved.
+          {/* Column 4: Company */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-white">
+              Company
+            </h4>
+            <ul className="space-y-2 text-xs text-slate-400">
+              {handleAbout && (
+                <li>
+                  <button
+                    type="button"
+                    onClick={handleAbout}
+                    className="hover:text-[#20B9F3] transition-colors cursor-pointer text-left"
+                  >
+                    About Us
+                  </button>
+                </li>
+              )}
+              <li>
+                <a href="#founder" className="hover:text-[#20B9F3] transition-colors">
+                  Founder Story
+                </a>
+              </li>
+              <li>
+                <span className="text-slate-500 cursor-default">Careers (Hiring Soon)</span>
+              </li>
+              <li>
+                <a href="mailto:support@applywise.ai" className="hover:text-[#20B9F3] transition-colors">
+                  Contact
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 5: Support */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-white">
+              Support
+            </h4>
+            <ul className="space-y-2 text-xs text-slate-400">
+              <li>
+                <a href="mailto:support@applywise.ai" className="hover:text-[#20B9F3] transition-colors">
+                  Help Center
+                </a>
+              </li>
+              {onOpenPrivacy && (
+                <li>
+                  <button
+                    type="button"
+                    onClick={onOpenPrivacy}
+                    className="hover:text-[#20B9F3] transition-colors cursor-pointer text-left"
+                  >
+                    Privacy Policy
+                  </button>
+                </li>
+              )}
+              {onOpenTerms && (
+                <li>
+                  <button
+                    type="button"
+                    onClick={onOpenTerms}
+                    className="hover:text-[#20B9F3] transition-colors cursor-pointer text-left"
+                  >
+                    Terms of Service
+                  </button>
+                </li>
+              )}
+              <li>
+                <a href="#integrity" className="hover:text-[#20B9F3] transition-colors">
+                  Zero Hallucination
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 6: Connect / Social */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-white">
+              Connect
+            </h4>
+            <div className="flex items-center space-x-3 text-slate-400">
+              <a
+                href="https://www.linkedin.com/in/ayushprakash21/"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 hover:border-[#20B9F3]/50 hover:text-[#20B9F3] flex items-center justify-center transition"
+                aria-label="LinkedIn"
+              >
+                <Linkedin className="w-4 h-4" />
+              </a>
+              <a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 hover:border-[#20B9F3]/50 hover:text-[#20B9F3] flex items-center justify-center transition"
+                aria-label="X (Twitter)"
+              >
+                <Twitter className="w-4 h-4" />
+              </a>
+              <a
+                href="https://youtube.com"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 hover:border-[#20B9F3]/50 hover:text-[#20B9F3] flex items-center justify-center transition"
+                aria-label="YouTube"
+              >
+                <Youtube className="w-4 h-4" />
+              </a>
+              <a
+                href="https://github.com"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 hover:border-[#20B9F3]/50 hover:text-[#20B9F3] flex items-center justify-center transition"
+                aria-label="GitHub"
+              >
+                <Github className="w-4 h-4" />
+              </a>
+            </div>
+
+            {/* Made in India Badge (Matching Image 3) */}
+            <div className="pt-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-semibold text-slate-300">
+                <span>🇮🇳</span>
+                <span>Made in India</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar: Copyright & Security Standard */}
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-mono">
+          <p>
+            &copy; {currentYear} ApplyWise AI. All rights reserved.
           </p>
+
+          <div className="flex items-center space-x-2 text-[11px] text-emerald-400">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Zero Hallucination Standard Grounded</span>
+          </div>
         </div>
       </div>
     </footer>

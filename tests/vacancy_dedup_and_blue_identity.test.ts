@@ -18,15 +18,13 @@ test('ApplyWise AI — Vacancy Deduplication & Blue-and-White Identity Enforceme
   const blackEliteSrc = fs.readFileSync(blackElitePath, 'utf8');
 
   await t.test('1. Single Primary Vacancy Discovery Section (Zero Duplication on Homepage)', () => {
-    // Single primary vacancy discovery section
-    assert.match(landingSrc, /Career Opportunity Universe/, 'Must retain Career Opportunity Universe as primary');
-    assert.match(landingSrc, /CareerNetworkVisual/, 'Embeds CareerNetworkVisual');
-    assert.match(landingSrc, /vacancies=\{featuredVacancies\}/, 'Passes live featured vacancies to primary visual');
-    assert.match(landingSrc, /onSelectVacancy=\{onSelectVacancy\}/, 'Passes onSelectVacancy trigger to primary visual');
+    // Single primary vacancy discovery section matching Image 3
+    assert.match(landingSrc, /Live Discovered Vacancies/, 'Must render Live Discovered Vacancies as primary live vacancy section');
+    assert.match(landingSrc, /featuredVacancies/, 'Passes live featured vacancies to primary cards');
+    assert.match(landingSrc, /onSelectVacancy/, 'Passes onSelectVacancy trigger to primary vacancy cards');
 
-    // Duplicate section must be completely eliminated
-    assert.doesNotMatch(landingSrc, /Live Discovered Vacancies/, 'Duplicate "Live Discovered Vacancies" must be removed from homepage');
-    assert.doesNotMatch(landingSrc, /featuredVacancies\.slice\(0, 6\)\.map/, 'Duplicate 6-card loop must be removed');
+    // Duplicate 3D visual removed from active homepage per Image 1 red markings
+    assert.doesNotMatch(landingSrc, /<CareerNetworkVisual/, 'Duplicate CareerNetworkVisual must be removed from homepage');
   });
 
   await t.test('2. HTML Sanitization: Eliminates Raw Tags (<div class="content-intro">) and Decodes Entities', () => {

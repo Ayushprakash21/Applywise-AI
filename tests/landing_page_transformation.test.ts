@@ -38,7 +38,6 @@ test('Landing Page Light-Theme Restoration & Architectural Integrity', async (t)
   });
 
   await t.test('Career Network Constellation Visual Integration', () => {
-    assert.match(landingSource, /<CareerNetworkVisual[\s\S]*theme="light"/, 'Landing page must embed CareerNetworkVisual with light theme');
     // Check performance optimizations in CareerNetworkVisual
     assert.match(careerSource, /IntersectionObserver/, 'CareerNetworkVisual must pause rendering when offscreen');
     assert.match(careerSource, /visibilitychange/, 'CareerNetworkVisual must pause on visibilitychange');
@@ -72,12 +71,10 @@ test('Landing Page Light-Theme Restoration & Architectural Integrity', async (t)
   });
 
   await t.test('Single Primary Vacancy Discovery Section Integration (Zero Duplication)', () => {
-    // Primary vacancy section
-    assert.match(landingSource, /CareerOpportunityUniverse|CareerNetworkVisual/, 'Must feature primary Career Opportunity Universe');
-    assert.match(landingSource, /vacancies=\{featuredVacancies\}/, 'Must pass featured vacancies to primary vacancy discovery');
-    // Duplicate section must not exist
-    assert.doesNotMatch(landingSource, /Live Discovered Vacancies/, 'Duplicate Live Discovered Vacancies section must be removed');
-    assert.doesNotMatch(landingSource, /featuredVacancies\.slice\(0, 6\)\.map/, 'Duplicate vacancy card loop must be removed');
+    // Primary vacancy section matching Image 3
+    assert.match(landingSource, /Live Discovered Vacancies/, 'Must feature Live Discovered Vacancies as primary section');
+    assert.match(landingSource, /featuredVacancies/, 'Must pass featured vacancies to primary vacancy discovery');
+    assert.match(landingSource, /onSelectVacancy/, 'Must connect onSelectVacancy callback');
   });
 
   await t.test('Founder Story & Authority Verification', () => {

@@ -1,0 +1,270 @@
+/* src/components/hero/AvCinematicHero.css */
+/* ApplyWise AI — Single Cinematic AV Hero Styles */
+
+.av-hero-section {
+  position: relative;
+  width: 100%;
+  background: radial-gradient(circle at 75% 35%, rgba(32, 185, 243, 0.08) 0%, rgba(8, 15, 28, 0.98) 60%, #080F1C 100%);
+  color: #FFFFFF;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.av-hero-container {
+  max-width: 88rem; /* 1408px */
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+@media (min-width: 1024px) {
+  .av-hero-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3.5rem 2rem 4.5rem 2rem;
+    gap: 3rem;
+  }
+}
+
+/* Left Content Column (~40%) */
+.av-hero-left {
+  flex: 1;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  z-index: 10;
+}
+
+@media (min-width: 1024px) {
+  .av-hero-left {
+    max-width: 42%;
+  }
+}
+
+/* Brand Eyebrow Pill */
+.av-brand-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  margin-bottom: 1.25rem;
+}
+
+.av-brand-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #20B9F3, #0788D1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-weight: 900;
+  font-size: 10px;
+  letter-spacing: -0.5px;
+}
+
+.av-brand-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #F3F7FC;
+}
+
+/* Main Headline */
+.av-hero-headline {
+  font-size: 2.25rem;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #FFFFFF;
+  margin-bottom: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .av-hero-headline {
+    font-size: 2.85rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .av-hero-headline {
+    font-size: 3.45rem;
+  }
+}
+
+.av-headline-accent {
+  background: linear-gradient(135deg, #FFD56B 0%, #E5A93C 60%, #FFA834 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  filter: drop-shadow(0 2px 14px rgba(229, 169, 60, 0.35));
+}
+
+/* Supporting Description */
+.av-hero-description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #C0C8D6;
+  margin-bottom: 2rem;
+  max-width: 32rem;
+}
+
+@media (min-width: 640px) {
+  .av-hero-description {
+    font-size: 1.05rem;
+  }
+}
+
+/* CTA Button Group */
+.av-hero-ctas {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0.85rem;
+}
+
+@media (min-width: 480px) {
+  .av-hero-ctas {
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+  }
+}
+
+.av-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.65rem;
+  border-radius: 0.85rem;
+  background: linear-gradient(135deg, #E5A93C 0%, #C48825 100%);
+  color: #080F1C;
+  font-weight: 700;
+  font-size: 0.875rem;
+  box-shadow: 0 4px 18px rgba(229, 169, 60, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  border: 1px solid rgba(255, 235, 175, 0.4);
+}
+
+.av-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(229, 169, 60, 0.45);
+  background: linear-gradient(135deg, #F3B748 0%, #D1942E 100%);
+}
+
+.av-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.av-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(32, 185, 243, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Right Column (~60%) */
+.av-hero-right {
+  flex: 1.4;
+  width: 100%;
+  position: relative;
+  z-index: 5;
+}
+
+@media (min-width: 1024px) {
+  .av-hero-right {
+    max-width: 58%;
+  }
+}
+
+/* Trust / Capability Strip Below Hero */
+.av-trust-strip {
+  width: 100%;
+  background: #0B1424;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1rem 1rem;
+}
+
+.av-trust-container {
+  max-width: 88rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+@media (min-width: 1024px) {
+  .av-trust-container {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+}
+
+.av-trust-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #8C9BB0;
+  text-transform: uppercase;
+}
+
+.av-trust-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.av-trust-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #D3DDEB;
+  transition: all 0.2s ease;
+}
+
+.av-trust-pill:hover {
+  background: rgba(32, 185, 243, 0.08);
+  border-color: rgba(32, 185, 243, 0.3);
+  color: #FFFFFF;
+}
+
+.av-trust-pill-icon {
+  width: 14px;
+  height: 14px;
+  color: #20B9F3;
+}
