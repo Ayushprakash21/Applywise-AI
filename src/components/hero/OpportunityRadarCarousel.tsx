@@ -82,16 +82,16 @@ export const OpportunityRadarCarousel: React.FC<OpportunityRadarCarouselProps> =
       <div className="max-w-5xl mx-auto px-4 mb-4 text-center">
         <div className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs sm:text-[13px] font-medium text-slate-300 tracking-wide">
           <span className="font-semibold text-white">1,00,000+ Professionals</span>
-          <span className="text-orange-500/80">|</span>
+          <span className="text-[#20B9F3]/60">|</span>
           <span className="font-semibold text-white">1 In 5 get recruiter callback</span>
-          <span className="text-orange-500/80">|</span>
-          <span className="text-orange-400 font-semibold">Roles surfaced 24-72 hours before traditional job boards</span>
+          <span className="text-[#20B9F3]/60">|</span>
+          <span className="text-[#20B9F3] font-semibold">Roles surfaced 24-72 hours before traditional job boards</span>
         </div>
       </div>
 
-      {/* Subtle Orange Ambient Illumination Glow */}
+      {/* Subtle Electric Blue Ambient Illumination Glow */}
       <div
-        className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 w-4/5 max-w-5xl h-28 bg-gradient-to-t from-orange-500/15 via-amber-500/5 to-transparent blur-3xl rounded-full"
+        className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 w-4/5 max-w-5xl h-28 bg-gradient-to-t from-[#20B9F3]/15 via-[#0788D1]/5 to-transparent blur-3xl rounded-full"
         aria-hidden="true"
       />
 
@@ -117,7 +117,7 @@ export const OpportunityRadarCarousel: React.FC<OpportunityRadarCarouselProps> =
               <div
                 key={`${vac.id}_${index}`}
                 onClick={() => onSelectVacancy && onSelectVacancy(vac)}
-                className="group shrink-0 flex items-center gap-3.5 px-4.5 py-3.5 rounded-2xl bg-[#0F131C]/95 hover:bg-[#151B27] border border-white/10 hover:border-orange-500/50 shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_25px_rgba(249,115,22,0.22)] transition-all duration-200 cursor-pointer backdrop-blur-md w-[290px] sm:w-[330px] md:w-[350px] h-[80px] sm:h-[84px] md:h-[86px]"
+                className="group shrink-0 flex items-center gap-3.5 px-4.5 py-3.5 rounded-2xl bg-[#0F131C]/95 hover:bg-[#151B27] border border-white/10 hover:border-[#20B9F3]/50 shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_25px_rgba(32,185,243,0.22)] transition-all duration-200 cursor-pointer backdrop-blur-md w-[290px] sm:w-[330px] md:w-[350px] h-[80px] sm:h-[84px] md:h-[86px]"
                 role="button"
                 tabIndex={0}
                 title={`${vac.title} at ${vac.company}${locationText ? ` (${locationText})` : ''}`}
@@ -142,7 +142,7 @@ export const OpportunityRadarCarousel: React.FC<OpportunityRadarCarouselProps> =
                 {/* 2. Job Information Cluster (Job Title: 15-17px, Company: 13-14px, Recency: 11-12px) */}
                 <div className="flex flex-col min-w-0 flex-1 justify-center">
                   {/* Job Title */}
-                  <span className="font-bold text-[15px] sm:text-[16px] text-white group-hover:text-orange-300 transition-colors truncate tracking-tight leading-snug">
+                  <span className="font-bold text-[15px] sm:text-[16px] text-white group-hover:text-[#20B9F3] transition-colors truncate tracking-tight leading-snug">
                     {vac.title}
                   </span>
 
@@ -160,7 +160,7 @@ export const OpportunityRadarCarousel: React.FC<OpportunityRadarCarouselProps> =
                       </>
                     )}
                     <span className="text-slate-600">·</span>
-                    <span className="font-mono text-[11px] text-orange-400/90 whitespace-nowrap shrink-0">
+                    <span className="font-mono text-[11px] text-[#20B9F3]/90 whitespace-nowrap shrink-0">
                       {recency}
                     </span>
                   </div>

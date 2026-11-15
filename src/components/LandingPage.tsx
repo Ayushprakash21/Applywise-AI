@@ -274,13 +274,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         onSelectVacancy={onSelectVacancy}
       />
 
-      {/* Career Opportunity Universe Section */}
-      <section id="network" className="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6">
+      {/* Career Opportunity Universe Section — Single Primary Vacancy Discovery */}
+      <section id="network" className="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 scroll-mt-20">
+        <span id="jobs" className="sr-only" aria-hidden="true" />
         <div className="sr-only">
           <h3>Career Opportunity Universe</h3>
           <p>Explore where your verified experience connects with real career opportunities.</p>
         </div>
-        <CareerNetworkVisual theme="light" />
+        <CareerNetworkVisual
+          theme="light"
+          vacancies={featuredVacancies}
+          onSelectVacancy={onSelectVacancy}
+        />
       </section>
 
       {/* Section A: 3 Core Product Pillars */}
@@ -572,74 +577,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* Section E: Live Job Discovery */}
-      <section id="jobs" className="py-16 sm:py-20 border-b border-slate-300/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <span className="text-blue-600 font-semibold text-xs tracking-wider uppercase">
-                Live Feed
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Live Discovered Vacancies
-              </h2>
-              <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
-                Real openings from verified company hiring feeds with live status.
-              </p>
-            </div>
-            <button
-              onClick={() => onOpenAuth('signup')}
-              className="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-semibold flex items-center space-x-1.5 w-fit transition-colors shadow-2xs"
-            >
-              <span>Explore All Live Listings</span>
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {featuredVacancies.slice(0, 6).map(v => (
-              <div
-                key={v.id}
-                onClick={() => onSelectVacancy(v)}
-                className="group p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-xs transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-4"
-              >
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 rounded-lg bg-[#F5F3EE] border border-slate-200 text-slate-600 text-[10px] uppercase font-semibold">
-                      {v.source}
-                    </span>
-                    {v.remote && (
-                      <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
-                        Remote
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-slate-900 group-hover:text-[var(--be-accent,#A78343)] transition-colors line-clamp-1">
-                      {v.title}
-                    </h3>
-                    <div className="flex items-center space-x-1.5 text-xs text-slate-500 mt-1">
-                      <Building className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                      <span>{v.company}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-500">
-                  <div className="flex items-center space-x-1 truncate max-w-[170px]">
-                    <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
-                    <span className="truncate">{v.location}</span>
-                  </div>
-                  <span className="text-blue-600 font-semibold flex items-center space-x-1 group-hover:translate-x-0.5 transition-transform">
-                    <span>Details</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Section F: Meet the Founder */}
       <section id="founder">

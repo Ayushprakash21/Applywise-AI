@@ -13,6 +13,7 @@ import {
   Info
 } from 'lucide-react';
 import { JobVacancy } from '../types/index.ts';
+import { stripHtmlToText } from '../utils/sanitizeHtml.ts';
 
 interface JobDetailModalProps {
   vacancy: JobVacancy | null;
@@ -135,7 +136,7 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({
         <div className="space-y-2 text-xs">
           <h4 className="font-semibold text-slate-200 uppercase tracking-wider text-[11px]">Job Description</h4>
           <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 text-slate-300 leading-relaxed max-h-60 overflow-y-auto whitespace-pre-line">
-            {vacancy.description}
+            {stripHtmlToText(vacancy.description) || 'No detailed description provided by employer.'}
           </div>
         </div>
 

@@ -35,6 +35,7 @@ import { api } from '../services/api.ts';
 import { useTheme } from '../context/ThemeContext.tsx';
 import { CircularCarouselItem } from './ui/CircularCarousel.tsx';
 import { CompanyLogo } from './ui/CompanyLogo.tsx';
+import { formatCleanDescriptionSnippet, stripHtmlToText } from '../utils/sanitizeHtml.ts';
 
 export interface CinematicProductShowcaseProps {
   vacancies?: JobVacancy[];
@@ -535,7 +536,7 @@ export const CinematicProductShowcase: React.FC<CinematicProductShowcaseProps> =
                     <div
                       key={vac.id}
                       onClick={() => handleOpportunityClick(vac)}
-                      className="group relative flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-white/85 dark:bg-[#12151B]/90 hover:bg-white dark:hover:bg-[#161B22] border border-slate-200/80 dark:border-white/10 hover:border-orange-500/40 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer text-left shrink-0 w-[290px] sm:w-auto snap-center select-text"
+                      className="group relative flex flex-col justify-between p-5 sm:p-6 rounded-2xl bg-[#FFFFFF] dark:bg-[#101D30] hover:bg-white dark:hover:bg-[#13243c] border border-slate-200/90 dark:border-[#1E293B] hover:border-[#0788D1]/40 dark:hover:border-[#20B9F3]/40 hover:shadow-xl hover:shadow-[#0788D1]/5 dark:hover:shadow-[#20B9F3]/5 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer text-left shrink-0 w-[290px] sm:w-auto snap-center select-text"
                       role="button"
                       tabIndex={0}
                       onKeyDown={e => {
@@ -572,14 +573,14 @@ export const CinematicProductShowcase: React.FC<CinematicProductShowcaseProps> =
                               {matchScore}% Match
                             </span>
                           ) : (
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60 shrink-0">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider bg-[#0788D1]/10 text-[#0788D1] border border-[#0788D1]/25 dark:bg-[#20B9F3]/10 dark:text-[#20B9F3] dark:border-[#20B9F3]/30 shrink-0">
                               Verified Role
                             </span>
                           )}
                         </div>
 
                         {/* Prominent Job Title */}
-                        <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-1 mb-2">
+                        <h3 className="font-extrabold text-base sm:text-lg text-[#080F1C] dark:text-[#F3F7FC] group-hover:text-[#0788D1] dark:group-hover:text-[#20B9F3] transition-colors line-clamp-1 mb-2">
                           {vac.title}
                         </h3>
 
@@ -609,9 +610,9 @@ export const CinematicProductShowcase: React.FC<CinematicProductShowcaseProps> =
                           </div>
                         )}
 
-                        {/* Clean Description Snippet */}
-                        <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
-                          {vac.description || 'Verified job opportunity sourced directly from enterprise career pipelines.'}
+                        {/* Clean Plain-Text Description Snippet (HTML Sanitized & Decoded) */}
+                        <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed mb-4">
+                          {formatCleanDescriptionSnippet(vac.description) || 'Verified job opportunity sourced directly from enterprise career pipelines.'}
                         </p>
                       </div>
 
@@ -622,7 +623,7 @@ export const CinematicProductShowcase: React.FC<CinematicProductShowcaseProps> =
                           <span>{recency}</span>
                         </span>
 
-                        <span className="inline-flex items-center space-x-1 font-semibold text-orange-600 dark:text-orange-400 group-hover:translate-x-0.5 transition-transform">
+                        <span className="inline-flex items-center space-x-1 font-semibold text-[#0788D1] dark:text-[#20B9F3] hover:text-[#056da8] dark:hover:text-[#38c9ff] group-hover:translate-x-0.5 transition-transform">
                           <span>Inspect Role</span>
                           <ArrowRight className="w-3.5 h-3.5" />
                         </span>
@@ -668,7 +669,7 @@ export const CinematicProductShowcase: React.FC<CinematicProductShowcaseProps> =
                   placeholder="Search positions or companies..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  className="pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#0788D1] dark:focus:ring-[#20B9F3]"
                 />
               </div>
             </div>
@@ -693,7 +694,7 @@ export const CinematicProductShowcase: React.FC<CinematicProductShowcaseProps> =
                     <div
                       key={v.id}
                       onClick={() => handleOpportunityClick(v)}
-                      className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                      className="p-3.5 rounded-xl border border-slate-200 dark:border-[#1E293B] hover:border-[#0788D1]/40 dark:hover:border-[#20B9F3]/40 hover:bg-sky-50/40 dark:hover:bg-[#13243c]/80 transition cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
                     >
                       <div className="flex items-center space-x-3 min-w-0">
                         <CompanyLogo
@@ -704,7 +705,7 @@ export const CinematicProductShowcase: React.FC<CinematicProductShowcaseProps> =
                           className="shrink-0 rounded-lg"
                         />
                         <div className="space-y-0.5 truncate">
-                          <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-[#0788D1] dark:group-hover:text-[#20B9F3] transition-colors">
                             {v.title}
                           </h4>
                           <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
@@ -729,7 +730,7 @@ export const CinematicProductShowcase: React.FC<CinematicProductShowcaseProps> =
                             e.stopPropagation();
                             handleOpportunityClick(v);
                           }}
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 transition"
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0788D1] text-white hover:bg-[#056da8] dark:bg-[#20B9F3] dark:text-[#080F1C] dark:hover:bg-[#1aa4d8] transition shadow-xs"
                         >
                           Direct Application
                         </button>
@@ -750,7 +751,7 @@ export const CinematicProductShowcase: React.FC<CinematicProductShowcaseProps> =
           aria-modal="true"
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
         >
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+          <div className="bg-white dark:bg-[#101D30] rounded-3xl max-w-lg w-full p-6 border border-slate-200 dark:border-[#1E293B] shadow-2xl space-y-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-3">
                 <CompanyLogo
@@ -763,7 +764,7 @@ export const CinematicProductShowcase: React.FC<CinematicProductShowcaseProps> =
                   <h3 className="font-bold text-base text-slate-900 dark:text-white">
                     {selectedVacancy.title}
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     {selectedVacancy.company} · {selectedVacancy.location || 'Remote'}
                   </p>
                 </div>
@@ -777,11 +778,11 @@ export const CinematicProductShowcase: React.FC<CinematicProductShowcaseProps> =
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-h-48 overflow-y-auto">
-              {selectedVacancy.description}
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-line">
+              {stripHtmlToText(selectedVacancy.description) || 'Verified job opportunity sourced directly from enterprise career pipelines.'}
             </p>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end space-x-2">
+            <div className="pt-3 border-t border-slate-100 dark:border-[#1E293B] flex items-center justify-end space-x-2">
               <button
                 type="button"
                 onClick={() => setSelectedVacancy(null)}
@@ -795,7 +796,7 @@ export const CinematicProductShowcase: React.FC<CinematicProductShowcaseProps> =
                   if (onSelectVacancy) onSelectVacancy(selectedVacancy);
                   setSelectedVacancy(null);
                 }}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-orange-600 hover:bg-orange-700 text-white shadow-md transition"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[#0788D1] hover:bg-[#056da8] dark:bg-[#20B9F3] dark:hover:bg-[#1aa4d8] text-white dark:text-[#080F1C] shadow-md transition"
               >
                 Direct Application
               </button>

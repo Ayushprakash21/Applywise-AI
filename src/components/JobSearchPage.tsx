@@ -28,6 +28,7 @@ import { api } from '../services/api.ts';
 import { JobComparisonDrawer } from './JobComparisonDrawer.tsx';
 import { LocationAutocomplete, FilterSelect, SearchableSelect } from './ui/SelectSystem.tsx';
 import { locationMatchesFilter } from '../data/globalLocations.ts';
+import { formatCleanDescriptionSnippet } from '../utils/sanitizeHtml.ts';
 import {
   EMPLOYMENT_TYPE_OPTIONS,
   EXPERIENCE_LEVEL_OPTIONS,
@@ -709,9 +710,9 @@ export const JobSearchPage: React.FC<JobSearchPageProps> = ({
                   </div>
                 </div>
 
-                {/* Description Snippet */}
+                {/* Description Snippet (HTML Sanitized & Decoded) */}
                 <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                  {job.description}
+                  {formatCleanDescriptionSnippet(job.description)}
                 </p>
 
                 {/* Requirements / Tags Chips */}

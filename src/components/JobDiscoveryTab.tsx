@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { JobVacancy, CareerPreferences } from '../types/index.ts';
 import { FilterSelect } from './ui/SelectSystem.tsx';
+import { formatCleanDescriptionSnippet } from '../utils/sanitizeHtml.ts';
 
 interface JobDiscoveryTabProps {
   vacancies: JobVacancy[];
@@ -255,7 +256,7 @@ export const JobDiscoveryTab: React.FC<JobDiscoveryTabProps> = ({
                     </h3>
 
                     <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                      {vac.description}
+                      {formatCleanDescriptionSnippet(vac.description)}
                     </p>
 
                     {/* Requirements Tags */}

@@ -96,20 +96,42 @@ export function isHtmlContent(input: string): boolean {
 export function stripHtmlToText(html: string): string {
   if (!html || typeof html !== 'string') return '';
 
-  const decoded = decodeHtmlEntities(html);
+  let decoded = decodeHtmlEntities(html);
+
+  // Strip script, style, and iframe tags along with their inner contents first
+  decoded = decoded.replace(/<(?:script|style|iframe|object|embed|svg|math)\b[^>]*>[\s\S]*?<\/(?:script|style|iframe|object|embed|svg|math)>/gi, '');
 
   return decoded
     // Replace block elements with linebreaks
-    .replace(/<\/(p|h[1-6]|div|tr)>/gi, '\n\n')
+    .replace(/<\/(p|h[1-6]|div|tr|article|section|header|footer)>/gi, '\n\n')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<li[^>]*>/gi, '• ')
     .replace(/<\/li>/gi, '\n')
-    // Remove all remaining tags
-    .replace(/<[^>]*>?/gm, '')
+    // Remove all remaining tags (including self-closing or malformed tags)
+    .replace(/<[^>]+>/g, '')
+    // In case any leftover encoded tags exist
+    .replace(/&lt;[^&gt;]+&gt;/g, '')
     // Replace multiple spaces and newlines
     .replace(/[ \t]+/g, ' ')
     .replace(/\n\s*\n\s*\n+/g, '\n\n')
     .trim();
+}
+
+/**
+ * Strips all HTML markup, decodes entities, and returns a clean, single-paragraph plain text excerpt
+ * perfectly suited for vacancy cards and summary list views.
+ */
+export function formatCleanDescriptionSnippet(raw: string | null | undefined, maxLength: number = 180): string {
+  if (!raw || typeof raw !== 'string') return '';
+  const text = stripHtmlToText(raw)
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  const truncated = text.slice(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(' ');
+  return (lastSpace > maxLength * 0.7 ? truncated.slice(0, lastSpace) : truncated) + '...';
 }
 
 /**

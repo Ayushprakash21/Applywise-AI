@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme-mode="dark"], [data-theme-mode="dark"] *, .dark, .dark *));
+
 @layer base {
   /* Dynamic Centralized Typography System */
   h1, h2, h3, h4, h5, h6, .font-heading {
