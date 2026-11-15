@@ -1785,3 +1785,27 @@ input.border-0 {
   }
 }
 
+/* ==========================================================================
+   APPLYWISE AI — Header Logo Light & Dark Mode Tokens
+   ========================================================================== */
+.brand-wordmark {
+  color: #17243A;
+  transition: color 0.15s ease-in-out;
+}
+
+.theme-black-dark .brand-wordmark,
+[data-be-appearance="dark"] .brand-wordmark,
+.dark .brand-wordmark {
+  color: #FFFFFF !important;
+}
+
+.theme-black-light .brand-wordmark,
+[data-be-appearance="light"] .brand-wordmark {
+  color: #17243A !important;
+}
+
+.brand-ai-accent {
+  color: #168BDB !important;
+}
+
+

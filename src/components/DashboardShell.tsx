@@ -254,7 +254,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
 
             <div className="flex items-center space-x-2">
               <BrandLogo
-                variant={plan === 'black' ? 'dark' : 'light'}
+                variant="auto"
                 size="md"
                 onClick={() => onSelectTab('overview')}
                 className="cursor-pointer"

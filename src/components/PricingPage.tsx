@@ -166,7 +166,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
         isBlack ? 'bg-[#101216]/90 border-[var(--be-border-subtle,rgba(255,255,255,0.09))] text-[#F0EEE9]' : 'bg-white/80 border-slate-200/70 text-slate-800'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <BrandLogo size="md" variant={isBlack ? 'dark' : 'light'} onClick={onNavigateHome} />
+          <BrandLogo size="md" variant="auto" onClick={onNavigateHome} />
 
           <div className="flex items-center space-x-3">
             <GlobalThemeSwitch size="sm" />

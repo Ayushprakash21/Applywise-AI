@@ -85,7 +85,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           {/* Brand Logo */}
           <BrandLogo
-            variant={isDark ? 'dark' : 'light'}
+            variant="auto"
             size="md"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           />
