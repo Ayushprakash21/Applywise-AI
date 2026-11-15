@@ -35,7 +35,7 @@ import { GlobalThemeSwitch } from './ui/GlobalThemeSwitch.tsx';
 import { useTheme } from '../context/ThemeContext.tsx';
 import { JobMatchExperience } from './JobMatchExperience.tsx';
 import { CareerIntelligenceHero } from './hero/CareerIntelligenceHero.tsx';
-import OpportunityEngineHero from './hero/OpportunityEngineHero.tsx';
+import { CareerAscentHero } from './hero/CareerAscentHero.tsx';
 import {
   getStoredAppearance,
   setBlackEliteAppearance,
@@ -250,8 +250,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         )}
       </header>
 
-      {/* ApplyWise Opportunity Engine Hero — Career Progression Staircase & Portals */}
-      <OpportunityEngineHero
+      {/* ApplyWise AI — THE CAREER ASCENT 3D Architectural Homepage Hero */}
+      <CareerAscentHero
         onExploreJobs={() => {
           const el = document.getElementById('jobs') || document.getElementById('network');
           if (el) el.scrollIntoView({ behavior: 'smooth' });
