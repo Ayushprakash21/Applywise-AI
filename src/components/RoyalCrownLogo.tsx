@@ -5,7 +5,7 @@ export interface RoyalCrownLogoProps {
   showWordmark?: boolean;
   animated?: boolean;
   className?: string;
-  variant?: 'dark' | 'light';
+  variant?: 'dark' | 'light' | 'black-elite' | 'gold';
   onClick?: () => void;
 }
 
@@ -76,8 +76,22 @@ export const RoyalCrownLogo: React.FC<RoyalCrownLogoProps> = ({
       {/* Editorial Luxury Wordmark */}
       {showWordmark && (
         <div className="flex items-center gap-1.5 font-sans tracking-wider uppercase">
-          <span className={`font-bold ${variant === 'light' ? 'text-slate-900' : 'text-[#F0EEE9]'} ${textSize}`}>BLACK</span>
-          <span className="text-[10px] tracking-widest text-[#C6A66A] font-mono font-medium">ELITE</span>
+          <span className={`font-bold ${
+            variant === 'black-elite' || variant === 'gold'
+              ? 'text-[#FAF8F5]'
+              : variant === 'light'
+              ? 'text-slate-900'
+              : 'text-[#F0EEE9]'
+          } ${textSize}`}>
+            BLACK
+          </span>
+          <span className={`text-[10px] tracking-widest font-mono font-medium ${
+            variant === 'black-elite' || variant === 'gold'
+              ? 'text-[#C9A45B]'
+              : 'text-[#C6A66A]'
+          }`}>
+            ELITE
+          </span>
         </div>
       )}
     </div>

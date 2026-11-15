@@ -1093,27 +1093,57 @@ input.border-0 {
 }
 
 /* 2b. ISOLATED DARK SURFACES (Comparison Tables, Dark Navy Callouts, Dark Hero CTAs) */
-[data-theme-surface="dark"] {
+[data-theme-surface="dark"]:not([data-theme-variant="black-elite"]) {
   background-color: #0B1528 !important;
   color: #F8FAFC !important;
 }
-[data-theme-surface="dark"] h1,
-[data-theme-surface="dark"] h2,
-[data-theme-surface="dark"] h3,
-[data-theme-surface="dark"] h4,
-[data-theme-surface="dark"] span {
+[data-theme-surface="dark"]:not([data-theme-variant="black-elite"]) h1,
+[data-theme-surface="dark"]:not([data-theme-variant="black-elite"]) h2,
+[data-theme-surface="dark"]:not([data-theme-variant="black-elite"]) h3,
+[data-theme-surface="dark"]:not([data-theme-variant="black-elite"]) h4,
+[data-theme-surface="dark"]:not([data-theme-variant="black-elite"]) span {
   color: inherit;
 }
-[data-theme-surface="dark"] p {
+[data-theme-surface="dark"]:not([data-theme-variant="black-elite"]) p {
   color: #F1F5F9 !important;
 }
-[data-theme-surface="dark"] [class*="text-sky-300"],
-[data-theme-surface="dark"] [class*="text-sky-400"] {
+[data-theme-surface="dark"]:not([data-theme-variant="black-elite"]) [class*="text-sky-300"],
+[data-theme-surface="dark"]:not([data-theme-variant="black-elite"]) [class*="text-sky-400"] {
   color: #7DD3FC !important;
 }
-[data-theme-surface="dark"] [class*="text-slate-100"],
-[data-theme-surface="dark"] [class*="text-white"] {
+[data-theme-surface="dark"]:not([data-theme-variant="black-elite"]) [class*="text-slate-100"],
+[data-theme-surface="dark"]:not([data-theme-variant="black-elite"]) [class*="text-white"] {
   color: #F8FAFC !important;
+}
+
+/* ==========================================================================
+   2c. APPLYVISE BLACK ELITE — EXCLUSIVE PERMANENT BLACK + GOLD IDENTITY
+   Mandatory Brand Rule: In BOTH Light and Dark application themes,
+   BLACK Elite MUST maintain an exclusive deep black (#090909) and metallic gold (#C9A45B)
+   visual identity. It must NEVER become beige, white, or ivory.
+   ========================================================================== */
+.black-elite-theme-card,
+[data-theme-variant="black-elite"] {
+  background-color: #090909 !important;
+  border: 1.5px solid #C9A45B !important;
+  color: #D8D3C8 !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.75), 0 0 24px rgba(201, 164, 91, 0.14) !important;
+}
+
+.black-elite-theme-card [data-be-surface="inner"],
+[data-theme-variant="black-elite"] [data-be-surface="inner"] {
+  background-color: #191713 !important;
+  border-color: rgba(201, 164, 91, 0.35) !important;
+}
+
+.black-elite-theme-card h3,
+[data-theme-variant="black-elite"] h3 {
+  color: #FAF8F5 !important;
+}
+
+.black-elite-theme-card p,
+[data-theme-variant="black-elite"] p {
+  color: #D8D3C8 !important;
 }
 
 /* 3. SAFETY GUARDS — Neutralize hardcoded dark background classes in light mode */

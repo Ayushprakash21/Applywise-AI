@@ -53,38 +53,25 @@ describe('Pricing Page Theme Remediation & Platform-Wide Consistency', () => {
     );
   });
 
-  test('PricingPage BLACK ELITE card adapts dynamically between Light ivory surface and Dark obsidian surface', () => {
+  test('PricingPage renders dedicated BlackElitePricingCard with permanent BLACK + GOLD identity', () => {
     const code = fs.readFileSync(pricingPagePath, 'utf-8');
+    const blackCardPath = path.resolve(process.cwd(), 'src/components/pricing/BlackElitePricingCard.tsx');
+    const blackCardCode = fs.readFileSync(blackCardPath, 'utf-8');
 
-    assert.ok(code.includes('data-testid="pricing-card-black"'), 'BLACK card must have testid');
+    // PricingPage integrates BlackElitePricingCard
+    assert.ok(code.includes('BlackElitePricingCard'), 'PricingPage must import and render BlackElitePricingCard');
+    assert.ok(blackCardCode.includes('data-testid="pricing-card-black"'), 'BLACK card must have testid');
 
-    // Light mode warm alabaster/ivory inner surface
-    assert.ok(
-      code.includes('from-[#FAF7F2] to-[#F5EFE6] text-slate-900 border border-[#E8DEC8]'),
-      'BLACK card inner container must provide warm ivory light surface in light mode'
-    );
+    // Visual specifications verification
+    assert.ok(blackCardCode.includes('#090909'), 'Card background must be deep premium black #090909');
+    assert.ok(blackCardCode.includes('#C9A45B'), 'Border and accents must use metallic gold #C9A45B');
+    assert.ok(blackCardCode.includes('#191713'), 'Inner surfaces must use charcoal #191713');
+    assert.ok(blackCardCode.includes('#FAF8F5'), 'Headings must use warm white #FAF8F5');
+    assert.ok(blackCardCode.includes('#D8D3C8'), 'Supporting text must use soft ivory #D8D3C8');
 
-    // Dark mode obsidian inner surface
-    assert.ok(
-      code.includes('bg-[#090B12] text-[#F8F8FC]'),
-      'BLACK card inner container must provide obsidian surface in dark mode'
-    );
-
-    // Entitlements box adaptive styling
-    assert.ok(
-      code.includes('bg-white/90 backdrop-blur-xs border border-[#C6A66A]/40 shadow-xs'),
-      'BLACK card entitlements box must render light glass card in light mode'
-    );
-    assert.ok(
-      code.includes('bg-amber-50/70 border-amber-200/80'),
-      'BLACK card entitlements metric tiles must render warm amber tiles in light mode'
-    );
-
-    // RoyalCrownLogo variant propagation
-    assert.ok(
-      code.includes('RoyalCrownLogo size="lg" animated showWordmark variant={isBlack ? \'dark\' : \'light\'}'),
-      'BLACK card must pass variant to RoyalCrownLogo to adapt wordmark contrast'
-    );
+    // Permanent theme variant markers
+    assert.ok(blackCardCode.includes('data-theme-variant="black-elite"'), 'Must define black-elite theme variant');
+    assert.ok(blackCardCode.includes('data-theme-surface="dark"'), 'Must declare dark surface to prevent light mode bleed');
   });
 
   test('blackEliteTheme getStoredAppearance defaults to light when storage is unset and syncs both keys', () => {

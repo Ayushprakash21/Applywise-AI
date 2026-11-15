@@ -20,6 +20,7 @@ import { isPermanentFreeAccessAccount } from '../config/freeAccess.ts';
 import { GlobalThemeSwitch } from './ui/GlobalThemeSwitch.tsx';
 import { useTheme } from '../context/ThemeContext.tsx';
 import { BRAND_CONFIG } from '../config/brand.ts';
+import { BlackElitePricingCard } from './pricing/BlackElitePricingCard.tsx';
 
 interface PricingPageProps {
   currentUser: AuthUser | null;
@@ -181,7 +182,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
               <div className="flex items-center gap-1.5">
                 {currentPlanId === 'black' || isFreeAccess ? (
                   <span className="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full bg-[#0B0D10] text-[#C6A66A] border border-[rgba(198,166,106,0.35)] shadow-xs">
-                    <RoyalCrownLogo size="xs" variant={isBlack ? 'dark' : 'light'} />
+                    <RoyalCrownLogo size="xs" variant="black-elite" />
                     <span>BLACK ELITE</span>
                   </span>
                 ) : (
@@ -638,182 +639,15 @@ export const PricingPage: React.FC<PricingPageProps> = ({
           </div>
 
           {/* 3. BLACK BY APPLYVISE AI — ULTRA-PREMIUM CENTERPIECE */}
-          <div
-            data-testid="pricing-card-black"
-            className={`relative rounded-3xl p-[2px] transition-transform duration-300 hover:scale-[1.01] flex flex-col justify-between ${
-              isBlack
-                ? 'bg-gradient-to-b from-[#D6B46A] via-[#F3DEAC] to-[#8065F5] shadow-2xl shadow-[#D6B46A]/20'
-                : 'bg-gradient-to-b from-[#C6A66A] via-[#E2C58A] to-[#A78343] shadow-xl shadow-amber-900/10'
-            }`}
-          >
-            {/* Glowing Ambient Halo */}
-            <div className={`absolute -top-12 -right-12 w-48 h-48 rounded-full blur-3xl pointer-events-none ${
-              isBlack ? 'bg-[#D6B46A]/20' : 'bg-amber-400/20'
-            }`} />
-            <div className={`absolute -bottom-12 -left-12 w-48 h-48 rounded-full blur-3xl pointer-events-none ${
-              isBlack ? 'bg-[#8065F5]/25' : 'bg-amber-300/20'
-            }`} />
-
-            {/* Inner Card Body — Adaptive Light/Dark Surface */}
-            <div className={`relative rounded-[22px] p-6 sm:p-8 flex flex-col justify-between h-full space-y-6 ${
-              isBlack
-                ? 'bg-[#090B12] text-[#F8F8FC]'
-                : 'bg-gradient-to-b from-[#FAF7F2] to-[#F5EFE6] text-slate-900 border border-[#E8DEC8]'
-            }`}>
-              {/* Top Crown & Badges */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <RoyalCrownLogo size="lg" animated showWordmark variant={isBlack ? 'dark' : 'light'} />
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-xs ${
-                    isBlack
-                      ? 'bg-gradient-to-r from-[#D6B46A] via-[#F3DEAC] to-[#D6B46A] text-[#090B12]'
-                      : 'bg-gradient-to-r from-[#C6A66A] via-[#E2C58A] to-[#C6A66A] text-[#191D24] border border-[#A78343]/30'
-                  }`}>
-                    {isFreeAccess ? 'FOUNDER ACCESS — ACTIVE' : currentPlanId === 'black' ? 'YOUR ACTIVE TIER' : 'BLACK ELITE'}
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className={`text-2xl font-black tracking-tight flex items-center gap-2 ${
-                    isBlack ? 'text-white' : 'text-slate-900'
-                  }`}>
-                    <span>{SUBSCRIPTION_PLANS.black.name}</span>
-                  </h3>
-                  <p className={`text-xs font-bold mt-1 tracking-wide ${
-                    isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'
-                  }`}>
-                    {SUBSCRIPTION_PLANS.black.tagline}
-                  </p>
-                  <p className={`text-[11px] mt-0.5 ${
-                    isBlack ? 'text-slate-400' : 'text-slate-600'
-                  }`}>
-                    {SUBSCRIPTION_PLANS.black.secondaryTagline}
-                  </p>
-                </div>
-
-                {/* Price Display */}
-                <div className="pt-2">
-                  <div className="flex items-baseline gap-1.5">
-                    <span className={`text-4xl sm:text-5xl font-black ${
-                      isBlack ? 'text-[#E5C477]' : 'text-[#9A6517]'
-                    }`}>
-                      {currency === 'INR'
-                        ? (billingInterval === 'annual' ? '₹1,332' : '₹1,599')
-                        : (billingInterval === 'annual' ? '$16.65' : '$19.99')}
-                    </span>
-                    <span className={`text-xs ${isBlack ? 'text-slate-400' : 'text-slate-600'}`}>/ month</span>
-                  </div>
-                  {billingInterval === 'annual' && (
-                    <p className={`text-[11px] font-bold mt-0.5 ${
-                      isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'
-                    }`}>
-                      Billed annually ({currency === 'INR' ? '₹15,990/yr' : '$199.90/yr'})
-                    </p>
-                  )}
-                </div>
-
-                <p className={`text-xs leading-relaxed pt-1 ${
-                  isBlack ? 'text-slate-300' : 'text-slate-700'
-                }`}>
-                  {SUBSCRIPTION_PLANS.black.description}
-                </p>
-
-                {/* Measurable Doubled Limits Box (Executive Guarantee) */}
-                <div className={`rounded-2xl p-4 space-y-2.5 ${
-                  isBlack
-                    ? 'bg-gradient-to-br from-[#12141D] to-[#1A1D2B] border border-[#D6B46A]/30'
-                    : 'bg-white/90 backdrop-blur-xs border border-[#C6A66A]/40 shadow-xs'
-                }`}>
-                  <span className={`text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 ${
-                    isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'
-                  }`}>
-                    <Zap className={`w-3.5 h-3.5 ${isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'}`} />
-                    <span>Exact 2× Pro Measurable Entitlements:</span>
-                  </span>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className={`p-2.5 rounded-xl border ${
-                      isBlack ? 'bg-black/40 border-white/5' : 'bg-amber-50/70 border-amber-200/80'
-                    }`}>
-                      <span className={`block text-[10px] font-medium ${isBlack ? 'text-slate-400' : 'text-slate-600'}`}>AI Copilot Volume</span>
-                      <span className={`font-bold ${isBlack ? 'text-white' : 'text-slate-900'}`}>600 req / month</span>
-                      <span className={`text-[9px] font-bold block ${isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'}`}>(2× Pro 300)</span>
-                    </div>
-                    <div className={`p-2.5 rounded-xl border ${
-                      isBlack ? 'bg-black/40 border-white/5' : 'bg-amber-50/70 border-amber-200/80'
-                    }`}>
-                      <span className={`block text-[10px] font-medium ${isBlack ? 'text-slate-400' : 'text-slate-600'}`}>Daily Auto-Apply</span>
-                      <span className={`font-bold ${isBlack ? 'text-white' : 'text-slate-900'}`}>50 / day</span>
-                      <span className={`text-[9px] font-bold block ${isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'}`}>(2× Pro 25)</span>
-                    </div>
-                    <div className={`p-2.5 rounded-xl border ${
-                      isBlack ? 'bg-black/40 border-white/5' : 'bg-amber-50/70 border-amber-200/80'
-                    }`}>
-                      <span className={`block text-[10px] font-medium ${isBlack ? 'text-slate-400' : 'text-slate-600'}`}>Resume Tailoring</span>
-                      <span className={`font-bold ${isBlack ? 'text-white' : 'text-slate-900'}`}>60 / month</span>
-                      <span className={`text-[9px] font-bold block ${isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'}`}>(2× Pro 30)</span>
-                    </div>
-                    <div className={`p-2.5 rounded-xl border ${
-                      isBlack ? 'bg-black/40 border-white/5' : 'bg-amber-50/70 border-amber-200/80'
-                    }`}>
-                      <span className={`block text-[10px] font-medium ${isBlack ? 'text-slate-400' : 'text-slate-600'}`}>Interview Prep</span>
-                      <span className={`font-bold ${isBlack ? 'text-white' : 'text-slate-900'}`}>20 sessions</span>
-                      <span className={`text-[9px] font-bold block ${isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'}`}>(2× Pro 10)</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Exclusive Capabilities List */}
-                <div className={`border-t pt-4 space-y-2.5 ${isBlack ? 'border-white/10' : 'border-[#E8DEC8]'}`}>
-                  <span className={`text-xs font-bold flex items-center gap-1.5 ${
-                    isBlack ? 'text-[#F3DEAC]' : 'text-slate-900'
-                  }`}>
-                    <Crown className={`w-3.5 h-3.5 ${isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'}`} />
-                    <span>Exclusive BLACK Capabilities:</span>
-                  </span>
-                  <ul className={`space-y-2 text-xs ${isBlack ? 'text-slate-200' : 'text-slate-800'}`}>
-                    {SUBSCRIPTION_PLANS.black.features.slice(5).map(f => (
-                      <li key={f} className="flex items-start space-x-2.5">
-                        <Check className={`h-4 w-4 shrink-0 mt-0.5 font-bold ${
-                          isBlack ? 'text-[#D6B46A]' : 'text-[#9A6517]'
-                        }`} />
-                        <span className="leading-snug">{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Subscribe to BLACK Button */}
-              <button
-                onClick={() => handleSelectPlan('black')}
-                disabled={loadingPlan === 'black' || (currentPlanId === 'black' && !!currentUser)}
-                className={`w-full py-3.5 min-h-[46px] rounded-xl text-xs font-black tracking-wide uppercase transition-all duration-200 flex items-center justify-center space-x-2 cursor-pointer shadow-lg ${
-                  currentPlanId === 'black' && currentUser
-                    ? isBlack
-                      ? 'bg-[#151821] text-[#D6B46A] border border-[#D6B46A]/50 cursor-default'
-                      : 'bg-amber-100/90 text-[#9A6517] border border-[#C6A66A]/50 cursor-default'
-                    : isBlack
-                    ? 'bg-gradient-to-r from-[#D6B46A] via-[#F3DEAC] to-[#D6B46A] text-[#090B12] hover:brightness-110 hover:shadow-[#D6B46A]/30 active:scale-[0.98]'
-                    : 'bg-gradient-to-r from-[#C6A66A] via-[#E2C58A] to-[#C6A66A] text-[#191D24] border border-[#A78343]/30 hover:brightness-105 hover:shadow-amber-900/10 active:scale-[0.98]'
-                }`}
-              >
-                {loadingPlan === 'black' ? (
-                  <div className={`h-4 w-4 border-2 border-t-transparent rounded-full animate-spin ${isBlack ? 'border-black' : 'border-slate-900'}`} />
-                ) : currentPlanId === 'black' && currentUser ? (
-                  <div className="flex items-center gap-1.5">
-                    <RoyalCrownLogo size="xs" variant={isBlack ? 'dark' : 'light'} />
-                    <span>Active BLACK Elite Membership</span>
-                  </div>
-                ) : (
-                  <>
-                    <RoyalCrownLogo size="xs" variant={isBlack ? 'dark' : 'light'} />
-                    <span>Subscribe to BLACK</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+          <BlackElitePricingCard
+            billingInterval={billingInterval}
+            currency={currency}
+            currentUser={currentUser}
+            currentPlanId={currentPlanId}
+            isFreeAccess={isFreeAccess}
+            loadingPlan={loadingPlan}
+            onSelectPlan={handleSelectPlan}
+          />
         </div>
 
         {/* Feature Comparison Table (FREE | PRO | BLACK) */}
@@ -867,7 +701,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                         : 'bg-amber-100/70 text-[#9A6517] border-l border-r border-amber-200/60'
                     }`}>
                       <div className="flex items-center justify-center gap-1.5">
-                        <RoyalCrownLogo size="xs" variant={isBlack ? 'dark' : 'light'} />
+                        <RoyalCrownLogo size="xs" variant="black-elite" />
                         <span>BLACK ELITE</span>
                       </div>
                     </th>
@@ -929,7 +763,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                           <span className={`font-extrabold flex items-center justify-center gap-1 ${
                             isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
                           }`}>
-                            {feat.isBlackExclusive && <RoyalCrownLogo size="xs" variant={isBlack ? 'dark' : 'light'} />}
+                            {feat.isBlackExclusive && <RoyalCrownLogo size="xs" variant="black-elite" />}
                             <span>{feat.blackLimit}</span>
                           </span>
                         ) : feat.includedInBlack ? (
@@ -962,7 +796,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
               <h4 className={`font-bold text-sm flex items-center gap-2 ${
                 isBlack ? 'text-[#F0EEE9]' : 'text-slate-900'
               }`}>
-                <RoyalCrownLogo size="xs" variant={isBlack ? 'dark' : 'light'} />
+                <RoyalCrownLogo size="xs" variant="black-elite" />
                 <span>What is BLACK by ApplyVise AI?</span>
               </h4>
               <p className={`leading-relaxed ${
