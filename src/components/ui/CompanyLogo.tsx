@@ -16,11 +16,11 @@ export interface CompanyLogoProps {
 }
 
 const SIZE_MAP: Record<CompanyLogoSize, { box: string; icon: string; text: string; radius: string }> = {
-  xs: { box: 'w-6 h-6', icon: 'w-4 h-4', text: 'text-[9px]', radius: 'rounded-md' },
-  sm: { box: 'w-8 h-8', icon: 'w-5 h-5', text: 'text-[11px]', radius: 'rounded-lg' },
-  md: { box: 'w-10 h-10', icon: 'w-7 h-7', text: 'text-xs font-bold', radius: 'rounded-xl' },
-  lg: { box: 'w-12 h-12', icon: 'w-8 h-8', text: 'text-sm font-bold', radius: 'rounded-xl' },
-  xl: { box: 'w-16 h-16', icon: 'w-11 h-11', text: 'text-lg font-bold', radius: 'rounded-2xl' },
+  xs: { box: 'w-6 h-6', icon: 'w-5 h-5', text: 'text-[9px]', radius: 'rounded-md' },
+  sm: { box: 'w-8 h-8', icon: 'w-7 h-7 p-0.5', text: 'text-[11px]', radius: 'rounded-lg' },
+  md: { box: 'w-10 h-10', icon: 'w-10 h-10 p-1', text: 'text-xs font-bold', radius: 'rounded-xl' },
+  lg: { box: 'w-12 h-12', icon: 'w-12 h-12 p-1', text: 'text-sm font-bold', radius: 'rounded-xl' },
+  xl: { box: 'w-16 h-16', icon: 'w-16 h-16 p-1.5', text: 'text-lg font-bold', radius: 'rounded-2xl' },
 };
 
 // Global set of known permanently failed URLs to prevent repeated broken requests

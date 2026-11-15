@@ -1769,12 +1769,13 @@ input.border-0 {
 .opportunity-ticker-track {
   display: flex;
   width: max-content;
-  animation: opportunityTicker 38s linear infinite;
+  animation: opportunityTicker var(--ticker-duration, 120s) linear infinite;
   will-change: transform;
 }
 
-.opportunity-ticker-track:hover {
-  animation-play-state: paused;
+.opportunity-ticker-track:hover,
+[aria-label="Live Career Opportunities Ticker"]:hover .opportunity-ticker-track {
+  animation-play-state: paused !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
