@@ -360,16 +360,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* Section B: How It Works (The 6-Stage Journey) */}
-      <section id="journey" className="py-16 sm:py-20 border-b border-slate-300/60">
+      <section id="journey" className={`py-16 sm:py-20 border-b transition-colors duration-200 ${
+        isDark ? 'border-slate-800' : 'border-slate-300/60'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12">
           <div className="text-center max-w-3xl mx-auto space-y-2.5">
-            <span className="text-blue-600 font-semibold text-xs tracking-wider uppercase">
+            <span className={`font-semibold text-xs tracking-wider uppercase transition-colors duration-200 ${
+              isDark ? 'text-[#FFB15C]' : 'text-blue-600'
+            }`}>
               Step-by-Step Guidance
             </span>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className={`text-2xl sm:text-4xl font-extrabold tracking-tight transition-colors duration-200 ${
+              isDark ? 'text-[#FFFFFF]' : 'text-slate-900'
+            }`}>
               From raw resume to tracked applications.
             </h2>
-            <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+            <p className={`text-xs sm:text-sm leading-relaxed transition-colors duration-200 ${
+              isDark ? 'text-[#C5C9D0]' : 'text-slate-600'
+            }`}>
               A transparent, stress-free process designed to help you organize your career search in minutes.
             </p>
           </div>
@@ -421,20 +429,44 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             ].map(stage => (
               <div
                 key={stage.num}
-                className="p-6 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-xs transition-all duration-200 flex flex-col justify-between"
+                className={`p-6 rounded-2xl border transition-all duration-200 flex flex-col justify-between hover:shadow-xs ${
+                  isDark
+                    ? 'bg-[#17191D] border-[#30343A] hover:border-[#454A52]'
+                    : 'bg-white border-slate-200 hover:border-slate-300'
+                }`}
               >
                 <div>
-                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80">
-                    <span className="font-mono text-2xl font-black text-slate-900">
+                  <div className={`flex items-center justify-between pb-3 mb-3 border-b ${
+                    isDark ? 'border-[#454A52]' : 'border-slate-200/80'
+                  }`}>
+                    <span className={`font-mono text-2xl font-black ${
+                      isDark ? 'text-[#FFFFFF]' : 'text-slate-900'
+                    }`}>
                       {stage.num}
                     </span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-[#F5F3EE] border border-slate-200 text-slate-700">
+                    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${
+                      isDark
+                        ? 'bg-[#282B31] border-[#454A52] text-[#E6E8EB]'
+                        : 'bg-[#F5F3EE] border-slate-200 text-slate-700'
+                    }`}>
                       {stage.badge}
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-slate-900 mb-1">{stage.title}</h3>
-                  <div className="text-xs font-semibold text-[var(--be-accent,#A78343)] mb-2">{stage.subtitle}</div>
-                  <p className="text-slate-600 text-xs leading-relaxed">{stage.desc}</p>
+                  <h3 className={`text-base font-bold mb-1 ${
+                    isDark ? 'text-[#F5F5F5]' : 'text-slate-900'
+                  }`}>
+                    {stage.title}
+                  </h3>
+                  <div className={`text-xs font-semibold mb-2 ${
+                    isDark ? 'text-[#FFB15C]' : 'text-[var(--be-accent,#A78343)]'
+                  }`}>
+                    {stage.subtitle}
+                  </div>
+                  <p className={`text-xs leading-relaxed ${
+                    isDark ? 'text-[#C5C9D0]' : 'text-slate-600'
+                  }`}>
+                    {stage.desc}
+                  </p>
                 </div>
               </div>
             ))}
